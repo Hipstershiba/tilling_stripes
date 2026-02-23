@@ -8,6 +8,11 @@ let allowedTypes = [];
 let totalTileTypes = (typeof TILE_RENDERERS !== 'undefined') ? TILE_RENDERERS.length : 21;
 let margin = 0;
 
+let isCanvasLocked = false;
+let isGridLocked = false;
+let canvasRatio = 1;
+let gridRatio = 1;
+
 function setup() {
   // Update total types if registry loaded later (unlikely but safe)
   if (typeof TILE_RENDERERS !== 'undefined') {
@@ -37,24 +42,89 @@ function setupUI(mainCanvas) {
   let wInput = select('#canvasW');
   let hInput = select('#canvasH');
   
+  // Lock buttons
+  let btnLockCanvasRatio = select('#btnLockCanvasRatio');
+  let btnLockGridRatio = select('#btnLockGridRatio');
+
+  if (btnLockCanvasRatio) {
+    btnLockCanvasRatio.mousePressed(() => {
+        isCanvasLocked = !isCanvasLocked;
+        btnLockCanvasRatio.html(isCanvasLocked ? '🔒' : '🔓');
+        if (isCanvasLocked) {
+           let w = parseInt(wInput.value());
+           let h = parseInt(hInput.value());
+           if (h > 0) canvasRatio = w / h;
+        }
+    });
+  }
+
   wInput.input(() => {
     let val = parseInt(wInput.value());
-    if (val > 0) resizeCanvasAndUpdate(val, height);
+    if (val > 0) {
+      if (isCanvasLocked) {
+        let newH = floor(val / canvasRatio);
+        hInput.value(newH);
+        resizeCanvasAndUpdate(val, newH);
+      } else {
+        resizeCanvasAndUpdate(val, height);
+      }
+    }
   });
   
   hInput.input(() => {
     let val = parseInt(hInput.value());
-    if (val > 0) resizeCanvasAndUpdate(width, val);
+    if (val > 0) {
+      if (isCanvasLocked) {
+        let newW = floor(val * canvasRatio);
+        wInput.value(newW);
+        resizeCanvasAndUpdate(newW, val);
+      } else {
+        resizeCanvasAndUpdate(width, val);
+      }
+    }
+  });
+
+  let gridRowsInput = select('#gridRows');
+  let gridColsInput = select('#gridCols');
+
+  if (btnLockGridRatio) {
+     btnLockGridRatio.mousePressed(() => {
+        isGridLocked = !isGridLocked;
+        btnLockGridRatio.html(isGridLocked ? '🔒' : '🔓');
+        if (isGridLocked) {
+           let r = parseInt(gridRowsInput.value());
+           let c = parseInt(gridColsInput.value());
+           if (r > 0) gridRatio = c / r; // cols per row
+        }
+     });
+  }
+  
+  gridRowsInput.input(() => { 
+    let val = parseInt(gridRowsInput.value());
+    if (val > 0) {
+      rows = val;
+      if (isGridLocked) {
+         let newCols = floor(rows * gridRatio);
+         if (newCols < 1) newCols = 1;
+         cols = newCols;
+         gridColsInput.value(cols);
+      }
+      initGrid(); 
+    }
   });
   
-  select('#gridRows').input(() => { 
-    let val = parseInt(select('#gridRows').value());
-    if (val > 0) { rows = val; initGrid(); }
-  });
-  
-  select('#gridCols').input(() => { 
-    let val = parseInt(select('#gridCols').value());
-    if (val > 0) { cols = val; initGrid(); }
+  gridColsInput.input(() => { 
+    let val = parseInt(gridColsInput.value());
+    if (val > 0) { 
+      cols = val;
+      if (isGridLocked) {
+        let newRows = floor(cols / gridRatio);
+        if (newRows < 1) newRows = 1;
+        rows = newRows;
+        gridRowsInput.value(rows);
+      }
+      initGrid(); 
+    }
   });
   
   select('#gridMargin').input(() => {
