@@ -81,10 +81,14 @@ h1 {
 }
 
 .tile-selector-group {
-  flex: 1; /* Take remaining vertical space */
-  min-height: 0; /* Allow shrinking below content size */
-  overflow: hidden; /* Prevent parent scrollbar */
-  display: flex !important; /* Force flex display */
+  flex: 1;
+  /* Take remaining vertical space */
+  min-height: 0;
+  /* Allow shrinking below content size */
+  overflow: hidden;
+  /* Prevent parent scrollbar */
+  display: flex !important;
+  /* Force flex display */
   flex-direction: column;
 }
 
@@ -92,14 +96,14 @@ h1 {
 #tileSelector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 8px;
+  gap: 60px 4px;
+  padding: 10px;
   background: #111;
   border-radius: 4px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-  
+
   /* Scrollbar styling for webkit browsers */
   scrollbar-width: thin;
   scrollbar-color: #444 #111;
@@ -108,9 +112,11 @@ h1 {
 #tileSelector::-webkit-scrollbar {
   width: 8px;
 }
+
 #tileSelector::-webkit-scrollbar-track {
   background: #111;
 }
+
 #tileSelector::-webkit-scrollbar-thumb {
   background-color: #444;
   border-radius: 4px;
@@ -172,7 +178,7 @@ button:hover {
   opacity: 0.7;
   transform: scale(1.05);
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .tile-option.selected {
@@ -181,7 +187,8 @@ button:hover {
   box-shadow: 0 0 8px rgba(33, 150, 243, 0.4);
 }
 
-.tile-option canvas, .tile-option img {
+.tile-option canvas,
+.tile-option img {
   width: 100% !important;
   height: 100% !important;
   display: block;

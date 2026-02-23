@@ -8,6 +8,8 @@
 //   color: The color to use (p5 color object)
 
 const TILE_RENDERERS = [
+    // --- Group 1: Half Rect + Circle ---
+
     // 0: Half Rect + Circle (Left)
     function(ctx, w, h, padding, color) {
         ctx.fill(color);
@@ -39,6 +41,8 @@ const TILE_RENDERERS = [
         ctx.rect(-w/2 + padding, 0, w - padding*2, h/2 - padding);
         ctx.ellipse(0, -h/4, w/2 - padding*2, h/2 - padding*2);
     },
+
+    // --- Group 2: Corner Triangles ---
 
     // 4: Triangle Top Left
     function(ctx, w, h, padding, color) {
@@ -84,6 +88,8 @@ const TILE_RENDERERS = [
         );
     },
 
+    // --- Group 3: Side Triangles ---
+
     // 8: Triangle Half Left
     function(ctx, w, h, padding, color) {
         ctx.fill(color);
@@ -128,6 +134,8 @@ const TILE_RENDERERS = [
         );
     },
 
+    // --- Group 4: Symmetric / Centered ---
+
     // 12: Diamond
     function(ctx, w, h, padding, color) {
         ctx.fill(color);
@@ -149,26 +157,7 @@ const TILE_RENDERERS = [
         ctx.rect(-w/2 + padding, -thicknessY/2, w - padding*2, thicknessY);
     },
 
-    // 14: Checkers
-    function(ctx, w, h, padding, color) {
-        ctx.fill(color);
-        ctx.noStroke();
-        let dw = (w - padding*2)/2;
-        let dh = (h - padding*2)/2;
-        ctx.rect(-w/2 + padding, -h/2 + padding, dw, dh);
-        ctx.rect(0, 0, dw, dh);
-    },
-
-    // 15: Stripes
-    function(ctx, w, h, padding, color) {
-        ctx.fill(color);
-        ctx.noStroke();
-        let stripeH = (h - padding*2) / 3;
-        ctx.rect(-w/2 + padding, -h/2 + padding, w - padding*2, stripeH);
-        ctx.rect(-w/2 + padding, -h/2 + padding + stripeH * 2, w - padding*2, stripeH);
-    },
-
-    // 16: Target
+    // 14: Target
     function(ctx, w, h, padding, color) {
         ctx.noFill();
         ctx.stroke(color);
@@ -181,7 +170,7 @@ const TILE_RENDERERS = [
         ctx.ellipse(0, 0, dw*0.2, dh*0.2);
     },
 
-    // 17: Dots
+    // 15: Dots
     function(ctx, w, h, padding, color) {
         ctx.fill(color);
         ctx.noStroke();
@@ -194,7 +183,51 @@ const TILE_RENDERERS = [
         ctx.ellipse(-ox, oy, d, d); ctx.ellipse(ox, oy, d, d);
     },
 
-    // 18: Waves
+    // --- Group 5: Checkers ---
+
+    // 16: Checkers (TL/BR)
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let dw = (w - padding*2)/2;
+        let dh = (h - padding*2)/2;
+        ctx.rect(-w/2 + padding, -h/2 + padding, dw, dh);
+        ctx.rect(0, 0, dw, dh);
+    },
+
+    // 17: Checkers Inverse (TR/BL)
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let dw = (w - padding*2)/2;
+        let dh = (h - padding*2)/2;
+        ctx.rect(0, -h/2 + padding, dw, dh);
+        ctx.rect(-w/2 + padding, 0, dw, dh);
+    },
+
+    // --- Group 6: Stripes ---
+
+    // 18: Stripes Horizontal
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let stripeH = (h - padding*2) / 3;
+        ctx.rect(-w/2 + padding, -h/2 + padding, w - padding*2, stripeH);
+        ctx.rect(-w/2 + padding, -h/2 + padding + stripeH * 2, w - padding*2, stripeH);
+    },
+
+    // 19: Stripes Vertical
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let stripeW = (w - padding*2) / 3;
+        ctx.rect(-w/2 + padding, -h/2 + padding, stripeW, h - padding*2);
+        ctx.rect(-w/2 + padding + stripeW * 2, -h/2 + padding, stripeW, h - padding*2);
+    },
+
+    // --- Group 7: Waves (Corners) ---
+
+    // 20: Waves Top Left
     function(ctx, w, h, padding, color) {
         ctx.noFill();
         ctx.stroke(color);
@@ -208,8 +241,55 @@ const TILE_RENDERERS = [
            ctx.arc(-dw/2, -dh/2, r*2, r*2, 0, HALF_PI);
         }
     },
+    
+    // 21: Waves Top Right
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let dw = w - padding*2;
+        let dh = h - padding*2;
+        let size = min(dw, dh);
+        let weight = size * 0.1;
+        ctx.strokeWeight(weight);
+        for(let i=1; i<=3; i++) {
+           let r = (size * i) / 3;
+           ctx.arc(dw/2, -dh/2, r*2, r*2, HALF_PI, PI);
+        }
+    },
 
-    // 19: Zigzag
+    // 22: Waves Bottom Right
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let dw = w - padding*2;
+        let dh = h - padding*2;
+        let size = min(dw, dh);
+        let weight = size * 0.1;
+        ctx.strokeWeight(weight);
+        for(let i=1; i<=3; i++) {
+           let r = (size * i) / 3;
+           ctx.arc(dw/2, dh/2, r*2, r*2, PI, PI + HALF_PI);
+        }
+    },
+
+    // 23: Waves Bottom Left
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let dw = w - padding*2;
+        let dh = h - padding*2;
+        let size = min(dw, dh);
+        let weight = size * 0.1;
+        ctx.strokeWeight(weight);
+        for(let i=1; i<=3; i++) {
+           let r = (size * i) / 3;
+           ctx.arc(-dw/2, dh/2, r*2, r*2, PI + HALF_PI, TWO_PI);
+        }
+    },
+
+    // --- Group 8: Zigzag ---
+
+    // 24: Zigzag Horizontal
     function(ctx, w, h, padding, color) {
         ctx.noFill();
         ctx.stroke(color);
@@ -223,7 +303,23 @@ const TILE_RENDERERS = [
         ctx.endShape();
     },
 
-    // 20: Bowtie
+    // 25: Zigzag Vertical
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let dw = w - padding*2;
+        let dh = h - padding*2;
+        let weight = min(dw, dh) * 0.1;
+        ctx.strokeWeight(weight);
+        ctx.beginShape();
+        ctx.vertex(0, -dh/2); ctx.vertex(-dw/3, -dh/4); ctx.vertex(0, 0);
+        ctx.vertex(dw/3, dh/4); ctx.vertex(0, dh/2);
+        ctx.endShape();
+    },
+
+    // --- Group 9: Bowtie / Hourglass ---
+
+    // 26: Bowtie (Horizontal)
     function(ctx, w, h, padding, color) {
         ctx.fill(color);
         ctx.noStroke();
@@ -231,6 +327,16 @@ const TILE_RENDERERS = [
         let dh = h - padding*2;
         ctx.triangle(-dw/2, -dh/2, -dw/2, dh/2, 0, 0);
         ctx.triangle(dw/2, -dh/2, dw/2, dh/2, 0, 0);
+    },
+
+    // 27: Hourglass (Vertical)
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let dw = w - padding*2;
+        let dh = h - padding*2;
+        ctx.triangle(-dw/2, -dh/2, dw/2, -dh/2, 0, 0);
+        ctx.triangle(-dw/2, dh/2, dw/2, dh/2, 0, 0);
     }
 ];
 
