@@ -5,7 +5,7 @@ let cols = 4;
 let tilesWidth, tilesHeight;
 let seed = 0;
 let allowedTypes = []; 
-let totalTileTypes = 14; 
+let totalTileTypes = 21; // Increased to 21
 let margin = 0;
 
 function setup() {

@@ -15,121 +15,80 @@ class Subtile {
     render(ctx, x, y) {
         ctx.push();
         ctx.translate(x, y);
-        if (this.type == 0) {
-            this.type0(ctx);
-        }
-        else if (this.type == 1) {
-            this.type1(ctx);
-        }
-        else if (this.type == 2) {
-            this.type2(ctx);
-        }
-        else if (this.type == 3) {
-            this.type3(ctx);
-        }
-        else if (this.type == 4) {
-            this.type4(ctx);
-        }
-        else if (this.type == 5) {
-            this.type5(ctx);
-        }
-        else if (this.type == 6) {
-            this.type6(ctx);
-        }
-        else if (this.type == 7) {
-            this.type7(ctx);
-        }
-        else if (this.type == 8) {
-            this.type8(ctx);
-        }
-        else if (this.type == 9) {
-            this.type9(ctx);
-        }
-        else if (this.type == 10) {
-            this.type10(ctx);
-        }
-        else if (this.type == 11) {
-            this.type11(ctx);
-        }
-        else if (this.type == 12) {
-            this.type12(ctx);
-        }
-        else if (this.type == 13) {
-            this.type13(ctx);
-        }
+        let t = this.type;
+        
+        // 0-3: Rect + Circle Family
+        if (t === 0) this.halfRectCircleLeft(ctx);
+        else if (t === 1) this.halfRectCircleRight(ctx);
+        else if (t === 2) this.halfRectCircleTop(ctx);
+        else if (t === 3) this.halfRectCircleBottom(ctx);
+        
+        // 4-7: Quarter Triangles (Corners)
+        else if (t === 4) this.triangleTopLeft(ctx);
+        else if (t === 5) this.triangleTopRight(ctx);
+        else if (t === 6) this.triangleBottomLeft(ctx);
+        else if (t === 7) this.triangleBottomRight(ctx);
+
+        // 8-11: Half Triangles (Diagonals)
+        else if (t === 8) this.triangleHalfLeft(ctx);
+        else if (t === 9) this.triangleHalfRight(ctx);
+        else if (t === 10) this.triangleHalfTop(ctx);
+        else if (t === 11) this.triangleHalfBottom(ctx);
+
+        // 12-15: Geometric Shapes
+        else if (t === 12) this.diamond(ctx);
+        else if (t === 13) this.cross(ctx);
+        else if (t === 14) this.checkers(ctx);
+        else if (t === 15) this.stripes(ctx);
+
+        // 16-19: Complex Shapes
+        else if (t === 16) this.target(ctx);
+        else if (t === 17) this.dots(ctx);
+        else if (t === 18) this.waves(ctx);
+        else if (t === 19) this.zigzag(ctx);
+        else if (t === 20) this.bowtie(ctx); // Moved from 14/15 
+
         ctx.pop();
     }
 
-    type0(ctx) {
+    // --- Rect + Circle Family ---
+
+    halfRectCircleLeft(ctx) {
+        // Original type 0
         ctx.fill(this.color);
         ctx.noStroke();
-        ctx.rect(
-            -this.w/2 + this.padding,
-            -this.h/2 + this.padding,
-            this.w/2 - this.padding,
-            this.h - this.padding*2
-        );
-        ctx.ellipse(
-            this.w/4,
-            0, 
-            this.w/2 - this.padding*2,
-            this.h/2 - this.padding*2
-        );
+        ctx.rect(-this.w/2 + this.padding, -this.h/2 + this.padding, this.w/2 - this.padding, this.h - this.padding*2);
+        ctx.ellipse(this.w/4, 0, this.w/2 - this.padding*2, this.h/2 - this.padding*2);
     }
 
-    type1(ctx) {
+    halfRectCircleRight(ctx) {
+        // Original type 1
         ctx.fill(this.color);
         ctx.noStroke();
-        ctx.rect(
-            0,
-            -this.h/2 + this.padding,
-            this.w/2 - this.padding,
-            this.h - this.padding*2
-        )
-        ctx.ellipse(
-            -this.w/4,
-            0, 
-            this.w/2 - this.padding*2,
-            this.h/2 - this.padding*2
-        );
+        ctx.rect(0, -this.h/2 + this.padding, this.w/2 - this.padding, this.h - this.padding*2);
+        ctx.ellipse(-this.w/4, 0, this.w/2 - this.padding*2, this.h/2 - this.padding*2);
     }
 
-    type2(ctx) {
+    halfRectCircleTop(ctx) {
+        // Original type 2
         ctx.fill(this.color);
         ctx.noStroke();
-        ctx.rect(
-            -this.w/2 + this.padding,
-            -this.h/2 + this.padding,
-            this.w - this.padding*2,
-            this.h/2 - this.padding
-        )
-        ctx.ellipse(
-            0,
-            this.h/4, 
-            this.w/2 - this.padding*2,
-            this.h/2 - this.padding*2
-        );
+        ctx.rect(-this.w/2 + this.padding, -this.h/2 + this.padding, this.w - this.padding*2, this.h/2 - this.padding);
+        ctx.ellipse(0, this.h/4, this.w/2 - this.padding*2, this.h/2 - this.padding*2);
     }
 
-    type3(ctx) {
+    halfRectCircleBottom(ctx) {
+        // Original type 3
         ctx.fill(this.color);
         ctx.noStroke();
-        ctx.rect(
-            -this.w/2 + this.padding,
-            -this.h/2 + this.padding,
-            this.w - this.padding*2,
-            this.h/2 - this.padding
-        )
-        ctx.ellipse(
-            0,
-            this.h/4, 
-            this.w/2 - this.padding*2,
-            this.h/2 - this.padding*2
-        );
-    } 
+        ctx.rect(-this.w/2 + this.padding, 0, this.w - this.padding*2, this.h/2 - this.padding);
+        ctx.ellipse(0, -this.h/4, this.w/2 - this.padding*2, this.h/2 - this.padding*2);
+    }
 
-    type4(ctx) {
-        // Triangle top-left
+    // --- Corner Triangles Family ---
+
+    triangleTopLeft(ctx) {
+        // Original type 4
         ctx.fill(this.color);
         ctx.noStroke();
         ctx.triangle(
@@ -139,8 +98,43 @@ class Subtile {
         );
     }
 
-    type5(ctx) {
-        // Triangle center pointing up
+    triangleTopRight(ctx) {
+        // New: Top Right
+        ctx.fill(this.color);
+        ctx.noStroke();
+        ctx.triangle(
+            -this.w/2 + this.padding, -this.h/2 + this.padding,
+            this.w/2 - this.padding, -this.h/2 + this.padding,
+            this.w/2 - this.padding, this.h/2 - this.padding
+        );
+    }
+
+    triangleBottomLeft(ctx) {
+        // New: Bottom Left
+        ctx.fill(this.color);
+        ctx.noStroke();
+        ctx.triangle(
+            -this.w/2 + this.padding, -this.h/2 + this.padding,
+            -this.w/2 + this.padding, this.h/2 - this.padding,
+            this.w/2 - this.padding, this.h/2 - this.padding
+        );
+    }
+
+    triangleBottomRight(ctx) {
+        // New: Bottom Right
+        ctx.fill(this.color);
+        ctx.noStroke();
+        ctx.triangle(
+            this.w/2 - this.padding, -this.h/2 + this.padding,
+            this.w/2 - this.padding, this.h/2 - this.padding,
+            -this.w/2 + this.padding, this.h/2 - this.padding
+        );
+    }
+
+    // --- Half Triangles Family (Centers) ---
+
+    triangleHalfTop(ctx) { // Center Up
+        // Original type 5
         ctx.fill(this.color);
         ctx.noStroke();
         ctx.triangle(
@@ -150,66 +144,85 @@ class Subtile {
         );
     }
 
-    type6(ctx) {
-        // Two horizontal stripes
+    triangleHalfBottom(ctx) { // Center Down
+        // New
         ctx.fill(this.color);
         ctx.noStroke();
-        let stripeH = (this.h - this.padding*2) / 3;
-        ctx.rect(
+        ctx.triangle(
+            0, this.h/2 - this.padding,
             -this.w/2 + this.padding, -this.h/2 + this.padding,
-            this.w - this.padding*2, stripeH
-        );
-        ctx.rect(
-            -this.w/2 + this.padding, -this.h/2 + this.padding + stripeH * 2,
-            this.w - this.padding*2, stripeH
+            this.w/2 - this.padding, -this.h/2 + this.padding
         );
     }
 
-    type7(ctx) {
-        // Cross
+    triangleHalfLeft(ctx) { // Point Left
+        // Original type 12 (somewhat)
+        ctx.fill(this.color);
+        ctx.noStroke();
+        ctx.triangle(
+            -this.w/2 + this.padding, 0,
+            this.w/2 - this.padding, -this.h/2 + this.padding,
+            this.w/2 - this.padding, this.h/2 - this.padding
+        );
+    }
+
+    triangleHalfRight(ctx) { // Point Right
+        // New
+        ctx.fill(this.color);
+        ctx.noStroke();
+        ctx.triangle(
+            this.w/2 - this.padding, 0,
+            -this.w/2 + this.padding, -this.h/2 + this.padding,
+            -this.w/2 + this.padding, this.h/2 - this.padding
+        );
+    }
+
+    // --- Geometric Shapes ---
+
+    stripes(ctx) {
+        // Original type 6
+        ctx.fill(this.color);
+        ctx.noStroke();
+        let stripeH = (this.h - this.padding*2) / 3;
+        ctx.rect(-this.w/2 + this.padding, -this.h/2 + this.padding, this.w - this.padding*2, stripeH);
+        ctx.rect(-this.w/2 + this.padding, -this.h/2 + this.padding + stripeH * 2, this.w - this.padding*2, stripeH);
+    }
+
+    cross(ctx) {
+        // Original type 7
         ctx.fill(this.color);
         ctx.noStroke();
         let thicknessX = (this.w - this.padding*2) / 3;
         let thicknessY = (this.h - this.padding*2) / 3;
-        // Vertical
-        ctx.rect(
-            -thicknessX/2, -this.h/2 + this.padding,
-            thicknessX, this.h - this.padding*2
-        );
-        // Horizontal
-        ctx.rect(
-            -this.w/2 + this.padding, -thicknessY/2,
-            this.w - this.padding*2, thicknessY
-        );
+        ctx.rect(-thicknessX/2, -this.h/2 + this.padding, thicknessX, this.h - this.padding*2);
+        ctx.rect(-this.w/2 + this.padding, -thicknessY/2, this.w - this.padding*2, thicknessY);
     }
 
-    type8(ctx) {
-        // Checkers 2x2
+    checkers(ctx) {
+        // Original type 8
         ctx.fill(this.color);
         ctx.noStroke();
         let w = (this.w - this.padding*2)/2;
         let h = (this.h - this.padding*2)/2;
-        
         ctx.rect(-this.w/2 + this.padding, -this.h/2 + this.padding, w, h);
         ctx.rect(0, 0, w, h);
     }
 
-    type9(ctx) {
-        // Diamond
+    diamond(ctx) {
+        // Original type 9
         ctx.fill(this.color);
         ctx.noStroke();
         let w = (this.w - this.padding*2)/2;
         let h = (this.h - this.padding*2)/2;
         ctx.beginShape();
-        ctx.vertex(0, -h); 
-        ctx.vertex(w, 0); 
-        ctx.vertex(0, h); 
-        ctx.vertex(-w, 0);
+        ctx.vertex(0, -h); ctx.vertex(w, 0); ctx.vertex(0, h); ctx.vertex(-w, 0);
         ctx.endShape(CLOSE);
     }
 
-    type10(ctx) {
-        // Target
+    // --- Complex Shapes ---
+
+    target(ctx) {
+        // Original type 10
         ctx.noFill();
         ctx.stroke(this.color);
         let weight = min(this.w, this.h) / 20;
@@ -221,8 +234,8 @@ class Subtile {
         ctx.ellipse(0, 0, w*0.2, h*0.2);
     }
 
-    type11(ctx) {
-        // Dots
+    dots(ctx) {
+        // Original type 11
         ctx.fill(this.color);
         ctx.noStroke();
         let w = (this.w - this.padding*2);
@@ -230,27 +243,46 @@ class Subtile {
         let d = min(w, h) * 0.2;
         let ox = w/4;
         let oy = h/4;
-        ctx.ellipse(-ox, -oy, d, d);
-        ctx.ellipse(ox, -oy, d, d);
-        ctx.ellipse(-ox, oy, d, d);
-        ctx.ellipse(ox, oy, d, d);
+        ctx.ellipse(-ox, -oy, d, d); ctx.ellipse(ox, -oy, d, d);
+        ctx.ellipse(-ox, oy, d, d); ctx.ellipse(ox, oy, d, d);
     }
 
-    type12(ctx) {
-        // Half Diag 1
+    waves(ctx) {
+        // Original type 17
+        ctx.noFill();
+        ctx.stroke(this.color);
+        let w = this.w - this.padding*2;
+        let h = this.h - this.padding*2;
+        let size = min(w, h);
+        let weight = size * 0.1;
+        ctx.strokeWeight(weight);
+        for(let i=1; i<=3; i++) {
+           let r = (size * i) / 3;
+           ctx.arc(-w/2, -h/2, r*2, r*2, 0, HALF_PI);
+        }
+    }
+
+    zigzag(ctx) {
+        // Original type 18
+        ctx.noFill();
+        ctx.stroke(this.color);
+        let w = this.w - this.padding*2;
+        let h = this.h - this.padding*2;
+        let weight = min(w, h) * 0.1;
+        ctx.strokeWeight(weight);
+        ctx.beginShape();
+        ctx.vertex(-w/2, 0); ctx.vertex(-w/4, -h/3); ctx.vertex(0, 0);
+        ctx.vertex(w/4, h/3); ctx.vertex(w/2, 0);
+        ctx.endShape();
+    }
+    
+    bowtie(ctx) {
+        // Original type 14
         ctx.fill(this.color);
         ctx.noStroke();
         let w = this.w - this.padding*2;
         let h = this.h - this.padding*2;
-        ctx.triangle(-w/2, -h/2, -w/2, h/2, w/2, h/2);
-    }
-
-    type13(ctx) {
-        // Half Diag 2
-        ctx.fill(this.color);
-        ctx.noStroke();
-        let w = this.w - this.padding*2;
-        let h = this.h - this.padding*2;
-        ctx.triangle(-w/2, -h/2, w/2, -h/2, w/2, h/2);
+        ctx.triangle(-w/2, -h/2, -w/2, h/2, 0, 0);
+        ctx.triangle(w/2, -h/2, w/2, h/2, 0, 0);
     }
 }

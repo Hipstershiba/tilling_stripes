@@ -20,7 +20,7 @@ class Supertile {
             if (this.allowedTypes && this.allowedTypes.length > 0) {
                 this.types.push(random(this.allowedTypes));
             } else {
-                this.types.push(floor(random(14)));
+                this.types.push(floor(random(totalTileTypes)));
             }
         }
     }   
