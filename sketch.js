@@ -156,7 +156,10 @@ function setupUI(mainCanvas) {
   let btnSave = document.getElementById('btnSave');
   if (btnSave) {
     btnSave.addEventListener('click', () => {
-      save(mainCanvas, 'pattern.png');
+      let ratio = (width / height).toFixed(2);
+      let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
+      let filename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}.png`;
+      save(mainCanvas, filename);
     });
   }
 
