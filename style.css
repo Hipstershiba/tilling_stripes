@@ -81,42 +81,36 @@ h1 {
 }
 
 .tile-selector-group {
-  flex: 1;
-  /* Shorthand for flex-grow: 1, flex-shrink: 1, flex-basis: 0% */
-  min-height: 0;
-  /* Important for Firefox to allow shrinking */
-  overflow: hidden;
-  display: flex !important;
+  flex: 1; /* Take remaining vertical space */
+  min-height: 0; /* Allow shrinking below content size */
+  overflow: hidden; /* Prevent parent scrollbar */
+  display: flex !important; /* Force flex display */
   flex-direction: column;
 }
 
-/* Ensure the tile selector grid scrolls within the available space */
+/* Consolidated tileSelector styles */
 #tileSelector {
-  overflow-y: auto;
-  min-height: 0;
-  flex-grow: 1;
-  /* Allow it to fill the parent */
-
-  /* Scrollbar styling for webkit browsers */
-  scrollbar-width: thin;
-  scrollbar-color: #444 #111;
-
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: 8px;
   background: #111;
   border-radius: 4px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  
+  /* Scrollbar styling for webkit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: #444 #111;
 }
 
 #tileSelector::-webkit-scrollbar {
   width: 8px;
 }
-
 #tileSelector::-webkit-scrollbar-track {
   background: #111;
 }
-
 #tileSelector::-webkit-scrollbar-thumb {
   background-color: #444;
   border-radius: 4px;
@@ -161,7 +155,7 @@ button:hover {
   background: #555;
 }
 
-/* Removed duplicate #tileSelector rule */
+
 
 .tile-option {
   aspect-ratio: 1;
@@ -177,6 +171,8 @@ button:hover {
 .tile-option:hover {
   opacity: 0.7;
   transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .tile-option.selected {
@@ -185,10 +181,11 @@ button:hover {
   box-shadow: 0 0 8px rgba(33, 150, 243, 0.4);
 }
 
-.tile-option canvas {
+.tile-option canvas, .tile-option img {
   width: 100% !important;
   height: 100% !important;
   display: block;
+  object-fit: contain;
 }
 
 .actions {
