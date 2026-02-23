@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sketch</title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <script src="libraries/p5.min.js"></script>
+  <script src="libraries/p5.sound.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script> -->
+</head>
+
+<body>
+  <div id="controls">
+    <button id="btnToggleUI"
+      style="position:absolute; right:10px; top:10px; width:40px; z-index:100; font-size:1.2rem; display:none;">✕</button>
+    <h1>Pattern Gen</h1>
+
+    <div class="control-group">
+      <label>Canvas Size</label>
+      <div class="row">
+        <input type="number" id="canvasW" value="600" step="50">
+        <span>x</span>
+        <input type="number" id="canvasH" value="600" step="50">
+      </div>
+      <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
+      <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
+    </div>
+
+    <div class="control-group">
+      <label>Grid (Rows x Cols)</label>
+      <div class="row">
+        <input type="number" id="gridRows" value="4" min="1" max="50">
+        <span>x</span>
+        <input type="number" id="gridCols" value="4" min="1" max="50">
+      </div>
+      <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
+    </div>
+
+    <div class="control-group">
+      <label>Margin (px)</label>
+      <input type="number" id="gridMargin" value="0" min="0" step="10">
+    </div>
+
+    <div class="control-group">
+      <label>Seed</label>
+      <div class="row">
+        <input type="number" id="seedInput" value="0">
+        <button id="btnRandomize">🎲</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Allowed Tiles</label>
+      <div id="tileSelector">
+        <!-- Javascript will populate this -->
+      </div>
+      <div class="row">
+        <button id="selectAll">All</button>
+        <button id="selectNone">None</button>
+      </div>
+    </div>
+
+    <div class="control-group actions">
+      <button id="btnSave">Save Image</button>
+    </div>
+  </div>
+
+  <div id="canvas-container">
+    <button id="btnFullscreen" title="Toggle Fullscreen">⛶</button>
+  </div>
+
+  <script src="subtile.js"></script>
+  <script src="tiles.js"></script>
+  <script src="supertile.js"></script>
+  <script src="sketch.js"></script>
+</body>
+
+</html>

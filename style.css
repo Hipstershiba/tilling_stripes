@@ -1,0 +1,185 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  /* ensure width is explicit */
+  display: flex;
+  flex-direction: row-reverse;
+  /* Controls on the right */
+  overflow: hidden;
+  background-color: #1a1a1a;
+  color: #eee;
+}
+
+/* Floating button style */
+#btnFullscreen {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  /* On the top-left of the canvas area */
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: all 0.2s ease;
+}
+
+#btnFullscreen:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Fullscreen mode hides controls */
+body.fullscreen #controls {
+  display: none;
+}
+
+body.fullscreen #canvas-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+#controls {
+  width: 300px;
+  background-color: #252525;
+  padding: 20px;
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid #333;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+input[type="number"] {
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
+  font-family: inherit;
+}
+
+button {
+  background: #444;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+button:hover {
+  background: #555;
+}
+
+#tileSelector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 4px;
+  background: #111;
+  border-radius: 4px;
+}
+
+.tile-option {
+  aspect-ratio: 1;
+  background: #222;
+  border: 2px solid transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0.4;
+  transition: all 0.2s;
+}
+
+.tile-option:hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+}
+
+.tile-option.selected {
+  border-color: #2196F3;
+  opacity: 1;
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.4);
+}
+
+.tile-option canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#btnSave {
+  background-color: #4CAF50;
+  padding: 12px;
+}
+
+#canvas-container {
+  flex: 1 1 0%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #111;
+  overflow: auto;
+  /* allows scrolling if canvas is larger than available space */
+  padding: 10px;
+  position: relative;
+  height: 100vh;
+}
+
+canvas {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  display: block;
+}
