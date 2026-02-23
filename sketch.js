@@ -16,7 +16,7 @@ function setup() {
   seed = floor(random(10000));
   
   // Initialize UI controls
-  setupUI();
+  setupUI(canvas);
 
   // Populate tile selector
   generateTileThumbnails();
@@ -28,7 +28,7 @@ function setup() {
   initGrid();
 }
 
-function setupUI() {
+function setupUI(mainCanvas) {
   // Bind inputs
   let wInput = select('#canvasW');
   let hInput = select('#canvasH');
@@ -77,7 +77,14 @@ function setupUI() {
   });
   
   // select('#btnRedraw').mousePressed(initGrid); // Removed as it auto-updates
-  select('#btnSave').mousePressed(() => saveCanvas('pattern', 'png'));
+  
+  // Use Vanilla JS for save button to ensure reliability
+  let btnSave = document.getElementById('btnSave');
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      save(mainCanvas, 'pattern.png');
+    });
+  }
 
   select('#selectAll').mousePressed(selectAllTiles);
   select('#selectNone').mousePressed(selectNoneTiles);

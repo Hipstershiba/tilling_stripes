@@ -60,6 +60,8 @@ body.fullscreen #canvas-container {
   flex-direction: column;
   gap: 20px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 h1 {
