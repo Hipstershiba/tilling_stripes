@@ -20,7 +20,8 @@ class Supertile {
             if (this.allowedTypes && this.allowedTypes.length > 0) {
                 this.types.push(random(this.allowedTypes));
             } else {
-                this.types.push(floor(random(totalTileTypes)));
+                let limit = (typeof TILE_RENDERERS !== 'undefined') ? TILE_RENDERERS.length : 21;
+                this.types.push(floor(random(limit)));
             }
         }
     }   

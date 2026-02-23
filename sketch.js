@@ -5,10 +5,14 @@ let cols = 4;
 let tilesWidth, tilesHeight;
 let seed = 0;
 let allowedTypes = []; 
-let totalTileTypes = 21; // Increased to 21
+let totalTileTypes = (typeof TILE_RENDERERS !== 'undefined') ? TILE_RENDERERS.length : 21;
 let margin = 0;
 
 function setup() {
+  // Update total types if registry loaded later (unlikely but safe)
+  if (typeof TILE_RENDERERS !== 'undefined') {
+      totalTileTypes = TILE_RENDERERS.length;
+  }
   // Initial canvas creation
   let canvas = createCanvas(600, 600);
   canvas.parent('canvas-container');
