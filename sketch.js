@@ -22,7 +22,18 @@ function setup() {
   let canvas = createCanvas(600, 600);
   canvas.parent('canvas-container');
   
-  seed = floor(random(10000));
+  // Use existing seed from input if valid, otherwise random
+  let seedInput = select('#seedInput');
+  if (seedInput && seedInput.value() !== "") {
+     let s = parseInt(seedInput.value());
+     if (!isNaN(s)) {
+        seed = s;
+     } else {
+        seed = floor(random(10000));
+     }
+  } else {
+     seed = floor(random(10000));
+  }
   
   // Initialize UI controls
   setupUI(canvas);
@@ -155,11 +166,27 @@ function setupUI(mainCanvas) {
   // Use Vanilla JS for save button to ensure reliability
   let btnSave = document.getElementById('btnSave');
   if (btnSave) {
-    btnSave.addEventListener('click', () => {
+    btnSave.addEventListener('click', (e) => {
+      e.preventDefault(); 
+      e.stopPropagation();
+
       let ratio = (width / height).toFixed(2);
       let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
       let filename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}.png`;
-      save(mainCanvas, filename);
+      
+      // Manual save to avoid potential p5.js/browser conflicts
+      // mainCanvas is a p5.Element, .elt is the HTML5 canvas
+      try {
+        let dataURL = mainCanvas.elt.toDataURL('image/png');
+        let link = document.createElement('a');
+        link.download = filename;
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error("Error saving canvas:", err);
+      }
     });
   }
 
