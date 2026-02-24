@@ -337,6 +337,196 @@ const TILE_RENDERERS = [
         let dh = h - padding*2;
         ctx.triangle(-dw/2, -dh/2, dw/2, -dh/2, 0, 0);
         ctx.triangle(-dw/2, dh/2, dw/2, dh/2, 0, 0);
+    },
+
+    // --- Group 10: L-Shape ---
+
+    // 28: L-Shape Top Left
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vertical part (left)
+        ctx.rect(-w/2 + padding, -h/2 + padding, thickness, h - padding*2);
+        // Horizontal part (top)
+        ctx.rect(-w/2 + padding, -h/2 + padding, w - padding*2, thickness);
+    },
+
+    // 29: L-Shape Top Right
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vertical part (right)
+        ctx.rect(w/2 - padding - thickness, -h/2 + padding, thickness, h - padding*2);
+        // Horizontal part (top)
+        ctx.rect(-w/2 + padding, -h/2 + padding, w - padding*2, thickness);
+    },
+
+    // 30: L-Shape Bottom Right
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vertical part (right)
+        ctx.rect(w/2 - padding - thickness, -h/2 + padding, thickness, h - padding*2);
+        // Horizontal part (bottom)
+        ctx.rect(-w/2 + padding, h/2 - padding - thickness, w - padding*2, thickness);
+    },
+
+    // 31: L-Shape Bottom Left
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vertical part (left)
+        ctx.rect(-w/2 + padding, -h/2 + padding, thickness, h - padding*2);
+        // Horizontal part (bottom)
+        ctx.rect(-w/2 + padding, h/2 - padding - thickness, w - padding*2, thickness);
+    },
+
+    // --- Group 11: T-Shape ---
+
+    // 32: T-Shape Top
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Horz (top)
+        ctx.rect(-w/2 + padding, -h/2 + padding, w - padding*2, thickness);
+        // Vert (center)
+        ctx.rect(-thickness/2, -h/2 + padding, thickness, h - padding*2);
+    },
+
+    // 33: T-Shape Right
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vert (right)
+        ctx.rect(w/2 - padding - thickness, -h/2 + padding, thickness, h - padding*2);
+        // Horz (center)
+        ctx.rect(-w/2 + padding, -thickness/2, w - padding*2, thickness);
+    },
+
+    // 34: T-Shape Bottom
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Horz (bottom)
+        ctx.rect(-w/2 + padding, h/2 - padding - thickness, w - padding*2, thickness);
+        // Vert (center)
+        ctx.rect(-thickness/2, -h/2 + padding, thickness, h - padding*2);
+    },
+
+    // 35: T-Shape Left
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let thickness = min(w, h) / 3;
+        // Vert (left)
+        ctx.rect(-w/2 + padding, -h/2 + padding, thickness, h - padding*2);
+        // Horz (center)
+        ctx.rect(-w/2 + padding, -thickness/2, w - padding*2, thickness);
+    },
+
+    // --- Group 12: Diagonal Line ---
+
+    // 36: Diagonal (Top-Left to Bottom-Right)
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let weight = min(w, h) * 0.15;
+        ctx.strokeWeight(weight);
+        ctx.line(-w/2 + padding, -h/2 + padding, w/2 - padding, h/2 - padding);
+    },
+
+    // 37: Diagonal (Top-Right to Bottom-Left)
+    function(ctx, w, h, padding, color) {
+        ctx.noFill();
+        ctx.stroke(color);
+        let weight = min(w, h) * 0.15;
+        ctx.strokeWeight(weight);
+        ctx.line(w/2 - padding, -h/2 + padding, -w/2 + padding, h/2 - padding);
+    },
+
+    // --- Group 13: Quarter Arc (Filled) ---
+
+    // 38: Arc Top Left
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        // Draw arc centered at corner
+        ctx.arc(-w/2 + padding, -h/2 + padding, w*1.5, h*1.5, 0, HALF_PI);
+    },
+
+    // 39: Arc Top Right
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        ctx.arc(w/2 - padding, -h/2 + padding, w*1.5, h*1.5, HALF_PI, PI);
+    },
+
+    // 40: Arc Bottom Right
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        ctx.arc(w/2 - padding, h/2 - padding, w*1.5, h*1.5, PI, PI + HALF_PI);
+    },
+
+    // 41: Arc Bottom Left
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        ctx.arc(-w/2 + padding, h/2 - padding, w*1.5, h*1.5, PI + HALF_PI, TWO_PI);
+    },
+
+    // --- Group 15: Grid 2x2 ---
+
+    // 42: Grid 2x2
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let gap = min(w, h) * 0.1;
+        let blockSize = (min(w, h) - padding*2 - gap)/2;
+        
+        // Top Left
+        ctx.rect(-blockSize - gap/2, -blockSize - gap/2, blockSize, blockSize);
+        // Top Right
+        ctx.rect(gap/2, -blockSize - gap/2, blockSize, blockSize);
+        // Bottom Left
+        ctx.rect(-blockSize - gap/2, gap/2, blockSize, blockSize);
+        // Bottom Right
+        ctx.rect(gap/2, gap/2, blockSize, blockSize);
+    },
+    
+    // --- Group 16: Three Dots Diagonal ---
+
+    // 43: Three Dots (TL-BR)
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let r = min(w, h) * 0.15;
+        // Center
+        ctx.ellipse(0, 0, r*2);
+        // TL
+        ctx.ellipse(-w/3 + padding/2, -h/3 + padding/2, r*2);
+        // BR
+        ctx.ellipse(w/3 - padding/2, h/3 - padding/2, r*2);
+    },
+    
+    // 44: Three Dots (TR-BL)
+    function(ctx, w, h, padding, color) {
+        ctx.fill(color);
+        ctx.noStroke();
+        let r = min(w, h) * 0.15;
+        // Center
+        ctx.ellipse(0, 0, r*2);
+        // TR
+        ctx.ellipse(w/3 - padding/2, -h/3 + padding/2, r*2);
+        // BL
+        ctx.ellipse(-w/3 + padding/2, h/3 - padding/2, r*2);
     }
 ];
 

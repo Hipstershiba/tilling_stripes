@@ -54,13 +54,29 @@ class SimpleSVG {
         // e' = e, f' = f
         let m = this.currentMatrix;
         
-        // Deep copy the matrix before modifying it? 
-        // No, currentMatrix returns a reference to the top of the stack.
-        // We modify the top of the stack in place.
         m.a *= sx;
         m.b *= sx;
         m.c *= sy;
         m.d *= sy;
+    }
+    
+    rotate(angle) {
+        // Multiply current matrix by rotation matrix [cos -sin 0]
+        //                                           [sin  cos 0]
+        //                                           [ 0    0  1]
+        let m = this.currentMatrix;
+        let c = Math.cos(angle);
+        let s = Math.sin(angle);
+        
+        let a = m.a;
+        let b = m.b;
+        let c_val = m.c;
+        let d = m.d;
+        
+        m.a = a * c + c_val * s;
+        m.b = b * c + d * s;
+        m.c = a * -s + c_val * c;
+        m.d = b * -s + d * c;
     }
 
     // --- Styling ---
@@ -123,6 +139,12 @@ class SimpleSVG {
         let attrs = this._getStyleAttrs();
         let trans = this._getTransformAttr();
         this.elements.push(`<polygon points="${pts}" ${attrs} ${trans} />`);
+    }
+
+    line(x1, y1, x2, y2) {
+        let attrs = this._getStyleAttrs();
+        let trans = this._getTransformAttr();
+        this.elements.push(`<line x1="${this._fmt(x1)}" y1="${this._fmt(y1)}" x2="${this._fmt(x2)}" y2="${this._fmt(y2)}" ${attrs} ${trans} />`);
     }
 
     // --- Vertex Shapes ---
