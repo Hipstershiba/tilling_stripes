@@ -49,6 +49,23 @@ class Tile {
         image(this.buffer, drawX, drawY);
     }
 
+    renderVector(targetCtx, x, y) {
+        let drawX = x !== undefined ? x : this.x;
+        let drawY = y !== undefined ? y : this.y;
+
+        targetCtx.push();
+        targetCtx.translate(drawX, drawY);
+        for (let i = 0; i < this.subtiles.length; i++) {
+            this.subtiles[i].render(
+                targetCtx,
+                (i % 2 - 0.5) * this.w / 2,
+                (floor(i / 2) - 0.5) * this.h / 2
+            );
+        }
+        targetCtx.pop();
+    }
+
+
     set_pos(x, y) {
         this.x = x;
         this.y = y;

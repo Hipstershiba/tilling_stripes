@@ -64,5 +64,44 @@ class Supertile {
         pop();
     }
 
+    renderVector(targetCtx) {
+        targetCtx.push();
+        targetCtx.translate(this.x, this.y);
+        
+        // Apply Global Mirroring
+        if (this.mirrorX) targetCtx.scale(-1, 1);
+        if (this.mirrorY) targetCtx.scale(1, -1);
+
+        // Top-Left: Normal
+        targetCtx.push();
+        targetCtx.translate(-this.w/4, -this.h/4);
+        this.baseTile.renderVector(targetCtx, 0, 0);
+        targetCtx.pop();
+
+        // Top-Right: Flipped Horizontally
+        targetCtx.push();
+        targetCtx.translate(this.w/4, -this.h/4);
+        targetCtx.scale(-1, 1);
+        this.baseTile.renderVector(targetCtx, 0, 0);
+        targetCtx.pop();
+
+        // Bottom-Left: Flipped Vertically
+        targetCtx.push();
+        targetCtx.translate(-this.w/4, this.h/4);
+        targetCtx.scale(1, -1);
+        this.baseTile.renderVector(targetCtx, 0, 0);
+        targetCtx.pop();
+
+        // Bottom-Right: Flipped Both
+        targetCtx.push();
+        targetCtx.translate(this.w/4, this.h/4);
+        targetCtx.scale(-1, -1);
+        this.baseTile.renderVector(targetCtx, 0, 0);
+        targetCtx.pop();
+
+        targetCtx.pop();
+    }
+
+
 
 }

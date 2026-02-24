@@ -190,6 +190,40 @@ function setupUI(mainCanvas) {
     });
   }
 
+  // Save SVG Logic
+  let btnSaveSVG = document.getElementById('btnSaveSVG');
+  if (btnSaveSVG) {
+    btnSaveSVG.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            // Create off-screen SVG graphics using our custom SimpleSVG context
+            let svg = new SimpleSVG(width, height);
+            svg.background(0); // Start with background
+
+            // Render all tiles to SVG buffer
+            for (let tile of tiles) {
+                if (typeof tile.renderVector === 'function') {
+                    tile.renderVector(svg);
+                } else {
+                    console.warn('Tile missing renderVector method');
+                }
+            }
+
+            let ratio = (width / height).toFixed(2);
+            let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
+            let filename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}.svg`;
+            
+            svg.save(filename);
+            
+        } catch (err) {
+            console.error("Error saving SVG:", err);
+            alert("Error saving SVG. See console for details.");
+        }
+    });
+  }
+
   select('#selectAll').mousePressed(selectAllTiles);
   select('#selectNone').mousePressed(selectNoneTiles);
 }
