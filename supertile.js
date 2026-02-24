@@ -64,7 +64,7 @@ class Supertile {
         pop();
     }
 
-    renderVector(targetCtx) {
+    renderVector(targetCtx, customColor) {
         targetCtx.push();
         targetCtx.translate(this.x, this.y);
         
@@ -75,28 +75,28 @@ class Supertile {
         // Top-Left: Normal
         targetCtx.push();
         targetCtx.translate(-this.w/4, -this.h/4);
-        this.baseTile.renderVector(targetCtx, 0, 0);
+        this.baseTile.renderVector(targetCtx, 0, 0, customColor);
         targetCtx.pop();
 
         // Top-Right: Flipped Horizontally
         targetCtx.push();
         targetCtx.translate(this.w/4, -this.h/4);
         targetCtx.scale(-1, 1);
-        this.baseTile.renderVector(targetCtx, 0, 0);
+        this.baseTile.renderVector(targetCtx, 0, 0, customColor);
         targetCtx.pop();
 
         // Bottom-Left: Flipped Vertically
         targetCtx.push();
         targetCtx.translate(-this.w/4, this.h/4);
         targetCtx.scale(1, -1);
-        this.baseTile.renderVector(targetCtx, 0, 0);
+        this.baseTile.renderVector(targetCtx, 0, 0, customColor);
         targetCtx.pop();
 
         // Bottom-Right: Flipped Both
         targetCtx.push();
         targetCtx.translate(this.w/4, this.h/4);
         targetCtx.scale(-1, -1);
-        this.baseTile.renderVector(targetCtx, 0, 0);
+        this.baseTile.renderVector(targetCtx, 0, 0, customColor);
         targetCtx.pop();
 
         targetCtx.pop();

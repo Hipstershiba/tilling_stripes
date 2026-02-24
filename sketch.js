@@ -200,12 +200,19 @@ function setupUI(mainCanvas) {
         try {
             // Create off-screen SVG graphics using our custom SimpleSVG context
             let svg = new SimpleSVG(width, height);
-            svg.background(0); // Start with background
-
+            
+            // Note: We do NOT draw a background rect here, so the background is transparent.
+            // This is ideal for plotting.
+            
             // Render all tiles to SVG buffer
+            // We pass 'black' (or any dark color) to force high contrast for the plotter
+            // regardless of the on-screen colors (which might be white-on-black).
+            let exportColor = 'black'; 
+
             for (let tile of tiles) {
                 if (typeof tile.renderVector === 'function') {
-                    tile.renderVector(svg);
+                    // Pass export color down the chain
+                    tile.renderVector(svg, exportColor);
                 } else {
                     console.warn('Tile missing renderVector method');
                 }

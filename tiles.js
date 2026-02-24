@@ -49,7 +49,7 @@ class Tile {
         image(this.buffer, drawX, drawY);
     }
 
-    renderVector(targetCtx, x, y) {
+    renderVector(targetCtx, x, y, customColor) {
         let drawX = x !== undefined ? x : this.x;
         let drawY = y !== undefined ? y : this.y;
 
@@ -59,7 +59,8 @@ class Tile {
             this.subtiles[i].render(
                 targetCtx,
                 (i % 2 - 0.5) * this.w / 2,
-                (floor(i / 2) - 0.5) * this.h / 2
+                (floor(i / 2) - 0.5) * this.h / 2,
+                customColor 
             );
         }
         targetCtx.pop();

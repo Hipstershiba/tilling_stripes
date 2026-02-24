@@ -12,12 +12,14 @@ class Subtile {
         this.color = color;
     }
 
-    render(ctx, x, y) {
+    render(ctx, x, y, customColor) {
         ctx.push();
         ctx.translate(x, y);
         
+        let c = customColor !== undefined ? customColor : this.color;
+
         if (typeof TILE_RENDERERS !== 'undefined' && TILE_RENDERERS[this.type]) {
-             TILE_RENDERERS[this.type](ctx, this.w, this.h, this.padding, this.color);
+             TILE_RENDERERS[this.type](ctx, this.w, this.h, this.padding, c);
         } else {
             // Fallback or error
             console.warn(`Tile type ${this.type} not found in registry`);
