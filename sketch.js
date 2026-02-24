@@ -314,6 +314,14 @@ function generateTileThumbnails() {
     let div = createDiv('');
     div.class('tile-option');
     div.attribute('data-type', i);
+    
+    // Add tooltip
+    if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) {
+        div.attribute('title', `#${i}: ${TILE_NAMES[i]}`);
+    } else {
+        div.attribute('title', 'Tile #' + i);
+    }
+
     div.parent(container);
     
     // Create a graphics object to render the tile

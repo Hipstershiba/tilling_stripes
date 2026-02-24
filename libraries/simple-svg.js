@@ -208,7 +208,14 @@ class SimpleSVG {
         let largeArc = (diff > Math.PI) ? 1 : 0;
         let sweep = 1; // clockwise
         
-        let d = `M ${this._fmt(x1)},${this._fmt(y1)} A ${this._fmt(rx)} ${this._fmt(ry)} 0 ${largeArc} ${sweep} ${this._fmt(x2)},${this._fmt(y2)}`;
+        let d;
+        // If filled, we want a pie slice (sector), so we must start at center, go to start point, arc, then close to center
+        if (this.currentFill !== 'none') {
+             d = `M ${this._fmt(x)},${this._fmt(y)} L ${this._fmt(x1)},${this._fmt(y1)} A ${this._fmt(rx)} ${this._fmt(ry)} 0 ${largeArc} ${sweep} ${this._fmt(x2)},${this._fmt(y2)} Z`;
+        } else {
+             // If not filled (stroke only), just the arc
+             d = `M ${this._fmt(x1)},${this._fmt(y1)} A ${this._fmt(rx)} ${this._fmt(ry)} 0 ${largeArc} ${sweep} ${this._fmt(x2)},${this._fmt(y2)}`;
+        }
         
         // For arcs (like waves), usually no fill
         let attrs = this._getStyleAttrs();

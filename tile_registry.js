@@ -530,8 +530,57 @@ const TILE_RENDERERS = [
     }
 ];
 
+const TILE_NAMES = [
+    "Half Rect + Circle (Left)",
+    "Half Rect + Circle (Right)",
+    "Half Rect + Circle (Top)",
+    "Half Rect + Circle (Bottom)",
+    "Triangle Top Left",
+    "Triangle Top Right",
+    "Triangle Bottom Left",
+    "Triangle Bottom Right",
+    "Triangle Half Left",
+    "Triangle Half Right",
+    "Triangle Half Top",
+    "Triangle Half Bottom",
+    "Diamond",
+    "Cross",
+    "Target",
+    "Four Dots",
+    "Checkers (TL/BR)",
+    "Checkers Inverse (TR/BL)",
+    "Stripes Horizontal",
+    "Stripes Vertical",
+    "Waves Top Left",
+    "Waves Top Right",
+    "Waves Bottom Right",
+    "Waves Bottom Left",
+    "Zigzag Horizontal",
+    "Zigzag Vertical",
+    "Bowtie (Horizontal)",
+    "Hourglass (Vertical)",
+    "L-Shape Top Left",
+    "L-Shape Top Right",
+    "L-Shape Bottom Right",
+    "L-Shape Bottom Left",
+    "T-Shape Top",
+    "T-Shape Right",
+    "T-Shape Bottom",
+    "T-Shape Left",
+    "Diagonal (TL-BR)",
+    "Diagonal (TR-BL)",
+    "Arc Top Left",
+    "Arc Top Right",
+    "Arc Bottom Right",
+    "Arc Bottom Left",
+    "Grid 2x2",
+    "Three Dots (TL-BR)",
+    "Three Dots (TR-BL)"
+];
+
 if (typeof window !== 'undefined') {
     window.TILE_RENDERERS = TILE_RENDERERS;
+    window.TILE_NAMES = TILE_NAMES;
 } else if (typeof module !== 'undefined') {
-    module.exports = TILE_RENDERERS;
+    module.exports = { TILE_RENDERERS, TILE_NAMES };
 }
