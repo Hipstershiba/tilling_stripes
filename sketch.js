@@ -1180,13 +1180,8 @@ function buildScopePreviewTargets(hitInfo) {
     }
   } else if (interactionScope === 'global_pos_sym') {
     for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
-      for (let visualQuadrant = 0; visualQuadrant < 4; visualQuadrant++) {
-        let mapped = mapVisualTargetToLogical(
-          tiles[supertileIndex],
-          visualQuadrant,
-          hitInfo.visualSubtileDisplayIndex
-        );
-        pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
       }
     }
   }
@@ -1262,39 +1257,30 @@ function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
   }
 
   rectMode(CORNER);
-  let lineW = max(1.1, min(rectW, rectH) * 0.045);
-  let cornerLen = max(2.4, min(rectW, rectH) * 0.22);
+  let lineW = max(1.0, min(rectW, rectH) * 0.04);
 
   if (isAnchor) {
     noStroke();
-    fill(70, 150, 220, 28);
+    fill(33, 150, 243, 48);
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(120, 190, 255, 70);
-    strokeWeight(lineW + 1.8);
+    stroke(33, 150, 243, 130);
+    strokeWeight(lineW + 1.6);
     noFill();
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(205, 232, 255, 235);
-    strokeWeight(lineW + 0.35);
+    stroke(220, 240, 255, 230);
+    strokeWeight(lineW + 0.25);
     rect(rectX, rectY, rectW, rectH, 2);
   } else {
-    stroke(135, 185, 235, 170);
-    strokeWeight(lineW);
+    noStroke();
+    fill(33, 150, 243, 58);
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(150, 210, 255, 220);
+    strokeWeight(lineW + 0.55);
     noFill();
-
-    // Corner brackets only (cleaner than full fill/box)
-    line(rectX, rectY, rectX + cornerLen, rectY);
-    line(rectX, rectY, rectX, rectY + cornerLen);
-
-    line(rectX + rectW - cornerLen, rectY, rectX + rectW, rectY);
-    line(rectX + rectW, rectY, rectX + rectW, rectY + cornerLen);
-
-    line(rectX, rectY + rectH - cornerLen, rectX, rectY + rectH);
-    line(rectX, rectY + rectH, rectX + cornerLen, rectY + rectH);
-
-    line(rectX + rectW - cornerLen, rectY + rectH, rectX + rectW, rectY + rectH);
-    line(rectX + rectW, rectY + rectH - cornerLen, rectX + rectW, rectY + rectH);
+    rect(rectX, rectY, rectW, rectH, 2);
   }
 
   pop();
@@ -1442,7 +1428,7 @@ function handleTileClick(mx, my) {
   let activeSubtileIndex = baseTileSubtileIndex;
   let activeQuadrant = logicalQuadrant;
 
-  if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym') {
+  if (interactionScope === 'global_pos') {
     let mappedCurrent = mapVisualTargetToLogical(
       supertile,
       visualQuadrant,
@@ -1490,7 +1476,7 @@ function handleTileClick(mx, my) {
       let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
       let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
 
-      if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym') {
+      if (interactionScope === 'global_pos') {
         isFlippedX = (activeQuadrant === 1 || activeQuadrant === 3);
         isFlippedY = (activeQuadrant === 2 || activeQuadrant === 3);
       }
@@ -1563,12 +1549,10 @@ function handleTileClick(mx, my) {
         }
     } else if (interactionScope === 'global_pos_sym') {
         // Global Equivalent by Position (Symmetric / Batch):
-      // Update the same visual subtile slot in all 4 visual quadrants of ALL supertiles.
+      // Update the same structural subtile slot in all 4 quadrants of ALL supertiles.
         for (let s of tiles) {
-        for (let visualQ = 0; visualQ < 4; visualQ++) {
-          let mapped = mapVisualTargetToLogical(s, visualQ, hitInfo.visualSubtileDisplayIndex);
-          let t = s.tiles[mapped.quadrant];
-          t.types[mapped.subtileIndex] = newType;
+        for (let t of s.tiles) {
+          t.types[baseTileSubtileIndex] = newType;
                 refreshTile(t);
             }
         }
