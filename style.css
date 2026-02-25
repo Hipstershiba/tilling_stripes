@@ -429,7 +429,8 @@ body.sidebar-closed #canvas-container {
   border-radius: 4px;
   transition: all 0.2s;
   padding: 0;
-  height: 36px; /* Consistent height */
+  height: 36px;
+  /* Consistent height */
 }
 
 .scope-btn:hover {
@@ -438,19 +439,23 @@ body.sidebar-closed #canvas-container {
 }
 
 .scope-btn.active {
-  background: #444; /* Subtle active state */
-  color: #2196F3; /* Blue Icon */
-  border: 1px solid #2196F3; /* Blue Border */
+  background: #444;
+  /* Subtle active state */
+  color: #2196F3;
+  /* Blue Icon */
+  border: 1px solid #2196F3;
+  /* Blue Border */
   box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
 }
 
 .scope-btn svg {
-  pointer-events: none; /* Let clicks pass through */
+  pointer-events: none;
+  /* Let clicks pass through */
 }
 
 #scopeDesc {
-  font-size: 0.75rem; 
-  color: #aaa;  
+  font-size: 0.75rem;
+  color: #aaa;
   /* Remove fixed height to allow dynamic content */
   /* min-height: 2.4em; */
   background: transparent;

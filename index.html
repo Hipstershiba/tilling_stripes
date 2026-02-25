@@ -145,37 +145,45 @@
             <div class="scope-toggle-group">
               <!-- Single -->
               <button id="scopeSingle" class="scope-btn active" data-scope="single">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <!-- Main Tile -->
                   <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor"></rect>
                   <!-- Context (faded) -->
-                  <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.2" fill="none"></rect>
+                  <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="1.5"
+                    stroke-opacity="0.2" fill="none"></rect>
                 </svg>
               </button>
 
               <!-- Supertile (Grid Block 2x2) -->
               <button id="scopeSupertile" class="scope-btn" data-scope="supertile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                   <!-- Outer Box -->
-                   <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"></rect>
-                   <!-- Crosshair dividers -->
-                   <line x1="12" y1="3" x2="12" y2="21" stroke-width="1.5"></line>
-                   <line x1="3" y1="12" x2="21" y2="12" stroke-width="1.5"></line>
-                   <!-- Filled Sections -->
-                   <rect x="5.5" y="5.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none"></rect>
-                   <rect x="13.5" y="5.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none"></rect>
-                   <rect x="5.5" y="13.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none"></rect>
-                   <rect x="13.5" y="13.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none"></rect>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- Outer Box -->
+                  <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"></rect>
+                  <!-- Crosshair dividers -->
+                  <line x1="12" y1="3" x2="12" y2="21" stroke-width="1.5"></line>
+                  <line x1="3" y1="12" x2="21" y2="12" stroke-width="1.5"></line>
+                  <!-- Filled Sections -->
+                  <rect x="5.5" y="5.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none">
+                  </rect>
+                  <rect x="13.5" y="5.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none">
+                  </rect>
+                  <rect x="5.5" y="13.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none">
+                  </rect>
+                  <rect x="13.5" y="13.5" width="5" height="5" fill="currentColor" fill-opacity="0.6" stroke="none">
+                  </rect>
                 </svg>
               </button>
 
               <!-- Global Exact Match (Magic selection) -->
               <button id="scopeGlobalExact" class="scope-btn" data-scope="global_exact">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <!-- Two identical filled shapes separated -->
                   <rect x="3" y="13" width="7" height="7" rx="1" fill="currentColor"></rect>
                   <rect x="14" y="4" width="7" height="7" rx="1" fill="currentColor"></rect>
-                  
+
                   <!-- Connection/Selection line -->
                   <path d="M10 13l4-2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"></path>
                 </svg>
@@ -183,7 +191,8 @@
 
               <!-- Global Position (Repetition pattern) -->
               <button id="scopeGlobalPos" class="scope-btn" data-scope="global_pos">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <!-- 2x2 Grid implied -->
                   <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.3"></rect>
                   <rect x="13" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.3"></rect>
@@ -200,20 +209,21 @@
 
               <!-- Global Position Symmetric (Radial) -->
               <button id="scopeGlobalPosSym" class="scope-btn" data-scope="global_pos_sym">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                   <!-- Outer Circle -->
-                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity="0.4"></circle>
-                   <!-- 4 Dots in symmetric pattern -->
-                   <circle cx="8" cy="8" r="2" fill="currentColor"></circle>
-                   <circle cx="16" cy="8" r="2" fill="currentColor"></circle>
-                   <circle cx="8" cy="16" r="2" fill="currentColor"></circle>
-                   <circle cx="16" cy="16" r="2" fill="currentColor"></circle>
-                   <!-- Cross -->
-                   <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-opacity="0.2"></path>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="scope-icon" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- Outer Circle -->
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity="0.4"></circle>
+                  <!-- 4 Dots in symmetric pattern -->
+                  <circle cx="8" cy="8" r="2" fill="currentColor"></circle>
+                  <circle cx="16" cy="8" r="2" fill="currentColor"></circle>
+                  <circle cx="8" cy="16" r="2" fill="currentColor"></circle>
+                  <circle cx="16" cy="16" r="2" fill="currentColor"></circle>
+                  <!-- Cross -->
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-opacity="0.2"></path>
                 </svg>
               </button>
             </div>
-            
+
             <!-- Description Area (Dynamic) -->
             <div id="scopeDesc">
               <strong style="color: #ccc;">Single Tile:</strong> Only changes the specific tile you click.
