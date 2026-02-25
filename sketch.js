@@ -15,6 +15,7 @@ let gridRatio = 1;
 
 // Interaction State
 let interactionMode = 'none'; // 'none', 'mirror', 'edit'
+let lastEditTool = 'mirror'; // Default tool for Edit tab
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
@@ -295,9 +296,7 @@ function setupUI(mainCanvas) {
          select('#tileSelector').removeClass('paint-mode');
      } else if (tab === 'edit') {
          // Restore previous tool or default to Rotate
-         if (interactionMode !== 'mirror' && interactionMode !== 'edit') {
-             interactionMode = 'mirror'; // Default
-         }
+         interactionMode = lastEditTool;
          console.log('Mode restored to:', interactionMode);
          updateEditUI();
      }
@@ -306,6 +305,7 @@ function setupUI(mainCanvas) {
   selectAll('.tool-btn').forEach(btn => {
       btn.mousePressed(() => {
           interactionMode = btn.attribute('data-mode');
+          lastEditTool = interactionMode;
           console.log('Tool set to:', interactionMode);
           updateEditUI();
       });
@@ -314,12 +314,48 @@ function setupUI(mainCanvas) {
   // Set initial UI state
   updateEditUI();
   
+  // Scope Descriptions
+  const SCOPE_DESCRIPTIONS = {
+    'single': '<strong style="color: #fff;">Single Tile</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update only the tile you click.</span>',
+    'supertile': '<strong style="color: #fff;">Block (2x2)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the entire 2x2 group.</span>',
+    'global_exact': '<strong style="color: #fff;">Global Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update ALL tiles of this type entirely.</span>',
+    'global_pos': '<strong style="color: #fff;">Grid Position</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update this specific slot in ALL blocks.</span>',
+    'global_pos_sym': '<strong style="color: #fff;">Symmetry (4x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update all 4 symmetric slots in ALL blocks.</span>'
+  };
+
+  // Set initial tooltip
+  select('#scopeDesc').html(SCOPE_DESCRIPTIONS['single']);
+
   selectAll('.scope-btn').forEach(btn => {
+      // Click Handler
       btn.mousePressed(() => {
           selectAll('.scope-btn').forEach(b => b.removeClass('active'));
           btn.addClass('active');
           interactionScope = btn.attribute('data-scope');
           console.log('Scope set to:', interactionScope);
+          
+          // Update description
+          let descDiv = select('#scopeDesc');
+          if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+          }
+      });
+
+      // Hover Effects for Description
+      btn.mouseOver(() => {
+           let scope = btn.attribute('data-scope');
+           let descDiv = select('#scopeDesc');
+           if(descDiv && SCOPE_DESCRIPTIONS[scope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[scope]);
+           }
+      });
+      
+      btn.mouseOut(() => {
+           // Revert to active scope description
+           let descDiv = select('#scopeDesc');
+           if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+           }
       });
   });
 }

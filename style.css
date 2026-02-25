@@ -412,22 +412,24 @@ body.sidebar-closed #canvas-container {
 /* Scope Toggles */
 .scope-toggle-group {
   display: flex;
-  background: #333;
+  background: #252525;
   border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
+  padding: 4px;
+  gap: 4px;
 }
 
 .scope-btn {
   flex: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
-  color: #aaa;
-  padding: 8px 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
+  color: #888;
   border-radius: 4px;
   transition: all 0.2s;
+  padding: 0;
+  height: 36px; /* Consistent height */
 }
 
 .scope-btn:hover {
@@ -436,14 +438,25 @@ body.sidebar-closed #canvas-container {
 }
 
 .scope-btn.active {
-  background: #4CAF50;
-  color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background: #444; /* Subtle active state */
+  color: #2196F3; /* Blue Icon */
+  border: 1px solid #2196F3; /* Blue Border */
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
 }
 
-.scope-btn.active {
-  background: #4CAF50;
-  /* Different color for scope to distinguish */
+.scope-btn svg {
+  pointer-events: none; /* Let clicks pass through */
+}
+
+#scopeDesc {
+  font-size: 0.75rem; 
+  color: #aaa;  
+  /* Remove fixed height to allow dynamic content */
+  /* min-height: 2.4em; */
+  background: transparent;
+  margin-top: 6px;
+  line-height: 1.4;
+  padding: 4px;
 }
 
 /* Enhancing Tile Selector visibility */
