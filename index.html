@@ -88,8 +88,8 @@
 
         <div class="control-group">
           <label>
-              <span>Margin (px)</span>
-              <span class="group-summary"></span>
+            <span>Margin (px)</span>
+            <span class="group-summary"></span>
           </label>
           <div class="group-content">
             <input type="number" id="gridMargin" value="0" min="0" step="10">
@@ -98,8 +98,8 @@
 
         <div class="control-group">
           <label>
-              <span>Seed</span>
-              <span class="group-summary"></span>
+            <span>Seed</span>
+            <span class="group-summary"></span>
           </label>
           <div class="group-content">
             <div class="row">
@@ -440,53 +440,53 @@
         });
       });
 
-// Update summary helper - Global so Sketch.js can call it
-      window.updateSummary = function(group) {
-         if (!group) return;
-         const summary = group.querySelector('.group-summary');
-         if (!summary) return;
-         
-         const inputs = group.querySelectorAll('input[type="number"]');
-         if (inputs.length === 2) {
-             summary.textContent = `${inputs[0].value} x ${inputs[1].value}`;
-         } else if (inputs.length === 1) {
-             summary.textContent = inputs[0].value;
-         }
+      // Update summary helper - Global so Sketch.js can call it
+      window.updateSummary = function (group) {
+        if (!group) return;
+        const summary = group.querySelector('.group-summary');
+        if (!summary) return;
+
+        const inputs = group.querySelectorAll('input[type="number"]');
+        if (inputs.length === 2) {
+          summary.textContent = `${inputs[0].value} x ${inputs[1].value}`;
+        } else if (inputs.length === 1) {
+          summary.textContent = inputs[0].value;
+        }
       }
 
-      window.updateAllSummaries = function() {
-          document.querySelectorAll('.control-group').forEach(group => {
-              window.updateSummary(group);
-          });
+      window.updateAllSummaries = function () {
+        document.querySelectorAll('.control-group').forEach(group => {
+          window.updateSummary(group);
+        });
       }
-      
+
       // Accordion Logic
       document.querySelectorAll('.control-group:not(.tile-selector-group) > label').forEach(label => {
         // Initial summary update
         window.updateSummary(label.parentElement);
-        
+
         label.addEventListener('click', (e) => {
           e.preventDefault();
           const group = label.parentElement;
           group.classList.toggle('collapsed');
         });
       });
-      
+
       // Listen for input changes to update summaries
       document.addEventListener('input', (e) => {
-          if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-              const group = e.target.closest('.control-group');
-              window.updateSummary(group);
-          }
+        if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+          const group = e.target.closest('.control-group');
+          window.updateSummary(group);
+        }
       });
-      
+
       // Listen for seed updates (programmatic changes)
       const seedInput = document.getElementById('seedInput');
       // Observer for value changes if JS updates it without input event
       // Or just patch into Sketch.js render, but let's try a simple interval or custom event if needed.
       // Actually, standard input event bubbles. Programmatic value changes don't trigger input.
       // We can rely on Sketch.js triggering UI updates.
-      
+
     });
   </script>
 </body>

@@ -282,8 +282,10 @@ body.sidebar-closed #canvas-container {
   background: #444;
   padding: 2px 6px;
   border-radius: 4px;
-  display: none; /* Hidden by default */
-  margin-right: 20px; /* Space for arrow */
+  display: none;
+  /* Hidden by default */
+  margin-right: 20px;
+  /* Space for arrow */
 }
 
 /* Show summary when collapsed */
