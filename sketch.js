@@ -17,6 +17,7 @@ let gridRatio = 1;
 let interactionMode = 'none'; // 'none', 'mirror', 'edit'
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
+let lastInteractedId = null; // Tracks the last tile modified during a drag operation
 
 // Define Tile Families (Manually mapped based on registry groups)
 const TILE_FAMILIES = [
@@ -616,12 +617,27 @@ function mousePressed() {
     // Ignore clicks if mode is none
     if (interactionMode === 'none') return;
     
-    console.log("Click detected at:", mouseX, mouseY);
+    // Reset interaction tracker for new gesture
+    lastInteractedId = null;
+    
     handleTileClick(mouseX, mouseY);
 }
 
+function mouseDragged() {
+    // Only interact if drag is on canvas
+    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+    
+    // Ignore clicks if mode is none
+    if (interactionMode === 'none') return;
+    
+    handleTileClick(mouseX, mouseY);
+}
+
+function mouseReleased() {
+    lastInteractedId = null;
+}
+
 function handleTileClick(mx, my) {
-    console.log("handleTileClick", mx, my);
     // 1. Determine Grid Col/Row
     if (mx < margin || mx > width - margin || my < margin || my > height - margin) return;
 
@@ -631,8 +647,6 @@ function handleTileClick(mx, my) {
     let col = floor(relativeX / tilesWidth);
     let row = floor(relativeY / tilesHeight);
 
-    console.log("Col/Row:", col, row);
-
     if (col < 0 || col >= cols || row < 0 || row >= rows) return;
 
     // 2. Get the Supertile
@@ -641,10 +655,6 @@ function handleTileClick(mx, my) {
     let supertile = tiles[index];
 
     // 3. Determine Quadrant within Supertile
-    // Supertile x,y is centered. 
-    // Wait, supertile.x is center? 
-    // Let's check initGrid: x = margin + j * tilesWidth + tilesWidth / 2; Yes.
-    
     let stLeft = supertile.x - supertile.w/2;
     let stTop = supertile.y - supertile.h/2;
     
@@ -665,7 +675,6 @@ function handleTileClick(mx, my) {
     let visualQuadrant = qRow * 2 + qCol;
 
     // Determine sub-coordinate within that quadrant
-    // Modulo gives 0 to w/2 range
     let quadrantX = localX % (supertile.w/2);
     let quadrantY = localY % (supertile.h/2);
     
@@ -674,8 +683,6 @@ function handleTileClick(mx, my) {
     let subRow = quadrantY > (supertile.h/4) ? 1 : 0;
     
     // Now map back to the BaseTile's data array indices
-    // Each quadrant has a specific transformation
-    
     let targetSubCol = subCol;
     let targetSubRow = subRow;
     
@@ -693,9 +700,16 @@ function handleTileClick(mx, my) {
     
     let baseTileSubtileIndex = targetSubRow * 2 + targetSubCol;
     
-    // Determine the actual Tile object we are clicking on
-    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
+    // Unique ID for this specific subtile location
+    // Format: SupertileIndex | VisualQuadrant | SubtileIndex
+    let currentTileId = `${index}-${visualQuadrant}-${baseTileSubtileIndex}`;
     
+    // If we are dragging over the same tile, ignore
+    if (currentTileId === lastInteractedId) return;
+    
+    // Update tracker
+    lastInteractedId = currentTileId;
+
     // Determine the actual Tile object we are clicking on
     // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
     // This matches the this.tiles array in Supertile
