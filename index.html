@@ -30,7 +30,8 @@
       <h1>Pattern Gen</h1>
 
       <!-- Tab Navigation -->
-      <div class="tab-nav">
+      <div class="tab-nav" data-active="setup">
+        <div class="tab-nav-bg"></div>
         <button class="tab-btn active" data-tab="setup">Setup</button>
         <button class="tab-btn" data-tab="edit">Edit</button>
       </div>
@@ -428,6 +429,8 @@
           tabs.forEach(t => t.classList.remove('active'));
           // Add active to clicked
           tab.classList.add('active');
+          // Add attribute to parent for animation
+          tab.parentElement.setAttribute('data-active', tab.getAttribute('data-tab'));
 
           // Hide all contents
           document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));

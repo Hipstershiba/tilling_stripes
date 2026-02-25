@@ -351,8 +351,30 @@ body.sidebar-closed #canvas-container {
   margin-bottom: 12px;
   background: #333;
   padding: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
   flex-shrink: 0;
+  position: relative;
+  height: 36px;
+  border: none;
+}
+
+.tab-nav-bg {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: calc(50% - 2px);
+  background: #252525;
+  border: 1px solid #444;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1;
+  left: 2px;
+  transform: translateX(0);
+}
+
+.tab-nav[data-active="edit"] .tab-nav-bg {
+  transform: translateX(100%);
 }
 
 .tab-btn {
@@ -360,20 +382,23 @@ body.sidebar-closed #canvas-container {
   background: transparent;
   color: #aaa;
   border: none;
-  padding: 8px;
+  padding: 0;
   cursor: pointer;
   border-radius: 4px;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.8rem;
-  transition: all 0.2s;
+  transition: color 0.3s;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-btn.active {
-  background: #252525;
-  /* Matches panel background */
+  background: transparent;
   color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 
 .tab-btn:hover {
@@ -417,11 +442,11 @@ body.sidebar-closed #canvas-container {
   bottom: 2px;
   width: calc(50% - 2px);
   /* Half container width minus padding adjustment */
-  background: #2196F3;
-  /* Blue for active state to match palette */
-  border: 1px solid #1976D2;
-  /* Slight border for definition */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: #252525;
+  /* Grey to match unified theme */
+  border: 1px solid #444;
+  /* Subtle border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   /* Enhance depth */
   border-radius: 6px;
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
