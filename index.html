@@ -176,7 +176,7 @@
       <div id="tab-edit" class="tab-content">
 
         <!-- History Controls for Edit -->
-        <div class="control-group" style="margin-bottom: 5px;">
+        <div class="control-group no-collapse" style="margin-bottom: 5px;">
           <label>Edit History</label>
           <div style="display: flex; gap: 5px;">
             <button id="btnUndo" title="Undo (Ctrl+Z)" disabled
@@ -201,7 +201,7 @@
         </div>
 
         <!-- Improved Interaction Controls -->
-        <div class="control-group">
+        <div class="control-group no-collapse">
           <label>Active Tool</label>
           <div class="tool-switch">
             <div class="tool-bg"></div> <!-- Animated background -->
@@ -461,7 +461,7 @@
       }
 
       // Accordion Logic
-      document.querySelectorAll('.control-group:not(.tile-selector-group) > label').forEach(label => {
+      document.querySelectorAll('.control-group:not(.tile-selector-group):not(.no-collapse) > label').forEach(label => {
         // Initial summary update
         window.updateSummary(label.parentElement);
 
