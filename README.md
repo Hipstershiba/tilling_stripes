@@ -1,21 +1,52 @@
 # Tiling Stripes Pattern Generator
 
-A generative art tool for creating symmetrical tiling patterns based on 14 fundamental geometric subtiles.
+Interactive generative art tool for creating mirrored tiling compositions with editable subtiles, scoped transformations, and export workflows.
 
-## Features
+## What’s New in This Version
 
-- **Visual Tile Selector**: Composable grid patterns.
-- **Global Symmetry**: Mirrors patterns across quadrants.
-- **Responsive Canvas**: Fit to screen or custom dimensions.
-- **Direct Image Export**: Save high-resolution PNGs.
+- Added full **Edit History** with UI buttons and keyboard shortcuts:
+	- Undo: `Ctrl + Z`
+	- Redo: `Ctrl + Shift + Z`
+- Improved edit reliability during drag interactions and fixed multiple hit-test/mirroring edge cases.
+- Refined **Target Scope** UX (icons + tooltips) and added live preview of affected tiles while hovering.
+- Fixed `Grid Position` behavior across mirrored canvas halves.
+- Restored stable behavior for `Symmetry (4x)` scope after scope-mapping updates.
 
-## Usage
+## Core Features
 
-Open `index.html` in your browser to start generating patterns.
+- **Seed-based Generation**: Deterministic compositions using seed input + randomize.
+- **Tile Type Filtering**: Select which tile families are allowed in generation.
+- **Symmetric Grid Construction**: Supertiles mirrored across the composition.
+- **Edit Tools**:
+	- `Rotate` (cycle/randomize families)
+	- `Paint` (apply selected tile type with transform-aware mapping)
+- **Target Scopes**:
+	- `Single Tile`
+	- `Block (2x2)`
+	- `Global Match`
+	- `Grid Position`
+	- `Symmetry (4x)`
+- **History Systems**:
+	- Generation history (seed/grid states)
+	- Edit history (undo/redo snapshots)
+- **Export**:
+	- PNG save
+	- SVG save
 
-## Controls
+## Running Locally
 
-- **Canvas Size**: Adjust width and height.
-- **Grid**: Set rows and columns.
-- **Margin**: Add padding for print-ready exports.
-- **Seed**: Deterministic random generation.
+Open [index.html](index.html) in your browser.
+
+No build step is required.
+
+## Main Controls
+
+- **Canvas**: width, height, fit-to-screen, fit-to-grid, fullscreen.
+- **Grid**: rows, columns, margin, ratio locks.
+- **Seed**: input + randomize + generation history navigation.
+- **Edit Panel**: tool mode, target scope, paint palette, undo/redo.
+
+## Notes
+
+- For best results when editing, keep the `Edit` tab active and use hover preview to confirm scope impact before drag operations.
+- If you are reviewing changes between versions, see PR description for a complete change summary.
