@@ -242,6 +242,59 @@ body.sidebar-closed #canvas-container {
   padding: 12px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.control-group label {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.control-group label::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #aaa;
+  transition: transform 0.2s;
+}
+
+/* Hide collapse arrow for the tile selector group */
+.tile-selector-group label {
+  cursor: default;
+}
+
+.tile-selector-group label::after {
+  display: none;
+}
+
+.control-group.collapsed label::after {
+  transform: rotate(-90deg);
+}
+
+.group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* overflow: hidden; Removed to allow popovers */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform-origin: top;
+}
+
+.control-group.collapsed .group-content {
+  display: none;
+}
+
+.tile-selector-group.collapsed {
+  flex: 0 0 auto !important;
+  min-height: auto !important;
+  padding-bottom: 0 !important;
+  border-bottom: 1px solid #333;
+  /* Visual indicator when collapsed */
 }
 
 .control-group:last-child {
@@ -490,11 +543,12 @@ body.sidebar-closed #canvas-container {
 }
 
 #tileSelector::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
+  /* Thinner scrollbar */
 }
 
 #tileSelector::-webkit-scrollbar-track {
-  background: #111;
+  background: transparent;
 }
 
 #tileSelector::-webkit-scrollbar-thumb {

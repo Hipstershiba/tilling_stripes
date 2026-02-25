@@ -40,111 +40,121 @@
 
         <div class="control-group">
           <label>Canvas Size</label>
-          <div class="row">
-            <input type="number" id="canvasW" value="600" step="50">
-            <span>x</span>
-            <input type="number" id="canvasH" value="600" step="50">
-            <button id="btnLockCanvasRatio" title="Lock Aspect Ratio"
-              style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
-              <!-- Default Unlock Icon -->
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-              </svg>
-            </button>
+          <div class="group-content">
+            <div class="row">
+              <input type="number" id="canvasW" value="600" step="50">
+              <span>x</span>
+              <input type="number" id="canvasH" value="600" step="50">
+              <button id="btnLockCanvasRatio" title="Lock Aspect Ratio"
+                style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
+                <!-- Default Unlock Icon -->
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+              </button>
+            </div>
+            <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
+            <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
           </div>
-          <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
-          <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
         </div>
 
         <div class="control-group">
           <label>Grid (Rows x Cols)</label>
-          <div class="row">
-            <input type="number" id="gridRows" value="4" min="1" max="50">
-            <span>x</span>
-            <input type="number" id="gridCols" value="4" min="1" max="50">
-            <button id="btnLockGridRatio" title="Lock Aspect Ratio"
-              style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-              </svg>
-            </button>
+          <div class="group-content">
+            <div class="row">
+              <input type="number" id="gridRows" value="4" min="1" max="50">
+              <span>x</span>
+              <input type="number" id="gridCols" value="4" min="1" max="50">
+              <button id="btnLockGridRatio" title="Lock Aspect Ratio"
+                style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+              </button>
+            </div>
+            <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
           </div>
-          <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
         </div>
 
         <div class="control-group">
           <label>Margin (px)</label>
-          <input type="number" id="gridMargin" value="0" min="0" step="10">
+          <div class="group-content">
+            <input type="number" id="gridMargin" value="0" min="0" step="10">
+          </div>
         </div>
 
         <div class="control-group">
           <label>Seed</label>
-          <div class="row">
-            <input type="number" id="seedInput" value="0">
-            <button id="btnRandomize" style="display:flex; justify-content:center; align-items:center;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 3 21 3 21 8"></polyline>
-                <line x1="4" y1="20" x2="21" y2="3"></line>
-                <polyline points="21 16 21 21 16 21"></polyline>
-                <line x1="15" y1="15" x2="21" y2="21"></line>
-                <line x1="4" y1="4" x2="9" y2="9"></line>
-              </svg>
-            </button>
-          </div>
+          <div class="group-content">
+            <div class="row">
+              <input type="number" id="seedInput" value="0">
+              <button id="btnRandomize" style="display:flex; justify-content:center; align-items:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 3 21 3 21 8"></polyline>
+                  <line x1="4" y1="20" x2="21" y2="3"></line>
+                  <polyline points="21 16 21 21 16 21"></polyline>
+                  <line x1="15" y1="15" x2="21" y2="21"></line>
+                  <line x1="4" y1="4" x2="9" y2="9"></line>
+                </svg>
+              </button>
+            </div>
 
-          <!-- History Controls for Generation -->
-          <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
-            <button id="btnPrevSeed" title="Previous Generation" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-            <button id="btnNextSeed" title="Next Generation" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-             <button id="btnToggleHistory" title="Full History List"
-              style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-              </svg>
-            </button>
-            
-            <!-- Floating History List -->
-            <div id="seedHistoryList"
-              style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
-                     overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; 
-                     padding: 4px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-              <!-- Populated via JS -->
-              <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
+            <!-- History Controls for Generation -->
+            <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
+              <button id="btnPrevSeed" title="Previous Generation" disabled
+                style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <button id="btnNextSeed" title="Next Generation" disabled
+                style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+              <button id="btnToggleHistory" title="Full History List"
+                style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+
+              <!-- Floating History List -->
+              <div id="seedHistoryList" style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
+                       overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; 
+                       padding: 4px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                <!-- Populated via JS -->
+                <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="control-group tile-selector-group">
           <label>Allowed Tiles</label>
-          <div id="tileSelector">
-            <!-- Javascript will populate this -->
-          </div>
-          <div class="row">
-            <button id="selectAll">All</button>
-            <button id="selectNone">None</button>
+          <div class="group-content"
+            style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
+            <div id="tileSelector">
+              <!-- Javascript will populate this -->
+            </div>
+            <div class="row">
+              <button id="selectAll">All</button>
+              <button id="selectNone">None</button>
+            </div>
           </div>
         </div>
 
@@ -415,6 +425,15 @@
 
           // Trigger custom event for Sketch.js to pick up
           window.dispatchEvent(new CustomEvent('tabChanged', { detail: { tab: tab.getAttribute('data-tab') } }));
+        });
+      });
+
+      // Accordion Logic
+      document.querySelectorAll('.control-group:not(.tile-selector-group) > label').forEach(label => {
+        label.addEventListener('click', (e) => {
+          e.preventDefault();
+          const group = label.parentElement;
+          group.classList.toggle('collapsed');
         });
       });
     });
