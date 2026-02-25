@@ -1261,24 +1261,24 @@ function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
 
   if (isAnchor) {
     noStroke();
-    fill(33, 150, 243, 48);
+    fill(255, 170, 70, 78);
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(33, 150, 243, 130);
-    strokeWeight(lineW + 1.6);
+    stroke(255, 242, 220, 255);
+    strokeWeight(lineW + 1.2);
     noFill();
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(220, 240, 255, 230);
-    strokeWeight(lineW + 0.25);
-    rect(rectX, rectY, rectW, rectH, 2);
+    stroke(255, 150, 60, 220);
+    strokeWeight(lineW + 0.3);
+    rect(rectX + 0.8, rectY + 0.8, max(0, rectW - 1.6), max(0, rectH - 1.6), 2);
   } else {
     noStroke();
-    fill(33, 150, 243, 58);
+    fill(60, 150, 235, 56);
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(150, 210, 255, 220);
-    strokeWeight(lineW + 0.55);
+    stroke(205, 230, 255, 235);
+    strokeWeight(lineW + 0.5);
     noFill();
     rect(rectX, rectY, rectW, rectH, 2);
   }
