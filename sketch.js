@@ -19,6 +19,8 @@ let lastEditTool = 'mirror'; // Default tool for Edit tab
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
+let hoverPreviewTargets = [];
+let hoverPreviewAnchor = null;
 
 // History State
 let generationHistory = [];
@@ -343,11 +345,15 @@ function setupUI(mainCanvas) {
          console.log('Mode set to: none (Setup Tab)');
          // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
          select('#tileSelector').removeClass('paint-mode');
+       updateHoverPreview();
+       redraw();
      } else if (tab === 'edit') {
          // Restore previous tool or default to Rotate
          interactionMode = lastEditTool;
          console.log('Mode restored to:', interactionMode);
          updateEditUI();
+       updateHoverPreview();
+       redraw();
      }
   });
 
@@ -357,6 +363,8 @@ function setupUI(mainCanvas) {
           lastEditTool = interactionMode;
           console.log('Tool set to:', interactionMode);
           updateEditUI();
+        updateHoverPreview();
+        redraw();
       });
   });
   
@@ -388,6 +396,9 @@ function setupUI(mainCanvas) {
           if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
              descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
           }
+
+           updateHoverPreview();
+           redraw();
       });
 
       // Hover Effects for Description
@@ -792,6 +803,7 @@ function draw() {
         tile.render();
     }
   }
+  drawScopePreview();
   noLoop(); 
 }
 
@@ -1021,6 +1033,210 @@ function updateHistoryUI() {
   }
 }
 
+function getHitInfo(mx, my) {
+  if (mx < margin || mx > width - margin || my < margin || my > height - margin) return null;
+
+  let relativeX = mx - margin;
+  let relativeY = my - margin;
+
+  let col = floor(relativeX / tilesWidth);
+  let row = floor(relativeY / tilesHeight);
+
+  if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
+
+  let index = row * cols + col;
+  if (index < 0 || index >= tiles.length) return null;
+
+  let supertile = tiles[index];
+  let stLeft = supertile.x - supertile.w / 2;
+  let stTop = supertile.y - supertile.h / 2;
+
+  let localXVisual = mx - stLeft;
+  let localYVisual = my - stTop;
+
+  let halfW = supertile.w / 2;
+  let halfH = supertile.h / 2;
+
+  let visualCol = localXVisual >= halfW ? 1 : 0;
+  let visualRow = localYVisual >= halfH ? 1 : 0;
+  let visualQuadrant = visualRow * 2 + visualCol;
+
+  let localXLogical = supertile.mirrorX ? (supertile.w - localXVisual) : localXVisual;
+  let localYLogical = supertile.mirrorY ? (supertile.h - localYVisual) : localYVisual;
+
+  let logicalCol = localXLogical >= halfW ? 1 : 0;
+  let logicalRow = localYLogical >= halfH ? 1 : 0;
+  let logicalQuadrant = logicalRow * 2 + logicalCol;
+
+  let tileLocalX = localXLogical - logicalCol * halfW;
+  let tileLocalY = localYLogical - logicalRow * halfH;
+
+  tileLocalX = constrain(tileLocalX, 0, halfW - 0.0001);
+  tileLocalY = constrain(tileLocalY, 0, halfH - 0.0001);
+
+  if (logicalQuadrant === 1 || logicalQuadrant === 3) tileLocalX = halfW - tileLocalX;
+  if (logicalQuadrant === 2 || logicalQuadrant === 3) tileLocalY = halfH - tileLocalY;
+
+  let subCol = tileLocalX >= (halfW / 2) ? 1 : 0;
+  let subRow = tileLocalY >= (halfH / 2) ? 1 : 0;
+  let baseTileSubtileIndex = subRow * 2 + subCol;
+
+  let targetTile = supertile.tiles[logicalQuadrant];
+  let oldType = targetTile.types[baseTileSubtileIndex];
+
+  return {
+    index,
+    supertile,
+    visualQuadrant,
+    logicalQuadrant,
+    baseTileSubtileIndex,
+    targetTile,
+    oldType
+  };
+}
+
+function buildScopePreviewTargets(hitInfo) {
+  if (!hitInfo) return [];
+
+  let targets = [];
+  const pushTarget = (supertileIndex, quadrant, subtileIndex) => {
+    targets.push({ supertileIndex, quadrant, subtileIndex });
+  };
+
+  if (interactionScope === 'single') {
+    pushTarget(hitInfo.index, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
+  } else if (interactionScope === 'supertile') {
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      pushTarget(hitInfo.index, quadrant, hitInfo.baseTileSubtileIndex);
+    }
+  } else if (interactionScope === 'global_exact') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      let supertile = tiles[supertileIndex];
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        let tileObj = supertile.tiles[quadrant];
+        for (let subtileIndex = 0; subtileIndex < 4; subtileIndex++) {
+          if (tileObj.types[subtileIndex] === hitInfo.oldType) {
+            pushTarget(supertileIndex, quadrant, subtileIndex);
+          }
+        }
+      }
+    }
+  } else if (interactionScope === 'global_pos') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      pushTarget(supertileIndex, hitInfo.visualQuadrant, hitInfo.baseTileSubtileIndex);
+    }
+  } else if (interactionScope === 'global_pos_sym') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
+    }
+  }
+
+  return targets;
+}
+
+function updateHoverPreview(mx = mouseX, my = mouseY) {
+  if (interactionMode === 'none') {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    return;
+  }
+
+  let hitInfo = getHitInfo(mx, my);
+  if (!hitInfo) {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    return;
+  }
+
+  hoverPreviewTargets = buildScopePreviewTargets(hitInfo);
+  hoverPreviewAnchor = {
+    supertileIndex: hitInfo.index,
+    quadrant: hitInfo.logicalQuadrant,
+    subtileIndex: hitInfo.baseTileSubtileIndex
+  };
+}
+
+function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
+  let tileW = supertile.w / 2;
+  let tileH = supertile.h / 2;
+
+  let subCol = subtileIndex % 2;
+  let subRow = floor(subtileIndex / 2);
+
+  let centerX = (subCol - 0.5) * tileW / 2;
+  let centerY = (subRow - 0.5) * tileH / 2;
+
+  let rectX = centerX - tileW / 4;
+  let rectY = centerY - tileH / 4;
+  let rectW = tileW / 2;
+  let rectH = tileH / 2;
+
+  push();
+  translate(supertile.x, supertile.y);
+  if (supertile.mirrorX) scale(-1, 1);
+  if (supertile.mirrorY) scale(1, -1);
+
+  if (quadrant === 0) {
+    translate(-supertile.w / 4, -supertile.h / 4);
+  } else if (quadrant === 1) {
+    translate(supertile.w / 4, -supertile.h / 4);
+    scale(-1, 1);
+  } else if (quadrant === 2) {
+    translate(-supertile.w / 4, supertile.h / 4);
+    scale(1, -1);
+  } else if (quadrant === 3) {
+    translate(supertile.w / 4, supertile.h / 4);
+    scale(-1, -1);
+  }
+
+  rectMode(CORNER);
+  let lineW = max(1.2, min(rectW, rectH) * 0.055);
+
+  if (isAnchor) {
+    noStroke();
+    fill(33, 150, 243, 72);
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(190, 225, 255, 245);
+    strokeWeight(lineW + 0.9);
+    noFill();
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    noStroke();
+    fill(235, 245, 255, 235);
+    circle(rectX + rectW / 2, rectY + rectH / 2, max(2.5, min(rectW, rectH) * 0.10));
+  } else {
+    noStroke();
+    fill(120, 170, 220, 28);
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(135, 185, 235, 165);
+    strokeWeight(lineW);
+    noFill();
+    rect(rectX, rectY, rectW, rectH, 2);
+  }
+
+  pop();
+}
+
+function drawScopePreview() {
+  if (interactionMode === 'none' || hoverPreviewTargets.length === 0) return;
+
+  for (let marker of hoverPreviewTargets) {
+    let supertile = tiles[marker.supertileIndex];
+    if (!supertile) continue;
+
+    let isAnchor = hoverPreviewAnchor
+      && hoverPreviewAnchor.supertileIndex === marker.supertileIndex
+      && hoverPreviewAnchor.quadrant === marker.quadrant
+      && hoverPreviewAnchor.subtileIndex === marker.subtileIndex;
+
+    drawSubtileOverlay(supertile, marker.quadrant, marker.subtileIndex, isAnchor);
+  }
+}
+
 // -------------------------------------------------------------
 // Mouse & Key Interaction
 // -------------------------------------------------------------
@@ -1090,6 +1306,8 @@ function mousePressed() {
     
     // Reset interaction tracker for new gesture
     lastInteractedId = null;
+
+    updateHoverPreview(mouseX, mouseY);
     
     handleTileClick(mouseX, mouseY);
 }
@@ -1104,12 +1322,27 @@ function mouseDragged() {
     // Ignore clicks if mode is none
     if (interactionMode === 'none') return;
     
+    updateHoverPreview(mouseX, mouseY);
     handleTileClick(mouseX, mouseY);
 }
+
+  function mouseMoved() {
+    updateHoverPreview(mouseX, mouseY);
+    redraw();
+  }
+
+  function mouseOut() {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    redraw();
+  }
 
 function mouseReleased() {
     isDrawing = false;
     lastInteractedId = null;
+
+    updateHoverPreview(mouseX, mouseY);
+    redraw();
     
     // If a gesture modified the history, push the new state now
     if (hasPendingHistory) {
@@ -1119,62 +1352,14 @@ function mouseReleased() {
 }
 
 function handleTileClick(mx, my) {
-    // 1. Determine Grid Col/Row
-    if (mx < margin || mx > width - margin || my < margin || my > height - margin) return;
+  let hitInfo = getHitInfo(mx, my);
+  if (!hitInfo) return;
 
-    let relativeX = mx - margin;
-    let relativeY = my - margin;
-
-    let col = floor(relativeX / tilesWidth);
-    let row = floor(relativeY / tilesHeight);
-
-    if (col < 0 || col >= cols || row < 0 || row >= rows) return;
-
-    // 2. Get the Supertile
-    let index = row * cols + col;
-    if (index >= tiles.length) return;
-    let supertile = tiles[index];
-
-    // 3. Determine Quadrant within Supertile
-    let stLeft = supertile.x - supertile.w/2;
-    let stTop = supertile.y - supertile.h/2;
-    
-    let localXVisual = mx - stLeft;
-    let localYVisual = my - stTop;
-
-    // Visual quadrant (where cursor is on screen)
-    let halfW = supertile.w / 2;
-    let halfH = supertile.h / 2;
-    let visualCol = localXVisual >= halfW ? 1 : 0;
-    let visualRow = localYVisual >= halfH ? 1 : 0;
-    let visualQuadrant = visualRow * 2 + visualCol;
-
-    // Logical coordinates (data space) account for supertile mirroring
-    let localXLogical = supertile.mirrorX ? (supertile.w - localXVisual) : localXVisual;
-    let localYLogical = supertile.mirrorY ? (supertile.h - localYVisual) : localYVisual;
-
-    // Logical quadrant (which tile index in supertile.tiles we must edit)
-    let logicalCol = localXLogical >= halfW ? 1 : 0;
-    let logicalRow = localYLogical >= halfH ? 1 : 0;
-    let logicalQuadrant = logicalRow * 2 + logicalCol;
-
-    // Position inside logical quadrant tile
-    let tileLocalX = localXLogical - logicalCol * halfW;
-    let tileLocalY = localYLogical - logicalRow * halfH;
-
-    // Clamp to avoid edge jitter exactly at borders
-    tileLocalX = constrain(tileLocalX, 0, halfW - 0.0001);
-    tileLocalY = constrain(tileLocalY, 0, halfH - 0.0001);
-
-    // Each quadrant tile is rendered with local flips:
-    // 0: none, 1: flipX, 2: flipY, 3: flipXY
-    if (logicalQuadrant === 1 || logicalQuadrant === 3) tileLocalX = halfW - tileLocalX;
-    if (logicalQuadrant === 2 || logicalQuadrant === 3) tileLocalY = halfH - tileLocalY;
-
-    // Now map to subtile index inside the tile (2x2)
-    let subCol = tileLocalX >= (halfW / 2) ? 1 : 0;
-    let subRow = tileLocalY >= (halfH / 2) ? 1 : 0;
-    let baseTileSubtileIndex = subRow * 2 + subCol;
+  let index = hitInfo.index;
+  let supertile = hitInfo.supertile;
+  let visualQuadrant = hitInfo.visualQuadrant;
+  let logicalQuadrant = hitInfo.logicalQuadrant;
+  let baseTileSubtileIndex = hitInfo.baseTileSubtileIndex;
     
     // Unique ID for this specific subtile location
     // Format: SupertileIndex | VisualQuadrant | SubtileIndex
@@ -1187,9 +1372,9 @@ function handleTileClick(mx, my) {
     lastInteractedId = currentTileId;
 
     // Tile to edit in data space (logical quadrant)
-    let targetTile = supertile.tiles[logicalQuadrant];
+    let targetTile = hitInfo.targetTile;
     
-    let oldType = targetTile.types[baseTileSubtileIndex];
+    let oldType = hitInfo.oldType;
     let newType = oldType;
     
     if (interactionMode === 'mirror') {
