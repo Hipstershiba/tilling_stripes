@@ -224,6 +224,33 @@ function setupUI(mainCanvas) {
   let bNext = select('#btnNextSeed');
   if(bNext) bNext.mousePressed(() => restoreGenerationState(generationIndex + 1));
   
+  let bToggle = select('#btnToggleHistory');
+  if(bToggle) {
+     bToggle.mousePressed((e) => {
+        let list = select('#seedHistoryList');
+        // Toggle display logic
+        if (list.style('display') === 'none') {
+            list.style('display', 'block');
+        } else {
+            list.style('display', 'none');
+        }
+        e.stopPropagation(); // prevent window click from immediately closing it
+     });
+     
+     // Close when clicking outside
+     document.addEventListener('click', (e) => {
+        let list = select('#seedHistoryList');
+        if (list && list.style('display') === 'block') {
+            // Check if click is outside list and button
+            let target = e.target;
+            // Native DOM check for containment
+            if (!bToggle.elt.contains(target) && !list.elt.contains(target)) {
+                list.style('display', 'none');
+            }
+        }
+     });
+  }
+  
   let bUndo = select('#btnUndo');
   if(bUndo) bUndo.mousePressed(undoEdit);
   
@@ -942,29 +969,35 @@ function updateHistoryUI() {
   let list = select('#seedHistoryList');
   if (list) {
       list.html('');
-      // Show last 5
+      // Show last 20 (reversed)
       generationHistory.slice().reverse().forEach((state, reverseIdx) => {
           let realIdx = generationHistory.length - 1 - reverseIdx;
           let isCurrent = (realIdx === generationIndex);
           let item = createDiv(`#${state.seed} <span style="font-size:0.7em; color:#888">${state.timestamp}</span>`);
-          item.style('padding', '2px 4px');
+          item.style('padding', '6px 8px');
           item.style('cursor', 'pointer');
-          item.style('border-radius', '2px');
-          item.style('font-size', '0.8rem');
-          item.style('color', isCurrent ? '#fff' : '#aaa');
+          item.style('border-bottom', '1px solid #333');
+          item.style('font-size', '0.85rem');
+          item.style('color', isCurrent ? '#fff' : '#bbb');
           item.style('background', isCurrent ? '#444' : 'transparent');
           item.mouseOver(() => item.style('background', isCurrent ? '#444' : '#333'));
           item.mouseOut(() => item.style('background', isCurrent ? '#444' : 'transparent'));
           
-          item.mousePressed(() => restoreGenerationState(realIdx));
+          item.mousePressed(() => {
+             restoreGenerationState(realIdx);
+             // Close dropdown on selection
+             list.style('display', 'none');
+          });
           list.child(item);
       });
       
-      // Determine if list should be visible
-      if (generationHistory.length > 1) {
-          list.style('display', 'block');
-      } else {
-          list.style('display', 'none');
+      if (generationHistory.length === 0) {
+          let empty = createDiv('No history yet');
+          empty.style('padding', '8px');
+          empty.style('color', '#888');
+          empty.style('font-size', '0.8rem');
+          empty.style('text-align', 'center');
+          list.child(empty);
       }
   }
 }

@@ -98,29 +98,42 @@
           </div>
 
           <!-- History Controls for Generation -->
-          <div style="margin-top: 8px; display: flex; gap: 5px;">
+          <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
             <button id="btnPrevSeed" title="Previous Generation" disabled
               style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
-              <span style="font-size: 0.8rem; margin-left: 4px;">Undo</span>
             </button>
             <button id="btnNextSeed" title="Next Generation" disabled
               style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-              <span style="font-size: 0.8rem; margin-right: 4px;">Redo</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
-          </div>
-
-          <!-- Seed History List -->
-          <div id="seedHistoryList"
-            style="margin-top: 8px; max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 4px; display: none;">
-            <!-- Populated via JS -->
+             <button id="btnToggleHistory" title="Full History List"
+              style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+            </button>
+            
+            <!-- Floating History List -->
+            <div id="seedHistoryList"
+              style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
+                     overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; 
+                     padding: 4px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+              <!-- Populated via JS -->
+              <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
+            </div>
           </div>
         </div>
 
