@@ -727,7 +727,18 @@ function handleTileClick(mx, my) {
     let newType = oldType;
     
     if (interactionMode === 'mirror') {
-        newType = getNextInFamily(oldType);
+        if (keyIsDown(SHIFT)) {
+             // Shift + Click: Randomize (Reseed)
+             // Prioritize "Allowed Types" if any are selected, else fully random
+             if (allowedTypes && allowedTypes.length > 0) {
+                 newType = random(allowedTypes);
+             } else {
+                 newType = floor(random(totalTileTypes));
+             }
+        } else {
+             // Standard Click: Cycle Family
+             newType = getNextInFamily(oldType);
+        }
     } else if (interactionMode === 'edit') {
         // WYSIWYG Painting: 
         // Identify the net transformation applied to this position and inverse it.
