@@ -30,27 +30,30 @@ let editHistoryIndex = -1;
 let isRestoringHistory = false; // Flag to prevent infinite loops during restore
 let hasPendingHistory = false; // Tracks if a gesture modified the state
 
-// Define Tile Families (Manually mapped based on registry groups)
-const TILE_FAMILIES = [
-    [0, 1, 2, 3],       // Half Rect + Circle
-    [4, 5, 6, 7],       // Corner Triangles
-    [8, 9, 10, 11],     // Side Triangles
-    [12, 13, 14, 15],   // Centered / Symmetric
-    [16, 17],           // Checkers
-    [18, 19],           // Stripes
-    [20, 21, 22, 23],   // Waves
-    [24, 25],           // Zigzag
-    [26, 27],           // Bowtie/Hourglass
-    [28, 29, 30, 31],   // L-Shape
-    [32, 33, 34, 35],   // T-Shape
-    [36, 37],           // Diagonal
-    [38, 39, 40, 41],   // Arcs
-    [42],               // Grid (Single)
-    [43, 44]            // Three dots
-];
+// Tile Families come from tile_registry metadata (fallback kept for compatibility)
+const TILE_FAMILY_GROUPS =
+  (typeof window !== 'undefined' && Array.isArray(window.TILE_FAMILIES) && window.TILE_FAMILIES.length > 0)
+    ? window.TILE_FAMILIES
+    : [
+        [0, 1, 2, 3],
+        [4, 5, 6, 7],
+        [8, 9, 10, 11],
+        [12, 13, 14, 15],
+        [16, 17],
+        [18, 19],
+        [20, 21, 22, 23],
+        [24, 25],
+        [26, 27],
+        [28, 29, 30, 31],
+        [32, 33, 34, 35],
+        [36, 37],
+        [38, 39, 40, 41],
+        [42],
+        [43, 44]
+      ];
 // Helper to find next family member
 function getNextInFamily(currentType) {
-    for (let family of TILE_FAMILIES) {
+  for (let family of TILE_FAMILY_GROUPS) {
         let idx = family.indexOf(currentType);
         if (idx !== -1) {
             return family[(idx + 1) % family.length];
