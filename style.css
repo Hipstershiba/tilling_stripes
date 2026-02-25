@@ -620,7 +620,8 @@ body.sidebar-closed #canvas-container {
   }
 }
 
-@media (max-width: 768px), (pointer: coarse) {
+@media (max-width: 768px),
+(pointer: coarse) {
   .scope-rotate-hint {
     display: none;
   }
@@ -803,7 +804,9 @@ button:hover {
   visibility: visible;
 }
 
-@media (max-width: 768px), (pointer: coarse) {
+@media (max-width: 768px),
+(pointer: coarse) {
+
   #canvasStatusHint,
   #canvasStatusHint.visible {
     display: none !important;
