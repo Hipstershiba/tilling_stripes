@@ -1139,47 +1139,42 @@ function handleTileClick(mx, my) {
     let stLeft = supertile.x - supertile.w/2;
     let stTop = supertile.y - supertile.h/2;
     
-    let localX = mx - stLeft;
-    let localY = my - stTop;
-    
-    // Apply Global Mirroring
-    if (supertile.mirrorX) {
-        localX = supertile.w - localX;
-    }
-    if (supertile.mirrorY) {
-        localY = supertile.h - localY;
-    }
+    let localXVisual = mx - stLeft;
+    let localYVisual = my - stTop;
 
-    // Determine Logic Quadrant (which tile in the list)
-    let qCol = localX > supertile.w/2 ? 1 : 0;
-    let qRow = localY > supertile.h/2 ? 1 : 0;
-    let visualQuadrant = qRow * 2 + qCol;
+    // Visual quadrant (where cursor is on screen)
+    let halfW = supertile.w / 2;
+    let halfH = supertile.h / 2;
+    let visualCol = localXVisual >= halfW ? 1 : 0;
+    let visualRow = localYVisual >= halfH ? 1 : 0;
+    let visualQuadrant = visualRow * 2 + visualCol;
 
-    // Determine sub-coordinate within that quadrant
-    let quadrantX = localX % (supertile.w/2);
-    let quadrantY = localY % (supertile.h/2);
-    
-    // Within that w/2 by h/2 area, are we in left/top or right/bottom?
-    let subCol = quadrantX > (supertile.w/4) ? 1 : 0;
-    let subRow = quadrantY > (supertile.h/4) ? 1 : 0;
-    
-    // Now map back to the BaseTile's data array indices
-    let targetSubCol = subCol;
-    let targetSubRow = subRow;
-    
-    // Quadrant 1 (TR): Flipped X locally
-    if (visualQuadrant === 1) targetSubCol = 1 - subCol; 
-    
-    // Quadrant 2 (BL): Flipped Y locally
-    if (visualQuadrant === 2) targetSubRow = 1 - subRow; 
+    // Logical coordinates (data space) account for supertile mirroring
+    let localXLogical = supertile.mirrorX ? (supertile.w - localXVisual) : localXVisual;
+    let localYLogical = supertile.mirrorY ? (supertile.h - localYVisual) : localYVisual;
 
-    // Quadrant 3 (BR): Flipped X and Y locally
-    if (visualQuadrant === 3) {
-        targetSubCol = 1 - subCol;
-        targetSubRow = 1 - subRow;
-    }
-    
-    let baseTileSubtileIndex = targetSubRow * 2 + targetSubCol;
+    // Logical quadrant (which tile index in supertile.tiles we must edit)
+    let logicalCol = localXLogical >= halfW ? 1 : 0;
+    let logicalRow = localYLogical >= halfH ? 1 : 0;
+    let logicalQuadrant = logicalRow * 2 + logicalCol;
+
+    // Position inside logical quadrant tile
+    let tileLocalX = localXLogical - logicalCol * halfW;
+    let tileLocalY = localYLogical - logicalRow * halfH;
+
+    // Clamp to avoid edge jitter exactly at borders
+    tileLocalX = constrain(tileLocalX, 0, halfW - 0.0001);
+    tileLocalY = constrain(tileLocalY, 0, halfH - 0.0001);
+
+    // Each quadrant tile is rendered with local flips:
+    // 0: none, 1: flipX, 2: flipY, 3: flipXY
+    if (logicalQuadrant === 1 || logicalQuadrant === 3) tileLocalX = halfW - tileLocalX;
+    if (logicalQuadrant === 2 || logicalQuadrant === 3) tileLocalY = halfH - tileLocalY;
+
+    // Now map to subtile index inside the tile (2x2)
+    let subCol = tileLocalX >= (halfW / 2) ? 1 : 0;
+    let subRow = tileLocalY >= (halfH / 2) ? 1 : 0;
+    let baseTileSubtileIndex = subRow * 2 + subCol;
     
     // Unique ID for this specific subtile location
     // Format: SupertileIndex | VisualQuadrant | SubtileIndex
@@ -1191,18 +1186,8 @@ function handleTileClick(mx, my) {
     // Update tracker
     lastInteractedId = currentTileId;
 
-    // Determine the actual Tile object we are clicking on
-    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
-    // This matches the this.tiles array in Supertile
-    let targetTile = supertile.tiles[visualQuadrant];
-    
-    // But wait! If we applied global mirror (supertile.mirrorX), 
-    // we flipped the coordinate system, so we are calculating the LOGICAL tile we hit.
-    // e.g. If mirrorX is true, and we clicked visual-left, we are hitting logical-right (TR).
-    // Our 'visualQuadrant' variable now holds the LOGICAL quadrant index.
-    
-    // SO, targetTile is indeed supertile.tiles[visualQuadrant].
-    // And baseTileSubtileIndex is the index within that tile.
+    // Tile to edit in data space (logical quadrant)
+    let targetTile = supertile.tiles[logicalQuadrant];
     
     let oldType = targetTile.types[baseTileSubtileIndex];
     let newType = oldType;
@@ -1226,8 +1211,8 @@ function handleTileClick(mx, my) {
         
         // 1. Local Quadrant Flip (based on logical quadrant index)
         // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
-        let isFlippedX = (visualQuadrant === 1 || visualQuadrant === 3);
-        let isFlippedY = (visualQuadrant === 2 || visualQuadrant === 3);
+        let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
+        let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
 
         // 2. Global Mirror Flip
         // If global mirror is active, the coordinate system is flipped.
