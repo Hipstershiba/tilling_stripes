@@ -375,24 +375,32 @@ body.sidebar-closed #canvas-container {
 
 .tab-nav[data-active="edit"] .tab-nav-bg {
   transform: translateX(100%);
+  left: -2px;
 }
 
 .tab-btn {
   flex: 1;
-  background: transparent;
-  color: #aaa;
+  background: transparent !important;
+  /* Override any potentially inherited background */
   border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 4px;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  transition: color 0.3s;
+  color: #888;
   z-index: 2;
-  display: flex;
+  /* Content sits above the sliding background */
+  cursor: pointer;
+  display: flex !important;
+  /* Ensure flex behavior matching tool-btn */
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  border-radius: 6px;
+  /* Match parent radius slightly */
+  transition: color 0.3s;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0;
+  outline: none;
+  min-height: 100%;
 }
 
 .tab-btn.active {
@@ -402,6 +410,7 @@ body.sidebar-closed #canvas-container {
 }
 
 .tab-btn:hover {
+  background: transparent !important;
   color: #fff;
 }
 
@@ -471,6 +480,8 @@ body.sidebar-closed #canvas-container {
   opacity: 1;
   transform: translateX(100%);
   /* Moves exactly 100% of its own width so it sits on the right half */
+  left: -2px;
+  /* Correct offset to align perfectly */
 }
 
 .tool-btn {
