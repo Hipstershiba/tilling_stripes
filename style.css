@@ -325,8 +325,91 @@ body.sidebar-closed #canvas-container {
   /* Force flex display when active */
 }
 
-/* Mode Toggles */
-.mode-toggle-group,
+/* Tool Switcher (New Fancy Animation) */
+.tool-switch {
+  display: flex;
+  background: #111;
+  border-radius: 8px;
+  padding: 4px;
+  position: relative;
+  height: 48px;
+  /* Fixed height for consistency */
+  border: 1px solid #333;
+}
+
+.tool-bg {
+  position: absolute;
+  top: 4px;
+  /* Matches padding */
+  bottom: 4px;
+  width: calc(50% - 4px);
+  /* Half container width minus padding adjustment */
+  background: #333;
+  /* Dark grey for subtle active state */
+  border: 1px solid #555;
+  /* Slight border for definition */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* Enhance depth */
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
+  z-index: 1;
+  /* Initial state: left */
+  left: 4px;
+  transform: translateX(0);
+}
+
+/* State for tool background position - controlled by JS setting attribute on parent */
+.tool-switch[data-active="none"] .tool-bg {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.tool-switch[data-active="mirror"] .tool-bg {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tool-switch[data-active="edit"] .tool-bg {
+  opacity: 1;
+  transform: translateX(100%);
+  /* Moves exactly 100% of its own width so it sits on the right half */
+}
+
+.tool-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #888;
+  z-index: 2;
+  /* Content sits above the sliding background */
+  cursor: pointer;
+  display: flex !important;
+  /* Ensure flex behavior */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: color 0.3s;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0;
+  outline: none;
+  min-height: 100%;
+  /* Ensure full height */
+}
+
+/* Text color change when active */
+.tool-btn.active {
+  color: #fff;
+}
+
+.tool-btn:hover {
+  background: transparent !important;
+  /* Override generic button hover */
+  color: #fff;
+}
+
+/* Scope Toggles */
 .scope-toggle-group {
   display: flex;
   background: #333;
@@ -335,7 +418,6 @@ body.sidebar-closed #canvas-container {
   gap: 2px;
 }
 
-.mode-btn,
 .scope-btn {
   flex: 1;
   background: transparent;
@@ -348,15 +430,13 @@ body.sidebar-closed #canvas-container {
   transition: all 0.2s;
 }
 
-.mode-btn:hover,
 .scope-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
-.mode-btn.active,
 .scope-btn.active {
-  background: #2196F3;
+  background: #4CAF50;
   color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }

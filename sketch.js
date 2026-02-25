@@ -294,31 +294,19 @@ function setupUI(mainCanvas) {
          // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
          select('#tileSelector').removeClass('paint-mode');
      } else if (tab === 'edit') {
-         // Restore previous tool or default to Cycle
-         let activeBtn = select('.mode-btn.active');
-         if (activeBtn) {
-             interactionMode = activeBtn.attribute('data-mode');
-         } else {
-             // Default to cycle if nothing active
-             interactionMode = 'mirror';
-             let cycleBtn = select('#modeMirror');
-             if(cycleBtn) cycleBtn.addClass('active');
+         // Restore previous tool or default to Rotate
+         if (interactionMode !== 'mirror' && interactionMode !== 'edit') {
+             interactionMode = 'mirror'; // Default
          }
          console.log('Mode restored to:', interactionMode);
          updateEditUI();
      }
   });
 
-  selectAll('.mode-btn').forEach(btn => {
+  selectAll('.tool-btn').forEach(btn => {
       btn.mousePressed(() => {
-          // If we are in Setup tab for some reason, ignore? Or switch tab?
-          // Assuming buttons are only visible in Edit tab.
-          
-          selectAll('.mode-btn').forEach(b => b.removeClass('active'));
-          btn.addClass('active');
           interactionMode = btn.attribute('data-mode');
           console.log('Tool set to:', interactionMode);
-          
           updateEditUI();
       });
   });
@@ -340,10 +328,24 @@ function updateEditUI() {
     let previewContainer = select('#paintTileDisplay'); 
     let scopeContainer = select('#scopeControl');
 
-    // If interaction mode is none (Setup tab), hide everything? 
-    // Actually these controls are inside the tab content, so they hide automatically via CSS.
-    // However, we want to update the logic-dependent visibility (Paint Palette)
+    // Update animated toggle state
+    // Use vanilla JS to ensure attribute update works reliably for CSS
+    let toolSwitch = document.querySelector('.tool-switch');
+    if (toolSwitch) {
+        toolSwitch.setAttribute('data-active', interactionMode);
+    }
+    
+    // Ensure correct active state on buttons (for text color)
+    // Clear all first
+    selectAll('.tool-btn').forEach(b => b.removeClass('active'));
+    
+    if (interactionMode === 'mirror') {
+        select('#modeMirror').addClass('active');
+    } else if (interactionMode === 'edit') {
+        select('#modeEdit').addClass('active');
+    }
 
+    // Logic-dependent visibility
     if (interactionMode === 'edit') {
         if(previewContainer) previewContainer.style('display', 'flex'); 
         if(scopeContainer) scopeContainer.style('display', 'block');
@@ -353,7 +355,6 @@ function updateEditUI() {
     } else {
         // None/View
         if(previewContainer) previewContainer.style('display', 'none');
-        // Scope might not be needed in View, but View is 'tab-setup' now effectively
     }
 }
 
