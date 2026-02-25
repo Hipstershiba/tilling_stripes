@@ -477,3 +477,10 @@ canvas {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   display: block;
 }
+
+/* Locked button state */
+button.locked {
+  background-color: #2e7d32;
+  color: #fff;
+}
+

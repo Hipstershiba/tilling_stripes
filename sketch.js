@@ -87,6 +87,12 @@ function setupUI(mainCanvas) {
   let wInput = select('#canvasW');
   let hInput = select('#canvasH');
   
+  // SVG Icons
+  // Unlock: Outline only, shackle lifted
+  const ICON_UNLOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>';
+  // Lock: Filled body for emphasis, shackle closed
+  const ICON_LOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="currentColor"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+
   // Lock buttons
   let btnLockCanvasRatio = select('#btnLockCanvasRatio');
   let btnLockGridRatio = select('#btnLockGridRatio');
@@ -94,11 +100,14 @@ function setupUI(mainCanvas) {
   if (btnLockCanvasRatio) {
     btnLockCanvasRatio.mousePressed(() => {
         isCanvasLocked = !isCanvasLocked;
-        btnLockCanvasRatio.html(isCanvasLocked ? '🔒' : '🔓');
+        btnLockCanvasRatio.html(isCanvasLocked ? ICON_LOCK : ICON_UNLOCK);
         if (isCanvasLocked) {
+           btnLockCanvasRatio.addClass('locked');
            let w = parseInt(wInput.value());
            let h = parseInt(hInput.value());
            if (h > 0) canvasRatio = w / h;
+        } else {
+           btnLockCanvasRatio.removeClass('locked');
         }
     });
   }
@@ -135,11 +144,14 @@ function setupUI(mainCanvas) {
   if (btnLockGridRatio) {
      btnLockGridRatio.mousePressed(() => {
         isGridLocked = !isGridLocked;
-        btnLockGridRatio.html(isGridLocked ? '🔒' : '🔓');
+        btnLockGridRatio.html(isGridLocked ? ICON_LOCK : ICON_UNLOCK);
         if (isGridLocked) {
+           btnLockGridRatio.addClass('locked');
            let r = parseInt(gridRowsInput.value());
            let c = parseInt(gridColsInput.value());
            if (r > 0) gridRatio = c / r; // cols per row
+        } else {
+           btnLockGridRatio.removeClass('locked');
         }
      });
   }
@@ -537,10 +549,11 @@ function initGrid() {
       let y = margin + i * tilesHeight + tilesHeight / 2;
       
       // Determine the source coordinates. 
-      // Maps bottom/right quadrants to top-left quadrant indices
+      // i=0,1,2,3. Maps to 0,1,1,0.
       let sourceI = i < centerY ? i : rows - 1 - i;
       let sourceJ = j < centerX ? j : cols - 1 - j;
       
+      // Check if this tile IS the source tile
       if (i === sourceI && j === sourceJ) {
         // This is a source tile (Top-Left quadrant or center axes)
         let supertile = new Supertile(x, y, tilesWidth, tilesHeight, allowedTypes);
@@ -554,11 +567,23 @@ function initGrid() {
         let supertile = new Supertile(x, y, tilesWidth, tilesHeight, allowedTypes);
         
         // Force the same types as the source
-        if (sourceTile) {
-            supertile.types = [...sourceTile.types];
-            // Re-create the baseTile component with these specific types
-            // The constructor created a random one, we discard it and make a matching one.
-            supertile.baseTile = new Tile(0, 0, supertile.w/2, supertile.h/2, supertile.types);
+        // CRITICAL FIX: Ensure sourceTile exists before accessing property
+        if (sourceTile && sourceTile.tiles) {
+             // Copy types for each of the 4 independent quadrant tiles
+             for(let k=0; k<4; k++) {
+                 if (sourceTile.tiles[k] && sourceTile.tiles[k].types) {
+                     supertile.tiles[k].types = [...sourceTile.tiles[k].types];
+                     // Recreate buffer since we changed types
+                     supertile.tiles[k].subtiles = [];
+                     if (supertile.tiles[k].buffer) supertile.tiles[k].buffer.remove();
+                     supertile.tiles[k].buffer = createGraphics(supertile.tiles[k].w, supertile.tiles[k].h);
+                     supertile.tiles[k].create_subtiles();
+                     supertile.tiles[k].render_to_buffer();
+                 }
+             }
+        } else {
+            // Fallback: This shouldn't happen if loop order is correct, but just in case
+            console.warn(`Source tile missing at ${sourceJ},${sourceI} for target ${j},${i}`);
         }
         
         // Mark for mirroring in render
@@ -626,68 +651,65 @@ function handleTileClick(mx, my) {
     let localX = mx - stLeft;
     let localY = my - stTop;
     
-    // 0: TL, 1: TR, 2: BL, 3: BR
-    // Logic matches Supertile render order or create_subtiles order?
-    // Supertile renders: TL, TR, BL, BR
-    // But Supertile transforms rendering. 
-    // The BaseTile has 4 subtiles: 0 (TL), 1 (TR), 2 (BL), 3 (BR)
-    // We need to map the Click Quadrant to the BaseTile Subtile Index, accounting for Supertile mirroring.
+    // Apply Global Mirroring
+    if (supertile.mirrorX) {
+        localX = supertile.w - localX;
+    }
+    if (supertile.mirrorY) {
+        localY = supertile.h - localY;
+    }
 
-    // Determine visual quadrant (0=TL, 1=TR, 2=BL, 3=BR)
+    // Determine Logic Quadrant (which tile in the list)
     let qCol = localX > supertile.w/2 ? 1 : 0;
     let qRow = localY > supertile.h/2 ? 1 : 0;
     let visualQuadrant = qRow * 2 + qCol;
 
-    // Now, which subtile of the *BaseTile* is displayed in this visual quadrant?
-    // BaseTile also has 4 subtiles (TL, TR, BL, BR).
-    // Supertile transformations:
-    // TL (Visual 0): Normal. Maps to BaseTile Quadrant logic directly?
-    //    BaseTile renders at -w/4, -h/4. 
-    //    And within BaseTile, it renders subtiles at offsets.
-    
-    // Let's simplify:
-    // We have visual quadrant of Supertile (0,1,2,3).
-    // Within that quadrant, we are looking at a transformed BaseTile.
-    // Calculate local coord *within* that quadrant to find which *part* of the BaseTile we clicked.
-    
+    // Determine sub-coordinate within that quadrant
+    // Modulo gives 0 to w/2 range
     let quadrantX = localX % (supertile.w/2);
     let quadrantY = localY % (supertile.h/2);
     
-    // BaseTile is w/2 x h/2.
-    // Subtiles are w/4 x h/4.
-    // So within a quadrant (size w/2 x h/2), there are 2x2 subtiles.
-    
+    // Within that w/2 by h/2 area, are we in left/top or right/bottom?
     let subCol = quadrantX > (supertile.w/4) ? 1 : 0;
     let subRow = quadrantY > (supertile.h/4) ? 1 : 0;
     
-    // We need to account for the Supertile Flip to find the *original* base tile index.
+    // Now map back to the BaseTile's data array indices
+    // Each quadrant has a specific transformation
     
     let targetSubCol = subCol;
     let targetSubRow = subRow;
     
-    // Visual Quadrant 1 (TR): Flipped X (Right side of SuperTile)
-    if (visualQuadrant === 1) { 
-        targetSubCol = 1 - subCol; 
-    }
+    // Quadrant 1 (TR): Flipped X locally
+    if (visualQuadrant === 1) targetSubCol = 1 - subCol; 
     
-    // Visual Quadrant 2 (BL): Flipped Y (Bottom side of SuperTile)
-    if (visualQuadrant === 2) { 
-        targetSubRow = 1 - subRow; 
-    }
+    // Quadrant 2 (BL): Flipped Y locally
+    if (visualQuadrant === 2) targetSubRow = 1 - subRow; 
 
-    // Visual Quadrant 3 (BR): Flipped X AND Y
+    // Quadrant 3 (BR): Flipped X and Y locally
     if (visualQuadrant === 3) {
         targetSubCol = 1 - subCol;
         targetSubRow = 1 - subRow;
     }
     
     let baseTileSubtileIndex = targetSubRow * 2 + targetSubCol;
-    console.log("VisualQ", visualQuadrant, "TargetSub", targetSubCol, targetSubRow, "Index", baseTileSubtileIndex);
     
-    // Now we know which index in supertile.types (or baseTile.types) we want to modify.
-    // supertile.types is array of 4 ints.
+    // Determine the actual Tile object we are clicking on
+    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
     
-    let oldType = supertile.types[baseTileSubtileIndex];
+    // Determine the actual Tile object we are clicking on
+    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
+    // This matches the this.tiles array in Supertile
+    let targetTile = supertile.tiles[visualQuadrant];
+    
+    // But wait! If we applied global mirror (supertile.mirrorX), 
+    // we flipped the coordinate system, so we are calculating the LOGICAL tile we hit.
+    // e.g. If mirrorX is true, and we clicked visual-left, we are hitting logical-right (TR).
+    // Our 'visualQuadrant' variable now holds the LOGICAL quadrant index.
+    
+    // SO, targetTile is indeed supertile.tiles[visualQuadrant].
+    // And baseTileSubtileIndex is the index within that tile.
+    
+    let oldType = targetTile.types[baseTileSubtileIndex];
     let newType = oldType;
     
     if (interactionMode === 'mirror') {
@@ -696,51 +718,70 @@ function handleTileClick(mx, my) {
         newType = currentPaintTile;
     }
     
-    console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
+    // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
 
-    if (oldType === newType && interactionMode !== 'edit') return; // No change unless forced edit (though normally edit checks too)
+    if (oldType === newType && interactionMode !== 'edit') return; 
     
-    // Apply Change
+    // Helper to update a single tile instance and redraw/recreate its buffer
+    const refreshTile = (tileObj) => {
+        tileObj.subtiles = [];
+        if(tileObj.buffer) tileObj.buffer.remove();
+        tileObj.buffer = createGraphics(tileObj.w, tileObj.h);
+        tileObj.create_subtiles();
+        tileObj.render_to_buffer();
+    };
+
+    // Apply Change based on Scope
     if (interactionScope === 'single') {
-        
-        // Update the type
-        supertile.types[baseTileSubtileIndex] = newType;
-        
-        // Re-create the baseTile to reflect visual changes
-        // Use slice() to ensure we pass a copy, though Tile constructor references it.
-        // Actually, let's explicitely use the modified types array.
-        if(supertile.baseTile) {
-             // If baseTile has a buffer, we might want to manually clear it?
-             // But the new Tile() creates a new buffer.
-             // Let's verify if p5.js manages this memory well. 
-             // In JS, GC handles it.
-             supertile.baseTile.buffer.remove(); // Explicitly remove p5 graphics to prevent memory leaks/glitches
+        // True Single: Only this quadrant, this subtile
+        targetTile.types[baseTileSubtileIndex] = newType;
+        refreshTile(targetTile);
+
+    } else if (interactionScope === 'supertile') {
+        // Current "Single" behavior: Update mirror-equivalent subtiles in all 4 quadrants of THIS supertile
+        for(let t of supertile.tiles) {
+            t.types[baseTileSubtileIndex] = newType;
+            refreshTile(t);
         }
-        supertile.baseTile = new Tile(0, 0, supertile.w/2, supertile.h/2, [...supertile.types]);
 
-    } else {
-
-        // Let's implement global replace by Type.
-        // We need to be careful. Global Replace replaces ALL instances of OldType with NewType across the board?
-        // Or per position?
-        // User asked for "Global Scope". Usually means "Change this tile everywhere".
-        
-        // But here we are changing a SUBTILE type.
-        // So we should find all subtiles of OldType and change them to NewType?
-        // That's usually what "Global Paint" means.
-        
+    } else if (interactionScope === 'global_exact') {
+        // Global Exact: Update ALL subtiles that match oldType to newType
         for (let s of tiles) {
-            let changed = false;
-            // Iterate over all 4 subtiles of this Supertile
-            for (let i = 0; i < 4; i++) {
-                if (s.types[i] === oldType) {
-                    s.types[i] = newType;
-                    changed = true;
+            for (let t of s.tiles) {
+                let changed = false;
+                for (let i = 0; i < 4; i++) {
+                    if (t.types[i] === oldType) {
+                        t.types[i] = newType;
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    refreshTile(t);
                 }
             }
-            if (changed) {
-                if(s.baseTile) s.baseTile.buffer.remove();
-                s.baseTile = new Tile(0, 0, s.w/2, s.h/2, [...s.types]);
+        }
+    } else if (interactionScope === 'global_pos') {
+        // Global Equivalent by Position (Single): 
+        // Update the subtile at [visualQuadrant][baseTileSubtileIndex] in ALL supertiles.
+        for (let s of tiles) {
+            // Use the SAME logical indices we found for the current supertile
+            // Note: This maintains the exact same "corner" across the grid, even if some supertiles are mirrored.
+            // If the user meant "Visual Position", we'd need to re-calculate based on grid coordinates?
+            // But usually "Global Pos" implies structural consistency. 
+            // visualQuadrant accounts for the CLICKED supertile's mirroring. 
+            // We apply it to other supertiles using the same index.
+            let t = s.tiles[visualQuadrant]; 
+            t.types[baseTileSubtileIndex] = newType;
+            refreshTile(t);
+        }
+    } else if (interactionScope === 'global_pos_sym') {
+        // Global Equivalent by Position (Symmetric / Batch):
+        // Update the subtile at this index in ALL quadrants of ALL supertiles.
+        // Effectively "Global Supertile" scope.
+        for (let s of tiles) {
+            for (let t of s.tiles) {
+                t.types[baseTileSubtileIndex] = newType;
+                refreshTile(t);
             }
         }
     }
