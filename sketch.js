@@ -215,6 +215,7 @@ function setupUI(mainCanvas) {
     seed = floor(random(10000));
     select('#seedInput').value(seed);
     initGrid();
+    if(window.updateAllSummaries) window.updateAllSummaries();
   });
   
   // History Button Bindings
@@ -460,6 +461,7 @@ function fitCanvasToScreen() {
   select('#canvasW').value(floor(w));
   select('#canvasH').value(floor(h));
   resizeCanvasAndUpdate(w, h);
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function windowResized() {
@@ -486,6 +488,7 @@ function fitCanvasToGrid() {
      select('#canvasW').value(floor(newW));
      resizeCanvasAndUpdate(newW, height);
   }
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function makeGridSquare() {
@@ -501,6 +504,7 @@ function makeGridSquare() {
   cols = newCols;
   select('#gridCols').value(cols);
   initGrid();
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function toggleFullscreen() {
@@ -856,6 +860,7 @@ function restoreGenerationState(index) {
   
   isRestoringHistory = false;
   updateHistoryUI();
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function pushEditState() {

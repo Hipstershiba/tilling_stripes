@@ -276,6 +276,21 @@ body.sidebar-closed #canvas-container {
   transform: rotate(-90deg);
 }
 
+.group-summary {
+  font-size: 0.8em;
+  color: #fff;
+  background: #444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: none; /* Hidden by default */
+  margin-right: 20px; /* Space for arrow */
+}
+
+/* Show summary when collapsed */
+.control-group.collapsed .group-summary {
+  display: inline-block;
+}
+
 .group-content {
   display: flex;
   flex-direction: column;
