@@ -15,8 +15,20 @@ let gridRatio = 1;
 
 // Interaction State
 let interactionMode = 'none'; // 'none', 'mirror', 'edit'
+let lastEditTool = 'mirror'; // Default tool for Edit tab
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
+let lastInteractedId = null; // Tracks the last tile modified during a drag operation
+let hoverPreviewTargets = [];
+let hoverPreviewAnchor = null;
+
+// History State
+let generationHistory = [];
+let generationIndex = -1;
+let editHistory = [];
+let editHistoryIndex = -1;
+let isRestoringHistory = false; // Flag to prevent infinite loops during restore
+let hasPendingHistory = false; // Tracks if a gesture modified the state
 
 // Define Tile Families (Manually mapped based on registry groups)
 const TILE_FAMILIES = [
@@ -205,7 +217,48 @@ function setupUI(mainCanvas) {
     seed = floor(random(10000));
     select('#seedInput').value(seed);
     initGrid();
+    if(window.updateAllSummaries) window.updateAllSummaries();
   });
+  
+  // History Button Bindings
+  let bPrev = select('#btnPrevSeed');
+  if(bPrev) bPrev.mousePressed(() => restoreGenerationState(generationIndex - 1));
+  
+  let bNext = select('#btnNextSeed');
+  if(bNext) bNext.mousePressed(() => restoreGenerationState(generationIndex + 1));
+  
+  let bToggle = select('#btnToggleHistory');
+  if(bToggle) {
+     bToggle.mousePressed((e) => {
+        let list = select('#seedHistoryList');
+        // Toggle display logic
+        if (list.style('display') === 'none') {
+            list.style('display', 'block');
+        } else {
+            list.style('display', 'none');
+        }
+        e.stopPropagation(); // prevent window click from immediately closing it
+     });
+     
+     // Close when clicking outside
+     document.addEventListener('click', (e) => {
+        let list = select('#seedHistoryList');
+        if (list && list.style('display') === 'block') {
+            // Check if click is outside list and button
+            let target = e.target;
+            // Native DOM check for containment
+            if (!bToggle.elt.contains(target) && !list.elt.contains(target)) {
+                list.style('display', 'none');
+            }
+        }
+     });
+  }
+  
+  let bUndo = select('#btnUndo');
+  if(bUndo) bUndo.mousePressed(undoEdit);
+  
+  let bRedo = select('#btnRedo');
+  if(bRedo) bRedo.mousePressed(redoEdit);
   
   // select('#btnRedraw').mousePressed(initGrid); // Removed as it auto-updates
   
@@ -281,44 +334,124 @@ function setupUI(mainCanvas) {
   select('#selectNone').mousePressed(selectNoneTiles);
 
   // Interaction Logic (Wiring the buttons)
-  selectAll('.mode-btn').forEach(btn => {
-      btn.mousePressed(() => {
-          selectAll('.mode-btn').forEach(b => b.removeClass('active'));
-          btn.addClass('active');
-          interactionMode = btn.attribute('data-mode');
-          console.log('Mode set to:', interactionMode);
-          
-          let previewContainer = select('#paintTileDisplay'); // Correct ID for paint preview
-          let scopeContainer = select('#scopeControl');
+  // Initially, assume 'none' if Setup tab is active
+  interactionMode = 'none';
 
-          if (interactionMode === 'mirror') {
-             if(previewContainer) previewContainer.style('display', 'none');
-             if(scopeContainer) scopeContainer.style('display', 'block');
-             select('#tileSelector').removeClass('paint-mode');
-             generateTileThumbnails(); // Refresh to remove paint highlight
-          } else if (interactionMode === 'edit') {
-             if(previewContainer) previewContainer.style('display', 'block');
-             if(scopeContainer) scopeContainer.style('display', 'block');
-             select('#tileSelector').addClass('paint-mode');
-             // Refresh thumbnails to show paint selection state if needed
-             generateTileThumbnails(); 
-          } else {
-             if(previewContainer) previewContainer.style('display', 'none');
-             if(scopeContainer) scopeContainer.style('display', 'none');
-             select('#tileSelector').removeClass('paint-mode');
-             generateTileThumbnails(); // Refresh to remove paint highlight
-          }
+  // Listen for Tab Changes
+  window.addEventListener('tabChanged', (e) => {
+     let tab = e.detail.tab;
+     if (tab === 'setup') {
+         interactionMode = 'none';
+         console.log('Mode set to: none (Setup Tab)');
+         // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
+         select('#tileSelector').removeClass('paint-mode');
+       updateHoverPreview();
+       redraw();
+     } else if (tab === 'edit') {
+         // Restore previous tool or default to Rotate
+         interactionMode = lastEditTool;
+         console.log('Mode restored to:', interactionMode);
+         updateEditUI();
+       updateHoverPreview();
+       redraw();
+     }
+  });
+
+  selectAll('.tool-btn').forEach(btn => {
+      btn.mousePressed(() => {
+          interactionMode = btn.attribute('data-mode');
+          lastEditTool = interactionMode;
+          console.log('Tool set to:', interactionMode);
+          updateEditUI();
+        updateHoverPreview();
+        redraw();
       });
   });
   
+  // Set initial UI state
+  updateEditUI();
+  
+  // Scope Descriptions
+  const SCOPE_DESCRIPTIONS = {
+    'single': '<strong style="color: #fff;">Single Tile</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update only the tile you click.</span>',
+    'supertile': '<strong style="color: #fff;">Block (2x2)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the entire 2x2 group.</span>',
+    'global_exact': '<strong style="color: #fff;">Global Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update ALL tiles of this type entirely.</span>',
+    'global_pos': '<strong style="color: #fff;">Grid Position</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update this specific slot in ALL blocks.</span>',
+    'global_pos_sym': '<strong style="color: #fff;">Symmetry (4x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update all 4 symmetric slots in ALL blocks.</span>'
+  };
+
+  // Set initial tooltip
+  select('#scopeDesc').html(SCOPE_DESCRIPTIONS['single']);
+
   selectAll('.scope-btn').forEach(btn => {
+      // Click Handler
       btn.mousePressed(() => {
           selectAll('.scope-btn').forEach(b => b.removeClass('active'));
           btn.addClass('active');
           interactionScope = btn.attribute('data-scope');
           console.log('Scope set to:', interactionScope);
+          
+          // Update description
+          let descDiv = select('#scopeDesc');
+          if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+          }
+
+           updateHoverPreview();
+           redraw();
+      });
+
+      // Hover Effects for Description
+      btn.mouseOver(() => {
+           let scope = btn.attribute('data-scope');
+           let descDiv = select('#scopeDesc');
+           if(descDiv && SCOPE_DESCRIPTIONS[scope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[scope]);
+           }
+      });
+      
+      btn.mouseOut(() => {
+           // Revert to active scope description
+           let descDiv = select('#scopeDesc');
+           if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
+             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+           }
       });
   });
+}
+
+function updateEditUI() {
+    let previewContainer = select('#paintTileDisplay'); 
+    let scopeContainer = select('#scopeControl');
+
+    // Update animated toggle state
+    // Use vanilla JS to ensure attribute update works reliably for CSS
+    let toolSwitch = document.querySelector('.tool-switch');
+    if (toolSwitch) {
+        toolSwitch.setAttribute('data-active', interactionMode);
+    }
+    
+    // Ensure correct active state on buttons (for text color)
+    // Clear all first
+    selectAll('.tool-btn').forEach(b => b.removeClass('active'));
+    
+    if (interactionMode === 'mirror') {
+        select('#modeMirror').addClass('active');
+    } else if (interactionMode === 'edit') {
+        select('#modeEdit').addClass('active');
+    }
+
+    // Logic-dependent visibility
+    if (interactionMode === 'edit') {
+        if(previewContainer) previewContainer.style('display', 'flex'); 
+        if(scopeContainer) scopeContainer.style('display', 'block');
+    } else if (interactionMode === 'mirror') {
+        if(previewContainer) previewContainer.style('display', 'none');
+        if(scopeContainer) scopeContainer.style('display', 'block');
+    } else {
+        // None/View
+        if(previewContainer) previewContainer.style('display', 'none');
+    }
 }
 
 function resizeCanvasAndUpdate(w, h) {
@@ -339,6 +472,7 @@ function fitCanvasToScreen() {
   select('#canvasW').value(floor(w));
   select('#canvasH').value(floor(h));
   resizeCanvasAndUpdate(w, h);
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function windowResized() {
@@ -365,6 +499,7 @@ function fitCanvasToGrid() {
      select('#canvasW').value(floor(newW));
      resizeCanvasAndUpdate(newW, height);
   }
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function makeGridSquare() {
@@ -380,6 +515,7 @@ function makeGridSquare() {
   cols = newCols;
   select('#gridCols').value(cols);
   initGrid();
+  if(window.updateAllSummaries) window.updateAllSummaries();
 }
 
 function toggleFullscreen() {
@@ -392,6 +528,77 @@ function toggleFullscreen() {
 }
 
 function generateTileThumbnails() {
+    createAllowedTilesList();
+    createBrushList(); 
+}
+
+function createBrushList() {
+    let container = select('#brushList');
+    if (!container) return; // Element might not exist if HTML isn't updated
+    
+    container.html('');
+    
+    for (let i = 0; i < totalTileTypes; i++) {
+        let div = createDiv('');
+        div.class('tile-option');
+        div.attribute('data-type', i);
+        div.style('width', '40px');
+        div.style('height', '40px');
+        
+        // Highlight active brush
+        if (i === currentPaintTile) {
+            div.addClass('paint-selected');
+        }
+        
+        // Tooltip
+        let tooltip = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) ? `#${i}: ${TILE_NAMES[i]}` : `Tile #${i}`;
+        div.attribute('title', tooltip);
+        
+        div.parent(container);
+        
+        // Render Thumbnail
+        let gfx = createGraphics(40, 40);
+        let c = color(220);
+        let s = new Subtile(40, 40, i);
+        s.color = c;
+        s.render(gfx, 20, 20); // Render centered
+        
+        let img = createImg(gfx.canvas.toDataURL());
+        img.style('width', '100%');
+        img.style('height', '100%');
+        img.style('display', 'block');
+        img.parent(div);
+        
+        gfx.remove();
+        
+        // Click Handler (Select Brush)
+        div.mousePressed(() => {
+            currentPaintTile = i;
+            
+            // UI Update: Remove active class from all brush items
+            // Note: We scope this to #brushList to avoid clearing allowed tiles
+            let allBrushes = container.elt.querySelectorAll('.tile-option');
+            allBrushes.forEach(el => el.classList.remove('paint-selected'));
+            div.addClass('paint-selected');
+            
+            // Update Preview Info
+            let name = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) ? TILE_NAMES[i] : ('#' + i);
+            let nameLabel = select('#paintTileName');
+            if(nameLabel) nameLabel.html(name);
+            
+            let previewBox = select('#paintTilePreview');
+            if(previewBox) {
+               previewBox.html('');
+               let previewImg = createImg(img.attribute('src'));
+               previewImg.style('width', '100%');
+               previewImg.style('height', '100%'); 
+               previewImg.parent(previewBox);
+            }
+        });
+    }
+}
+
+function createAllowedTilesList() {
   let container = select('#tileSelector');
   container.html(''); // Clear existing
 
@@ -406,11 +613,6 @@ function generateTileThumbnails() {
         div.addClass('selected');
     }
 
-    // Restore paint selection state only if in Edit Mode
-    if (interactionMode === 'edit' && i === currentPaintTile) {
-        div.addClass('paint-selected');
-    }
-    
     // Add tooltip
     if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) {
         div.attribute('title', `#${i}: ${TILE_NAMES[i]}`);
@@ -445,33 +647,6 @@ function generateTileThumbnails() {
 
     // Click event
     div.mousePressed(() => {
-      // If in Edit Mode, clicking the list sets the paint tile
-      if (interactionMode === 'edit') {
-          currentPaintTile = parseInt(div.attribute('data-type'));
-          
-           // Update UI to show selected
-           selectAll('.tile-option').forEach(el => el.removeClass('paint-selected'));
-           div.addClass('paint-selected');
-           
-           let name = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[currentPaintTile]) ? TILE_NAMES[currentPaintTile] : ('#' + currentPaintTile);
-           
-           // Update Display Name
-           let nameLabel = select('#paintTileName');
-           if(nameLabel) nameLabel.html(name);
-
-           // Update Display Preview (clone the img)
-           let previewBox = select('#paintTilePreview');
-           if(previewBox) {
-               previewBox.html('');
-               let previewImg = createImg(img.attribute('src'));
-               previewImg.style('width', '100%');
-               previewImg.style('height', '100%');
-               previewImg.parent(previewBox);
-           }
-
-           return;
-      }
-
       // Normal behavior: Toggle allowed types
       if (div.hasClass('selected')) {
         div.removeClass('selected');
@@ -484,8 +659,10 @@ function generateTileThumbnails() {
   }
 }
 
+
 function selectAllTiles() {
-  let options = selectAll('.tile-option');
+  // Only select tiles in the allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     opt.addClass('selected');
   }
@@ -494,7 +671,8 @@ function selectAllTiles() {
 }
 
 function selectNoneTiles() {
-  let options = selectAll('.tile-option');
+  // Only deselect tiles in the allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     opt.removeClass('selected');
   }
@@ -504,7 +682,8 @@ function selectNoneTiles() {
 
 function updateAllowedTypes() {
   allowedTypes = [];
-  let options = selectAll('.tile-option');
+  // Only collect from allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     if (opt.hasClass('selected')) {
       allowedTypes.push(parseInt(opt.attribute('data-type')));
@@ -512,8 +691,18 @@ function updateAllowedTypes() {
   }
 }
 
-function initGrid() {
+function initGrid(recordHistory = true) {
   randomSeed(seed);
+  
+  if (recordHistory && !isRestoringHistory) {
+      pushGenerationState();
+  }
+  
+  // Clear Edit History on new generation
+  if (!isRestoringHistory) {
+      editHistory = [];
+      editHistoryIndex = -1;
+  }
   
   if (allowedTypes.length === 0) {
       tiles = [];
@@ -597,6 +786,14 @@ function initGrid() {
   }
   
   redraw();
+  
+  // Push initial state for Edit History
+  if (!isRestoringHistory) {
+      // Clear previous history
+      editHistory = [];
+      editHistoryIndex = -1;
+      pushEditState();
+  }
 }
 
 function draw() {
@@ -606,122 +803,703 @@ function draw() {
         tile.render();
     }
   }
+  drawScopePreview();
   noLoop(); 
 }
 
+// -------------------------------------------------------------
+// History Management
+// -------------------------------------------------------------
+
+function pushGenerationState() {
+  if (isRestoringHistory) return;
+
+  // Prune future states if we are in the middle of history
+  if (generationIndex < generationHistory.length - 1) {
+    generationHistory = generationHistory.slice(0, generationIndex + 1);
+  }
+
+  let state = {
+    seed: seed,
+    rows: rows,
+    cols: cols,
+    margin: margin,
+    width: width,
+    height: height,
+    // allowed types logic is complex, storing just seed for now is often enough 
+    // but if user changes allowed types, we should store it.
+    // Simplifying for now to core params
+    timestamp: new Date().toLocaleTimeString()
+  };
+
+  generationHistory.push(state);
+  // Cap functionality
+  if (generationHistory.length > 20) generationHistory.shift();
+  
+  generationIndex = generationHistory.length - 1;
+  updateHistoryUI();
+}
+
+function restoreGenerationState(index) {
+  if (index < 0 || index >= generationHistory.length) return;
+  
+  isRestoringHistory = true;
+  let state = generationHistory[index];
+  
+  // Apply State
+  seed = state.seed;
+  rows = state.rows;
+  cols = state.cols;
+  margin = state.margin;
+  
+  // Update inputs
+  select('#seedInput').value(seed);
+  select('#gridRows').value(rows);
+  select('#gridCols').value(cols);
+  select('#gridMargin').value(margin);
+  
+  if (width !== state.width || height !== state.height) {
+     resizeCanvas(state.width, state.height);
+     select('#canvasW').value(width);
+     select('#canvasH').value(height);
+  }
+
+  // Set internal index
+  generationIndex = index;
+  
+  // Regenerate Grid without pushing new state
+  initGrid(false); 
+  
+  isRestoringHistory = false;
+  updateHistoryUI();
+  if(window.updateAllSummaries) window.updateAllSummaries();
+}
+
+function pushEditState() {
+  if (isRestoringHistory) return;
+
+  // Prune future state if somehow we are back in history
+  if (editHistoryIndex < editHistory.length - 1) {
+     editHistory = editHistory.slice(0, editHistoryIndex + 1);
+  }
+
+  // Deep Snapshot of Current Grid Logic
+  let snapshot = tiles.map(supertile => {
+      // Create a clean object for the snapshot
+      return {
+          mirrorX: supertile.mirrorX,
+          mirrorY: supertile.mirrorY,
+          // Map the 4 subtiles and their properties
+          tiles: supertile.tiles.map(t => ({
+              types: [...t.types], // Deep copy of the array is critical
+              rotation: t.rotation
+          }))
+      };
+  });
+  
+  editHistory.push(snapshot);
+  
+  // Cap history size
+  if (editHistory.length > 50) editHistory.shift();
+  
+  // Update index
+  editHistoryIndex = editHistory.length - 1;
+  
+  console.log(`History Push: ${editHistory.length} states. Index: ${editHistoryIndex}`);
+  updateHistoryUI();
+}
+
+function undoEdit() {
+  if (editHistoryIndex > 0) {
+    editHistoryIndex--;
+    console.log(`Undo to index: ${editHistoryIndex}`);
+    restoreEditState(editHistory[editHistoryIndex]);
+  } else {
+    console.log("Nothing to undo");
+  }
+}
+
+function redoEdit() {
+  if (editHistoryIndex < editHistory.length - 1) {
+    editHistoryIndex++;
+    console.log(`Redo to index: ${editHistoryIndex}`);
+    restoreEditState(editHistory[editHistoryIndex]);
+  } else {
+    console.log("Nothing to redo");
+  }
+}
+
+function restoreEditState(snapshot) {
+   if (!snapshot) return;
+   
+   isRestoringHistory = true;
+   
+   // Safety check for grid size changes
+   if (tiles.length !== snapshot.length) {
+       console.warn("History Mismatch: Grid size likely changed.");
+       isRestoringHistory = false;
+       return;
+   }
+   
+   // Apply snapshot to live objects
+   for(let i=0; i<tiles.length; i++) {
+       let st = tiles[i];
+       let snap = snapshot[i];
+       
+       st.mirrorX = snap.mirrorX;
+       st.mirrorY = snap.mirrorY;
+       
+       for(let j=0; j<4; j++) {
+           let target = st.tiles[j];
+           let source = snap.tiles[j];
+           
+           // Restore data
+           target.types = [...source.types];
+           target.rotation = source.rotation;
+           
+           // Re-render visual buffer
+           // Ideally we recreate the buffer to ensure clean state
+           if(target.buffer) target.buffer.remove();
+           target.buffer = createGraphics(target.w, target.h);
+           
+           // Important: Regenerate the internal subtile objects based on the restored types
+           target.subtiles = [];
+           target.create_subtiles();
+           target.render_to_buffer();
+       }
+   }
+   
+   redraw();
+   isRestoringHistory = false;
+   updateHistoryUI();
+}
+
+function updateHistoryUI() {
+  // Generation Buttons
+  let btnPrev = select('#btnPrevSeed');
+  let btnNext = select('#btnNextSeed');
+  if (btnPrev) {
+    btnPrev.attribute('disabled', generationIndex <= 0 ? '' : null);
+    if(generationIndex <= 0) btnPrev.attribute('disabled', 'true'); else btnPrev.removeAttribute('disabled');
+  }
+  if (btnNext) {
+     if(generationIndex >= generationHistory.length - 1) btnNext.attribute('disabled', 'true'); else btnNext.removeAttribute('disabled');
+  }
+
+  // Edit Buttons
+  let btnUndo = select('#btnUndo');
+  let btnRedo = select('#btnRedo');
+  if (btnUndo) {
+      if(editHistoryIndex <= 0) btnUndo.attribute('disabled', 'true'); else btnUndo.removeAttribute('disabled');
+  }
+  if (btnRedo) {
+      if(editHistoryIndex >= editHistory.length - 1) btnRedo.attribute('disabled', 'true'); else btnRedo.removeAttribute('disabled');
+  }
+  
+  // Update List (Optional)
+  let list = select('#seedHistoryList');
+  if (list) {
+      list.html('');
+      // Show last 20 (reversed)
+      generationHistory.slice().reverse().forEach((state, reverseIdx) => {
+          let realIdx = generationHistory.length - 1 - reverseIdx;
+          let isCurrent = (realIdx === generationIndex);
+          let item = createDiv(`#${state.seed} <span style="font-size:0.7em; color:#888">${state.timestamp}</span>`);
+          item.style('padding', '6px 8px');
+          item.style('cursor', 'pointer');
+          item.style('border-bottom', '1px solid #333');
+          item.style('font-size', '0.85rem');
+          item.style('color', isCurrent ? '#fff' : '#bbb');
+          item.style('background', isCurrent ? '#444' : 'transparent');
+          item.mouseOver(() => item.style('background', isCurrent ? '#444' : '#333'));
+          item.mouseOut(() => item.style('background', isCurrent ? '#444' : 'transparent'));
+          
+          item.mousePressed(() => {
+             restoreGenerationState(realIdx);
+             // Close dropdown on selection
+             list.style('display', 'none');
+          });
+          list.child(item);
+      });
+      
+      if (generationHistory.length === 0) {
+          let empty = createDiv('No history yet');
+          empty.style('padding', '8px');
+          empty.style('color', '#888');
+          empty.style('font-size', '0.8rem');
+          empty.style('text-align', 'center');
+          list.child(empty);
+      }
+  }
+}
+
+function getHitInfo(mx, my) {
+  if (mx < margin || mx > width - margin || my < margin || my > height - margin) return null;
+
+  let relativeX = mx - margin;
+  let relativeY = my - margin;
+
+  let col = floor(relativeX / tilesWidth);
+  let row = floor(relativeY / tilesHeight);
+
+  if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
+
+  let index = row * cols + col;
+  if (index < 0 || index >= tiles.length) return null;
+
+  let supertile = tiles[index];
+  let stLeft = supertile.x - supertile.w / 2;
+  let stTop = supertile.y - supertile.h / 2;
+
+  let localXVisual = mx - stLeft;
+  let localYVisual = my - stTop;
+
+  let halfW = supertile.w / 2;
+  let halfH = supertile.h / 2;
+
+  let visualCol = localXVisual >= halfW ? 1 : 0;
+  let visualRow = localYVisual >= halfH ? 1 : 0;
+  let visualQuadrant = visualRow * 2 + visualCol;
+
+  let visualTileLocalXRaw = localXVisual - visualCol * halfW;
+  let visualTileLocalYRaw = localYVisual - visualRow * halfH;
+  visualTileLocalXRaw = constrain(visualTileLocalXRaw, 0, halfW - 0.0001);
+  visualTileLocalYRaw = constrain(visualTileLocalYRaw, 0, halfH - 0.0001);
+  let visualSubColRaw = visualTileLocalXRaw >= (halfW / 2) ? 1 : 0;
+  let visualSubRowRaw = visualTileLocalYRaw >= (halfH / 2) ? 1 : 0;
+  let visualSubtileDisplayIndex = visualSubRowRaw * 2 + visualSubColRaw;
+
+  let visualTileLocalX = localXVisual - visualCol * halfW;
+  let visualTileLocalY = localYVisual - visualRow * halfH;
+
+  visualTileLocalX = constrain(visualTileLocalX, 0, halfW - 0.0001);
+  visualTileLocalY = constrain(visualTileLocalY, 0, halfH - 0.0001);
+
+  if (visualQuadrant === 1 || visualQuadrant === 3) visualTileLocalX = halfW - visualTileLocalX;
+  if (visualQuadrant === 2 || visualQuadrant === 3) visualTileLocalY = halfH - visualTileLocalY;
+
+  let visualSubCol = visualTileLocalX >= (halfW / 2) ? 1 : 0;
+  let visualSubRow = visualTileLocalY >= (halfH / 2) ? 1 : 0;
+  let visualSubtileIndex = visualSubRow * 2 + visualSubCol;
+
+  let localXLogical = supertile.mirrorX ? (supertile.w - localXVisual) : localXVisual;
+  let localYLogical = supertile.mirrorY ? (supertile.h - localYVisual) : localYVisual;
+
+  let logicalCol = localXLogical >= halfW ? 1 : 0;
+  let logicalRow = localYLogical >= halfH ? 1 : 0;
+  let logicalQuadrant = logicalRow * 2 + logicalCol;
+
+  let tileLocalX = localXLogical - logicalCol * halfW;
+  let tileLocalY = localYLogical - logicalRow * halfH;
+
+  tileLocalX = constrain(tileLocalX, 0, halfW - 0.0001);
+  tileLocalY = constrain(tileLocalY, 0, halfH - 0.0001);
+
+  if (logicalQuadrant === 1 || logicalQuadrant === 3) tileLocalX = halfW - tileLocalX;
+  if (logicalQuadrant === 2 || logicalQuadrant === 3) tileLocalY = halfH - tileLocalY;
+
+  let subCol = tileLocalX >= (halfW / 2) ? 1 : 0;
+  let subRow = tileLocalY >= (halfH / 2) ? 1 : 0;
+  let baseTileSubtileIndex = subRow * 2 + subCol;
+
+  let targetTile = supertile.tiles[logicalQuadrant];
+  let oldType = targetTile.types[baseTileSubtileIndex];
+
+  return {
+    index,
+    supertile,
+    visualQuadrant,
+    visualSubtileDisplayIndex,
+    visualSubtileIndex,
+    logicalQuadrant,
+    baseTileSubtileIndex,
+    targetTile,
+    oldType
+  };
+}
+
+function mapVisualTargetToLogical(supertile, visualQuadrant, visualSubtileDisplayIndex) {
+  let visualCol = visualQuadrant % 2;
+  let visualRow = floor(visualQuadrant / 2);
+
+  let logicalCol = supertile.mirrorX ? (1 - visualCol) : visualCol;
+  let logicalRow = supertile.mirrorY ? (1 - visualRow) : visualRow;
+  let logicalQuadrant = logicalRow * 2 + logicalCol;
+
+  let subCol = visualSubtileDisplayIndex % 2;
+  let subRow = floor(visualSubtileDisplayIndex / 2);
+
+  if (supertile.mirrorX) subCol = 1 - subCol;
+  if (supertile.mirrorY) subRow = 1 - subRow;
+
+  if (logicalQuadrant === 1 || logicalQuadrant === 3) subCol = 1 - subCol;
+  if (logicalQuadrant === 2 || logicalQuadrant === 3) subRow = 1 - subRow;
+
+  let logicalSubtileIndex = subRow * 2 + subCol;
+
+  return {
+    quadrant: logicalQuadrant,
+    subtileIndex: logicalSubtileIndex
+  };
+}
+
+function buildScopePreviewTargets(hitInfo) {
+  if (!hitInfo) return [];
+
+  let targets = [];
+  const pushTarget = (supertileIndex, quadrant, subtileIndex) => {
+    targets.push({ supertileIndex, quadrant, subtileIndex });
+  };
+
+  if (interactionScope === 'single') {
+    pushTarget(hitInfo.index, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
+  } else if (interactionScope === 'supertile') {
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      pushTarget(hitInfo.index, quadrant, hitInfo.baseTileSubtileIndex);
+    }
+  } else if (interactionScope === 'global_exact') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      let supertile = tiles[supertileIndex];
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        let tileObj = supertile.tiles[quadrant];
+        for (let subtileIndex = 0; subtileIndex < 4; subtileIndex++) {
+          if (tileObj.types[subtileIndex] === hitInfo.oldType) {
+            pushTarget(supertileIndex, quadrant, subtileIndex);
+          }
+        }
+      }
+    }
+  } else if (interactionScope === 'global_pos') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      let mapped = mapVisualTargetToLogical(
+        tiles[supertileIndex],
+        hitInfo.visualQuadrant,
+        hitInfo.visualSubtileDisplayIndex
+      );
+      pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
+    }
+  } else if (interactionScope === 'global_pos_sym') {
+    for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
+    }
+  }
+
+  return targets;
+}
+
+function updateHoverPreview(mx = mouseX, my = mouseY) {
+  if (interactionMode === 'none') {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    return;
+  }
+
+  let hitInfo = getHitInfo(mx, my);
+  if (!hitInfo) {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    return;
+  }
+
+  hoverPreviewTargets = buildScopePreviewTargets(hitInfo);
+  let anchorQuadrant = hitInfo.logicalQuadrant;
+  let anchorSubtileIndex = hitInfo.baseTileSubtileIndex;
+  if (interactionScope === 'global_pos') {
+    let mapped = mapVisualTargetToLogical(
+      hitInfo.supertile,
+      hitInfo.visualQuadrant,
+      hitInfo.visualSubtileDisplayIndex
+    );
+    anchorQuadrant = mapped.quadrant;
+    anchorSubtileIndex = mapped.subtileIndex;
+  }
+
+  hoverPreviewAnchor = {
+    supertileIndex: hitInfo.index,
+    quadrant: anchorQuadrant,
+    subtileIndex: anchorSubtileIndex
+  };
+}
+
+function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
+  let tileW = supertile.w / 2;
+  let tileH = supertile.h / 2;
+
+  let subCol = subtileIndex % 2;
+  let subRow = floor(subtileIndex / 2);
+
+  let centerX = (subCol - 0.5) * tileW / 2;
+  let centerY = (subRow - 0.5) * tileH / 2;
+
+  let rectX = centerX - tileW / 4;
+  let rectY = centerY - tileH / 4;
+  let rectW = tileW / 2;
+  let rectH = tileH / 2;
+
+  push();
+  translate(supertile.x, supertile.y);
+  if (supertile.mirrorX) scale(-1, 1);
+  if (supertile.mirrorY) scale(1, -1);
+
+  if (quadrant === 0) {
+    translate(-supertile.w / 4, -supertile.h / 4);
+  } else if (quadrant === 1) {
+    translate(supertile.w / 4, -supertile.h / 4);
+    scale(-1, 1);
+  } else if (quadrant === 2) {
+    translate(-supertile.w / 4, supertile.h / 4);
+    scale(1, -1);
+  } else if (quadrant === 3) {
+    translate(supertile.w / 4, supertile.h / 4);
+    scale(-1, -1);
+  }
+
+  rectMode(CORNER);
+  let lineW = max(1.0, min(rectW, rectH) * 0.04);
+
+  if (isAnchor) {
+    noStroke();
+    fill(255, 170, 70, 78);
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(255, 242, 220, 255);
+    strokeWeight(lineW + 1.2);
+    noFill();
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(255, 150, 60, 220);
+    strokeWeight(lineW + 0.3);
+    rect(rectX + 0.8, rectY + 0.8, max(0, rectW - 1.6), max(0, rectH - 1.6), 2);
+  } else {
+    noStroke();
+    fill(60, 150, 235, 56);
+    rect(rectX, rectY, rectW, rectH, 2);
+
+    stroke(205, 230, 255, 235);
+    strokeWeight(lineW + 0.5);
+    noFill();
+    rect(rectX, rectY, rectW, rectH, 2);
+  }
+
+  pop();
+}
+
+function drawScopePreview() {
+  if (interactionMode === 'none' || hoverPreviewTargets.length === 0) return;
+
+  for (let marker of hoverPreviewTargets) {
+    let supertile = tiles[marker.supertileIndex];
+    if (!supertile) continue;
+
+    let isAnchor = hoverPreviewAnchor
+      && hoverPreviewAnchor.supertileIndex === marker.supertileIndex
+      && hoverPreviewAnchor.quadrant === marker.quadrant
+      && hoverPreviewAnchor.subtileIndex === marker.subtileIndex;
+
+    drawSubtileOverlay(supertile, marker.quadrant, marker.subtileIndex, isAnchor);
+  }
+}
+
+// -------------------------------------------------------------
+// Mouse & Key Interaction
+// -------------------------------------------------------------
+
+// Replaced by window event listener below for better reliability
+/*
+function keyPressed() {
+  // Ctrl+Z Undo
+  if (keyIsDown(CONTROL) && (key === 'z' || key === 'Z')) {
+    if (keyIsDown(SHIFT)) {
+      redoEdit();
+    } else {
+      undoEdit();
+    }
+  }
+  
+  // Ctrl+Y Redo (Windows standard)
+  if (keyIsDown(CONTROL) && (key === 'y' || key === 'Y')) {
+    redoEdit();
+  }
+}
+*/
+
+// Global Key Handler
+window.addEventListener('keydown', (e) => {
+    // Check if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // Ctrl+Z: Undo or Redo
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+            // Ctrl+Shift+Z acts as Redo
+            redoEdit();
+        } else {
+            undoEdit();
+        }
+        e.preventDefault();
+        return;
+    }
+    
+    // Previous Generation (Arrow Left)
+    if (e.key === 'ArrowLeft') {
+        let bPrev = select('#btnPrevSeed');
+        if(bPrev && !bPrev.attribute('disabled')) restoreGenerationState(generationIndex - 1);
+    }
+
+    // Next Generation (Arrow Right)
+    if (e.key === 'ArrowRight') {
+        let bNext = select('#btnNextSeed');
+        if(bNext && !bNext.attribute('disabled')) restoreGenerationState(generationIndex + 1);
+    }
+});
+
+let isDrawing = false; // Add state to track if drag started on canvas
+
 function mousePressed() {
     // Only interact if click is on canvas
+    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+        isDrawing = false;
+        return;
+    }
+    
+    // Ignore clicks if mode is none
+    if (interactionMode === 'none') return;
+    
+    isDrawing = true;
+    
+    // Reset interaction tracker for new gesture
+    lastInteractedId = null;
+
+    updateHoverPreview(mouseX, mouseY);
+    
+    handleTileClick(mouseX, mouseY);
+}
+
+function mouseDragged() {
+    // Only draw if we started on the canvas
+    if (!isDrawing) return;
+
+    // Only interact if drag is on canvas
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
     
     // Ignore clicks if mode is none
     if (interactionMode === 'none') return;
     
-    console.log("Click detected at:", mouseX, mouseY);
+    updateHoverPreview(mouseX, mouseY);
     handleTileClick(mouseX, mouseY);
 }
 
+  function mouseMoved() {
+    updateHoverPreview(mouseX, mouseY);
+    redraw();
+  }
+
+  function mouseOut() {
+    hoverPreviewTargets = [];
+    hoverPreviewAnchor = null;
+    redraw();
+  }
+
+function mouseReleased() {
+    isDrawing = false;
+    lastInteractedId = null;
+
+    updateHoverPreview(mouseX, mouseY);
+    redraw();
+    
+    // If a gesture modified the history, push the new state now
+    if (hasPendingHistory) {
+        pushEditState();
+        hasPendingHistory = false;
+    }
+}
+
 function handleTileClick(mx, my) {
-    console.log("handleTileClick", mx, my);
-    // 1. Determine Grid Col/Row
-    if (mx < margin || mx > width - margin || my < margin || my > height - margin) return;
+  let hitInfo = getHitInfo(mx, my);
+  if (!hitInfo) return;
 
-    let relativeX = mx - margin;
-    let relativeY = my - margin;
+  let index = hitInfo.index;
+  let supertile = hitInfo.supertile;
+  let visualQuadrant = hitInfo.visualQuadrant;
+  let logicalQuadrant = hitInfo.logicalQuadrant;
+  let baseTileSubtileIndex = hitInfo.baseTileSubtileIndex;
+  let activeSubtileIndex = baseTileSubtileIndex;
+  let activeQuadrant = logicalQuadrant;
 
-    let col = floor(relativeX / tilesWidth);
-    let row = floor(relativeY / tilesHeight);
+  if (interactionScope === 'global_pos') {
+    let mappedCurrent = mapVisualTargetToLogical(
+      supertile,
+      visualQuadrant,
+      hitInfo.visualSubtileDisplayIndex
+    );
+    activeQuadrant = mappedCurrent.quadrant;
+    activeSubtileIndex = mappedCurrent.subtileIndex;
+  }
+    
+    // Unique ID for this specific subtile location
+    // Format: SupertileIndex | VisualQuadrant | SubtileIndex
+    let currentTileId = `${index}-${visualQuadrant}-${activeSubtileIndex}`;
+    
+    // If we are dragging over the same tile, ignore
+    if (currentTileId === lastInteractedId) return;
+    
+    // Update tracker
+    lastInteractedId = currentTileId;
 
-    console.log("Col/Row:", col, row);
-
-    if (col < 0 || col >= cols || row < 0 || row >= rows) return;
-
-    // 2. Get the Supertile
-    let index = row * cols + col;
-    if (index >= tiles.length) return;
-    let supertile = tiles[index];
-
-    // 3. Determine Quadrant within Supertile
-    // Supertile x,y is centered. 
-    // Wait, supertile.x is center? 
-    // Let's check initGrid: x = margin + j * tilesWidth + tilesWidth / 2; Yes.
+    // Tile to edit in data space (logical quadrant)
+    let targetTile = supertile.tiles[activeQuadrant];
     
-    let stLeft = supertile.x - supertile.w/2;
-    let stTop = supertile.y - supertile.h/2;
-    
-    let localX = mx - stLeft;
-    let localY = my - stTop;
-    
-    // Apply Global Mirroring
-    if (supertile.mirrorX) {
-        localX = supertile.w - localX;
-    }
-    if (supertile.mirrorY) {
-        localY = supertile.h - localY;
-    }
-
-    // Determine Logic Quadrant (which tile in the list)
-    let qCol = localX > supertile.w/2 ? 1 : 0;
-    let qRow = localY > supertile.h/2 ? 1 : 0;
-    let visualQuadrant = qRow * 2 + qCol;
-
-    // Determine sub-coordinate within that quadrant
-    // Modulo gives 0 to w/2 range
-    let quadrantX = localX % (supertile.w/2);
-    let quadrantY = localY % (supertile.h/2);
-    
-    // Within that w/2 by h/2 area, are we in left/top or right/bottom?
-    let subCol = quadrantX > (supertile.w/4) ? 1 : 0;
-    let subRow = quadrantY > (supertile.h/4) ? 1 : 0;
-    
-    // Now map back to the BaseTile's data array indices
-    // Each quadrant has a specific transformation
-    
-    let targetSubCol = subCol;
-    let targetSubRow = subRow;
-    
-    // Quadrant 1 (TR): Flipped X locally
-    if (visualQuadrant === 1) targetSubCol = 1 - subCol; 
-    
-    // Quadrant 2 (BL): Flipped Y locally
-    if (visualQuadrant === 2) targetSubRow = 1 - subRow; 
-
-    // Quadrant 3 (BR): Flipped X and Y locally
-    if (visualQuadrant === 3) {
-        targetSubCol = 1 - subCol;
-        targetSubRow = 1 - subRow;
-    }
-    
-    let baseTileSubtileIndex = targetSubRow * 2 + targetSubCol;
-    
-    // Determine the actual Tile object we are clicking on
-    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
-    
-    // Determine the actual Tile object we are clicking on
-    // visualQuadrant 0=TL, 1=TR, 2=BL, 3=BR
-    // This matches the this.tiles array in Supertile
-    let targetTile = supertile.tiles[visualQuadrant];
-    
-    // But wait! If we applied global mirror (supertile.mirrorX), 
-    // we flipped the coordinate system, so we are calculating the LOGICAL tile we hit.
-    // e.g. If mirrorX is true, and we clicked visual-left, we are hitting logical-right (TR).
-    // Our 'visualQuadrant' variable now holds the LOGICAL quadrant index.
-    
-    // SO, targetTile is indeed supertile.tiles[visualQuadrant].
-    // And baseTileSubtileIndex is the index within that tile.
-    
-    let oldType = targetTile.types[baseTileSubtileIndex];
+    let oldType = hitInfo.oldType;
     let newType = oldType;
     
     if (interactionMode === 'mirror') {
-        newType = getNextInFamily(oldType);
+        if (keyIsDown(SHIFT)) {
+             // Shift + Click: Randomize (Reseed)
+             // Prioritize "Allowed Types" if any are selected, else fully random
+             if (allowedTypes && allowedTypes.length > 0) {
+                 newType = random(allowedTypes);
+             } else {
+                 newType = floor(random(totalTileTypes));
+             }
+        } else {
+             // Standard Click: Cycle Family
+             newType = getNextInFamily(oldType);
+        }
     } else if (interactionMode === 'edit') {
-        newType = currentPaintTile;
+      // WYSIWYG Painting:
+      // Keep visual orientation equal to the selected brush, including single scope.
+
+      // 1. Local Quadrant Flip (based on logical quadrant index)
+      // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
+      let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
+      let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
+
+      if (interactionScope === 'global_pos') {
+        isFlippedX = (activeQuadrant === 1 || activeQuadrant === 3);
+        isFlippedY = (activeQuadrant === 2 || activeQuadrant === 3);
+      }
+
+      // 2. Global Mirror Flip
+      // If global mirror is active, the coordinate system is flipped.
+      // This affects how the tile is rendered on screen.
+      if (supertile.mirrorX) isFlippedX = !isFlippedX;
+      if (supertile.mirrorY) isFlippedY = !isFlippedY;
+
+      // 3. Get the inverse tile
+      newType = getTransformedTile(currentPaintTile, isFlippedX, isFlippedY);
     }
     
     // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
 
     if (oldType === newType && interactionMode !== 'edit') return; 
     
+    // Flag that a modification is happening
+    // Note: For 'edit' mode (painting), we might be painting the same color. 
+    // Ideally we check deeply, but dragging over same color is rare behavior to undo.
+    hasPendingHistory = true;
+
     // Helper to update a single tile instance and redraw/recreate its buffer
     const refreshTile = (tileObj) => {
         tileObj.subtiles = [];
@@ -734,13 +1512,13 @@ function handleTileClick(mx, my) {
     // Apply Change based on Scope
     if (interactionScope === 'single') {
         // True Single: Only this quadrant, this subtile
-        targetTile.types[baseTileSubtileIndex] = newType;
+        targetTile.types[activeSubtileIndex] = newType;
         refreshTile(targetTile);
 
     } else if (interactionScope === 'supertile') {
         // Current "Single" behavior: Update mirror-equivalent subtiles in all 4 quadrants of THIS supertile
         for(let t of supertile.tiles) {
-            t.types[baseTileSubtileIndex] = newType;
+          t.types[activeSubtileIndex] = newType;
             refreshTile(t);
         }
 
@@ -762,25 +1540,19 @@ function handleTileClick(mx, my) {
         }
     } else if (interactionScope === 'global_pos') {
         // Global Equivalent by Position (Single): 
-        // Update the subtile at [visualQuadrant][baseTileSubtileIndex] in ALL supertiles.
+      // Update the same visual slot in ALL supertiles.
         for (let s of tiles) {
-            // Use the SAME logical indices we found for the current supertile
-            // Note: This maintains the exact same "corner" across the grid, even if some supertiles are mirrored.
-            // If the user meant "Visual Position", we'd need to re-calculate based on grid coordinates?
-            // But usually "Global Pos" implies structural consistency. 
-            // visualQuadrant accounts for the CLICKED supertile's mirroring. 
-            // We apply it to other supertiles using the same index.
-            let t = s.tiles[visualQuadrant]; 
-            t.types[baseTileSubtileIndex] = newType;
+        let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
+        let t = s.tiles[mapped.quadrant]; 
+        t.types[mapped.subtileIndex] = newType;
             refreshTile(t);
         }
     } else if (interactionScope === 'global_pos_sym') {
         // Global Equivalent by Position (Symmetric / Batch):
-        // Update the subtile at this index in ALL quadrants of ALL supertiles.
-        // Effectively "Global Supertile" scope.
+      // Update the same structural subtile slot in all 4 quadrants of ALL supertiles.
         for (let s of tiles) {
-            for (let t of s.tiles) {
-                t.types[baseTileSubtileIndex] = newType;
+        for (let t of s.tiles) {
+          t.types[baseTileSubtileIndex] = newType;
                 refreshTile(t);
             }
         }

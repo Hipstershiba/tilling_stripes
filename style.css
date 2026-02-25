@@ -1,5 +1,6 @@
 html,
-body, #main-container {
+body,
+#main-container {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,7 +14,8 @@ body, #main-container {
 #main-container {
   display: flex;
   flex-direction: row-reverse;
-  align-items: stretch; /* Ensure full height */
+  align-items: stretch;
+  /* Ensure full height */
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -37,10 +39,10 @@ body.fullscreen #canvas-container {
 
 body.fullscreen #btnFullscreen {
   z-index: 10000;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
 }
 
-/* Floating button style - now just a toggle for the side menu on mobile */     
+/* Floating button style - now just a toggle for the side menu on mobile */
 #btnFullscreen {
   position: fixed;
   top: 15px;
@@ -55,7 +57,7 @@ body.fullscreen #btnFullscreen {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -72,14 +74,16 @@ h1 {
   font-size: 1.2rem;
   margin: 0 0 10px 0;
   color: #fff;
-  text-align: left; /* Align left to avoid overlap with button */
+  text-align: left;
+  /* Align left to avoid overlap with button */
   padding-left: 5px;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   border-bottom: 1px solid #333;
   padding-bottom: 15px;
-  margin-right: 50px; /* Space for the button */
+  margin-right: 50px;
+  /* Space for the button */
 }
 
 /* Modern Desktop Sidebar Layout */
@@ -87,169 +91,296 @@ h1 {
 /* 1. Toggle Button: Always visible, fixed position on top-right */
 .ui-toggle-btn {
   display: flex;
-  z-index: 4000; /* Above everything */
+  z-index: 4000;
+  /* Above everything */
   position: fixed;
   top: 15px;
   right: 15px;
   background: rgba(33, 33, 33, 0.9);
   color: white;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   width: 44px;
   height: 44px;
   border-radius: 8px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   font-size: 1.4rem;
   transition: all 0.3s ease;
 }
 
 .ui-toggle-btn:hover {
-    background: #444;
-    transform: scale(1.05);
+  background: #444;
+  transform: scale(1.05);
 }
 
 /* 2. Sidebar Panel Styling */
 #controls {
-    /* Fixed sidebar on the right */
-    position: fixed;
-    right: 0;
-    top: 0;
-    height: 100vh;
-    width: 320px;
-    max-width: 85%;
-    
-    /* Styling */
-    background: #252525;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-    z-index: 3000;
-    
-    /* Layout */
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    padding-top: 20px; /* Reduced top padding */
-    box-sizing: border-box;
-    border-left: 1px solid #333;
-    
-    /* Scrolling */
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: #444 #252525;
-    
-    /* Transition for sliding */
-    transform: translateX(0); /* Default: Visible */
-    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  /* Fixed sidebar on the right */
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 85%;
+
+  /* Styling */
+  background: #252525;
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  padding-top: 20px;
+  /* Reduced top padding */
+  box-sizing: border-box;
+  border-left: 1px solid #333;
+
+  /* Scrolling */
+  /* overflow-y: auto; Removed checking if this fixes the issue */
+  overflow: hidden;
+  /* Prevent outer scroll so footer stays visible */
+
+  /* Transition for sliding */
+  transform: translateX(0);
+  /* Default: Visible */
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 /* 3. Hidden State (Zen Mode) */
 #controls.closed {
-    transform: translateX(100%); /* Slide out to right */
-    box-shadow: none;
+  transform: translateX(100%);
+  /* Slide out to right */
+  box-shadow: none;
 }
 
 /* Adjust button when panel is closed to look distinct? Optional. */
-#controls.closed + .ui-toggle-btn, 
+#controls.closed+.ui-toggle-btn,
 .ui-toggle-btn.closed-state {
-    background: rgba(33,33,33,0.5);
+  background: rgba(33, 33, 33, 0.5);
 }
 
 /* 4. Canvas Layout adjustment */
 #canvas-container {
-    margin-right: 320px; /* Push canvas to make room for sidebar */
-    transition: margin-right 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    width: auto; /* Allow flex to handle remaining width */
+  margin-right: 320px;
+  /* Push canvas to make room for sidebar */
+  transition: margin-right 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  width: auto;
+  /* Allow flex to handle remaining width */
 }
 
 /* When sidebar is closed, canvas takes full width */
 body.sidebar-closed #canvas-container {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 /* 5. Mobile Responsive Overrides */
 @media (max-width: 768px) {
-    /* On mobile, sidebar is floating drawer */
-    #controls {
-        transform: translateX(100%); /* Hidden by default on mobile */
-        padding-top: 20px; /* Standard padding */
-        width: 85%;
-        border-left: none;
-    }
-    
-    #controls.open {
-        transform: translateX(0);
-    }
-    
-    /* No margin shift on mobile */
-    #canvas-container {
-        margin-right: 0 !important;
-    }
-    
-    /* Backdrop only on mobile */
-    #overlay-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.6);
-        z-index: 2500;
-        display: none;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    #overlay-backdrop.visible {
-        display: block;
-        opacity: 1;
-    }
+
+  /* On mobile, sidebar is floating drawer */
+  #controls {
+    transform: translateX(100%);
+    /* Hidden by default on mobile */
+    padding-top: 20px;
+    /* Standard padding */
+    width: 85%;
+    border-left: none;
+  }
+
+  #controls.open {
+    transform: translateX(0);
+  }
+
+  /* No margin shift on mobile */
+  #canvas-container {
+    margin-right: 0 !important;
+  }
+
+  /* Backdrop only on mobile */
+  #overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2500;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  #overlay-backdrop.visible {
+    display: block;
+    opacity: 1;
+  }
 }
 
 /* Hide the old fullscreen button completely */
 #btnFullscreen {
-    display: none !important;
+  display: none !important;
 }
 
 /* Hide inner close button on desktop, show on mobile if needed */
 #btnCloseControls {
-    display: none !important; /* Usage replaced by the main toggle button */
+  display: none !important;
+  /* Usage replaced by the main toggle button */
 }
 
 
 
 .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-    /* Card-like appearance */
-    background: #2b2b2b;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  /* Card-like appearance */
+  background: #2b2b2b;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  /* Prepare for border transition */
+}
+
+.control-group label {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  position: relative;
+  /* Ensure positioning context */
+}
+
+/* Arrow indicator */
+.control-group label::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #aaa;
+  transition: transform 0.2s;
+  /* Fixed width reserve for arrow */
+  margin-left: 10px;
+}
+
+/* Hide arrow for non-collapsible */
+.tile-selector-group label::after,
+.no-collapse label::after {
+  display: none;
+}
+
+/* Rotate arrow when collapsed */
+.control-group.collapsed label::after {
+  transform: rotate(-90deg);
+  /* Points Right (>) from Down (V) ? Check direction */
+  /* Actually border-top points down */
+  /* -90 makes it point Right */
+  border-top-color: #888;
+}
+
+.group-summary {
+  font-size: 0.9em;
+  color: #aaa;
+  /* Softer color */
+  font-family: monospace;
+  /* Align numbers better */
+
+  display: none;
+  /* Alignment */
+  margin-left: auto;
+  /* Push to right */
+  margin-right: 15px;
+  /* Space before arrow */
+  text-align: right;
+  min-width: 60px;
+  /* Consistent width */
+}
+
+/* Show summary when collapsed */
+.control-group.collapsed .group-summary {
+  display: block;
+  /* Align better with flex */
+}
+
+.group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* overflow: hidden; Removed to allow popovers */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform-origin: top;
+}
+
+.control-group.collapsed .group-content {
+  display: none;
+}
+
+.control-group.collapsed {
+  padding-bottom: 12px;
+  /* Maintain padding */
+  background: #252525;
+  /* Slightly darker when collapsed */
+  border: 1px solid #333;
+  /* Subtle border */
+}
+
+/* Ensure label takes full space for click target */
+.control-group label {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  width: 100%;
+  /* Full width */
+  padding-right: 5px;
+  /* Tiny padding for spacing */
+  position: relative;
+}
+
+/* Ensure consistent height for label rows */
+.control-group label>span:first-child {
+  flex-grow: 1;
+  /* Take available space */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .control-group:last-child {
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .tile-selector-group {
-  flex-shrink: 1; 
-  flex-grow: 1; 
-  min-height: 200px;
+  flex: 1;
+  /* Grow to fill remaining space */
+  display: flex !important;
+  /* Ensure flex behavior */
+  flex-direction: column;
+  min-height: 0;
+  /* Critical for nested flex scrolling */
+  max-height: none !important;
+  /* Remove legacy constraint */
   overflow: hidden;
-  max-height: 50vh; 
-  background: transparent !important; /* Override standard card background */
+  /* Container doesn't scroll, child does */
+
+  /* Visual tweaks */
+  background: transparent !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 25px; /* Extra separation from controls above */
-  margin-bottom: 20px; /* Add space before actions */
-  border-top: 1px solid #333; /* Visual separator */
-  padding-top: 15px !important;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  border-top: 1px solid #333;
+  padding-top: 10px !important;
 }
 
 /* Tab Navigation */
@@ -258,31 +389,66 @@ body.sidebar-closed #canvas-container {
   margin-bottom: 12px;
   background: #333;
   padding: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
   flex-shrink: 0;
+  position: relative;
+  height: 36px;
+  border: none;
+}
+
+.tab-nav-bg {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: calc(50% - 2px);
+  background: #252525;
+  border: 1px solid #444;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1;
+  left: 2px;
+  transform: translateX(0);
+}
+
+.tab-nav[data-active="edit"] .tab-nav-bg {
+  transform: translateX(100%);
+  left: -2px;
 }
 
 .tab-btn {
   flex: 1;
-  background: transparent;
-  color: #aaa;
+  background: transparent !important;
+  /* Override any potentially inherited background */
   border: none;
-  padding: 8px;
+  color: #888;
+  z-index: 2;
+  /* Content sits above the sliding background */
   cursor: pointer;
-  border-radius: 4px;
+  display: flex !important;
+  /* Ensure flex behavior matching tool-btn */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 6px;
+  /* Match parent radius slightly */
+  transition: color 0.3s;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  transition: all 0.2s;
+  font-size: 0.85rem;
+  padding: 0;
+  outline: none;
+  min-height: 100%;
 }
 
 .tab-btn.active {
-  background: #252525; /* Matches panel background */
+  background: transparent;
   color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: none;
 }
 
 .tab-btn:hover {
+  background: transparent !important;
   color: #fff;
 }
 
@@ -291,62 +457,182 @@ body.sidebar-closed #canvas-container {
   display: none;
   flex-direction: column;
   gap: 16px;
+  /* Make content stretch to fill available space */
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Prevent horizontal scrollbar */
+  min-height: 0;
+  padding: 2px;
+  /* Add slight padding to prevent outline clipping if needed */
 }
 
 .tab-content.active {
+  display: flex !important;
+  /* Force flex display when active */
+}
+
+/* Tool Switcher (New Fancy Animation) */
+.tool-switch {
   display: flex;
+  background: #333;
+  /* Match tab nav background */
+  border-radius: 8px;
+  padding: 2px;
+  position: relative;
+  height: 36px;
+  /* Reduced height */
+  border: none;
 }
 
-/* Mode Toggles */
-.mode-toggle-group, .scope-toggle-group {
-    display: flex;
-    background: #333;
-    border-radius: 6px;
-    padding: 2px;
-    gap: 2px;
+.tool-bg {
+  position: absolute;
+  top: 2px;
+  /* Matches padding */
+  bottom: 2px;
+  width: calc(50% - 2px);
+  /* Half container width minus padding adjustment */
+  background: #252525;
+  /* Grey to match unified theme */
+  border: 1px solid #444;
+  /* Subtle border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  /* Enhance depth */
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
+  z-index: 1;
+  /* Initial state: left */
+  left: 2px;
+  transform: translateX(0);
 }
 
-.mode-btn, .scope-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #aaa;
-    padding: 8px 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s;
+/* State for tool background position - controlled by JS setting attribute on parent */
+.tool-switch[data-active="none"] .tool-bg {
+  opacity: 0;
+  transform: scale(0.9);
 }
 
-.mode-btn:hover, .scope-btn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
+.tool-switch[data-active="mirror"] .tool-bg {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.mode-btn.active, .scope-btn.active {
-    background: #2196F3;
-    color: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+.tool-switch[data-active="edit"] .tool-bg {
+  opacity: 1;
+  transform: translateX(100%);
+  /* Moves exactly 100% of its own width so it sits on the right half */
+  left: -2px;
+  /* Correct offset to align perfectly */
+}
+
+.tool-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #888;
+  z-index: 2;
+  /* Content sits above the sliding background */
+  cursor: pointer;
+  display: flex !important;
+  /* Ensure flex behavior */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: color 0.3s;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0;
+  outline: none;
+  min-height: 100%;
+  /* Ensure full height */
+}
+
+/* Text color change when active */
+.tool-btn.active {
+  color: #fff;
+}
+
+.tool-btn:hover {
+  background: transparent !important;
+  /* Override generic button hover */
+  color: #fff;
+}
+
+/* Scope Toggles */
+.scope-toggle-group {
+  display: flex;
+  background: #252525;
+  border-radius: 6px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.scope-btn {
+  flex: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #888;
+  border-radius: 4px;
+  transition: all 0.2s;
+  padding: 0;
+  height: 36px;
+  /* Consistent height */
+}
+
+.scope-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .scope-btn.active {
-    background: #4CAF50; /* Different color for scope to distinguish */
+  background: #444;
+  /* Subtle active state */
+  color: #2196F3;
+  /* Blue Icon */
+  border: 1px solid #2196F3;
+  /* Blue Border */
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.2);
+}
+
+.scope-btn svg {
+  pointer-events: none;
+  /* Let clicks pass through */
+}
+
+#scopeDesc {
+  font-size: 0.75rem;
+  color: #aaa;
+  /* Remove fixed height to allow dynamic content */
+  /* min-height: 2.4em; */
+  background: transparent;
+  margin-top: 6px;
+  line-height: 1.4;
+  padding: 4px;
 }
 
 /* Enhancing Tile Selector visibility */
 #tileSelector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: min-content; /* Ensure rows respect content height */
-  gap: 12px; /* Increased gap to prevent overlap feeling */
-  padding: 12px;
+  grid-auto-rows: min-content;
+  /* Ensure rows respect content height */
+  gap: 8px;
+  /* Tighter gap */
+  padding: 8px;
   background: #202020;
   border-radius: 6px;
-  
+
   /* Flexbox scrolling setup */
   flex: 1;
-  min-height: 150px; /* Ensure at least some height is visible even if crowded */
+  /* Fill remaining vertical space in group */
+  min-height: 0;
+  /* Allow shrinking below content size */
   overflow-y: auto;
+  /* Scroll ONLY here */
 
   /* Scrollbar styling */
   scrollbar-width: thin;
@@ -354,11 +640,12 @@ body.sidebar-closed #canvas-container {
 }
 
 #tileSelector::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
+  /* Thinner scrollbar */
 }
 
 #tileSelector::-webkit-scrollbar-track {
-  background: #111;
+  background: transparent;
 }
 
 #tileSelector::-webkit-scrollbar-thumb {
@@ -433,11 +720,11 @@ button:hover {
 }
 
 .tile-option.paint-selected {
-    border-color: #FF5722 !important;
-    opacity: 1 !important;
-    box-shadow: 0 0 8px rgba(255, 87, 34, 0.6) !important;
-    transform: scale(1.1);
-    z-index: 20;
+  border-color: #FF5722 !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 8px rgba(255, 87, 34, 0.6) !important;
+  transform: scale(1.1);
+  z-index: 20;
 }
 
 .tile-option canvas,
@@ -483,4 +770,3 @@ button.locked {
   background-color: #2e7d32;
   color: #fff;
 }
-
