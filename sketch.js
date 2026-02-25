@@ -715,7 +715,25 @@ function handleTileClick(mx, my) {
     if (interactionMode === 'mirror') {
         newType = getNextInFamily(oldType);
     } else if (interactionMode === 'edit') {
-        newType = currentPaintTile;
+        // WYSIWYG Painting: 
+        // Identify the net transformation applied to this position and inverse it.
+        
+        // 1. Local Quadrant Flip (based on logical quadrant index)
+        // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
+        let isFlippedX = (visualQuadrant === 1 || visualQuadrant === 3);
+        let isFlippedY = (visualQuadrant === 2 || visualQuadrant === 3);
+
+        // 2. Global Mirror Flip
+        // If global mirror is active, the coordinate system is flipped.
+        // This affects how the tile is rendered on screen.
+        // Note: We already adjusted coordinates to find the logical tile, 
+        // but now we need to know the VISUAL transform.
+        // A global mirror X means the whole rendering is flipped X.
+        if (supertile.mirrorX) isFlippedX = !isFlippedX;
+        if (supertile.mirrorY) isFlippedY = !isFlippedY;
+        
+        // 3. Get the inverse tile
+        newType = getTransformedTile(currentPaintTile, isFlippedX, isFlippedY);
     }
     
     // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
