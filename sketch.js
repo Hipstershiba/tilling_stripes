@@ -282,35 +282,49 @@ function setupUI(mainCanvas) {
   select('#selectNone').mousePressed(selectNoneTiles);
 
   // Interaction Logic (Wiring the buttons)
+  // Initially, assume 'none' if Setup tab is active
+  interactionMode = 'none';
+
+  // Listen for Tab Changes
+  window.addEventListener('tabChanged', (e) => {
+     let tab = e.detail.tab;
+     if (tab === 'setup') {
+         interactionMode = 'none';
+         console.log('Mode set to: none (Setup Tab)');
+         // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
+         select('#tileSelector').removeClass('paint-mode');
+     } else if (tab === 'edit') {
+         // Restore previous tool or default to Cycle
+         let activeBtn = select('.mode-btn.active');
+         if (activeBtn) {
+             interactionMode = activeBtn.attribute('data-mode');
+         } else {
+             // Default to cycle if nothing active
+             interactionMode = 'mirror';
+             let cycleBtn = select('#modeMirror');
+             if(cycleBtn) cycleBtn.addClass('active');
+         }
+         console.log('Mode restored to:', interactionMode);
+         updateEditUI();
+     }
+  });
+
   selectAll('.mode-btn').forEach(btn => {
       btn.mousePressed(() => {
+          // If we are in Setup tab for some reason, ignore? Or switch tab?
+          // Assuming buttons are only visible in Edit tab.
+          
           selectAll('.mode-btn').forEach(b => b.removeClass('active'));
           btn.addClass('active');
           interactionMode = btn.attribute('data-mode');
-          console.log('Mode set to:', interactionMode);
+          console.log('Tool set to:', interactionMode);
           
-          let previewContainer = select('#paintTileDisplay'); // Correct ID for paint preview
-          let scopeContainer = select('#scopeControl');
-
-          if (interactionMode === 'mirror') {
-             if(previewContainer) previewContainer.style('display', 'none');
-             if(scopeContainer) scopeContainer.style('display', 'block');
-             select('#tileSelector').removeClass('paint-mode');
-             generateTileThumbnails(); // Refresh to remove paint highlight
-          } else if (interactionMode === 'edit') {
-             if(previewContainer) previewContainer.style('display', 'block');
-             if(scopeContainer) scopeContainer.style('display', 'block');
-             select('#tileSelector').addClass('paint-mode');
-             // Refresh thumbnails to show paint selection state if needed
-             generateTileThumbnails(); 
-          } else {
-             if(previewContainer) previewContainer.style('display', 'none');
-             if(scopeContainer) scopeContainer.style('display', 'none');
-             select('#tileSelector').removeClass('paint-mode');
-             generateTileThumbnails(); // Refresh to remove paint highlight
-          }
+          updateEditUI();
       });
   });
+  
+  // Set initial UI state
+  updateEditUI();
   
   selectAll('.scope-btn').forEach(btn => {
       btn.mousePressed(() => {
@@ -320,6 +334,27 @@ function setupUI(mainCanvas) {
           console.log('Scope set to:', interactionScope);
       });
   });
+}
+
+function updateEditUI() {
+    let previewContainer = select('#paintTileDisplay'); 
+    let scopeContainer = select('#scopeControl');
+
+    // If interaction mode is none (Setup tab), hide everything? 
+    // Actually these controls are inside the tab content, so they hide automatically via CSS.
+    // However, we want to update the logic-dependent visibility (Paint Palette)
+
+    if (interactionMode === 'edit') {
+        if(previewContainer) previewContainer.style('display', 'flex'); 
+        if(scopeContainer) scopeContainer.style('display', 'block');
+    } else if (interactionMode === 'mirror') {
+        if(previewContainer) previewContainer.style('display', 'none');
+        if(scopeContainer) scopeContainer.style('display', 'block');
+    } else {
+        // None/View
+        if(previewContainer) previewContainer.style('display', 'none');
+        // Scope might not be needed in View, but View is 'tab-setup' now effectively
+    }
 }
 
 function resizeCanvasAndUpdate(w, h) {

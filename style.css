@@ -1,5 +1,6 @@
 html,
-body, #main-container {
+body,
+#main-container {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,7 +14,8 @@ body, #main-container {
 #main-container {
   display: flex;
   flex-direction: row-reverse;
-  align-items: stretch; /* Ensure full height */
+  align-items: stretch;
+  /* Ensure full height */
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -37,10 +39,10 @@ body.fullscreen #canvas-container {
 
 body.fullscreen #btnFullscreen {
   z-index: 10000;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
 }
 
-/* Floating button style - now just a toggle for the side menu on mobile */     
+/* Floating button style - now just a toggle for the side menu on mobile */
 #btnFullscreen {
   position: fixed;
   top: 15px;
@@ -55,7 +57,7 @@ body.fullscreen #btnFullscreen {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -72,14 +74,16 @@ h1 {
   font-size: 1.2rem;
   margin: 0 0 10px 0;
   color: #fff;
-  text-align: left; /* Align left to avoid overlap with button */
+  text-align: left;
+  /* Align left to avoid overlap with button */
   padding-left: 5px;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   border-bottom: 1px solid #333;
   padding-bottom: 15px;
-  margin-right: 50px; /* Space for the button */
+  margin-right: 50px;
+  /* Space for the button */
 }
 
 /* Modern Desktop Sidebar Layout */
@@ -87,169 +91,185 @@ h1 {
 /* 1. Toggle Button: Always visible, fixed position on top-right */
 .ui-toggle-btn {
   display: flex;
-  z-index: 4000; /* Above everything */
+  z-index: 4000;
+  /* Above everything */
   position: fixed;
   top: 15px;
   right: 15px;
   background: rgba(33, 33, 33, 0.9);
   color: white;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   width: 44px;
   height: 44px;
   border-radius: 8px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   font-size: 1.4rem;
   transition: all 0.3s ease;
 }
 
 .ui-toggle-btn:hover {
-    background: #444;
-    transform: scale(1.05);
+  background: #444;
+  transform: scale(1.05);
 }
 
 /* 2. Sidebar Panel Styling */
 #controls {
-    /* Fixed sidebar on the right */
-    position: fixed;
-    right: 0;
-    top: 0;
-    height: 100vh;
-    width: 320px;
-    max-width: 85%;
-    
-    /* Styling */
-    background: #252525;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-    z-index: 3000;
-    
-    /* Layout */
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    padding-top: 20px; /* Reduced top padding */
-    box-sizing: border-box;
-    border-left: 1px solid #333;
-    
-    /* Scrolling */
-    /* overflow-y: auto; Removed checking if this fixes the issue */
-    overflow: hidden; /* Prevent outer scroll so footer stays visible */
+  /* Fixed sidebar on the right */
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 85%;
 
-    /* Transition for sliding */
-    transform: translateX(0); /* Default: Visible */
-    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  /* Styling */
+  background: #252525;
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  padding-top: 20px;
+  /* Reduced top padding */
+  box-sizing: border-box;
+  border-left: 1px solid #333;
+
+  /* Scrolling */
+  /* overflow-y: auto; Removed checking if this fixes the issue */
+  overflow: hidden;
+  /* Prevent outer scroll so footer stays visible */
+
+  /* Transition for sliding */
+  transform: translateX(0);
+  /* Default: Visible */
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 /* 3. Hidden State (Zen Mode) */
 #controls.closed {
-    transform: translateX(100%); /* Slide out to right */
-    box-shadow: none;
+  transform: translateX(100%);
+  /* Slide out to right */
+  box-shadow: none;
 }
 
 /* Adjust button when panel is closed to look distinct? Optional. */
-#controls.closed + .ui-toggle-btn, 
+#controls.closed+.ui-toggle-btn,
 .ui-toggle-btn.closed-state {
-    background: rgba(33,33,33,0.5);
+  background: rgba(33, 33, 33, 0.5);
 }
 
 /* 4. Canvas Layout adjustment */
 #canvas-container {
-    margin-right: 320px; /* Push canvas to make room for sidebar */
-    transition: margin-right 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    width: auto; /* Allow flex to handle remaining width */
+  margin-right: 320px;
+  /* Push canvas to make room for sidebar */
+  transition: margin-right 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  width: auto;
+  /* Allow flex to handle remaining width */
 }
 
 /* When sidebar is closed, canvas takes full width */
 body.sidebar-closed #canvas-container {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 /* 5. Mobile Responsive Overrides */
 @media (max-width: 768px) {
-    /* On mobile, sidebar is floating drawer */
-    #controls {
-        transform: translateX(100%); /* Hidden by default on mobile */
-        padding-top: 20px; /* Standard padding */
-        width: 85%;
-        border-left: none;
-    }
-    
-    #controls.open {
-        transform: translateX(0);
-    }
-    
-    /* No margin shift on mobile */
-    #canvas-container {
-        margin-right: 0 !important;
-    }
-    
-    /* Backdrop only on mobile */
-    #overlay-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.6);
-        z-index: 2500;
-        display: none;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    #overlay-backdrop.visible {
-        display: block;
-        opacity: 1;
-    }
+
+  /* On mobile, sidebar is floating drawer */
+  #controls {
+    transform: translateX(100%);
+    /* Hidden by default on mobile */
+    padding-top: 20px;
+    /* Standard padding */
+    width: 85%;
+    border-left: none;
+  }
+
+  #controls.open {
+    transform: translateX(0);
+  }
+
+  /* No margin shift on mobile */
+  #canvas-container {
+    margin-right: 0 !important;
+  }
+
+  /* Backdrop only on mobile */
+  #overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2500;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  #overlay-backdrop.visible {
+    display: block;
+    opacity: 1;
+  }
 }
 
 /* Hide the old fullscreen button completely */
 #btnFullscreen {
-    display: none !important;
+  display: none !important;
 }
 
 /* Hide inner close button on desktop, show on mobile if needed */
 #btnCloseControls {
-    display: none !important; /* Usage replaced by the main toggle button */
+  display: none !important;
+  /* Usage replaced by the main toggle button */
 }
 
 
 
 .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-    /* Card-like appearance */
-    background: #2b2b2b;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  /* Card-like appearance */
+  background: #2b2b2b;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .control-group:last-child {
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .tile-selector-group {
-  flex: 1; /* Grow to fill remaining space */
-  display: flex !important; /* Ensure flex behavior */
+  flex: 1;
+  /* Grow to fill remaining space */
+  display: flex !important;
+  /* Ensure flex behavior */
   flex-direction: column;
-  min-height: 0; /* Critical for nested flex scrolling */
-  max-height: none !important; /* Remove legacy constraint */
-  overflow: hidden; /* Container doesn't scroll, child does */
-  
+  min-height: 0;
+  /* Critical for nested flex scrolling */
+  max-height: none !important;
+  /* Remove legacy constraint */
+  overflow: hidden;
+  /* Container doesn't scroll, child does */
+
   /* Visual tweaks */
-  background: transparent !important; 
+  background: transparent !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 15px; 
-  margin-bottom: 10px; 
-  border-top: 1px solid #333; 
+  margin-top: 15px;
+  margin-bottom: 10px;
+  border-top: 1px solid #333;
   padding-top: 10px !important;
 }
 
@@ -278,9 +298,10 @@ body.sidebar-closed #canvas-container {
 }
 
 .tab-btn.active {
-  background: #252525; /* Matches panel background */
+  background: #252525;
+  /* Matches panel background */
   color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn:hover {
@@ -294,64 +315,76 @@ body.sidebar-closed #canvas-container {
   gap: 16px;
   /* Make content stretch to fill available space */
   flex: 1;
-  overflow: hidden; /* Prevent sidebar scroll, force inner scroll */
-  min-height: 0; 
+  overflow: hidden;
+  /* Prevent sidebar scroll, force inner scroll */
+  min-height: 0;
 }
 
 .tab-content.active {
-  display: flex !important; /* Force flex display when active */
+  display: flex !important;
+  /* Force flex display when active */
 }
 
 /* Mode Toggles */
-.mode-toggle-group, .scope-toggle-group {
-    display: flex;
-    background: #333;
-    border-radius: 6px;
-    padding: 2px;
-    gap: 2px;
+.mode-toggle-group,
+.scope-toggle-group {
+  display: flex;
+  background: #333;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
 }
 
-.mode-btn, .scope-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #aaa;
-    padding: 8px 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s;
+.mode-btn,
+.scope-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
-.mode-btn:hover, .scope-btn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
+.mode-btn:hover,
+.scope-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-.mode-btn.active, .scope-btn.active {
-    background: #2196F3;
-    color: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+.mode-btn.active,
+.scope-btn.active {
+  background: #2196F3;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .scope-btn.active {
-    background: #4CAF50; /* Different color for scope to distinguish */
+  background: #4CAF50;
+  /* Different color for scope to distinguish */
 }
 
 /* Enhancing Tile Selector visibility */
 #tileSelector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: min-content; /* Ensure rows respect content height */
-  gap: 8px; /* Tighter gap */
+  grid-auto-rows: min-content;
+  /* Ensure rows respect content height */
+  gap: 8px;
+  /* Tighter gap */
   padding: 8px;
   background: #202020;
   border-radius: 6px;
-  
+
   /* Flexbox scrolling setup */
-  flex: 1; /* Fill remaining vertical space in group */
-  min-height: 0; /* Allow shrinking below content size */
-  overflow-y: auto; /* Scroll ONLY here */
+  flex: 1;
+  /* Fill remaining vertical space in group */
+  min-height: 0;
+  /* Allow shrinking below content size */
+  overflow-y: auto;
+  /* Scroll ONLY here */
 
   /* Scrollbar styling */
   scrollbar-width: thin;
@@ -438,11 +471,11 @@ button:hover {
 }
 
 .tile-option.paint-selected {
-    border-color: #FF5722 !important;
-    opacity: 1 !important;
-    box-shadow: 0 0 8px rgba(255, 87, 34, 0.6) !important;
-    transform: scale(1.1);
-    z-index: 20;
+  border-color: #FF5722 !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 8px rgba(255, 87, 34, 0.6) !important;
+  transform: scale(1.1);
+  z-index: 20;
 }
 
 .tile-option canvas,
@@ -488,4 +521,3 @@ button.locked {
   background-color: #2e7d32;
   color: #fff;
 }
-
