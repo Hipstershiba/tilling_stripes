@@ -134,11 +134,9 @@ h1 {
     border-left: 1px solid #333;
     
     /* Scrolling */
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: #444 #252525;
-    
+    /* overflow-y: auto; Removed checking if this fixes the issue */
+    overflow: hidden; /* Prevent outer scroll so footer stays visible */
+
     /* Transition for sliding */
     transform: translateX(0); /* Default: Visible */
     transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -238,18 +236,21 @@ body.sidebar-closed #canvas-container {
 }
 
 .tile-selector-group {
-  flex-shrink: 1; 
-  flex-grow: 1; 
-  min-height: 200px;
-  overflow: hidden;
-  max-height: 50vh; 
-  background: transparent !important; /* Override standard card background */
+  flex: 1; /* Grow to fill remaining space */
+  display: flex !important; /* Ensure flex behavior */
+  flex-direction: column;
+  min-height: 0; /* Critical for nested flex scrolling */
+  max-height: none !important; /* Remove legacy constraint */
+  overflow: hidden; /* Container doesn't scroll, child does */
+  
+  /* Visual tweaks */
+  background: transparent !important; 
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 25px; /* Extra separation from controls above */
-  margin-bottom: 20px; /* Add space before actions */
-  border-top: 1px solid #333; /* Visual separator */
-  padding-top: 15px !important;
+  margin-top: 15px; 
+  margin-bottom: 10px; 
+  border-top: 1px solid #333; 
+  padding-top: 10px !important;
 }
 
 /* Tab Navigation */
@@ -291,10 +292,14 @@ body.sidebar-closed #canvas-container {
   display: none;
   flex-direction: column;
   gap: 16px;
+  /* Make content stretch to fill available space */
+  flex: 1;
+  overflow: hidden; /* Prevent sidebar scroll, force inner scroll */
+  min-height: 0; 
 }
 
 .tab-content.active {
-  display: flex;
+  display: flex !important; /* Force flex display when active */
 }
 
 /* Mode Toggles */
@@ -338,15 +343,15 @@ body.sidebar-closed #canvas-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: min-content; /* Ensure rows respect content height */
-  gap: 12px; /* Increased gap to prevent overlap feeling */
-  padding: 12px;
+  gap: 8px; /* Tighter gap */
+  padding: 8px;
   background: #202020;
   border-radius: 6px;
   
   /* Flexbox scrolling setup */
-  flex: 1;
-  min-height: 150px; /* Ensure at least some height is visible even if crowded */
-  overflow-y: auto;
+  flex: 1; /* Fill remaining vertical space in group */
+  min-height: 0; /* Allow shrinking below content size */
+  overflow-y: auto; /* Scroll ONLY here */
 
   /* Scrollbar styling */
   scrollbar-width: thin;
