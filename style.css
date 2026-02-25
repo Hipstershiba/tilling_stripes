@@ -426,7 +426,7 @@ body.sidebar-closed #canvas-container {
   /* Content sits above the sliding background */
   cursor: pointer;
   display: flex !important;
-  /* Ensure flex behavior matching tool-btn */
+  /* Ensure consistent tab button layout */
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -464,99 +464,33 @@ body.sidebar-closed #canvas-container {
   /* Prevent horizontal scrollbar */
   min-height: 0;
   padding: 2px;
+  padding-right: 14px;
+  scrollbar-gutter: stable both-edges;
   /* Add slight padding to prevent outline clipping if needed */
+}
+
+.tab-content {
+  scrollbar-width: auto;
+  scrollbar-color: #565656 #1c1c1c;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 11px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #1c1c1c;
+  border-radius: 8px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #565656;
+  border-radius: 8px;
 }
 
 .tab-content.active {
   display: flex !important;
   /* Force flex display when active */
-}
-
-/* Tool Switcher (New Fancy Animation) */
-.tool-switch {
-  display: flex;
-  background: #333;
-  /* Match tab nav background */
-  border-radius: 8px;
-  padding: 2px;
-  position: relative;
-  height: 36px;
-  /* Reduced height */
-  border: none;
-}
-
-.tool-bg {
-  position: absolute;
-  top: 2px;
-  /* Matches padding */
-  bottom: 2px;
-  width: calc(50% - 2px);
-  /* Half container width minus padding adjustment */
-  background: #252525;
-  /* Grey to match unified theme */
-  border: 1px solid #444;
-  /* Subtle border */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  /* Enhance depth */
-  border-radius: 6px;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
-  z-index: 1;
-  /* Initial state: left */
-  left: 2px;
-  transform: translateX(0);
-}
-
-/* State for tool background position - controlled by JS setting attribute on parent */
-.tool-switch[data-active="none"] .tool-bg {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.tool-switch[data-active="mirror"] .tool-bg {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.tool-switch[data-active="edit"] .tool-bg {
-  opacity: 1;
-  transform: translateX(100%);
-  /* Moves exactly 100% of its own width so it sits on the right half */
-  left: -2px;
-  /* Correct offset to align perfectly */
-}
-
-.tool-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #888;
-  z-index: 2;
-  /* Content sits above the sliding background */
-  cursor: pointer;
-  display: flex !important;
-  /* Ensure flex behavior */
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: color 0.3s;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  padding: 0;
-  outline: none;
-  min-height: 100%;
-  /* Ensure full height */
-}
-
-/* Text color change when active */
-.tool-btn.active {
-  color: #fff;
-}
-
-.tool-btn:hover {
-  background: transparent !important;
-  /* Override generic button hover */
-  color: #fff;
 }
 
 /* Scope Toggles */
@@ -614,6 +548,143 @@ body.sidebar-closed #canvas-container {
   padding: 4px;
 }
 
+.scope-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.scope-header label {
+  margin: 0;
+}
+
+.edit-mode-toggle {
+  display: flex;
+  margin-top: 8px;
+  background: #333;
+  border-radius: 8px;
+  padding: 2px;
+  position: relative;
+  height: 36px;
+  border: none;
+}
+
+.edit-mode-bg {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  background: #252525;
+  border: 1px solid #444;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1;
+  transform: translateX(0);
+}
+
+.edit-mode-toggle[data-active="rotate"] .edit-mode-bg {
+  transform: translateX(100%);
+  left: -2px;
+}
+
+.edit-mode-btn {
+  flex: 1;
+  background: transparent;
+  color: #888;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  transition: color 0.3s;
+  z-index: 2;
+  border: none;
+  min-height: 100%;
+}
+
+.edit-mode-btn:hover {
+  background: transparent;
+  color: #fff;
+}
+
+.edit-mode-btn.active {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+
+.edit-history-state {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.edit-paint-panel {
+  margin-top: 10px;
+  display: none;
+  flex-direction: column;
+  background: #2a2a2a;
+  border-radius: 4px;
+  padding: 8px;
+  border: 1px solid #444;
+  min-height: 0;
+}
+
+.edit-brush-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.edit-brush-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px;
+  padding-right: 14px;
+  scrollbar-gutter: stable both-edges;
+  min-height: 170px;
+  max-height: min(42vh, 360px);
+  box-sizing: border-box;
+}
+
+.edit-brush-list {
+  scrollbar-width: auto;
+  scrollbar-color: #555 #1c1c1c;
+}
+
+.edit-brush-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.edit-brush-list::-webkit-scrollbar-track {
+  background: #1c1c1c;
+  border-radius: 8px;
+}
+
+.edit-brush-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 8px;
+}
+
+@media (max-height: 760px) {
+  .edit-brush-list {
+    min-height: 130px;
+    max-height: 34vh;
+  }
+}
+
+@media (max-width: 768px),
+(pointer: coarse) {}
+
 /* Enhancing Tile Selector visibility */
 #tileSelector {
   display: grid;
@@ -637,11 +708,13 @@ body.sidebar-closed #canvas-container {
   /* Scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: #444 #111;
+  scrollbar-gutter: stable both-edges;
+  padding-right: 14px;
+  box-sizing: border-box;
 }
 
 #tileSelector::-webkit-scrollbar {
-  width: 4px;
-  /* Thinner scrollbar */
+  width: 10px;
 }
 
 #tileSelector::-webkit-scrollbar-track {
@@ -758,6 +831,44 @@ button:hover {
   padding: 10px;
   position: relative;
   height: 100vh;
+}
+
+#canvasStatusHint {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: #cfcfcf;
+  background: rgba(25, 25, 25, 0.82);
+  border: 1px solid rgba(85, 85, 85, 0.8);
+  border-radius: 999px;
+  padding: 5px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: min(90%, 560px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  z-index: 5;
+}
+
+#canvasStatusHint.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px),
+(pointer: coarse) {
+
+  #canvasStatusHint,
+  #canvasStatusHint.visible {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 canvas {

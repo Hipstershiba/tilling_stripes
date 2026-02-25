@@ -5,7 +5,10 @@
 // We need the INVERSE operation: "I want tile T to appear. What tile S should I put so S flipped becomes T?"
 // Conveniently, flipping is its own inverse (FlipX(FlipX(T)) = T). So the map works both ways.
 
-const TILE_TRANSFORMS = (() => {
+const TILE_TRANSFORMS =
+    (typeof window !== 'undefined' && window.TILE_TRANSFORMS)
+        ? window.TILE_TRANSFORMS
+        : (() => {
     const map = {};
     
     // Helper to register a set of transforms
