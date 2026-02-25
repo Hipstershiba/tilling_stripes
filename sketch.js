@@ -15,7 +15,7 @@ let gridRatio = 1;
 
 // Interaction State
 let interactionMode = 'none'; // 'none' (Setup tab) or 'edit' (Edit tab). Right-click temporarily rotates.
-let mobileEditMode = 'edit'; // 'edit' or 'mirror' for touch/coarse pointers
+let editToolMode = 'edit'; // 'edit' (paint) or 'mirror' (rotate)
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
@@ -344,45 +344,57 @@ function setupUI(mainCanvas) {
     return window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
   };
 
-  const updateMobileModeUI = () => {
-    let paintBtn = select('#mobileModePaint');
-    let rotateBtn = select('#mobileModeRotate');
+  const updateEditModeUI = () => {
+    let paintBtn = select('#editModePaint');
+    let rotateBtn = select('#editModeRotate');
+    let toggleContainer = select('#editModeToggle');
+
+    if (toggleContainer) {
+      toggleContainer.attribute('data-active', editToolMode === 'mirror' ? 'rotate' : 'paint');
+    }
 
     if (paintBtn) {
-      if (mobileEditMode === 'edit') paintBtn.addClass('active');
+      if (editToolMode === 'edit') paintBtn.addClass('active');
       else paintBtn.removeClass('active');
     }
 
     if (rotateBtn) {
-      if (mobileEditMode === 'mirror') rotateBtn.addClass('active');
+      if (editToolMode === 'mirror') rotateBtn.addClass('active');
       else rotateBtn.removeClass('active');
     }
   };
 
-  let mobilePaintBtn = select('#mobileModePaint');
-  let mobileRotateBtn = select('#mobileModeRotate');
+  const toggleEditToolMode = () => {
+    editToolMode = editToolMode === 'edit' ? 'mirror' : 'edit';
+    updateEditModeUI();
+    updateEditUI();
+    showCanvasStatusHintTemporarily(1800);
+  };
 
-  if (mobilePaintBtn) {
-    mobilePaintBtn.mousePressed(() => {
-      mobileEditMode = 'edit';
-      updateMobileModeUI();
+  let editPaintBtn = select('#editModePaint');
+  let editRotateBtn = select('#editModeRotate');
+
+  if (editPaintBtn) {
+    editPaintBtn.mousePressed(() => {
+      editToolMode = 'edit';
+      updateEditModeUI();
       updateEditUI();
+      showCanvasStatusHintTemporarily(1800);
     });
   }
 
-  if (mobileRotateBtn) {
-    mobileRotateBtn.mousePressed(() => {
-      mobileEditMode = 'mirror';
-      updateMobileModeUI();
+  if (editRotateBtn) {
+    editRotateBtn.mousePressed(() => {
+      editToolMode = 'mirror';
+      updateEditModeUI();
       updateEditUI();
+      showCanvasStatusHintTemporarily(1800);
     });
   }
 
   window.addEventListener('resize', () => {
-    if (!isMobileInput() && mobileEditMode !== 'edit') {
-      mobileEditMode = 'edit';
-      updateMobileModeUI();
-      updateEditUI();
+    if (!isMobileInput()) {
+      updateEditModeUI();
     }
   });
 
@@ -403,6 +415,17 @@ function setupUI(mainCanvas) {
     if (!hint) return;
     if (visible) hint.addClass('visible');
     else hint.removeClass('visible');
+  };
+
+  const updateCanvasStatusHintText = () => {
+    let hint = select('#canvasStatusHint');
+    if (!hint) return;
+
+    if (editToolMode === 'edit') {
+      hint.html('LMB paint • RMB rotate • R toggle');
+    } else {
+      hint.html('LMB rotate • RMB paint • R toggle');
+    }
   };
 
   const updateCanvasStatusHintPlacement = () => {
@@ -447,6 +470,7 @@ function setupUI(mainCanvas) {
       return;
     }
 
+    updateCanvasStatusHintText();
     updateCanvasStatusHintPlacement();
     setCanvasStatusHintVisible(true);
     requestAnimationFrame(updateCanvasStatusHintPlacement);
@@ -518,8 +542,10 @@ function setupUI(mainCanvas) {
   
   // Set initial UI state
   updateEditUI();
-  updateMobileModeUI();
+  updateEditModeUI();
   updateCanvasStatusHint();
+
+  window.toggleEditToolMode = toggleEditToolMode;
   
   // Scope Descriptions
   const SCOPE_DESCRIPTIONS = {
@@ -573,12 +599,10 @@ function setupUI(mainCanvas) {
 function updateEditUI() {
     let previewContainer = select('#paintTileDisplay'); 
     let scopeContainer = select('#scopeControl');
-  let isMobileInput = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
-  let effectiveEditMode = isMobileInput ? mobileEditMode : 'edit';
 
     // Logic-dependent visibility
     if (interactionMode === 'edit') {
-    if(previewContainer) previewContainer.style('display', effectiveEditMode === 'edit' ? 'flex' : 'none'); 
+  if(previewContainer) previewContainer.style('display', 'flex'); 
         if(scopeContainer) scopeContainer.style('display', 'block');
     } else {
     // Setup tab / disabled
@@ -1471,6 +1495,14 @@ window.addEventListener('keydown', (e) => {
     // Check if user is typing in an input field
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+  if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'r' && isEditTabActive()) {
+    if (typeof window.toggleEditToolMode === 'function') {
+      window.toggleEditToolMode();
+      e.preventDefault();
+      return;
+    }
+  }
+
     // Ctrl+Z: Undo or Redo
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) {
@@ -1507,11 +1539,14 @@ function getPointerInteractionMode() {
   let isMobileInput = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
 
   if (isMobileInput && isEditTabActive()) {
-    return mobileEditMode;
+    return editToolMode;
   }
 
-  if (mouseButton === RIGHT && isEditTabActive()) {
-    return 'mirror';
+  if (isEditTabActive()) {
+    if (mouseButton === RIGHT) {
+      return editToolMode === 'edit' ? 'mirror' : 'edit';
+    }
+    return editToolMode;
   }
   return interactionMode;
 }

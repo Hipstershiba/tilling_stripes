@@ -464,7 +464,28 @@ body.sidebar-closed #canvas-container {
   /* Prevent horizontal scrollbar */
   min-height: 0;
   padding: 2px;
+  padding-right: 14px;
+  scrollbar-gutter: stable both-edges;
   /* Add slight padding to prevent outline clipping if needed */
+}
+
+.tab-content {
+  scrollbar-width: auto;
+  scrollbar-color: #565656 #1c1c1c;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 11px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #1c1c1c;
+  border-radius: 8px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #565656;
+  border-radius: 8px;
 }
 
 .tab-content.active {
@@ -539,40 +560,59 @@ body.sidebar-closed #canvas-container {
   margin: 0;
 }
 
-.scope-rotate-hint {
-  font-size: 0.68rem;
-  color: #8f8f8f;
-  letter-spacing: 0.2px;
-  text-transform: none;
+.edit-mode-toggle {
+  display: flex;
+  margin-top: 8px;
+  background: #333;
+  border-radius: 8px;
+  padding: 2px;
+  position: relative;
+  height: 36px;
+  border: none;
 }
 
-.mobile-edit-mode {
-  display: none;
-  margin-top: 8px;
+.edit-mode-bg {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
   background: #252525;
   border: 1px solid #444;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   border-radius: 6px;
-  padding: 3px;
-  gap: 4px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1;
+  transform: translateX(0);
 }
 
-.mobile-mode-btn {
+.edit-mode-toggle[data-active="rotate"] .edit-mode-bg {
+  transform: translateX(100%);
+  left: -2px;
+}
+
+.edit-mode-btn {
   flex: 1;
   background: transparent;
-  color: #aaa;
-  padding: 7px 10px;
+  color: #888;
+  padding: 0 10px;
   font-size: 0.8rem;
-  border-radius: 4px;
+  border-radius: 6px;
+  transition: color 0.3s;
+  z-index: 2;
+  border: none;
+  min-height: 100%;
 }
 
-.mobile-mode-btn:hover {
-  background: #3a3a3a;
-}
-
-.mobile-mode-btn.active {
-  background: #444;
+.edit-mode-btn:hover {
+  background: transparent;
   color: #fff;
-  border: 1px solid #2196F3;
+}
+
+.edit-mode-btn.active {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
 }
 
 .edit-history-state {
@@ -609,8 +649,30 @@ body.sidebar-closed #canvas-container {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   padding: 4px;
+  padding-right: 14px;
+  scrollbar-gutter: stable both-edges;
   min-height: 170px;
   max-height: min(42vh, 360px);
+  box-sizing: border-box;
+}
+
+.edit-brush-list {
+  scrollbar-width: auto;
+  scrollbar-color: #555 #1c1c1c;
+}
+
+.edit-brush-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.edit-brush-list::-webkit-scrollbar-track {
+  background: #1c1c1c;
+  border-radius: 8px;
+}
+
+.edit-brush-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 8px;
 }
 
 @media (max-height: 760px) {
@@ -621,15 +683,7 @@ body.sidebar-closed #canvas-container {
 }
 
 @media (max-width: 768px),
-(pointer: coarse) {
-  .scope-rotate-hint {
-    display: none;
-  }
-
-  .mobile-edit-mode {
-    display: flex;
-  }
-}
+(pointer: coarse) {}
 
 /* Enhancing Tile Selector visibility */
 #tileSelector {
@@ -654,11 +708,13 @@ body.sidebar-closed #canvas-container {
   /* Scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: #444 #111;
+  scrollbar-gutter: stable both-edges;
+  padding-right: 14px;
+  box-sizing: border-box;
 }
 
 #tileSelector::-webkit-scrollbar {
-  width: 4px;
-  /* Thinner scrollbar */
+  width: 10px;
 }
 
 #tileSelector::-webkit-scrollbar-track {

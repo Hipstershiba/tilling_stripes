@@ -119,14 +119,14 @@
 
             <!-- History Controls for Generation -->
             <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
-              <button id="btnPrevSeed" title="Previous Generation" disabled
+              <button id="btnPrevSeed" title="Previous Generation (←)" disabled
                 style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
               </button>
-              <button id="btnNextSeed" title="Next Generation" disabled
+              <button id="btnNextSeed" title="Next Generation (→)" disabled
                 style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
@@ -182,7 +182,6 @@
           <div id="scopeControl" style="margin-top: 0;">
             <div class="scope-header">
               <label style="font-size: 0.8rem; color: #aaa;">Target Scope</label>
-              <span class="scope-rotate-hint">Right click: rotate</span>
             </div>
             <div class="scope-toggle-group">
               <!-- Single -->
@@ -260,9 +259,12 @@
               <strong style="color: #ccc;">Single Tile:</strong> Only changes the specific tile you click.
             </div>
 
-            <div id="mobileEditMode" class="mobile-edit-mode" aria-label="Mobile edit action">
-              <button id="mobileModePaint" class="mobile-mode-btn active" type="button">Paint</button>
-              <button id="mobileModeRotate" class="mobile-mode-btn" type="button">Rotate</button>
+            <div id="editModeToggle" class="edit-mode-toggle" data-active="paint" aria-label="Edit action mode">
+              <div class="edit-mode-bg" aria-hidden="true"></div>
+              <button id="editModePaint" class="edit-mode-btn active" type="button"
+                title="Paint (R alterna ferramenta)">Paint</button>
+              <button id="editModeRotate" class="edit-mode-btn" type="button"
+                title="Rotate (R alterna ferramenta)">Rotate</button>
             </div>
           </div>
 
@@ -288,7 +290,6 @@
 
         <!-- History Controls for Edit -->
         <div class="control-group no-collapse" style="margin-bottom: 5px;">
-          <label>Edit History</label>
           <div style="display: flex; gap: 5px;">
             <button id="btnUndo" title="Undo (Ctrl+Z)" disabled
               style="flex: 1; display: flex; justify-content: center; align-items: center;">
