@@ -731,6 +731,16 @@ function registerTile(config) {
 //     }
 // });
 
+// Empty tile available in palette (draws nothing)
+registerTile({
+    name: "Empty Tile",
+    family: "utility",
+    symmetric: true,
+    render: (ctx, w, h, padding, color) => {
+        // intentionally empty
+    }
+});
+
 if (typeof window !== 'undefined') {
     window.TILE_RENDERERS = TILE_RENDERERS;
     window.TILE_NAMES = TILE_NAMES;

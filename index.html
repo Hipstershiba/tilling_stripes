@@ -176,59 +176,14 @@
       <!-- TAB CONTENT: EDIT -->
       <div id="tab-edit" class="tab-content">
 
-        <!-- History Controls for Edit -->
-        <div class="control-group no-collapse" style="margin-bottom: 5px;">
-          <label>Edit History</label>
-          <div style="display: flex; gap: 5px;">
-            <button id="btnUndo" title="Undo (Ctrl+Z)" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 14L4 9l5-5"></path>
-                <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path>
-              </svg>
-              <span style="font-size: 0.8rem; margin-left: 5px;">Undo</span>
-            </button>
-            <button id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center;">
-              <span style="font-size: 0.8rem; margin-right: 5px;">Redo</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"></path>
-                <path d="M15 14l5-5-5-5"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Improved Interaction Controls -->
+        <!-- Interaction Controls -->
         <div class="control-group no-collapse">
-          <label>Active Tool</label>
-          <div class="tool-switch">
-            <div class="tool-bg"></div> <!-- Animated background -->
-            <button id="modeMirror" class="tool-btn" data-mode="mirror" title="Rotate/Variant">
-              <svg class="tool-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-              </svg>
-              <span class="tool-label">Rotate</span>
-            </button>
-            <button id="modeEdit" class="tool-btn" data-mode="edit" title="Paint Tile">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                <path d="M2 2l7.586 7.586"></path>
-                <circle cx="11" cy="11" r="2"></circle>
-              </svg>
-              <span class="tool-label">Paint</span>
-            </button>
-          </div>
-
-
           <!-- Scope Control -->
-          <div id="scopeControl" style="margin-top: 15px;">
-            <label style="font-size: 0.8rem; color: #aaa;">Target Scope</label>
+          <div id="scopeControl" style="margin-top: 0;">
+            <div class="scope-header">
+              <label style="font-size: 0.8rem; color: #aaa;">Target Scope</label>
+              <span class="scope-rotate-hint">Right click: rotate</span>
+            </div>
             <div class="scope-toggle-group">
               <!-- Single -->
               <button id="scopeSingle" class="scope-btn active" data-scope="single" title="Single Tile">
@@ -304,11 +259,15 @@
             <div id="scopeDesc">
               <strong style="color: #ccc;">Single Tile:</strong> Only changes the specific tile you click.
             </div>
+
+            <div id="mobileEditMode" class="mobile-edit-mode" aria-label="Mobile edit action">
+              <button id="mobileModePaint" class="mobile-mode-btn active" type="button">Paint</button>
+              <button id="mobileModeRotate" class="mobile-mode-btn" type="button">Rotate</button>
+            </div>
           </div>
 
           <!-- Paint Palette (Only visible for Paint Brush) -->
-          <div id="paintTileDisplay"
-            style="margin-top:10px; display:none; flex-direction: column; background: #2a2a2a; border-radius: 4px; padding: 8px; border: 1px solid #444;">
+          <div id="paintTileDisplay" class="edit-paint-panel">
             <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Active Brush:</div>
             <div style="display: flex; align-items: center; gap: 10px;">
               <!-- Preview Icon -->
@@ -318,14 +277,39 @@
               <span id="paintTileName" style="font-size: 0.9rem; font-weight: bold; color: #fff;"> Select below </span>
             </div>
 
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+            <div class="edit-brush-section">
               <label style="font-size: 0.8rem; color: #aaa; display:block; margin-bottom: 5px;">Brush Palette:</label>
-              <div id="brushList" class="tile-list"
-                style="max-height: 200px; overflow-y: auto; overflow-x: hidden; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 4px;">
+              <div id="brushList" class="tile-list edit-brush-list">
                 <!-- Brush tiles injected here -->
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- History Controls for Edit -->
+        <div class="control-group no-collapse" style="margin-bottom: 5px;">
+          <label>Edit History</label>
+          <div style="display: flex; gap: 5px;">
+            <button id="btnUndo" title="Undo (Ctrl+Z)" disabled
+              style="flex: 1; display: flex; justify-content: center; align-items: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 14L4 9l5-5"></path>
+                <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path>
+              </svg>
+              <span style="font-size: 0.8rem; margin-left: 5px;">Undo</span>
+            </button>
+            <button id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled
+              style="flex: 1; display: flex; justify-content: center; align-items: center;">
+              <span style="font-size: 0.8rem; margin-right: 5px;">Redo</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"></path>
+                <path d="M15 14l5-5-5-5"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="editHistoryState" class="edit-history-state">Step 1 / 1</div>
         </div>
       </div> <!-- End Tab Interact -->
 
@@ -346,6 +330,7 @@
           </path>
         </svg>
       </button>
+      <div id="canvasStatusHint">LMB paint • RMB rotate • Shift+RMB randomize</div>
     </div>
   </div> <!-- End main-container -->
 

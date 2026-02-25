@@ -14,8 +14,8 @@ let canvasRatio = 1;
 let gridRatio = 1;
 
 // Interaction State
-let interactionMode = 'none'; // 'none', 'mirror', 'edit'
-let lastEditTool = 'mirror'; // Default tool for Edit tab
+let interactionMode = 'none'; // 'none' (Setup tab) or 'edit' (Edit tab). Right-click temporarily rotates.
+let mobileEditMode = 'edit'; // 'edit' or 'mirror' for touch/coarse pointers
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
@@ -111,6 +111,10 @@ function setupUI(mainCanvas) {
   // Lock buttons
   let btnLockCanvasRatio = select('#btnLockCanvasRatio');
   let btnLockGridRatio = select('#btnLockGridRatio');
+
+  if (mainCanvas && mainCanvas.elt) {
+    mainCanvas.elt.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
 
   if (btnLockCanvasRatio) {
     btnLockCanvasRatio.mousePressed(() => {
@@ -336,9 +340,160 @@ function setupUI(mainCanvas) {
   select('#selectAll').mousePressed(selectAllTiles);
   select('#selectNone').mousePressed(selectNoneTiles);
 
+  const isMobileInput = () => {
+    return window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+  };
+
+  const updateMobileModeUI = () => {
+    let paintBtn = select('#mobileModePaint');
+    let rotateBtn = select('#mobileModeRotate');
+
+    if (paintBtn) {
+      if (mobileEditMode === 'edit') paintBtn.addClass('active');
+      else paintBtn.removeClass('active');
+    }
+
+    if (rotateBtn) {
+      if (mobileEditMode === 'mirror') rotateBtn.addClass('active');
+      else rotateBtn.removeClass('active');
+    }
+  };
+
+  let mobilePaintBtn = select('#mobileModePaint');
+  let mobileRotateBtn = select('#mobileModeRotate');
+
+  if (mobilePaintBtn) {
+    mobilePaintBtn.mousePressed(() => {
+      mobileEditMode = 'edit';
+      updateMobileModeUI();
+      updateEditUI();
+    });
+  }
+
+  if (mobileRotateBtn) {
+    mobileRotateBtn.mousePressed(() => {
+      mobileEditMode = 'mirror';
+      updateMobileModeUI();
+      updateEditUI();
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (!isMobileInput() && mobileEditMode !== 'edit') {
+      mobileEditMode = 'edit';
+      updateMobileModeUI();
+      updateEditUI();
+    }
+  });
+
   // Interaction Logic (Wiring the buttons)
   // Initially, assume 'none' if Setup tab is active
   interactionMode = 'none';
+
+  let canvasHintTimeout = null;
+
+  const shouldShowCanvasStatusHint = () => {
+    return interactionMode === 'edit'
+      && window.matchMedia('(min-width: 769px)').matches
+      && window.matchMedia('(pointer: fine)').matches;
+  };
+
+  const setCanvasStatusHintVisible = (visible) => {
+    let hint = select('#canvasStatusHint');
+    if (!hint) return;
+    if (visible) hint.addClass('visible');
+    else hint.removeClass('visible');
+  };
+
+  const updateCanvasStatusHintPlacement = () => {
+    const hint = document.getElementById('canvasStatusHint');
+    const container = document.getElementById('canvas-container');
+    const canvasElement = container ? container.querySelector('canvas') : null;
+    if (!hint || !container || !canvasElement) return;
+
+    hint.style.top = '';
+    hint.style.bottom = '6px';
+
+    if (!shouldShowCanvasStatusHint()) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const canvasRect = canvasElement.getBoundingClientRect();
+    const hintHeight = Math.max(24, hint.offsetHeight || 0);
+
+    const canvasFitsContainer =
+      canvasRect.height <= (containerRect.height - 20)
+      && canvasRect.width <= (containerRect.width - 20);
+
+    const topBelowCanvas = (canvasRect.bottom - containerRect.top) + 6;
+    const spaceBelowCanvas = containerRect.height - topBelowCanvas;
+
+    if (canvasFitsContainer && spaceBelowCanvas >= (hintHeight + 4)) {
+      hint.style.top = `${topBelowCanvas}px`;
+      hint.style.bottom = 'auto';
+    }
+  };
+
+  const hideCanvasStatusHint = () => {
+    if (canvasHintTimeout) {
+      clearTimeout(canvasHintTimeout);
+      canvasHintTimeout = null;
+    }
+    setCanvasStatusHintVisible(false);
+  };
+
+  const showCanvasStatusHintTemporarily = (duration = 2400) => {
+    if (!shouldShowCanvasStatusHint()) {
+      hideCanvasStatusHint();
+      return;
+    }
+
+    updateCanvasStatusHintPlacement();
+    setCanvasStatusHintVisible(true);
+    requestAnimationFrame(updateCanvasStatusHintPlacement);
+
+    if (canvasHintTimeout) clearTimeout(canvasHintTimeout);
+    canvasHintTimeout = setTimeout(() => {
+      setCanvasStatusHintVisible(false);
+      canvasHintTimeout = null;
+    }, duration);
+  };
+
+  if (mainCanvas && mainCanvas.elt) {
+    mainCanvas.elt.addEventListener('mouseenter', () => {
+      showCanvasStatusHintTemporarily(2200);
+    });
+    mainCanvas.elt.addEventListener('mousedown', () => {
+      showCanvasStatusHintTemporarily(1600);
+    });
+    mainCanvas.elt.addEventListener('mouseleave', () => {
+      hideCanvasStatusHint();
+    });
+
+    window.addEventListener('resize', () => {
+      if (!shouldShowCanvasStatusHint()) {
+        hideCanvasStatusHint();
+      } else {
+        updateCanvasStatusHintPlacement();
+      }
+    });
+
+    let canvasContainer = document.getElementById('canvas-container');
+    if (canvasContainer) {
+      canvasContainer.addEventListener('scroll', () => {
+        if (shouldShowCanvasStatusHint()) {
+          updateCanvasStatusHintPlacement();
+        }
+      });
+    }
+  }
+
+  const updateCanvasStatusHint = () => {
+    if (interactionMode === 'edit') {
+      showCanvasStatusHintTemporarily(2800);
+    } else {
+      hideCanvasStatusHint();
+    }
+  };
 
   // Listen for Tab Changes
   window.addEventListener('tabChanged', (e) => {
@@ -349,30 +504,22 @@ function setupUI(mainCanvas) {
          // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
          select('#tileSelector').removeClass('paint-mode');
        updateHoverPreview();
+       updateCanvasStatusHint();
        redraw();
      } else if (tab === 'edit') {
-         // Restore previous tool or default to Rotate
-         interactionMode = lastEditTool;
-         console.log('Mode restored to:', interactionMode);
+         interactionMode = 'edit';
+         console.log('Mode set to: edit (Edit Tab)');
          updateEditUI();
        updateHoverPreview();
+       updateCanvasStatusHint();
        redraw();
      }
-  });
-
-  selectAll('.tool-btn').forEach(btn => {
-      btn.mousePressed(() => {
-          interactionMode = btn.attribute('data-mode');
-          lastEditTool = interactionMode;
-          console.log('Tool set to:', interactionMode);
-          updateEditUI();
-        updateHoverPreview();
-        redraw();
-      });
   });
   
   // Set initial UI state
   updateEditUI();
+  updateMobileModeUI();
+  updateCanvasStatusHint();
   
   // Scope Descriptions
   const SCOPE_DESCRIPTIONS = {
@@ -426,34 +573,17 @@ function setupUI(mainCanvas) {
 function updateEditUI() {
     let previewContainer = select('#paintTileDisplay'); 
     let scopeContainer = select('#scopeControl');
-
-    // Update animated toggle state
-    // Use vanilla JS to ensure attribute update works reliably for CSS
-    let toolSwitch = document.querySelector('.tool-switch');
-    if (toolSwitch) {
-        toolSwitch.setAttribute('data-active', interactionMode);
-    }
-    
-    // Ensure correct active state on buttons (for text color)
-    // Clear all first
-    selectAll('.tool-btn').forEach(b => b.removeClass('active'));
-    
-    if (interactionMode === 'mirror') {
-        select('#modeMirror').addClass('active');
-    } else if (interactionMode === 'edit') {
-        select('#modeEdit').addClass('active');
-    }
+  let isMobileInput = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+  let effectiveEditMode = isMobileInput ? mobileEditMode : 'edit';
 
     // Logic-dependent visibility
     if (interactionMode === 'edit') {
-        if(previewContainer) previewContainer.style('display', 'flex'); 
-        if(scopeContainer) scopeContainer.style('display', 'block');
-    } else if (interactionMode === 'mirror') {
-        if(previewContainer) previewContainer.style('display', 'none');
+    if(previewContainer) previewContainer.style('display', effectiveEditMode === 'edit' ? 'flex' : 'none'); 
         if(scopeContainer) scopeContainer.style('display', 'block');
     } else {
-        // None/View
+    // Setup tab / disabled
         if(previewContainer) previewContainer.style('display', 'none');
+    if(scopeContainer) scopeContainer.style('display', 'none');
     }
 }
 
@@ -597,6 +727,7 @@ function createBrushList() {
                previewImg.style('height', '100%'); 
                previewImg.parent(previewBox);
             }
+
         });
     }
 }
@@ -998,6 +1129,13 @@ function updateHistoryUI() {
   if (btnRedo) {
       if(editHistoryIndex >= editHistory.length - 1) btnRedo.attribute('disabled', 'true'); else btnRedo.removeAttribute('disabled');
   }
+
+  let editHistoryState = select('#editHistoryState');
+  if (editHistoryState) {
+    let currentStep = max(1, editHistoryIndex + 1);
+    let totalSteps = max(1, editHistory.length);
+    editHistoryState.html(`Step ${currentStep} / ${totalSteps}`);
+  }
   
   // Update List (Optional)
   let list = select('#seedHistoryList');
@@ -1360,15 +1498,35 @@ window.addEventListener('keydown', (e) => {
 
 let isDrawing = false; // Add state to track if drag started on canvas
 
+function isEditTabActive() {
+  let editTab = document.getElementById('tab-edit');
+  return !!(editTab && editTab.classList.contains('active'));
+}
+
+function getPointerInteractionMode() {
+  let isMobileInput = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
+
+  if (isMobileInput && isEditTabActive()) {
+    return mobileEditMode;
+  }
+
+  if (mouseButton === RIGHT && isEditTabActive()) {
+    return 'mirror';
+  }
+  return interactionMode;
+}
+
 function mousePressed() {
     // Only interact if click is on canvas
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
         isDrawing = false;
         return;
     }
+
+  let pointerMode = getPointerInteractionMode();
     
     // Ignore clicks if mode is none
-    if (interactionMode === 'none') return;
+  if (pointerMode === 'none') return;
     
     isDrawing = true;
     
@@ -1377,7 +1535,7 @@ function mousePressed() {
 
     updateHoverPreview(mouseX, mouseY);
     
-    handleTileClick(mouseX, mouseY);
+    handleTileClick(mouseX, mouseY, pointerMode);
 }
 
 function mouseDragged() {
@@ -1386,12 +1544,14 @@ function mouseDragged() {
 
     // Only interact if drag is on canvas
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+
+    let pointerMode = getPointerInteractionMode();
     
     // Ignore clicks if mode is none
-    if (interactionMode === 'none') return;
+    if (pointerMode === 'none') return;
     
     updateHoverPreview(mouseX, mouseY);
-    handleTileClick(mouseX, mouseY);
+    handleTileClick(mouseX, mouseY, pointerMode);
 }
 
   function mouseMoved() {
@@ -1419,7 +1579,8 @@ function mouseReleased() {
     }
 }
 
-function handleTileClick(mx, my) {
+function handleTileClick(mx, my, modeOverride = null) {
+  let effectiveMode = modeOverride || interactionMode;
   let hitInfo = getHitInfo(mx, my);
   if (!hitInfo) return;
 
@@ -1457,7 +1618,7 @@ function handleTileClick(mx, my) {
     let oldType = hitInfo.oldType;
     let newType = oldType;
     
-    if (interactionMode === 'mirror') {
+    if (effectiveMode === 'mirror') {
         if (keyIsDown(SHIFT)) {
              // Shift + Click: Randomize (Reseed)
              // Prioritize "Allowed Types" if any are selected, else fully random
@@ -1470,7 +1631,7 @@ function handleTileClick(mx, my) {
              // Standard Click: Cycle Family
              newType = getNextInFamily(oldType);
         }
-    } else if (interactionMode === 'edit') {
+    } else if (effectiveMode === 'edit') {
       // WYSIWYG Painting:
       // Keep visual orientation equal to the selected brush, including single scope.
 
@@ -1496,7 +1657,7 @@ function handleTileClick(mx, my) {
     
     // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
 
-    if (oldType === newType && interactionMode !== 'edit') return; 
+    if (oldType === newType && effectiveMode !== 'edit') return; 
     
     // Flag that a modification is happening
     // Note: For 'edit' mode (painting), we might be painting the same color. 
