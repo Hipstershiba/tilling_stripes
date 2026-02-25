@@ -251,8 +251,11 @@ body.sidebar-closed #canvas-container {
   justify-content: space-between;
   align-items: center;
   user-select: none;
+  position: relative;
+  /* Ensure positioning context */
 }
 
+/* Arrow indicator */
 .control-group label::after {
   content: '';
   width: 0;
@@ -261,38 +264,47 @@ body.sidebar-closed #canvas-container {
   border-right: 5px solid transparent;
   border-top: 5px solid #aaa;
   transition: transform 0.2s;
+  /* Fixed width reserve for arrow */
+  margin-left: 10px;
 }
 
-/* Hide collapse arrow for the tile selector group */
-.tile-selector-group label,
-.no-collapse label {
-  cursor: default;
-}
-
+/* Hide arrow for non-collapsible */
 .tile-selector-group label::after,
 .no-collapse label::after {
   display: none;
 }
 
+/* Rotate arrow when collapsed */
 .control-group.collapsed label::after {
   transform: rotate(-90deg);
+  /* Points Right (>) from Down (V) ? Check direction */
+  /* Actually border-top points down */
+  /* -90 makes it point Right */
+  border-top-color: #888;
 }
 
 .group-summary {
-  font-size: 0.8em;
-  color: #fff;
-  background: #444;
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 0.9em;
+  color: #aaa;
+  /* Softer color */
+  font-family: monospace;
+  /* Align numbers better */
+
   display: none;
-  /* Hidden by default */
-  margin-right: 20px;
-  /* Space for arrow */
+  /* Alignment */
+  margin-left: auto;
+  /* Push to right */
+  margin-right: 15px;
+  /* Space before arrow */
+  text-align: right;
+  min-width: 60px;
+  /* Consistent width */
 }
 
 /* Show summary when collapsed */
 .control-group.collapsed .group-summary {
-  display: inline-block;
+  display: block;
+  /* Align better with flex */
 }
 
 .group-content {
@@ -308,12 +320,36 @@ body.sidebar-closed #canvas-container {
   display: none;
 }
 
-.tile-selector-group.collapsed {
-  flex: 0 0 auto !important;
-  min-height: auto !important;
-  padding-bottom: 0 !important;
-  border-bottom: 1px solid #333;
-  /* Visual indicator when collapsed */
+.control-group.collapsed {
+  padding-bottom: 12px;
+  /* Maintain padding */
+  background: #252525;
+  /* Slightly darker when collapsed */
+  border: 1px solid #333;
+  /* Subtle border */
+}
+
+/* Ensure label takes full space for click target */
+.control-group label {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  width: 100%;
+  /* Full width */
+  padding-right: 5px;
+  /* Tiny padding for spacing */
+  position: relative;
+}
+
+/* Ensure consistent height for label rows */
+.control-group label>span:first-child {
+  flex-grow: 1;
+  /* Take available space */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .control-group:last-child {

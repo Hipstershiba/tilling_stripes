@@ -450,10 +450,17 @@
         if (!summary) return;
 
         const inputs = group.querySelectorAll('input[type="number"]');
+
+        // Custom logic based on group context
         if (inputs.length === 2) {
           summary.textContent = `${inputs[0].value} x ${inputs[1].value}`;
         } else if (inputs.length === 1) {
-          summary.textContent = inputs[0].value;
+          // Check for specific inputs to add units
+          if (inputs[0].id === 'gridMargin') {
+            summary.textContent = `${inputs[0].value} px`;
+          } else {
+            summary.textContent = inputs[0].value;
+          }
         }
       }
 
