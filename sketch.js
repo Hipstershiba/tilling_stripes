@@ -393,6 +393,77 @@ function toggleFullscreen() {
 }
 
 function generateTileThumbnails() {
+    createAllowedTilesList();
+    createBrushList(); 
+}
+
+function createBrushList() {
+    let container = select('#brushList');
+    if (!container) return; // Element might not exist if HTML isn't updated
+    
+    container.html('');
+    
+    for (let i = 0; i < totalTileTypes; i++) {
+        let div = createDiv('');
+        div.class('tile-option');
+        div.attribute('data-type', i);
+        div.style('width', '40px');
+        div.style('height', '40px');
+        
+        // Highlight active brush
+        if (i === currentPaintTile) {
+            div.addClass('paint-selected');
+        }
+        
+        // Tooltip
+        let tooltip = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) ? `#${i}: ${TILE_NAMES[i]}` : `Tile #${i}`;
+        div.attribute('title', tooltip);
+        
+        div.parent(container);
+        
+        // Render Thumbnail
+        let gfx = createGraphics(40, 40);
+        let c = color(220);
+        let s = new Subtile(40, 40, i);
+        s.color = c;
+        s.render(gfx, 20, 20); // Render centered
+        
+        let img = createImg(gfx.canvas.toDataURL());
+        img.style('width', '100%');
+        img.style('height', '100%');
+        img.style('display', 'block');
+        img.parent(div);
+        
+        gfx.remove();
+        
+        // Click Handler (Select Brush)
+        div.mousePressed(() => {
+            currentPaintTile = i;
+            
+            // UI Update: Remove active class from all brush items
+            // Note: We scope this to #brushList to avoid clearing allowed tiles
+            let allBrushes = container.elt.querySelectorAll('.tile-option');
+            allBrushes.forEach(el => el.classList.remove('paint-selected'));
+            div.addClass('paint-selected');
+            
+            // Update Preview Info
+            let name = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) ? TILE_NAMES[i] : ('#' + i);
+            let nameLabel = select('#paintTileName');
+            if(nameLabel) nameLabel.html(name);
+            
+            let previewBox = select('#paintTilePreview');
+            if(previewBox) {
+               previewBox.html('');
+               let previewImg = createImg(img.attribute('src'));
+               previewImg.style('width', '100%');
+               previewImg.style('height', '100%'); 
+               previewImg.parent(previewBox);
+            }
+        });
+    }
+}
+
+function createAllowedTilesList() {
   let container = select('#tileSelector');
   container.html(''); // Clear existing
 
@@ -407,11 +478,6 @@ function generateTileThumbnails() {
         div.addClass('selected');
     }
 
-    // Restore paint selection state only if in Edit Mode
-    if (interactionMode === 'edit' && i === currentPaintTile) {
-        div.addClass('paint-selected');
-    }
-    
     // Add tooltip
     if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) {
         div.attribute('title', `#${i}: ${TILE_NAMES[i]}`);
@@ -446,33 +512,6 @@ function generateTileThumbnails() {
 
     // Click event
     div.mousePressed(() => {
-      // If in Edit Mode, clicking the list sets the paint tile
-      if (interactionMode === 'edit') {
-          currentPaintTile = parseInt(div.attribute('data-type'));
-          
-           // Update UI to show selected
-           selectAll('.tile-option').forEach(el => el.removeClass('paint-selected'));
-           div.addClass('paint-selected');
-           
-           let name = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[currentPaintTile]) ? TILE_NAMES[currentPaintTile] : ('#' + currentPaintTile);
-           
-           // Update Display Name
-           let nameLabel = select('#paintTileName');
-           if(nameLabel) nameLabel.html(name);
-
-           // Update Display Preview (clone the img)
-           let previewBox = select('#paintTilePreview');
-           if(previewBox) {
-               previewBox.html('');
-               let previewImg = createImg(img.attribute('src'));
-               previewImg.style('width', '100%');
-               previewImg.style('height', '100%');
-               previewImg.parent(previewBox);
-           }
-
-           return;
-      }
-
       // Normal behavior: Toggle allowed types
       if (div.hasClass('selected')) {
         div.removeClass('selected');
@@ -485,8 +524,10 @@ function generateTileThumbnails() {
   }
 }
 
+
 function selectAllTiles() {
-  let options = selectAll('.tile-option');
+  // Only select tiles in the allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     opt.addClass('selected');
   }
@@ -495,7 +536,8 @@ function selectAllTiles() {
 }
 
 function selectNoneTiles() {
-  let options = selectAll('.tile-option');
+  // Only deselect tiles in the allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     opt.removeClass('selected');
   }
@@ -505,7 +547,8 @@ function selectNoneTiles() {
 
 function updateAllowedTypes() {
   allowedTypes = [];
-  let options = selectAll('.tile-option');
+  // Only collect from allowed tiles area
+  let options = selectAll('.tile-option', '#tileSelector');
   for (let opt of options) {
     if (opt.hasClass('selected')) {
       allowedTypes.push(parseInt(opt.attribute('data-type')));

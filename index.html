@@ -98,6 +98,17 @@
           </div>
         </div>
 
+      <div class="control-group tile-selector-group">
+        <label>Allowed Tiles</label>
+        <div id="tileSelector">
+          <!-- Javascript will populate this -->
+        </div>
+        <div class="row">
+          <button id="selectAll">All</button>
+          <button id="selectNone">None</button>
+        </div>
+      </div>
+
       </div> <!-- End Tab Setup -->
 
       <!-- TAB CONTENT: INTERACT -->
@@ -163,30 +174,26 @@
           </div>
 
           <div id="paintTileDisplay"
-            style="margin-top:10px; display:none; background: #2a2a2a; border-radius: 4px; padding: 8px; border: 1px solid #444;">
+            style="margin-top:10px; display:none; flex-direction: column; background: #2a2a2a; border-radius: 4px; padding: 8px; border: 1px solid #444;">
             <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Active Brush:</div>
             <div style="display: flex; align-items: center; gap: 10px;">
               <!-- Preview Icon -->
-              <div id="paintTilePreview" style="width: 30px; height: 30px; background: #333; border: 1px solid #555;">
+              <div id="paintTilePreview" style="width: 30px; height: 30px; background: #333; border: 1px solid #555; border-radius: 4px; overflow: hidden;">
               </div>
               <span id="paintTileName" style="font-size: 0.9rem; font-weight: bold; color: #fff;"> Select below </span>
+            </div>
+            
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+               <label style="font-size: 0.8rem; color: #aaa; display:block; margin-bottom: 5px;">Brush Palette:</label>
+               <div id="brushList" class="tile-list" style="max-height: 200px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 4px;">
+                  <!-- Brush tiles injected here -->
+               </div>
             </div>
           </div>
         </div>
       </div> <!-- End Tab Interact -->
 
-      <!-- SHARED CONTENT: Tile Palette -->
 
-      <div class="control-group tile-selector-group">
-        <label>Allowed Tiles</label>
-        <div id="tileSelector">
-          <!-- Javascript will populate this -->
-        </div>
-        <div class="row">
-          <button id="selectAll">All</button>
-          <button id="selectNone">None</button>
-        </div>
-      </div>
 
       <div class="control-group actions">
         <button id="btnSave">Save Image</button>
