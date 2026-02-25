@@ -866,56 +866,65 @@ function restoreGenerationState(index) {
 function pushEditState() {
   if (isRestoringHistory) return;
 
-  // Prune future
+  // Prune future state if somehow we are back in history
   if (editHistoryIndex < editHistory.length - 1) {
      editHistory = editHistory.slice(0, editHistoryIndex + 1);
   }
 
   // Deep Snapshot of Current Grid Logic
-  // We need to store properties that affect rendering:
-  // - Tile.types array (4 quadrants)
-  // - Tile.rotation (if used)
-  // - Supertile.mirrorX / mirrorY
-  
   let snapshot = tiles.map(supertile => {
+      // Create a clean object for the snapshot
       return {
           mirrorX: supertile.mirrorX,
           mirrorY: supertile.mirrorY,
-          // Map the 4 subtiles
+          // Map the 4 subtiles and their properties
           tiles: supertile.tiles.map(t => ({
-              types: [...t.types],
+              types: [...t.types], // Deep copy of the array is critical
               rotation: t.rotation
           }))
       };
   });
   
   editHistory.push(snapshot);
+  
+  // Cap history size
   if (editHistory.length > 50) editHistory.shift();
   
+  // Update index
   editHistoryIndex = editHistory.length - 1;
+  
+  console.log(`History Push: ${editHistory.length} states. Index: ${editHistoryIndex}`);
   updateHistoryUI();
 }
 
 function undoEdit() {
   if (editHistoryIndex > 0) {
     editHistoryIndex--;
+    console.log(`Undo to index: ${editHistoryIndex}`);
     restoreEditState(editHistory[editHistoryIndex]);
+  } else {
+    console.log("Nothing to undo");
   }
 }
 
 function redoEdit() {
   if (editHistoryIndex < editHistory.length - 1) {
     editHistoryIndex++;
+    console.log(`Redo to index: ${editHistoryIndex}`);
     restoreEditState(editHistory[editHistoryIndex]);
+  } else {
+    console.log("Nothing to redo");
   }
 }
 
 function restoreEditState(snapshot) {
    if (!snapshot) return;
+   
    isRestoringHistory = true;
    
+   // Safety check for grid size changes
    if (tiles.length !== snapshot.length) {
-       console.warn("History Mismatch");
+       console.warn("History Mismatch: Grid size likely changed.");
        isRestoringHistory = false;
        return;
    }
@@ -932,12 +941,17 @@ function restoreEditState(snapshot) {
            let target = st.tiles[j];
            let source = snap.tiles[j];
            
-           target.types = [...source.types]; // Restore array
+           // Restore data
+           target.types = [...source.types];
            target.rotation = source.rotation;
            
-           // Force re-render of this tile's buffer
+           // Re-render visual buffer
+           // Ideally we recreate the buffer to ensure clean state
            if(target.buffer) target.buffer.remove();
            target.buffer = createGraphics(target.w, target.h);
+           
+           // Important: Regenerate the internal subtile objects based on the restored types
+           target.subtiles = [];
            target.create_subtiles();
            target.render_to_buffer();
        }
@@ -1011,6 +1025,8 @@ function updateHistoryUI() {
 // Mouse & Key Interaction
 // -------------------------------------------------------------
 
+// Replaced by window event listener below for better reliability
+/*
 function keyPressed() {
   // Ctrl+Z Undo
   if (keyIsDown(CONTROL) && (key === 'z' || key === 'Z')) {
@@ -1026,13 +1042,51 @@ function keyPressed() {
     redoEdit();
   }
 }
+*/
+
+// Global Key Handler
+window.addEventListener('keydown', (e) => {
+    // Check if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // Ctrl+Z: Undo or Redo
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+            // Ctrl+Shift+Z acts as Redo
+            redoEdit();
+        } else {
+            undoEdit();
+        }
+        e.preventDefault();
+        return;
+    }
+    
+    // Previous Generation (Arrow Left)
+    if (e.key === 'ArrowLeft') {
+        let bPrev = select('#btnPrevSeed');
+        if(bPrev && !bPrev.attribute('disabled')) restoreGenerationState(generationIndex - 1);
+    }
+
+    // Next Generation (Arrow Right)
+    if (e.key === 'ArrowRight') {
+        let bNext = select('#btnNextSeed');
+        if(bNext && !bNext.attribute('disabled')) restoreGenerationState(generationIndex + 1);
+    }
+});
+
+let isDrawing = false; // Add state to track if drag started on canvas
 
 function mousePressed() {
     // Only interact if click is on canvas
-    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+        isDrawing = false;
+        return;
+    }
     
     // Ignore clicks if mode is none
     if (interactionMode === 'none') return;
+    
+    isDrawing = true;
     
     // Reset interaction tracker for new gesture
     lastInteractedId = null;
@@ -1041,6 +1095,9 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+    // Only draw if we started on the canvas
+    if (!isDrawing) return;
+
     // Only interact if drag is on canvas
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
     
@@ -1051,6 +1108,7 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+    isDrawing = false;
     lastInteractedId = null;
     
     // If a gesture modified the history, push the new state now
