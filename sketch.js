@@ -1206,25 +1206,22 @@ function handleTileClick(mx, my) {
              newType = getNextInFamily(oldType);
         }
     } else if (interactionMode === 'edit') {
-        // WYSIWYG Painting: 
-        // Identify the net transformation applied to this position and inverse it.
-        
-        // 1. Local Quadrant Flip (based on logical quadrant index)
-        // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
-        let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
-        let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
+      // WYSIWYG Painting:
+      // Keep visual orientation equal to the selected brush, including single scope.
 
-        // 2. Global Mirror Flip
-        // If global mirror is active, the coordinate system is flipped.
-        // This affects how the tile is rendered on screen.
-        // Note: We already adjusted coordinates to find the logical tile, 
-        // but now we need to know the VISUAL transform.
-        // A global mirror X means the whole rendering is flipped X.
-        if (supertile.mirrorX) isFlippedX = !isFlippedX;
-        if (supertile.mirrorY) isFlippedY = !isFlippedY;
-        
-        // 3. Get the inverse tile
-        newType = getTransformedTile(currentPaintTile, isFlippedX, isFlippedY);
+      // 1. Local Quadrant Flip (based on logical quadrant index)
+      // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
+      let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
+      let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
+
+      // 2. Global Mirror Flip
+      // If global mirror is active, the coordinate system is flipped.
+      // This affects how the tile is rendered on screen.
+      if (supertile.mirrorX) isFlippedX = !isFlippedX;
+      if (supertile.mirrorY) isFlippedY = !isFlippedY;
+
+      // 3. Get the inverse tile
+      newType = getTransformedTile(currentPaintTile, isFlippedX, isFlippedY);
     }
     
     // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);

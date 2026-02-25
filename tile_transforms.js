@@ -99,11 +99,11 @@ const TILE_TRANSFORMS = (() => {
     map[27] = { x: 27, y: 27, xy: 27 };
 
     // Group 10: L-Shape
-    // 28: TL, 29: TR, 30: BL, 31: BR
-    map[28] = { x: 29, y: 30, xy: 31 };
-    map[29] = { x: 28, y: 31, xy: 30 };
-    map[30] = { x: 31, y: 28, xy: 29 };
-    map[31] = { x: 30, y: 29, xy: 28 };
+    // tile_registry order: 28:TL, 29:TR, 30:BR, 31:BL
+    map[28] = { x: 29, y: 31, xy: 30 };
+    map[29] = { x: 28, y: 30, xy: 31 };
+    map[30] = { x: 31, y: 29, xy: 28 };
+    map[31] = { x: 30, y: 28, xy: 29 };
 
     // Group 11: T-Shape
     // 32: Top, 33: Right, 34: Bottom, 35: Left
