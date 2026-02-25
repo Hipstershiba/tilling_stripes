@@ -1,110 +1,354 @@
 html,
-body {
+body, #main-container {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   width: 100vw;
-  /* ensure width is explicit */
-  display: flex;
-  flex-direction: row-reverse;
-  /* Controls on the right */
   overflow: hidden;
   background-color: #1a1a1a;
   color: #eee;
 }
 
-/* Floating button style */
-#btnFullscreen {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  /* On the top-left of the canvas area */
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-size: 1.5rem;
+#main-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  transition: all 0.2s ease;
+  flex-direction: row-reverse;
+  align-items: stretch; /* Ensure full height */
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
-#btnFullscreen:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-}
-
-/* Fullscreen mode hides controls */
+/* Fullscreen mode support */
 body.fullscreen #controls {
-  display: none;
+  display: none !important;
 }
 
 body.fullscreen #canvas-container {
   width: 100vw;
   height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  margin: 0;
+  padding: 0;
 }
 
-#controls {
-  width: 300px;
-  background-color: #252525;
-  padding: 20px;
-  height: 100vh;
-  overflow: hidden;
-  border-right: 1px solid #333;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
+body.fullscreen #btnFullscreen {
+  z-index: 10000;
+  background: rgba(0,0,0,0.7);
 }
+
+/* Floating button style - now just a toggle for the side menu on mobile */     
+#btnFullscreen {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#btnFullscreen:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
+}
+
+/* Base controls styles - Merged into Drawer Styles below */
+/* #controls definition removed to avoid duplication */
 
 h1 {
-  font-size: 1.5rem;
-  margin: 0;
+  font-size: 1.2rem;
+  margin: 0 0 10px 0;
   color: #fff;
-  text-align: center;
-  font-weight: 300;
+  text-align: left; /* Align left to avoid overlap with button */
+  padding-left: 5px;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 15px;
+  margin-right: 50px; /* Space for the button */
 }
 
-.control-group {
+/* Modern Desktop Sidebar Layout */
+
+/* 1. Toggle Button: Always visible, fixed position on top-right */
+.ui-toggle-btn {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  z-index: 4000; /* Above everything */
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: rgba(33, 33, 33, 0.9);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-size: 1.4rem;
+  transition: all 0.3s ease;
+}
+
+.ui-toggle-btn:hover {
+    background: #444;
+    transform: scale(1.05);
+}
+
+/* 2. Sidebar Panel Styling */
+#controls {
+    /* Fixed sidebar on the right */
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 320px;
+    max-width: 85%;
+    
+    /* Styling */
+    background: #252525;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+    z-index: 3000;
+    
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    padding-top: 20px; /* Reduced top padding */
+    box-sizing: border-box;
+    border-left: 1px solid #333;
+    
+    /* Scrolling */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #252525;
+    
+    /* Transition for sliding */
+    transform: translateX(0); /* Default: Visible */
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* 3. Hidden State (Zen Mode) */
+#controls.closed {
+    transform: translateX(100%); /* Slide out to right */
+    box-shadow: none;
+}
+
+/* Adjust button when panel is closed to look distinct? Optional. */
+#controls.closed + .ui-toggle-btn, 
+.ui-toggle-btn.closed-state {
+    background: rgba(33,33,33,0.5);
+}
+
+/* 4. Canvas Layout adjustment */
+#canvas-container {
+    margin-right: 320px; /* Push canvas to make room for sidebar */
+    transition: margin-right 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    width: auto; /* Allow flex to handle remaining width */
+}
+
+/* When sidebar is closed, canvas takes full width */
+body.sidebar-closed #canvas-container {
+    margin-right: 0;
+}
+
+/* 5. Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    /* On mobile, sidebar is floating drawer */
+    #controls {
+        transform: translateX(100%); /* Hidden by default on mobile */
+        padding-top: 20px; /* Standard padding */
+        width: 85%;
+        border-left: none;
+    }
+    
+    #controls.open {
+        transform: translateX(0);
+    }
+    
+    /* No margin shift on mobile */
+    #canvas-container {
+        margin-right: 0 !important;
+    }
+    
+    /* Backdrop only on mobile */
+    #overlay-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.6);
+        z-index: 2500;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    #overlay-backdrop.visible {
+        display: block;
+        opacity: 1;
+    }
+}
+
+/* Hide the old fullscreen button completely */
+#btnFullscreen {
+    display: none !important;
+}
+
+/* Hide inner close button on desktop, show on mobile if needed */
+#btnCloseControls {
+    display: none !important; /* Usage replaced by the main toggle button */
+}
+
+
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    /* Card-like appearance */
+    background: #2b2b2b;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.control-group:last-child {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
 }
 
 .tile-selector-group {
-  flex: 1;
-  /* Take remaining vertical space */
-  min-height: 0;
-  /* Allow shrinking below content size */
+  flex-shrink: 1; 
+  flex-grow: 1; 
+  min-height: 200px;
   overflow: hidden;
-  /* Prevent parent scrollbar */
-  display: flex !important;
-  /* Force flex display */
-  flex-direction: column;
+  max-height: 50vh; 
+  background: transparent !important; /* Override standard card background */
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 25px; /* Extra separation from controls above */
+  margin-bottom: 20px; /* Add space before actions */
+  border-top: 1px solid #333; /* Visual separator */
+  padding-top: 15px !important;
 }
 
-/* Consolidated tileSelector styles */
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  margin-bottom: 12px;
+  background: #333;
+  padding: 2px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  color: #aaa;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: #252525; /* Matches panel background */
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.tab-btn:hover {
+  color: #fff;
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+/* Mode Toggles */
+.mode-toggle-group, .scope-toggle-group {
+    display: flex;
+    background: #333;
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.mode-btn, .scope-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 8px 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.mode-btn:hover, .scope-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.mode-btn.active, .scope-btn.active {
+    background: #2196F3;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.scope-btn.active {
+    background: #4CAF50; /* Different color for scope to distinguish */
+}
+
+/* Enhancing Tile Selector visibility */
 #tileSelector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 60px 4px;
-  padding: 10px;
-  background: #111;
-  border-radius: 4px;
-  overflow-y: auto;
+  grid-auto-rows: min-content; /* Ensure rows respect content height */
+  gap: 12px; /* Increased gap to prevent overlap feeling */
+  padding: 12px;
+  background: #202020;
+  border-radius: 6px;
+  
+  /* Flexbox scrolling setup */
   flex: 1;
-  min-height: 0;
+  min-height: 150px; /* Ensure at least some height is visible even if crowded */
+  overflow-y: auto;
 
-  /* Scrollbar styling for webkit browsers */
+  /* Scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: #444 #111;
 }
@@ -144,6 +388,7 @@ input[type="number"] {
   border-radius: 4px;
   width: 100%;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 button {
@@ -185,6 +430,14 @@ button:hover {
   border-color: #2196F3;
   opacity: 1;
   box-shadow: 0 0 8px rgba(33, 150, 243, 0.4);
+}
+
+.tile-option.paint-selected {
+    border-color: #FF5722 !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 8px rgba(255, 87, 34, 0.6) !important;
+    transform: scale(1.1);
+    z-index: 20;
 }
 
 .tile-option canvas,

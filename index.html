@@ -12,50 +12,103 @@
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/p5.sound.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script> -->
 </head>
 
 <body>
-  <div id="controls">
-    <button id="btnToggleUI"
-      style="position:absolute; right:10px; top:10px; width:40px; z-index:100; font-size:1.2rem; display:none;">✕</button>
-    <h1>Pattern Gen</h1>
+  
+  <div id="main-container">
+    <!-- Backdrop for mobile menu -->
+    <div id="overlay-backdrop"></div>
 
-    <div class="control-group">
-      <label>Canvas Size</label>
-      <div class="row">
-        <input type="number" id="canvasW" value="600" step="50">
-        <span>x</span>
-        <input type="number" id="canvasH" value="600" step="50">
-        <button id="btnLockCanvasRatio" title="Lock Aspect Ratio" style="width:30px; padding:0;">🔓</button>
+    <button id="btnMobileToggle" class="ui-toggle-btn" title="Open Controls">☰</button>
+
+    <div id="controls">
+      <!-- Close button for mobile -->
+      <button id="btnCloseControls" style="position:absolute; right:15px; top:15px; width:40px; background:transparent; border:none; color:#aaa; font-size:1.5rem; cursor:pointer; display:none;">✕</button>
+
+      <h1>Pattern Gen</h1>
+
+      <!-- Tab Navigation -->
+      <div class="tab-nav">
+          <button class="tab-btn active" data-tab="setup">Setup</button>
+          <button class="tab-btn" data-tab="interact">Interact</button>
       </div>
-      <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
-      <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
-    </div>
 
-    <div class="control-group">
-      <label>Grid (Rows x Cols)</label>
-      <div class="row">
-        <input type="number" id="gridRows" value="4" min="1" max="50">
-        <span>x</span>
-        <input type="number" id="gridCols" value="4" min="1" max="50">
-        <button id="btnLockGridRatio" title="Lock Aspect Ratio" style="width:30px; padding:0;">🔓</button>
-      </div>
-      <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
-    </div>
+      <!-- TAB CONTENT: SETUP -->
+      <div id="tab-setup" class="tab-content active">
 
-    <div class="control-group">
-      <label>Margin (px)</label>
-      <input type="number" id="gridMargin" value="0" min="0" step="10">
-    </div>
+          <div class="control-group">
+            <label>Canvas Size</label>
+            <div class="row">
+              <input type="number" id="canvasW" value="600" step="50">
+              <span>x</span>
+              <input type="number" id="canvasH" value="600" step="50">
+              <button id="btnLockCanvasRatio" title="Lock Aspect Ratio" style="width:30px; padding:0;">🔓</button>
+            </div>
+            <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
+            <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
+          </div>
 
-    <div class="control-group">
-      <label>Seed</label>
-      <div class="row">
-        <input type="number" id="seedInput" value="0">
-        <button id="btnRandomize">🎲</button>
-      </div>
-    </div>
+          <div class="control-group">
+            <label>Grid (Rows x Cols)</label>
+            <div class="row">
+              <input type="number" id="gridRows" value="4" min="1" max="50">
+              <span>x</span>
+              <input type="number" id="gridCols" value="4" min="1" max="50">
+              <button id="btnLockGridRatio" title="Lock Aspect Ratio" style="width:30px; padding:0;">🔓</button>
+            </div>
+            <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
+          </div>
+
+          <div class="control-group">
+            <label>Margin (px)</label>
+            <input type="number" id="gridMargin" value="0" min="0" step="10">
+          </div>
+
+          <div class="control-group">
+            <label>Seed</label>
+            <div class="row">
+              <input type="number" id="seedInput" value="0">
+              <button id="btnRandomize">🎲</button>
+            </div>
+          </div>
+      
+      </div> <!-- End Tab Setup -->
+
+      <!-- TAB CONTENT: INTERACT -->
+      <div id="tab-interact" class="tab-content">
+          <!-- Improved Interaction Controls -->
+          <div class="control-group">
+            <label>Interaction Mode</label>
+            <div class="mode-toggle-group">
+              <button id="modeNone" class="mode-btn active" data-mode="none" title="View Only">👁️ View</button>
+              <button id="modeMirror" class="mode-btn" data-mode="mirror" title="Cycle Family">🔄 Cycle</button>
+              <button id="modeEdit" class="mode-btn" data-mode="edit" title="Paint Tile">✏️ Paint</button>
+            </div>
+            
+            <div id="scopeControl" style="margin-top: 10px; display:none;">
+                <label style="font-size: 0.8rem; color: #aaa;">Scope</label>
+                <div class="scope-toggle-group">
+                  <button id="scopeSingle" class="scope-btn active" data-scope="single">Single</button>
+                  <button id="scopeGlobal" class="scope-btn" data-scope="global">Global Exact</button>
+                </div>
+                <div style="font-size: 0.7rem; color: #777; margin-top: 4px; line-height: 1.2;">
+                  Global changes all matching tiles everywhere.
+                </div>
+            </div>
+
+            <div id="paintTileDisplay" style="margin-top:10px; display:none; background: #2a2a2a; border-radius: 4px; padding: 8px; border: 1px solid #444;">
+                <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Active Brush:</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <!-- Preview Icon -->
+                  <div id="paintTilePreview" style="width: 30px; height: 30px; background: #333; border: 1px solid #555;"></div>
+                  <span id="paintTileName" style="font-size: 0.9rem; font-weight: bold; color: #fff;"> Select below </span>
+                </div>
+            </div>
+          </div>
+      </div> <!-- End Tab Interact -->
+
+      <!-- SHARED CONTENT: Tile Palette -->
 
     <div class="control-group tile-selector-group">
       <label>Allowed Tiles</label>
@@ -77,12 +130,86 @@
   <div id="canvas-container">
     <button id="btnFullscreen" title="Toggle Fullscreen">⛶</button>
   </div>
+  </div> <!-- End main-container -->
 
   <script src="tile_registry.js"></script>
   <script src="subtile.js"></script>
   <script src="tiles.js"></script>
   <script src="supertile.js"></script>
   <script src="sketch.js"></script>
+  <script>
+    // Responsive Sidebar Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnToggle = document.getElementById('btnMobileToggle');
+        const controls = document.getElementById('controls');
+        const backdrop = document.getElementById('overlay-backdrop');
+        const body = document.body;
+
+        function toggleSidebar() {
+            if(!controls) return;
+            
+            const isMobile = window.innerWidth <= 768; // Matches CSS breakpoint
+            
+            if (isMobile) {
+                // Mobile behavior: Toggle drawer open/close
+                const isOpen = controls.classList.contains('open');
+                if (isOpen) {
+                    controls.classList.remove('open');
+                    if(backdrop) {
+                        backdrop.style.opacity = '0';
+                        setTimeout(() => backdrop.style.display = 'none', 300);
+                    }
+                } else {
+                    controls.classList.add('open');
+                    if(backdrop) {
+                        backdrop.style.display = 'block';
+                        setTimeout(() => backdrop.style.opacity = '1', 10);
+                    }
+                }
+            } else {
+                // Desktop behavior: Toggle visibility (Zen Mode vs Normal)
+                const isClosed = controls.classList.contains('closed');
+                if (isClosed) {
+                    controls.classList.remove('closed');
+                    body.classList.remove('sidebar-closed');
+                    btnToggle.classList.remove('closed-state');
+                } else {
+                    controls.classList.add('closed');
+                    body.classList.add('sidebar-closed');
+                    btnToggle.classList.add('closed-state');
+                }
+            }
+        }
+
+        if(btnToggle) btnToggle.addEventListener('click', toggleSidebar);
+        
+        // Close on backdrop click (for mobile)
+        if(backdrop) backdrop.addEventListener('click', toggleSidebar);
+
+        // Handle resize to reset states if needed
+        window.addEventListener('resize', () => {
+            // Optional: Reset states if crossing breakpoint to avoid weirdness
+            // For now, simpler is better.
+        });
+
+        // Tab Switching Logic
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from buttons
+                 tabs.forEach(t => t.classList.remove('active'));
+                // Add active to clicked
+                tab.classList.add('active');
+
+                // Hide all contents
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // Show target content
+                const targetId = 'tab-' + tab.getAttribute('data-tab');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+    });
+  </script>
 </body>
 
 </html>
