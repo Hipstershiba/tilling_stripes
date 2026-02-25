@@ -20,6 +20,14 @@ let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
 
+// History State
+let generationHistory = [];
+let generationIndex = -1;
+let editHistory = [];
+let editHistoryIndex = -1;
+let isRestoringHistory = false; // Flag to prevent infinite loops during restore
+let hasPendingHistory = false; // Tracks if a gesture modified the state
+
 // Define Tile Families (Manually mapped based on registry groups)
 const TILE_FAMILIES = [
     [0, 1, 2, 3],       // Half Rect + Circle
@@ -208,6 +216,19 @@ function setupUI(mainCanvas) {
     select('#seedInput').value(seed);
     initGrid();
   });
+  
+  // History Button Bindings
+  let bPrev = select('#btnPrevSeed');
+  if(bPrev) bPrev.mousePressed(() => restoreGenerationState(generationIndex - 1));
+  
+  let bNext = select('#btnNextSeed');
+  if(bNext) bNext.mousePressed(() => restoreGenerationState(generationIndex + 1));
+  
+  let bUndo = select('#btnUndo');
+  if(bUndo) bUndo.mousePressed(undoEdit);
+  
+  let bRedo = select('#btnRedo');
+  if(bRedo) bRedo.mousePressed(redoEdit);
   
   // select('#btnRedraw').mousePressed(initGrid); // Removed as it auto-updates
   
@@ -628,8 +649,18 @@ function updateAllowedTypes() {
   }
 }
 
-function initGrid() {
+function initGrid(recordHistory = true) {
   randomSeed(seed);
+  
+  if (recordHistory && !isRestoringHistory) {
+      pushGenerationState();
+  }
+  
+  // Clear Edit History on new generation
+  if (!isRestoringHistory) {
+      editHistory = [];
+      editHistoryIndex = -1;
+  }
   
   if (allowedTypes.length === 0) {
       tiles = [];
@@ -713,6 +744,14 @@ function initGrid() {
   }
   
   redraw();
+  
+  // Push initial state for Edit History
+  if (!isRestoringHistory) {
+      // Clear previous history
+      editHistory = [];
+      editHistoryIndex = -1;
+      pushEditState();
+  }
 }
 
 function draw() {
@@ -723,6 +762,231 @@ function draw() {
     }
   }
   noLoop(); 
+}
+
+// -------------------------------------------------------------
+// History Management
+// -------------------------------------------------------------
+
+function pushGenerationState() {
+  if (isRestoringHistory) return;
+
+  // Prune future states if we are in the middle of history
+  if (generationIndex < generationHistory.length - 1) {
+    generationHistory = generationHistory.slice(0, generationIndex + 1);
+  }
+
+  let state = {
+    seed: seed,
+    rows: rows,
+    cols: cols,
+    margin: margin,
+    width: width,
+    height: height,
+    // allowed types logic is complex, storing just seed for now is often enough 
+    // but if user changes allowed types, we should store it.
+    // Simplifying for now to core params
+    timestamp: new Date().toLocaleTimeString()
+  };
+
+  generationHistory.push(state);
+  // Cap functionality
+  if (generationHistory.length > 20) generationHistory.shift();
+  
+  generationIndex = generationHistory.length - 1;
+  updateHistoryUI();
+}
+
+function restoreGenerationState(index) {
+  if (index < 0 || index >= generationHistory.length) return;
+  
+  isRestoringHistory = true;
+  let state = generationHistory[index];
+  
+  // Apply State
+  seed = state.seed;
+  rows = state.rows;
+  cols = state.cols;
+  margin = state.margin;
+  
+  // Update inputs
+  select('#seedInput').value(seed);
+  select('#gridRows').value(rows);
+  select('#gridCols').value(cols);
+  select('#gridMargin').value(margin);
+  
+  if (width !== state.width || height !== state.height) {
+     resizeCanvas(state.width, state.height);
+     select('#canvasW').value(width);
+     select('#canvasH').value(height);
+  }
+
+  // Set internal index
+  generationIndex = index;
+  
+  // Regenerate Grid without pushing new state
+  initGrid(false); 
+  
+  isRestoringHistory = false;
+  updateHistoryUI();
+}
+
+function pushEditState() {
+  if (isRestoringHistory) return;
+
+  // Prune future
+  if (editHistoryIndex < editHistory.length - 1) {
+     editHistory = editHistory.slice(0, editHistoryIndex + 1);
+  }
+
+  // Deep Snapshot of Current Grid Logic
+  // We need to store properties that affect rendering:
+  // - Tile.types array (4 quadrants)
+  // - Tile.rotation (if used)
+  // - Supertile.mirrorX / mirrorY
+  
+  let snapshot = tiles.map(supertile => {
+      return {
+          mirrorX: supertile.mirrorX,
+          mirrorY: supertile.mirrorY,
+          // Map the 4 subtiles
+          tiles: supertile.tiles.map(t => ({
+              types: [...t.types],
+              rotation: t.rotation
+          }))
+      };
+  });
+  
+  editHistory.push(snapshot);
+  if (editHistory.length > 50) editHistory.shift();
+  
+  editHistoryIndex = editHistory.length - 1;
+  updateHistoryUI();
+}
+
+function undoEdit() {
+  if (editHistoryIndex > 0) {
+    editHistoryIndex--;
+    restoreEditState(editHistory[editHistoryIndex]);
+  }
+}
+
+function redoEdit() {
+  if (editHistoryIndex < editHistory.length - 1) {
+    editHistoryIndex++;
+    restoreEditState(editHistory[editHistoryIndex]);
+  }
+}
+
+function restoreEditState(snapshot) {
+   if (!snapshot) return;
+   isRestoringHistory = true;
+   
+   if (tiles.length !== snapshot.length) {
+       console.warn("History Mismatch");
+       isRestoringHistory = false;
+       return;
+   }
+   
+   // Apply snapshot to live objects
+   for(let i=0; i<tiles.length; i++) {
+       let st = tiles[i];
+       let snap = snapshot[i];
+       
+       st.mirrorX = snap.mirrorX;
+       st.mirrorY = snap.mirrorY;
+       
+       for(let j=0; j<4; j++) {
+           let target = st.tiles[j];
+           let source = snap.tiles[j];
+           
+           target.types = [...source.types]; // Restore array
+           target.rotation = source.rotation;
+           
+           // Force re-render of this tile's buffer
+           if(target.buffer) target.buffer.remove();
+           target.buffer = createGraphics(target.w, target.h);
+           target.create_subtiles();
+           target.render_to_buffer();
+       }
+   }
+   
+   redraw();
+   isRestoringHistory = false;
+   updateHistoryUI();
+}
+
+function updateHistoryUI() {
+  // Generation Buttons
+  let btnPrev = select('#btnPrevSeed');
+  let btnNext = select('#btnNextSeed');
+  if (btnPrev) {
+    btnPrev.attribute('disabled', generationIndex <= 0 ? '' : null);
+    if(generationIndex <= 0) btnPrev.attribute('disabled', 'true'); else btnPrev.removeAttribute('disabled');
+  }
+  if (btnNext) {
+     if(generationIndex >= generationHistory.length - 1) btnNext.attribute('disabled', 'true'); else btnNext.removeAttribute('disabled');
+  }
+
+  // Edit Buttons
+  let btnUndo = select('#btnUndo');
+  let btnRedo = select('#btnRedo');
+  if (btnUndo) {
+      if(editHistoryIndex <= 0) btnUndo.attribute('disabled', 'true'); else btnUndo.removeAttribute('disabled');
+  }
+  if (btnRedo) {
+      if(editHistoryIndex >= editHistory.length - 1) btnRedo.attribute('disabled', 'true'); else btnRedo.removeAttribute('disabled');
+  }
+  
+  // Update List (Optional)
+  let list = select('#seedHistoryList');
+  if (list) {
+      list.html('');
+      // Show last 5
+      generationHistory.slice().reverse().forEach((state, reverseIdx) => {
+          let realIdx = generationHistory.length - 1 - reverseIdx;
+          let isCurrent = (realIdx === generationIndex);
+          let item = createDiv(`#${state.seed} <span style="font-size:0.7em; color:#888">${state.timestamp}</span>`);
+          item.style('padding', '2px 4px');
+          item.style('cursor', 'pointer');
+          item.style('border-radius', '2px');
+          item.style('font-size', '0.8rem');
+          item.style('color', isCurrent ? '#fff' : '#aaa');
+          item.style('background', isCurrent ? '#444' : 'transparent');
+          item.mouseOver(() => item.style('background', isCurrent ? '#444' : '#333'));
+          item.mouseOut(() => item.style('background', isCurrent ? '#444' : 'transparent'));
+          
+          item.mousePressed(() => restoreGenerationState(realIdx));
+          list.child(item);
+      });
+      
+      // Determine if list should be visible
+      if (generationHistory.length > 1) {
+          list.style('display', 'block');
+      } else {
+          list.style('display', 'none');
+      }
+  }
+}
+
+// -------------------------------------------------------------
+// Mouse & Key Interaction
+// -------------------------------------------------------------
+
+function keyPressed() {
+  // Ctrl+Z Undo
+  if (keyIsDown(CONTROL) && (key === 'z' || key === 'Z')) {
+    if (keyIsDown(SHIFT)) {
+      redoEdit();
+    } else {
+      undoEdit();
+    }
+  }
+  
+  // Ctrl+Y Redo (Windows standard)
+  if (keyIsDown(CONTROL) && (key === 'y' || key === 'Y')) {
+    redoEdit();
+  }
 }
 
 function mousePressed() {
@@ -750,6 +1014,12 @@ function mouseDragged() {
 
 function mouseReleased() {
     lastInteractedId = null;
+    
+    // If a gesture modified the history, push the new state now
+    if (hasPendingHistory) {
+        pushEditState();
+        hasPendingHistory = false;
+    }
 }
 
 function handleTileClick(mx, my) {
@@ -880,6 +1150,11 @@ function handleTileClick(mx, my) {
 
     if (oldType === newType && interactionMode !== 'edit') return; 
     
+    // Flag that a modification is happening
+    // Note: For 'edit' mode (painting), we might be painting the same color. 
+    // Ideally we check deeply, but dragging over same color is rare behavior to undo.
+    hasPendingHistory = true;
+
     // Helper to update a single tile instance and redraw/recreate its buffer
     const refreshTile = (tileObj) => {
         tileObj.subtiles = [];
