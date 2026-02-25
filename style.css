@@ -243,7 +243,8 @@ body.sidebar-closed #canvas-container {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
-  border: 1px solid transparent; /* Prepare for border transition */
+  border: 1px solid transparent;
+  /* Prepare for border transition */
 }
 
 .control-group label {
@@ -459,8 +460,11 @@ body.sidebar-closed #canvas-container {
   /* Make content stretch to fill available space */
   flex: 1;
   overflow-y: auto;
-  /* Allow vertical scrolling */
+  overflow-x: hidden;
+  /* Prevent horizontal scrollbar */
   min-height: 0;
+  padding: 2px;
+  /* Add slight padding to prevent outline clipping if needed */
 }
 
 .tab-content.active {
