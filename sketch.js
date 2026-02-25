@@ -1061,6 +1061,27 @@ function getHitInfo(mx, my) {
   let visualRow = localYVisual >= halfH ? 1 : 0;
   let visualQuadrant = visualRow * 2 + visualCol;
 
+  let visualTileLocalXRaw = localXVisual - visualCol * halfW;
+  let visualTileLocalYRaw = localYVisual - visualRow * halfH;
+  visualTileLocalXRaw = constrain(visualTileLocalXRaw, 0, halfW - 0.0001);
+  visualTileLocalYRaw = constrain(visualTileLocalYRaw, 0, halfH - 0.0001);
+  let visualSubColRaw = visualTileLocalXRaw >= (halfW / 2) ? 1 : 0;
+  let visualSubRowRaw = visualTileLocalYRaw >= (halfH / 2) ? 1 : 0;
+  let visualSubtileDisplayIndex = visualSubRowRaw * 2 + visualSubColRaw;
+
+  let visualTileLocalX = localXVisual - visualCol * halfW;
+  let visualTileLocalY = localYVisual - visualRow * halfH;
+
+  visualTileLocalX = constrain(visualTileLocalX, 0, halfW - 0.0001);
+  visualTileLocalY = constrain(visualTileLocalY, 0, halfH - 0.0001);
+
+  if (visualQuadrant === 1 || visualQuadrant === 3) visualTileLocalX = halfW - visualTileLocalX;
+  if (visualQuadrant === 2 || visualQuadrant === 3) visualTileLocalY = halfH - visualTileLocalY;
+
+  let visualSubCol = visualTileLocalX >= (halfW / 2) ? 1 : 0;
+  let visualSubRow = visualTileLocalY >= (halfH / 2) ? 1 : 0;
+  let visualSubtileIndex = visualSubRow * 2 + visualSubCol;
+
   let localXLogical = supertile.mirrorX ? (supertile.w - localXVisual) : localXVisual;
   let localYLogical = supertile.mirrorY ? (supertile.h - localYVisual) : localYVisual;
 
@@ -1088,10 +1109,37 @@ function getHitInfo(mx, my) {
     index,
     supertile,
     visualQuadrant,
+    visualSubtileDisplayIndex,
+    visualSubtileIndex,
     logicalQuadrant,
     baseTileSubtileIndex,
     targetTile,
     oldType
+  };
+}
+
+function mapVisualTargetToLogical(supertile, visualQuadrant, visualSubtileDisplayIndex) {
+  let visualCol = visualQuadrant % 2;
+  let visualRow = floor(visualQuadrant / 2);
+
+  let logicalCol = supertile.mirrorX ? (1 - visualCol) : visualCol;
+  let logicalRow = supertile.mirrorY ? (1 - visualRow) : visualRow;
+  let logicalQuadrant = logicalRow * 2 + logicalCol;
+
+  let subCol = visualSubtileDisplayIndex % 2;
+  let subRow = floor(visualSubtileDisplayIndex / 2);
+
+  if (supertile.mirrorX) subCol = 1 - subCol;
+  if (supertile.mirrorY) subRow = 1 - subRow;
+
+  if (logicalQuadrant === 1 || logicalQuadrant === 3) subCol = 1 - subCol;
+  if (logicalQuadrant === 2 || logicalQuadrant === 3) subRow = 1 - subRow;
+
+  let logicalSubtileIndex = subRow * 2 + subCol;
+
+  return {
+    quadrant: logicalQuadrant,
+    subtileIndex: logicalSubtileIndex
   };
 }
 
@@ -1123,12 +1171,22 @@ function buildScopePreviewTargets(hitInfo) {
     }
   } else if (interactionScope === 'global_pos') {
     for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
-      pushTarget(supertileIndex, hitInfo.visualQuadrant, hitInfo.baseTileSubtileIndex);
+      let mapped = mapVisualTargetToLogical(
+        tiles[supertileIndex],
+        hitInfo.visualQuadrant,
+        hitInfo.visualSubtileDisplayIndex
+      );
+      pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
     }
   } else if (interactionScope === 'global_pos_sym') {
     for (let supertileIndex = 0; supertileIndex < tiles.length; supertileIndex++) {
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      for (let visualQuadrant = 0; visualQuadrant < 4; visualQuadrant++) {
+        let mapped = mapVisualTargetToLogical(
+          tiles[supertileIndex],
+          visualQuadrant,
+          hitInfo.visualSubtileDisplayIndex
+        );
+        pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
       }
     }
   }
@@ -1151,10 +1209,22 @@ function updateHoverPreview(mx = mouseX, my = mouseY) {
   }
 
   hoverPreviewTargets = buildScopePreviewTargets(hitInfo);
+  let anchorQuadrant = hitInfo.logicalQuadrant;
+  let anchorSubtileIndex = hitInfo.baseTileSubtileIndex;
+  if (interactionScope === 'global_pos') {
+    let mapped = mapVisualTargetToLogical(
+      hitInfo.supertile,
+      hitInfo.visualQuadrant,
+      hitInfo.visualSubtileDisplayIndex
+    );
+    anchorQuadrant = mapped.quadrant;
+    anchorSubtileIndex = mapped.subtileIndex;
+  }
+
   hoverPreviewAnchor = {
     supertileIndex: hitInfo.index,
-    quadrant: hitInfo.logicalQuadrant,
-    subtileIndex: hitInfo.baseTileSubtileIndex
+    quadrant: anchorQuadrant,
+    subtileIndex: anchorSubtileIndex
   };
 }
 
@@ -1192,30 +1262,39 @@ function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
   }
 
   rectMode(CORNER);
-  let lineW = max(1.2, min(rectW, rectH) * 0.055);
+  let lineW = max(1.1, min(rectW, rectH) * 0.045);
+  let cornerLen = max(2.4, min(rectW, rectH) * 0.22);
 
   if (isAnchor) {
     noStroke();
-    fill(33, 150, 243, 72);
+    fill(70, 150, 220, 28);
     rect(rectX, rectY, rectW, rectH, 2);
 
-    stroke(190, 225, 255, 245);
-    strokeWeight(lineW + 0.9);
+    stroke(120, 190, 255, 70);
+    strokeWeight(lineW + 1.8);
     noFill();
     rect(rectX, rectY, rectW, rectH, 2);
 
-    noStroke();
-    fill(235, 245, 255, 235);
-    circle(rectX + rectW / 2, rectY + rectH / 2, max(2.5, min(rectW, rectH) * 0.10));
-  } else {
-    noStroke();
-    fill(120, 170, 220, 28);
+    stroke(205, 232, 255, 235);
+    strokeWeight(lineW + 0.35);
     rect(rectX, rectY, rectW, rectH, 2);
-
-    stroke(135, 185, 235, 165);
+  } else {
+    stroke(135, 185, 235, 170);
     strokeWeight(lineW);
     noFill();
-    rect(rectX, rectY, rectW, rectH, 2);
+
+    // Corner brackets only (cleaner than full fill/box)
+    line(rectX, rectY, rectX + cornerLen, rectY);
+    line(rectX, rectY, rectX, rectY + cornerLen);
+
+    line(rectX + rectW - cornerLen, rectY, rectX + rectW, rectY);
+    line(rectX + rectW, rectY, rectX + rectW, rectY + cornerLen);
+
+    line(rectX, rectY + rectH - cornerLen, rectX, rectY + rectH);
+    line(rectX, rectY + rectH, rectX + cornerLen, rectY + rectH);
+
+    line(rectX + rectW - cornerLen, rectY + rectH, rectX + rectW, rectY + rectH);
+    line(rectX + rectW, rectY + rectH - cornerLen, rectX + rectW, rectY + rectH);
   }
 
   pop();
@@ -1360,10 +1439,22 @@ function handleTileClick(mx, my) {
   let visualQuadrant = hitInfo.visualQuadrant;
   let logicalQuadrant = hitInfo.logicalQuadrant;
   let baseTileSubtileIndex = hitInfo.baseTileSubtileIndex;
+  let activeSubtileIndex = baseTileSubtileIndex;
+  let activeQuadrant = logicalQuadrant;
+
+  if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym') {
+    let mappedCurrent = mapVisualTargetToLogical(
+      supertile,
+      visualQuadrant,
+      hitInfo.visualSubtileDisplayIndex
+    );
+    activeQuadrant = mappedCurrent.quadrant;
+    activeSubtileIndex = mappedCurrent.subtileIndex;
+  }
     
     // Unique ID for this specific subtile location
     // Format: SupertileIndex | VisualQuadrant | SubtileIndex
-    let currentTileId = `${index}-${visualQuadrant}-${baseTileSubtileIndex}`;
+    let currentTileId = `${index}-${visualQuadrant}-${activeSubtileIndex}`;
     
     // If we are dragging over the same tile, ignore
     if (currentTileId === lastInteractedId) return;
@@ -1372,7 +1463,7 @@ function handleTileClick(mx, my) {
     lastInteractedId = currentTileId;
 
     // Tile to edit in data space (logical quadrant)
-    let targetTile = hitInfo.targetTile;
+    let targetTile = supertile.tiles[activeQuadrant];
     
     let oldType = hitInfo.oldType;
     let newType = oldType;
@@ -1398,6 +1489,11 @@ function handleTileClick(mx, my) {
       // 0: None, 1: FlipX, 2: FlipY, 3: FlipXY
       let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
       let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
+
+      if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym') {
+        isFlippedX = (activeQuadrant === 1 || activeQuadrant === 3);
+        isFlippedY = (activeQuadrant === 2 || activeQuadrant === 3);
+      }
 
       // 2. Global Mirror Flip
       // If global mirror is active, the coordinate system is flipped.
@@ -1430,13 +1526,13 @@ function handleTileClick(mx, my) {
     // Apply Change based on Scope
     if (interactionScope === 'single') {
         // True Single: Only this quadrant, this subtile
-        targetTile.types[baseTileSubtileIndex] = newType;
+        targetTile.types[activeSubtileIndex] = newType;
         refreshTile(targetTile);
 
     } else if (interactionScope === 'supertile') {
         // Current "Single" behavior: Update mirror-equivalent subtiles in all 4 quadrants of THIS supertile
         for(let t of supertile.tiles) {
-            t.types[baseTileSubtileIndex] = newType;
+          t.types[activeSubtileIndex] = newType;
             refreshTile(t);
         }
 
@@ -1458,25 +1554,21 @@ function handleTileClick(mx, my) {
         }
     } else if (interactionScope === 'global_pos') {
         // Global Equivalent by Position (Single): 
-        // Update the subtile at [visualQuadrant][baseTileSubtileIndex] in ALL supertiles.
+      // Update the same visual slot in ALL supertiles.
         for (let s of tiles) {
-            // Use the SAME logical indices we found for the current supertile
-            // Note: This maintains the exact same "corner" across the grid, even if some supertiles are mirrored.
-            // If the user meant "Visual Position", we'd need to re-calculate based on grid coordinates?
-            // But usually "Global Pos" implies structural consistency. 
-            // visualQuadrant accounts for the CLICKED supertile's mirroring. 
-            // We apply it to other supertiles using the same index.
-            let t = s.tiles[visualQuadrant]; 
-            t.types[baseTileSubtileIndex] = newType;
+        let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
+        let t = s.tiles[mapped.quadrant]; 
+        t.types[mapped.subtileIndex] = newType;
             refreshTile(t);
         }
     } else if (interactionScope === 'global_pos_sym') {
         // Global Equivalent by Position (Symmetric / Batch):
-        // Update the subtile at this index in ALL quadrants of ALL supertiles.
-        // Effectively "Global Supertile" scope.
+      // Update the same visual subtile slot in all 4 visual quadrants of ALL supertiles.
         for (let s of tiles) {
-            for (let t of s.tiles) {
-                t.types[baseTileSubtileIndex] = newType;
+        for (let visualQ = 0; visualQ < 4; visualQ++) {
+          let mapped = mapVisualTargetToLogical(s, visualQ, hitInfo.visualSubtileDisplayIndex);
+          let t = s.tiles[mapped.quadrant];
+          t.types[mapped.subtileIndex] = newType;
                 refreshTile(t);
             }
         }
