@@ -548,6 +548,113 @@
     return 'full';
   }
 
+  function getBuiltinTileLimit() {
+    let limit = Number(window.DEFAULT_BUILTIN_TILE_LIMIT);
+    if (Number.isInteger(limit) && limit > 0) return limit;
+    return 0;
+  }
+
+  function buildFamilyLabelByTileIdFromRegistry(registry) {
+    const byTileId = {};
+    if (!registry || !Array.isArray(registry.families)) return byTileId;
+
+    for (const family of registry.families) {
+      if (!family || !Array.isArray(family.tileIds)) continue;
+      const label = (family.label || '').toString().trim();
+      for (const id of family.tileIds) {
+        if (!Number.isInteger(id) || id < 0) continue;
+        if (byTileId[id] !== undefined) continue;
+        byTileId[id] = label;
+      }
+    }
+
+    return byTileId;
+  }
+
+  function inferTileIdMapFromRegistry(parsed, importedAssets) {
+    const map = {};
+    const builtinLimit = getBuiltinTileLimit();
+
+    if (builtinLimit > 0) {
+      for (let i = 0; i < builtinLimit; i++) {
+        map[i] = i;
+      }
+    }
+
+    if (!parsed || !parsed.registry || !Array.isArray(importedAssets) || importedAssets.length === 0) {
+      return map;
+    }
+
+    const familyLabelByOldId = buildFamilyLabelByTileIdFromRegistry(parsed.registry);
+    const uploadedRefs = Array.isArray(parsed.uploadedTileRefs) ? parsed.uploadedTileRefs : [];
+    const entryIdToNewId = new Map();
+
+    for (const asset of importedAssets) {
+      if (!asset || !asset.entryId || !Number.isInteger(asset.tileId)) continue;
+      entryIdToNewId.set(asset.entryId, asset.tileId);
+    }
+
+    for (const ref of uploadedRefs) {
+      if (!ref || !Number.isInteger(ref.tileId) || !ref.entryId) continue;
+      let mapped = entryIdToNewId.get(ref.entryId);
+      if (Number.isInteger(mapped)) {
+        map[ref.tileId] = mapped;
+      }
+    }
+
+    const importedByKey = new Map();
+    for (const asset of importedAssets) {
+      if (!asset || !Number.isInteger(asset.tileId)) continue;
+      const name = (asset.name || '').toString().trim();
+      const family = (asset.familyLabel || '').toString().trim();
+      const key = `${name}\u0000${family}`;
+      if (!importedByKey.has(key)) importedByKey.set(key, []);
+      importedByKey.get(key).push(asset.tileId);
+    }
+
+    if (parsed.registry && Array.isArray(parsed.registry.tileNames)) {
+      for (let oldId = 0; oldId < parsed.registry.tileNames.length; oldId++) {
+        if (Number.isInteger(map[oldId])) continue;
+        if (builtinLimit > 0 && oldId < builtinLimit) continue;
+
+        const oldName = parsed.registry.tileNames[oldId];
+        if (typeof oldName !== 'string' || oldName.trim() === '') continue;
+
+        const oldFamily = familyLabelByOldId[oldId];
+        const key = `${oldName.trim()}\u0000${(oldFamily || '').toString().trim()}`;
+        const candidates = importedByKey.get(key);
+        if (Array.isArray(candidates) && candidates.length === 1) {
+          map[oldId] = candidates[0];
+        }
+      }
+    }
+
+    return map;
+  }
+
+  function remapHiddenTileIds(ids, tileIdMap) {
+    if (!Array.isArray(ids)) return [];
+
+    const mapped = [];
+    const seen = new Set();
+    const builtinLimit = getBuiltinTileLimit();
+
+    for (const id of ids) {
+      if (!Number.isInteger(id) || id < 0) continue;
+
+      let remapped = Number.isInteger(tileIdMap && tileIdMap[id])
+        ? tileIdMap[id]
+        : (builtinLimit > 0 && id < builtinLimit ? id : null);
+
+      if (!Number.isInteger(remapped) || remapped < 0) continue;
+      if (seen.has(remapped)) continue;
+      seen.add(remapped);
+      mapped.push(remapped);
+    }
+
+    return mapped;
+  }
+
   function buildBackupPayload(options = {}) {
     const scope = normalizeBackupScope(options.scope);
     const includeTiles = scope !== 'layout';
@@ -563,6 +670,12 @@
       scope,
       exportedAt: new Date().toISOString(),
       tiles: includeTiles ? getStoredEntries() : [],
+      uploadedTileRefs: includeTiles ? uploadedSvgTiles.map((tile) => ({
+        tileId: tile.tileId,
+        entryId: tile.entryId,
+        name: tile.name,
+        familyLabel: tile.familyLabel
+      })) : [],
       hiddenTileIds: includeLayout ? Array.from(hiddenTileIds) : [],
       registry: includeLayout ? registrySnapshot : null
     };
@@ -604,6 +717,7 @@
     let imported = 0;
     let skipped = 0;
     let ids = [];
+    let importedAssets = [];
     let registryApplied = false;
 
     if (applyTiles) {
@@ -633,16 +747,24 @@
 
         imported++;
         ids.push(asset.tileId);
+        importedAssets.push({
+          tileId: asset.tileId,
+          entryId: asset.entryId,
+          name: asset.name,
+          familyLabel: asset.familyLabel
+        });
       }
     }
 
+    const tileIdMap = inferTileIdMapFromRegistry(parsed, importedAssets);
+
     if (applyLayout && parsed && parsed.registry && typeof window.applyTileRegistrySnapshot === 'function') {
-      window.applyTileRegistrySnapshot(parsed.registry);
+      window.applyTileRegistrySnapshot(parsed.registry, { tileIdMap });
       registryApplied = true;
     }
 
     if (applyLayout && parsed && Array.isArray(parsed.hiddenTileIds)) {
-      setHiddenTileIds(parsed.hiddenTileIds, { keepUploadedVisible: true });
+      setHiddenTileIds(remapHiddenTileIds(parsed.hiddenTileIds, tileIdMap), { keepUploadedVisible: true });
     }
 
     return { imported, skipped, ids, registryApplied };

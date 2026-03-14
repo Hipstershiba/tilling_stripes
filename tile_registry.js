@@ -964,34 +964,70 @@ function createDerivedTileFromExisting(sourceTileId, transform, options = {}) {
     };
 }
 
-function applyDerivedTilesSnapshot(derivedTiles) {
+function applyDerivedTilesSnapshot(derivedTiles, tileIdMap = null) {
     if (!Array.isArray(derivedTiles) || derivedTiles.length === 0) return;
+
+    let map = (tileIdMap && typeof tileIdMap === 'object') ? tileIdMap : null;
+    let builtinLimit = (typeof window !== 'undefined' && Number.isInteger(window.DEFAULT_BUILTIN_TILE_LIMIT) && window.DEFAULT_BUILTIN_TILE_LIMIT > 0)
+        ? window.DEFAULT_BUILTIN_TILE_LIMIT
+        : 0;
+
+    const remapTileId = (oldId) => {
+        if (!Number.isInteger(oldId) || oldId < 0) return null;
+        if (map && Number.isInteger(map[oldId])) return map[oldId];
+        if (builtinLimit > 0 && oldId < builtinLimit) return oldId;
+        return null;
+    };
 
     for (let item of derivedTiles) {
         if (!item || !Number.isInteger(item.sourceTileId)) continue;
         if (!item.transform || typeof item.transform !== 'object') continue;
         try {
-            createDerivedTileFromExisting(item.sourceTileId, item.transform, {
+            let mappedSourceTileId = remapTileId(item.sourceTileId);
+            if (!Number.isInteger(mappedSourceTileId)) continue;
+
+            let created = createDerivedTileFromExisting(mappedSourceTileId, item.transform, {
                 name: item.name,
                 familyLabel: item.familyLabel
             });
+
+            if (map && Number.isInteger(item.tileId) && Number.isInteger(created?.tileId)) {
+                map[item.tileId] = created.tileId;
+            }
         } catch (err) {
             // Ignore malformed derived entries and continue applying others.
         }
     }
 }
 
-function applyTileRegistrySnapshot(snapshot) {
+function applyTileRegistrySnapshot(snapshot, options = {}) {
     if (!snapshot || typeof snapshot !== 'object') return false;
 
-    applyDerivedTilesSnapshot(snapshot.derivedTiles);
+    let tileIdMap = (options && typeof options.tileIdMap === 'object' && options.tileIdMap)
+        ? options.tileIdMap
+        : null;
+    let builtinLimit = (typeof window !== 'undefined' && Number.isInteger(window.DEFAULT_BUILTIN_TILE_LIMIT) && window.DEFAULT_BUILTIN_TILE_LIMIT > 0)
+        ? window.DEFAULT_BUILTIN_TILE_LIMIT
+        : 0;
+
+    const remapTileId = (oldId) => {
+        if (!Number.isInteger(oldId) || oldId < 0) return null;
+        if (tileIdMap && Number.isInteger(tileIdMap[oldId])) return tileIdMap[oldId];
+        if (builtinLimit > 0 && oldId < builtinLimit) return oldId;
+        return null;
+    };
+
+    applyDerivedTilesSnapshot(snapshot.derivedTiles, tileIdMap);
 
     if (Array.isArray(snapshot.tileNames)) {
-        let limit = Math.min(snapshot.tileNames.length, TILE_NAMES.length);
-        for (let i = 0; i < limit; i++) {
+        for (let i = 0; i < snapshot.tileNames.length; i++) {
             let name = snapshot.tileNames[i];
             if (typeof name === 'string' && name.trim() !== '') {
-                TILE_NAMES[i] = name.trim();
+                let mappedId = remapTileId(i);
+                if (!Number.isInteger(mappedId)) continue;
+                if (mappedId >= 0 && mappedId < TILE_NAMES.length) {
+                    TILE_NAMES[mappedId] = name.trim();
+                }
             }
         }
     }
@@ -1023,9 +1059,10 @@ function applyTileRegistrySnapshot(snapshot) {
         let ids = [];
         if (family && Array.isArray(family.tileIds)) {
             for (let id of family.tileIds) {
-                if (!Number.isInteger(id)) continue;
-                if (id < 0 || id >= TILE_RENDERERS.length) continue;
-                if (!ids.includes(id)) ids.push(id);
+                let mappedId = remapTileId(id);
+                if (!Number.isInteger(mappedId)) continue;
+                if (mappedId < 0 || mappedId >= TILE_RENDERERS.length) continue;
+                if (!ids.includes(mappedId)) ids.push(mappedId);
             }
         }
         TILE_FAMILIES[index] = ids;
