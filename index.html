@@ -335,20 +335,6 @@
                 <div class="row">
                   <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
                 </div>
-
-                <div class="row backup-row">
-                  <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
-                  <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
-                  <button id="btnRestoreBuiltins" title="Restore built-in tile names/families to default">Restore
-                    Built-ins</button>
-                  <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
-                </div>
-
-                <div class="row assets-history-row">
-                  <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
-                  <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
-                  <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
-                </div>
               </div>
             </div>
 
@@ -360,6 +346,19 @@
                 <div class="row">
                   <input type="text" id="assetRenameFamilyInput" placeholder="Rename selected family">
                   <button id="btnRenameFamilyFromList" class="btn-accent">Rename Family</button>
+                </div>
+
+                <div class="row backup-row">
+                  <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
+                  <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
+                  <button id="btnRestoreBuiltins" title="Restore built-in tile names/families to default">Restore Built-ins</button>
+                  <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+                </div>
+
+                <div class="row assets-history-row">
+                  <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
+                  <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
+                  <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
                 </div>
 
                 <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
