@@ -316,41 +316,98 @@
 
       <!-- TAB CONTENT: ASSETS -->
       <div id="tab-assets" class="tab-content">
-        <div class="assets-layout">
-          <div class="control-group no-collapse" id="svgUploadPanel">
-            <label>
-              <span>Custom SVG Tiles</span>
-            </label>
-            <div class="group-content svg-upload-content">
-              <div class="row backup-row">
-                <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
-                <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
-                <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
-              </div>
-              <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
-              <div class="row">
-                <input type="text" id="svgFamilyInput" placeholder="Family name (ex: leaves)">
-                <button id="btnRefreshFamilies" title="Refresh family list">Refresh</button>
-              </div>
-              <select id="svgFamilySelect">
-                <option value="">Use family name above</option>
-              </select>
-              <button id="btnAddSvgTiles">Add SVG Tiles</button>
-              <div class="status-text assets-helper-note">All uploads are normalized to square tiles automatically.</div>
-              <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
-              <div id="svgFamilyList" class="family-list"></div>
-              <label style="margin-top: 8px;">Uploaded Library</label>
-              <div id="svgLibraryList" class="library-list"></div>
-            </div>
-          </div>
+        <div class="assets-workspace">
+          <div class="assets-main-grid">
+            <div class="control-group no-collapse">
+              <label><span>Families</span></label>
+              <div class="group-content">
+                <div id="assetFamilyList" class="family-list"></div>
 
-          <div class="control-group no-collapse" id="familyTilesPanel">
-            <label>
-              <span>Tiles by Family</span>
-            </label>
-            <div class="group-content">
-              <div class="status-text assets-helper-note">Preview all visible tiles grouped by family.</div>
-              <div id="familyTilesView" class="family-tiles-view"></div>
+                <div class="row">
+                  <input type="text" id="assetCreateFamilyInput" placeholder="New family name">
+                  <button id="btnCreateFamily" class="btn-accent">Create</button>
+                </div>
+
+                <div class="row">
+                  <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
+                </div>
+
+                <div class="row backup-row">
+                  <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
+                  <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
+                  <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group no-collapse">
+              <label><span>Tiles</span></label>
+              <div class="group-content">
+                <div id="assetUploadFamilyTarget" class="status-text assets-helper-note">Selected family: none</div>
+
+                <div class="row">
+                  <input type="text" id="assetRenameFamilyInput" placeholder="Rename selected family">
+                  <button id="btnRenameFamilyFromList" class="btn-accent">Rename Family</button>
+                </div>
+
+                <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
+
+                <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
+                <div class="row">
+                  <button id="btnAddSvgTiles">Import Tile</button>
+                </div>
+                <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
+              </div>
+            </div>
+
+            <div class="control-group no-collapse">
+              <label><span>Inspector</span></label>
+              <div class="group-content" id="assetInspectorEmpty">
+                <div class="status-text assets-helper-note">Select a tile to edit it.</div>
+              </div>
+              <div class="group-content" id="assetInspectorContent" style="display:none; gap:10px;">
+                <div class="asset-inspector-head">
+                  <div class="asset-inspector-thumb"><img id="assetInspectorThumb" alt="Selected tile preview"></div>
+                  <div>
+                    <div id="assetInspectorTitle" class="library-item-name"></div>
+                    <div id="assetInspectorMeta" class="library-item-family"></div>
+                  </div>
+                </div>
+
+                <label>Rename Tile</label>
+                <div class="row">
+                  <input type="text" id="assetTileNameInput" placeholder="Tile name">
+                  <button id="btnApplyTileRename" class="btn-accent">Apply</button>
+                </div>
+
+                <label>Move To Family</label>
+                <div class="row">
+                  <select id="assetMoveFamilySelect"></select>
+                  <button id="btnMoveTileFamily" class="btn-accent">Move</button>
+                </div>
+
+                <label>Tile Editor</label>
+                <div class="asset-editor-box">
+                  <div class="row">
+                    <select id="assetEditorRotateSelect">
+                      <option value="0">Rotate 0</option>
+                      <option value="90">Rotate 90</option>
+                      <option value="180">Rotate 180</option>
+                      <option value="270">Rotate 270</option>
+                    </select>
+                    <label class="variant-option"><input type="checkbox" id="assetEditorFlipX"> Mirror X</label>
+                    <label class="variant-option"><input type="checkbox" id="assetEditorFlipY"> Mirror Y</label>
+                  </div>
+                  <div class="asset-editor-preview">
+                    <img id="assetEditorPreview" alt="Tile editor preview">
+                  </div>
+                  <div class="row">
+                    <button id="btnCreateEditedTile" class="btn-accent">Create Edited Tile</button>
+                  </div>
+                </div>
+
+                <button id="btnRemoveSelectedTile" class="btn-danger">Remove Tile</button>
+              </div>
             </div>
           </div>
         </div>
@@ -358,7 +415,7 @@
 
 
 
-      <div class="control-group actions">
+      <div class="control-group actions" id="exportActions">
         <button id="btnSave">Save Image</button>
         <button id="btnSaveSVG">Save SVG</button>
       </div>

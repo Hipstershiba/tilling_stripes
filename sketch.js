@@ -118,11 +118,11 @@ function setup() {
   generateTileThumbnails();
 
   // Refresh thumbnails when uploaded SVG image previews become available.
-  window.onUploadedTileThumbnailReady = () => {
+  window.onUploadedTileThumbnailReady = (tileId) => {
     resetTileThumbnailCache();
+    rerenderTilesUsingType(tileId);
     generateTileThumbnails();
-    refreshSvgLibraryUI();
-    refreshFamilyTilesView();
+    refreshAssetsManagerUI();
   };
 
   // Setup custom SVG upload panel
@@ -143,6 +143,33 @@ function setAssetsManagerMode(active) {
   }
 }
 
+function rebuildTileBuffer(tileObj) {
+  if (!tileObj) return;
+  tileObj.subtiles = [];
+  if (tileObj.buffer) tileObj.buffer.remove();
+  tileObj.buffer = createGraphics(tileObj.w, tileObj.h);
+  tileObj.create_subtiles();
+  tileObj.render_to_buffer();
+}
+
+function rerenderTilesUsingType(tileType) {
+  if (!Number.isInteger(tileType)) return;
+  if (!Array.isArray(tiles) || tiles.length === 0) return;
+
+  let changed = false;
+  for (let supertile of tiles) {
+    if (!supertile || !Array.isArray(supertile.tiles)) continue;
+    for (let tileObj of supertile.tiles) {
+      if (Array.isArray(tileObj.types) && tileObj.types.includes(tileType)) {
+        rebuildTileBuffer(tileObj);
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) redraw();
+}
+
 function setSvgStatus(message, tone = '') {
   let status = select('#svgUploadStatus');
   if (!status) return;
@@ -152,227 +179,330 @@ function setSvgStatus(message, tone = '') {
   status.html(message);
 }
 
-function refreshFamilyUI() {
-  let familySelect = document.getElementById('svgFamilySelect');
-  let familyList = document.getElementById('svgFamilyList');
-  if (!familySelect || !familyList) return;
+let assetsUiState = {
+  selectedFamily: null,
+  selectedTileId: null,
+  editorTransform: {
+    rotate: 0,
+    flipX: false,
+    flipY: false
+  }
+};
 
+function listUploadedTiles() {
+  if (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function') {
+    return window.SVGTileManager.listUploadedSvgTiles();
+  }
+  return [];
+}
+
+function getFamilySummaryForManager() {
   let summary = (typeof window.getTileFamilySummary === 'function')
     ? window.getTileFamilySummary()
     : [];
-  let uploadedTiles = (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function')
-    ? window.SVGTileManager.listUploadedSvgTiles()
-    : [];
-  let uploadedFamilies = new Set(uploadedTiles.map((item) => item.familyLabel));
-
-  familySelect.innerHTML = '';
-  let defaultOpt = document.createElement('option');
-  defaultOpt.value = '';
-  defaultOpt.textContent = 'Use family name above';
-  familySelect.appendChild(defaultOpt);
-
-  summary.forEach((item) => {
-    let visibleCount = (item.tileIds || []).filter(isTileVisible).length;
-    if (visibleCount === 0) return;
-    let option = document.createElement('option');
-    option.value = item.label;
-    option.textContent = `${item.label} (${visibleCount})`;
-    familySelect.appendChild(option);
-  });
-
-  familyList.innerHTML = '';
-  if (summary.length === 0) {
-    familyList.textContent = 'No families available.';
-    return;
-  }
-
-  summary.forEach((item) => {
-    let visibleIds = (item.tileIds || []).filter(isTileVisible);
-    if (visibleIds.length === 0 && uploadedFamilies.has(item.label)) {
-      return;
-    }
-
-    let row = document.createElement('div');
-    row.className = 'family-item';
-
-    let label = document.createElement('span');
-    label.textContent = item.label;
-    row.appendChild(label);
-
-    let count = document.createElement('span');
-    count.textContent = `${visibleIds.length} tile(s)`;
-    row.appendChild(count);
-
-    if (uploadedFamilies.has(item.label) && window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedFamily === 'function') {
-      let removeBtn = document.createElement('button');
-      removeBtn.className = 'btn-danger';
-      removeBtn.textContent = 'Remove family';
-      removeBtn.title = `Remove uploaded tiles from family ${item.label}`;
-      removeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!window.confirm(`Remove all uploaded tiles in family "${item.label}"?`)) return;
-        let removed = window.SVGTileManager.deleteUploadedFamily(item.label);
-        if (removed > 0) {
-          setSvgStatus(`Removed ${removed} tile(s) from family "${item.label}".`, 'success');
-          refreshTileCatalogUI();
-        }
-      });
-      row.appendChild(removeBtn);
-    }
-
-    familyList.appendChild(row);
-  });
+  return summary
+    .map((item) => ({
+      label: item.label,
+      tileIds: (item.tileIds || []).filter(isTileVisible)
+    }));
 }
 
-function refreshSvgLibraryUI() {
-  let library = document.getElementById('svgLibraryList');
-  if (!library) return;
+function updateAssetUploadTargetLabel() {
+  let label = document.getElementById('assetUploadFamilyTarget');
+  let renameInput = document.getElementById('assetRenameFamilyInput');
+  if (!label) return;
+  if (!assetsUiState.selectedFamily) {
+    label.textContent = 'Selected family: none';
+    if (renameInput) {
+      renameInput.value = '';
+      renameInput.placeholder = 'Rename selected family';
+    }
+    return;
+  }
+  label.textContent = `Selected family: ${assetsUiState.selectedFamily}`;
+  if (renameInput) {
+    renameInput.value = assetsUiState.selectedFamily;
+  }
+}
 
-  library.innerHTML = '';
-  let uploadedTiles = (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function')
-    ? window.SVGTileManager.listUploadedSvgTiles()
-    : [];
+function getTileNameById(tileId) {
+  if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[tileId]) {
+    return TILE_NAMES[tileId];
+  }
+  return `Tile ${tileId}`;
+}
 
-  if (uploadedTiles.length === 0) {
-    library.textContent = 'No uploaded SVG tiles yet.';
+function getSelectedFamilyTiles() {
+  let summary = getFamilySummaryForManager();
+  if (!assetsUiState.selectedFamily) return [];
+  let match = summary.find((row) => row.label === assetsUiState.selectedFamily);
+  return match ? match.tileIds.slice() : [];
+}
+
+function getSelectedTileMeta() {
+  if (!Number.isInteger(assetsUiState.selectedTileId)) return null;
+  let tileId = assetsUiState.selectedTileId;
+  let uploaded = getUploadedTileMeta(tileId);
+  let summary = getFamilySummaryForManager();
+  let familyLabel = 'unassigned';
+  for (let item of summary) {
+    if (item.tileIds.includes(tileId)) {
+      familyLabel = item.label;
+      break;
+    }
+  }
+
+  return {
+    tileId,
+    name: getTileNameById(tileId),
+    familyLabel,
+    uploaded: uploaded || null
+  };
+}
+
+function updateEditorTransformFromControls() {
+  let rotateSelect = document.getElementById('assetEditorRotateSelect');
+  let flipXInput = document.getElementById('assetEditorFlipX');
+  let flipYInput = document.getElementById('assetEditorFlipY');
+
+  assetsUiState.editorTransform = {
+    rotate: rotateSelect ? parseInt(rotateSelect.value, 10) || 0 : 0,
+    flipX: !!(flipXInput && flipXInput.checked),
+    flipY: !!(flipYInput && flipYInput.checked)
+  };
+}
+
+function renderEditorPreview(tileMeta) {
+  let preview = document.getElementById('assetEditorPreview');
+  if (!preview || !tileMeta) return;
+
+  if (!tileMeta.uploaded) {
+    preview.src = getTileThumbnailSrc(tileMeta.tileId, 96);
     return;
   }
 
-  uploadedTiles.forEach((item) => {
+  if (!window.SVGTileManager || typeof window.SVGTileManager.getTransformedTilePreview !== 'function') {
+    preview.src = getTileThumbnailSrc(tileMeta.tileId, 96);
+    return;
+  }
+
+  let transformed = window.SVGTileManager.getTransformedTilePreview(tileMeta.tileId, assetsUiState.editorTransform);
+  preview.src = transformed || getTileThumbnailSrc(tileMeta.tileId, 96);
+}
+
+function ensureAssetSelection() {
+  let summary = getFamilySummaryForManager();
+  let validFamilies = new Set(summary.map((row) => row.label));
+
+  if (!assetsUiState.selectedFamily || !validFamilies.has(assetsUiState.selectedFamily)) {
+    assetsUiState.selectedFamily = summary.length > 0 ? summary[0].label : null;
+  }
+
+  let visibleTiles = new Set(getSelectedFamilyTiles());
+  if (!Number.isInteger(assetsUiState.selectedTileId) || !visibleTiles.has(assetsUiState.selectedTileId)) {
+    assetsUiState.selectedTileId = visibleTiles.size > 0 ? [...visibleTiles][0] : null;
+  }
+}
+
+function fillFamilySelect(selectEl, includeAll = false) {
+  if (!selectEl) return;
+  let previousValue = selectEl.value;
+  let summary = getFamilySummaryForManager();
+  selectEl.innerHTML = '';
+
+  if (includeAll) {
+    let allOpt = document.createElement('option');
+    allOpt.value = '__all__';
+    allOpt.textContent = 'All families';
+    selectEl.appendChild(allOpt);
+  }
+
+  for (let item of summary) {
+    let opt = document.createElement('option');
+    opt.value = item.label;
+    opt.textContent = `${item.label} (${item.tileIds.length})`;
+    selectEl.appendChild(opt);
+  }
+
+  let fallback = includeAll ? '__all__' : (summary[0] ? summary[0].label : '');
+  selectEl.value = Array.from(selectEl.options).some((op) => op.value === previousValue)
+    ? previousValue
+    : fallback;
+}
+
+function renderAssetFamilyList() {
+  let familyList = document.getElementById('assetFamilyList');
+  if (!familyList) return;
+
+  let summary = getFamilySummaryForManager();
+  let uploadedTiles = listUploadedTiles();
+  let uploadedFamilySet = new Set(uploadedTiles.map((item) => item.familyLabel));
+  familyList.innerHTML = '';
+
+  if (summary.length === 0) {
+    familyList.innerHTML = '<div class="status-text">No families available yet.</div>';
+    return;
+  }
+
+  for (let item of summary) {
     let row = document.createElement('div');
-    row.className = 'library-item';
+    row.className = `family-item${assetsUiState.selectedFamily === item.label ? ' active' : ''}`;
 
-    let thumb = document.createElement('div');
-    thumb.className = 'library-item-thumb';
-    let thumbImg = document.createElement('img');
-    thumbImg.src = getTileThumbnailSrc(item.tileId, 60);
-    thumbImg.alt = item.name;
-    thumb.appendChild(thumbImg);
-    row.appendChild(thumb);
-
-    let meta = document.createElement('div');
-    meta.className = 'library-item-meta';
-
-    let name = document.createElement('div');
-    name.className = 'library-item-name';
-    name.textContent = `${item.name} (#${item.tileId})`;
-    meta.appendChild(name);
-
-    let fam = document.createElement('div');
-    fam.className = 'library-item-family';
-    fam.textContent = `Family: ${item.familyLabel}`;
-    meta.appendChild(fam);
-
-    row.appendChild(meta);
+    let main = document.createElement('div');
+    main.className = 'family-item-main';
+    main.innerHTML = `<div class="family-item-label">${item.label}</div><div class="family-item-meta">${item.tileIds.length} tile(s)</div>`;
+    row.appendChild(main);
 
     let actions = document.createElement('div');
-    actions.className = 'library-item-actions';
+    actions.className = 'family-item-actions';
 
-    let isVariant = !!(item.metadata && item.metadata.variantOf);
-    if (!isVariant) {
-      let variantsBtn = document.createElement('button');
-      variantsBtn.className = 'btn-accent';
-      variantsBtn.textContent = 'Generate Symmetry Set';
-      variantsBtn.title = 'Create rotations and mirror variants in this family';
-      variantsBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!window.SVGTileManager || typeof window.SVGTileManager.generateSymmetryVariants !== 'function') {
-          return;
-        }
-        try {
-          let result = window.SVGTileManager.generateSymmetryVariants(item.tileId);
-          if (result.created > 0) {
-            setSvgStatus(`Generated ${result.created} variants (${result.skipped} skipped).`, 'success');
-            refreshTileCatalogUI(result.ids);
-          } else {
-            setSvgStatus(`No new variants generated (${result.skipped} already existed).`, 'error');
-          }
-        } catch (err) {
-          setSvgStatus(`Variant generation failed: ${err.message || err}`, 'error');
-        }
-      });
-      actions.appendChild(variantsBtn);
+    let builtin = item.label.startsWith('builtin-');
+    if (builtin) {
+      let tag = document.createElement('button');
+      tag.className = 'btn-accent';
+      tag.disabled = true;
+      tag.textContent = 'Built-in';
+      actions.appendChild(tag);
+    } else if (uploadedFamilySet.has(item.label)) {
+      let tag = document.createElement('button');
+      tag.className = 'btn-accent';
+      tag.disabled = true;
+      tag.textContent = 'Uploaded';
+      actions.appendChild(tag);
     }
 
-    let removeBtn = document.createElement('button');
-    removeBtn.className = 'btn-danger';
-    removeBtn.textContent = 'Remove';
-    removeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!window.confirm(`Remove uploaded tile "${item.name}"?`)) return;
-      if (window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedTile === 'function') {
-        let ok = window.SVGTileManager.deleteUploadedTile(item.tileId);
-        if (ok) {
-          setSvgStatus(`Removed tile "${item.name}".`, 'success');
-          refreshTileCatalogUI();
-        }
-      }
+    if (actions.childNodes.length > 0) {
+      row.appendChild(actions);
+    }
+
+    row.addEventListener('click', () => {
+      assetsUiState.selectedFamily = item.label;
+      ensureAssetSelection();
+      updateAssetUploadTargetLabel();
+      renderAssetFamilyList();
+      renderAssetTileGrid();
+      renderAssetInspector();
     });
 
-    actions.appendChild(removeBtn);
-    row.appendChild(actions);
-    library.appendChild(row);
-  });
+    familyList.appendChild(row);
+  }
 }
 
-function refreshFamilyTilesView() {
-  let container = document.getElementById('familyTilesView');
+function renderAssetTileGrid() {
+  let container = document.getElementById('assetTileGrid');
   if (!container) return;
 
   container.innerHTML = '';
-  let summary = (typeof window.getTileFamilySummary === 'function')
-    ? window.getTileFamilySummary()
-    : [];
+  let tileIds = getSelectedFamilyTiles();
 
-  let nonEmptyFamilies = summary
-    .map((item) => ({
-      label: item.label,
-      ids: (item.tileIds || []).filter(isTileVisible)
-    }))
-    .filter((item) => item.ids.length > 0);
-
-  if (nonEmptyFamilies.length === 0) {
-    container.textContent = 'No visible tiles to preview.';
+  if (tileIds.length === 0) {
+    container.innerHTML = '<div class="status-text">No visible tiles in this family.</div>';
     return;
   }
 
-  for (let family of nonEmptyFamilies) {
-    let section = document.createElement('div');
-    section.className = 'family-section';
+  for (let tileId of tileIds) {
+    let card = document.createElement('div');
+    card.className = `family-tile-card${assetsUiState.selectedTileId === tileId ? ' active' : ''}`;
 
-    let header = document.createElement('div');
-    header.className = 'family-section-header';
-    header.innerHTML = `<span>${family.label}</span><span>${family.ids.length} tile(s)</span>`;
-    section.appendChild(header);
+    let img = document.createElement('img');
+    img.src = getTileThumbnailSrc(tileId, 72);
+    img.alt = getTileNameById(tileId);
+    card.appendChild(img);
 
-    let grid = document.createElement('div');
-    grid.className = 'family-tile-grid';
+    let id = document.createElement('div');
+    id.className = 'family-tile-id';
+    id.textContent = `#${tileId}`;
+    card.appendChild(id);
 
-    for (let tileId of family.ids) {
-      let card = document.createElement('div');
-      card.className = 'family-tile-card';
+    let name = document.createElement('div');
+    name.className = 'family-tile-name';
+    name.textContent = getTileNameById(tileId);
+    card.appendChild(name);
 
-      let img = document.createElement('img');
-      img.src = getTileThumbnailSrc(tileId, 72);
-      img.alt = `Tile ${tileId}`;
-      card.appendChild(img);
+    card.addEventListener('click', () => {
+      assetsUiState.selectedTileId = tileId;
+      assetsUiState.editorTransform = { rotate: 0, flipX: false, flipY: false };
+      renderAssetTileGrid();
+      renderAssetInspector();
+    });
 
-      let id = document.createElement('div');
-      id.className = 'family-tile-id';
-      id.textContent = `#${tileId}`;
-      card.appendChild(id);
-
-      let name = document.createElement('div');
-      name.className = 'family-tile-name';
-      name.textContent = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[tileId]) ? TILE_NAMES[tileId] : `Tile ${tileId}`;
-      card.appendChild(name);
-
-      grid.appendChild(card);
-    }
-
-    section.appendChild(grid);
-    container.appendChild(section);
+    container.appendChild(card);
   }
+}
+
+function renderAssetInspector() {
+  let empty = document.getElementById('assetInspectorEmpty');
+  let content = document.getElementById('assetInspectorContent');
+  let tileMeta = getSelectedTileMeta();
+
+  if (!empty || !content) return;
+  if (!tileMeta) {
+    empty.style.display = '';
+    content.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  content.style.display = 'flex';
+
+  let thumb = document.getElementById('assetInspectorThumb');
+  let title = document.getElementById('assetInspectorTitle');
+  let meta = document.getElementById('assetInspectorMeta');
+  let tileNameInput = document.getElementById('assetTileNameInput');
+  let moveFamilySelect = document.getElementById('assetMoveFamilySelect');
+  let editorRotateSelect = document.getElementById('assetEditorRotateSelect');
+  let editorFlipX = document.getElementById('assetEditorFlipX');
+  let editorFlipY = document.getElementById('assetEditorFlipY');
+  let btnCreateEdited = document.getElementById('btnCreateEditedTile');
+
+  if (thumb) thumb.src = getTileThumbnailSrc(tileMeta.tileId, 72);
+  if (title) title.textContent = `${tileMeta.name} (#${tileMeta.tileId})`;
+  if (meta) {
+    let sourceLabel = tileMeta.uploaded ? 'Uploaded' : 'Built-in';
+    meta.textContent = `${sourceLabel} | Family: ${tileMeta.familyLabel}`;
+  }
+
+  if (tileNameInput) tileNameInput.value = tileMeta.name;
+
+  fillFamilySelect(moveFamilySelect, false);
+  if (moveFamilySelect && Array.from(moveFamilySelect.options).some((op) => op.value === tileMeta.familyLabel)) {
+    moveFamilySelect.value = tileMeta.familyLabel;
+  }
+
+  if (editorRotateSelect) editorRotateSelect.value = String(assetsUiState.editorTransform.rotate || 0);
+  if (editorFlipX) editorFlipX.checked = !!assetsUiState.editorTransform.flipX;
+  if (editorFlipY) editorFlipY.checked = !!assetsUiState.editorTransform.flipY;
+
+  let canEditUploaded = !!tileMeta.uploaded;
+  if (editorRotateSelect) editorRotateSelect.disabled = !canEditUploaded;
+  if (editorFlipX) editorFlipX.disabled = !canEditUploaded;
+  if (editorFlipY) editorFlipY.disabled = !canEditUploaded;
+  if (btnCreateEdited) btnCreateEdited.disabled = !canEditUploaded;
+
+  updateEditorTransformFromControls();
+  renderEditorPreview(tileMeta);
+}
+
+function refreshAssetsManagerUI() {
+  ensureAssetSelection();
+  updateAssetUploadTargetLabel();
+
+  renderAssetFamilyList();
+  renderAssetTileGrid();
+  renderAssetInspector();
+}
+
+// Backward-compatible wrappers used in older call sites.
+function refreshFamilyUI() {
+  refreshAssetsManagerUI();
+}
+
+function refreshSvgLibraryUI() {
+  refreshAssetsManagerUI();
+}
+
+function refreshFamilyTilesView() {
+  refreshAssetsManagerUI();
 }
 
 function refreshTileCatalogUI(selectIds = []) {
@@ -386,10 +516,7 @@ function refreshTileCatalogUI(selectIds = []) {
 
   allowedTypes = [...selectedSet].filter((id) => Number.isInteger(id) && id >= 0 && id < totalTileTypes && isTileVisible(id));
   generateTileThumbnails();
-  refreshFamilyUI();
-  refreshSvgLibraryUI();
-  refreshFamilyTilesView();
-  refreshFamilyTilesView();
+  refreshAssetsManagerUI();
   initGrid();
 }
 
@@ -405,35 +532,25 @@ function readFileAsText(file) {
 function setupSvgUploadUI() {
   let uploadInput = document.getElementById('svgUploadInput');
   let backupInput = document.getElementById('svgBackupImportInput');
-  let familyInput = document.getElementById('svgFamilyInput');
-  let familySelect = document.getElementById('svgFamilySelect');
   let btnAdd = document.getElementById('btnAddSvgTiles');
   let btnExportBackup = document.getElementById('btnExportSvgBackup');
   let btnImportBackup = document.getElementById('btnImportSvgBackup');
-  let btnRefreshFamilies = document.getElementById('btnRefreshFamilies');
+  let btnCreateFamily = document.getElementById('btnCreateFamily');
+  let btnRenameFamilyFromList = document.getElementById('btnRenameFamilyFromList');
+  let btnRemoveFamilyFromList = document.getElementById('btnRemoveFamilyFromList');
 
-  if (!uploadInput || !familyInput || !familySelect || !btnAdd) return;
+  if (!uploadInput || !btnAdd) return;
 
   let restoredIds = [];
   if (window.SVGTileManager && typeof window.SVGTileManager.restoreFromStorage === 'function') {
     restoredIds = window.SVGTileManager.restoreFromStorage();
   }
 
-  refreshFamilyUI();
-  refreshSvgLibraryUI();
+  refreshAssetsManagerUI();
 
   if (restoredIds.length > 0) {
     refreshTileCatalogUI(restoredIds);
     setSvgStatus(`Restored ${restoredIds.length} uploaded tile(s) from local library.`);
-  }
-
-  if (btnRefreshFamilies) {
-    btnRefreshFamilies.addEventListener('click', (e) => {
-      e.preventDefault();
-      refreshFamilyUI();
-      refreshFamilyTilesView();
-      setSvgStatus('Family list refreshed.');
-    });
   }
 
   if (btnExportBackup) {
@@ -464,14 +581,242 @@ function setupSvgUploadUI() {
         }
 
         let result = window.SVGTileManager.importBackupText(text);
-        if (result.imported > 0) {
+        if (result.imported > 0 || result.registryApplied) {
           refreshTileCatalogUI(result.ids);
-          setSvgStatus(`Backup imported: ${result.imported} new tile(s), ${result.skipped} skipped.`, 'success');
+          setSvgStatus(`Backup imported: ${result.imported} new tile(s), ${result.skipped} skipped.${result.registryApplied ? ' Registry state restored.' : ''}`, 'success');
         } else {
           setSvgStatus(`Backup processed: 0 imported, ${result.skipped} skipped.`, 'error');
         }
       } catch (err) {
         setSvgStatus(`Backup import failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  let btnRenameTile = document.getElementById('btnApplyTileRename');
+  if (btnRenameTile) {
+    btnRenameTile.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      let input = document.getElementById('assetTileNameInput');
+      if (!tileMeta || !input) return;
+      let nextName = input.value.trim();
+      if (!nextName || nextName === tileMeta.name) return;
+      try {
+        if (tileMeta.uploaded && window.SVGTileManager && typeof window.SVGTileManager.renameUploadedTile === 'function') {
+          window.SVGTileManager.renameUploadedTile(tileMeta.tileId, nextName);
+        } else if (typeof window.renameTileName === 'function') {
+          window.renameTileName(tileMeta.tileId, nextName);
+        } else {
+          throw new Error('Tile rename API not available.');
+        }
+        setSvgStatus(`Tile renamed to "${nextName}".`, 'success');
+        refreshTileCatalogUI([tileMeta.tileId]);
+      } catch (err) {
+        setSvgStatus(`Tile rename failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  let btnMoveTile = document.getElementById('btnMoveTileFamily');
+  if (btnMoveTile) {
+    btnMoveTile.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      let selectFamily = document.getElementById('assetMoveFamilySelect');
+      if (!tileMeta || !selectFamily) return;
+      let targetFamily = selectFamily.value;
+      if (!targetFamily || targetFamily === tileMeta.familyLabel) return;
+      try {
+        if (tileMeta.uploaded && window.SVGTileManager && typeof window.SVGTileManager.moveUploadedTileToFamily === 'function') {
+          window.SVGTileManager.moveUploadedTileToFamily(tileMeta.tileId, targetFamily);
+        } else if (typeof window.moveTileToFamily === 'function') {
+          window.moveTileToFamily(tileMeta.tileId, targetFamily);
+        } else {
+          throw new Error('Move tile API not available.');
+        }
+        assetsUiState.selectedFamily = targetFamily;
+        setSvgStatus(`Tile moved to family "${targetFamily}".`, 'success');
+        refreshTileCatalogUI([tileMeta.tileId]);
+      } catch (err) {
+        setSvgStatus(`Move failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnCreateFamily) {
+    btnCreateFamily.addEventListener('click', (e) => {
+      e.preventDefault();
+      let input = document.getElementById('assetCreateFamilyInput');
+      let label = input ? input.value.trim() : '';
+      if (!label) {
+        setSvgStatus('Enter a family name first.', 'error');
+        return;
+      }
+      try {
+        if (typeof window.createOrGetTileFamily !== 'function') {
+          throw new Error('Family create API not available.');
+        }
+        window.createOrGetTileFamily(label);
+        assetsUiState.selectedFamily = label;
+        if (input) input.value = '';
+        setSvgStatus(`Family "${label}" created.`, 'success');
+        refreshTileCatalogUI();
+      } catch (err) {
+        setSvgStatus(`Family create failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnRenameFamilyFromList) {
+    btnRenameFamilyFromList.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!assetsUiState.selectedFamily) {
+        setSvgStatus('Select a family first.', 'error');
+        return;
+      }
+
+      let currentFamily = assetsUiState.selectedFamily;
+      if (currentFamily.startsWith('builtin-')) {
+        setSvgStatus('Built-in families cannot be renamed.', 'error');
+        return;
+      }
+
+      let input = document.getElementById('assetRenameFamilyInput');
+      let newFamilyLabel = input ? input.value.trim() : '';
+      if (!newFamilyLabel) {
+        setSvgStatus('Enter the new family name.', 'error');
+        return;
+      }
+
+      if (newFamilyLabel === currentFamily) {
+        setSvgStatus('Family name is unchanged.', 'error');
+        return;
+      }
+
+      try {
+        if (window.SVGTileManager && typeof window.SVGTileManager.renameUploadedFamily === 'function') {
+          window.SVGTileManager.renameUploadedFamily(currentFamily, newFamilyLabel);
+        } else if (typeof window.renameTileFamilyLabel === 'function') {
+          window.renameTileFamilyLabel(currentFamily, newFamilyLabel);
+        } else {
+          throw new Error('Family rename API not available.');
+        }
+
+        assetsUiState.selectedFamily = newFamilyLabel;
+        setSvgStatus(`Family renamed to "${newFamilyLabel}".`, 'success');
+        refreshTileCatalogUI();
+      } catch (err) {
+        setSvgStatus(`Family rename failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnRemoveFamilyFromList) {
+    btnRemoveFamilyFromList.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!assetsUiState.selectedFamily) {
+        setSvgStatus('Select a family first.', 'error');
+        return;
+      }
+
+      let targetFamily = assetsUiState.selectedFamily;
+      if (targetFamily.startsWith('builtin-')) {
+        setSvgStatus('Built-in families cannot be removed.', 'error');
+        return;
+      }
+
+      let summary = getFamilySummaryForManager().find((item) => item.label === targetFamily);
+      let familyTileIds = summary ? summary.tileIds : [];
+      let uploadedTileIds = familyTileIds.filter((id) => !!getUploadedTileMeta(id));
+      let nonUploadedCount = familyTileIds.length - uploadedTileIds.length;
+
+      if (nonUploadedCount > 0) {
+        setSvgStatus(`Cannot remove family "${targetFamily}" while it still has ${nonUploadedCount} non-uploaded tile(s). Move them first.`, 'error');
+        return;
+      }
+
+      if (!window.confirm(`Remove family "${targetFamily}" and all uploaded tiles inside it?`)) return;
+
+      try {
+        if (window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedFamily === 'function') {
+          window.SVGTileManager.deleteUploadedFamily(targetFamily);
+        }
+        if (typeof window.removeTileFamily === 'function') {
+          window.removeTileFamily(targetFamily);
+        }
+        assetsUiState.selectedFamily = null;
+        setSvgStatus(`Family "${targetFamily}" removed.`, 'success');
+        refreshTileCatalogUI();
+      } catch (err) {
+        setSvgStatus(`Family remove failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  let btnRemoveTile = document.getElementById('btnRemoveSelectedTile');
+  if (btnRemoveTile) {
+    btnRemoveTile.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta || !tileMeta.uploaded) {
+        setSvgStatus('Only uploaded tiles can be removed.', 'error');
+        return;
+      }
+      if (!window.confirm(`Remove uploaded tile "${tileMeta.name}"?`)) return;
+      try {
+        if (!window.SVGTileManager || typeof window.SVGTileManager.deleteUploadedTile !== 'function') {
+          throw new Error('Tile remove API not available.');
+        }
+        let ok = window.SVGTileManager.deleteUploadedTile(tileMeta.tileId);
+        if (!ok) throw new Error('Tile could not be removed.');
+        setSvgStatus(`Tile "${tileMeta.name}" removed.`, 'success');
+        refreshTileCatalogUI();
+      } catch (err) {
+        setSvgStatus(`Tile remove failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  let editorRotateSelect = document.getElementById('assetEditorRotateSelect');
+  let editorFlipX = document.getElementById('assetEditorFlipX');
+  let editorFlipY = document.getElementById('assetEditorFlipY');
+
+  const onEditorControlChange = () => {
+    updateEditorTransformFromControls();
+    renderEditorPreview(getSelectedTileMeta());
+  };
+
+  if (editorRotateSelect) {
+    editorRotateSelect.addEventListener('change', onEditorControlChange);
+  }
+  if (editorFlipX) {
+    editorFlipX.addEventListener('change', onEditorControlChange);
+  }
+  if (editorFlipY) {
+    editorFlipY.addEventListener('change', onEditorControlChange);
+  }
+
+  let btnCreateEditedTile = document.getElementById('btnCreateEditedTile');
+  if (btnCreateEditedTile) {
+    btnCreateEditedTile.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta || !tileMeta.uploaded) {
+        setSvgStatus('Tile editor is available for uploaded tiles only.', 'error');
+        return;
+      }
+
+      try {
+        if (!window.SVGTileManager || typeof window.SVGTileManager.createEditedTile !== 'function') {
+          throw new Error('Editor API not available.');
+        }
+        updateEditorTransformFromControls();
+        let created = window.SVGTileManager.createEditedTile(tileMeta.tileId, assetsUiState.editorTransform);
+        setSvgStatus(`Edited tile created: #${created.tileId}.`, 'success');
+        refreshTileCatalogUI([created.tileId]);
+      } catch (err) {
+        setSvgStatus(`Could not create edited tile: ${err.message || err}`, 'error');
       }
     });
   }
@@ -490,7 +835,12 @@ function setupSvgUploadUI() {
       return;
     }
 
-    let chosenFamily = (familySelect.value || familyInput.value || 'uploads').trim() || 'uploads';
+    let chosenFamily = assetsUiState.selectedFamily;
+    if (!chosenFamily) {
+      setSvgStatus('Select or create a family before uploading.', 'error');
+      return;
+    }
+
     let newIds = [];
     let failures = [];
 
@@ -525,7 +875,7 @@ function setupSvgUploadUI() {
     }
 
     if (failures.length > 0) {
-      console.warn('SVG import failures:', failures);
+      setSvgStatus(`Some files failed: ${failures.join(' | ')}`, 'error');
     }
   });
 }
@@ -974,7 +1324,7 @@ function setupUI(mainCanvas) {
          setAssetsManagerMode(true);
          interactionMode = 'none';
          updateEditUI();
-       refreshFamilyTilesView();
+       refreshAssetsManagerUI();
        updateHoverPreview();
        updateCanvasStatusHint();
        redraw();
