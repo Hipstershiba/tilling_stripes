@@ -649,6 +649,7 @@ const TILE_TRANSFORM_MAP = {
 // Existing built-in families keep their numeric grouping order.
 const TILE_FAMILY_LABEL_TO_INDEX = {};
 const TILE_FAMILY_INDEX_TO_LABEL = TILE_FAMILIES.map((_, idx) => `builtin-${idx}`);
+const TILE_DERIVED_DEFINITIONS = [];
 
 function resolveFamilyIndex(family) {
     if (family === undefined || family === null) return null;
@@ -815,12 +816,140 @@ function getTileRegistrySnapshot() {
         families: getTileFamilySummary().map((family) => ({
             label: family.label,
             tileIds: [...family.tileIds]
+        })),
+        derivedTiles: TILE_DERIVED_DEFINITIONS.map((item) => ({
+            tileId: item.tileId,
+            sourceTileId: item.sourceTileId,
+            name: item.name,
+            familyLabel: item.familyLabel,
+            transform: {
+                rotate: item.transform.rotate,
+                flipX: item.transform.flipX,
+                flipY: item.transform.flipY
+            }
         }))
     };
 }
 
+function normalizeEditorTransformForRegistry(transform) {
+    let input = transform || {};
+    let rotate = Number(input.rotate);
+    if (!Number.isFinite(rotate)) rotate = 0;
+    rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
+    return {
+        rotate,
+        flipX: !!input.flipX,
+        flipY: !!input.flipY
+    };
+}
+
+function buildDerivedName(sourceName, normalized) {
+    let suffixParts = [];
+    if (normalized.rotate) suffixParts.push(`R${normalized.rotate}`);
+    if (normalized.flipX) suffixParts.push('MX');
+    if (normalized.flipY) suffixParts.push('MY');
+    return `${sourceName} [${suffixParts.join('+')}]`;
+}
+
+function areTransformsEqual(a, b) {
+    if (!a || !b) return false;
+    return a.rotate === b.rotate && !!a.flipX === !!b.flipX && !!a.flipY === !!b.flipY;
+}
+
+function createDerivedTileFromExisting(sourceTileId, transform, options = {}) {
+    if (!Number.isInteger(sourceTileId) || sourceTileId < 0 || sourceTileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid source tile id');
+    }
+
+    let sourceRenderer = TILE_RENDERERS[sourceTileId];
+    if (typeof sourceRenderer !== 'function') {
+        throw new Error('Source renderer is not available');
+    }
+
+    let normalized = normalizeEditorTransformForRegistry(transform);
+    if (normalized.rotate === 0 && !normalized.flipX && !normalized.flipY) {
+        throw new Error('No transform selected.');
+    }
+
+    let sourceName = TILE_NAMES[sourceTileId] || `Tile ${sourceTileId}`;
+    let nextName = (options.name || '').trim() || buildDerivedName(sourceName, normalized);
+    let familyLabel = (options.familyLabel || '').trim();
+    if (!familyLabel) {
+        throw new Error('familyLabel is required for derived tiles');
+    }
+
+    let existing = TILE_DERIVED_DEFINITIONS.find((item) =>
+        item.sourceTileId === sourceTileId &&
+        item.name === nextName &&
+        areTransformsEqual(item.transform, normalized)
+    );
+
+    if (existing) {
+        if (existing.familyLabel !== familyLabel) {
+            moveTileToFamily(existing.tileId, familyLabel);
+            existing.familyLabel = familyLabel;
+        }
+        return {
+            tileId: existing.tileId,
+            name: existing.name,
+            familyLabel: existing.familyLabel
+        };
+    }
+
+    let radians = normalized.rotate * Math.PI / 180;
+    let render = function(ctx, w, h, padding, color) {
+        ctx.push();
+        if (normalized.rotate !== 0) ctx.rotate(radians);
+        if (normalized.flipX || normalized.flipY) {
+            ctx.scale(normalized.flipX ? -1 : 1, normalized.flipY ? -1 : 1);
+        }
+        sourceRenderer(ctx, w, h, padding, color);
+        ctx.pop();
+    };
+
+    let createdTileId = registerTile({
+        name: nextName,
+        family: familyLabel,
+        symmetric: true,
+        render
+    });
+
+    TILE_DERIVED_DEFINITIONS.push({
+        tileId: createdTileId,
+        sourceTileId,
+        name: nextName,
+        familyLabel,
+        transform: normalized
+    });
+
+    return {
+        tileId: createdTileId,
+        name: nextName,
+        familyLabel
+    };
+}
+
+function applyDerivedTilesSnapshot(derivedTiles) {
+    if (!Array.isArray(derivedTiles) || derivedTiles.length === 0) return;
+
+    for (let item of derivedTiles) {
+        if (!item || !Number.isInteger(item.sourceTileId)) continue;
+        if (!item.transform || typeof item.transform !== 'object') continue;
+        try {
+            createDerivedTileFromExisting(item.sourceTileId, item.transform, {
+                name: item.name,
+                familyLabel: item.familyLabel
+            });
+        } catch (err) {
+            // Ignore malformed derived entries and continue applying others.
+        }
+    }
+}
+
 function applyTileRegistrySnapshot(snapshot) {
     if (!snapshot || typeof snapshot !== 'object') return false;
+
+    applyDerivedTilesSnapshot(snapshot.derivedTiles);
 
     if (Array.isArray(snapshot.tileNames)) {
         let limit = Math.min(snapshot.tileNames.length, TILE_NAMES.length);
@@ -992,6 +1121,7 @@ if (typeof window !== 'undefined') {
     window.moveTileToFamily = moveTileToFamily;
     window.renameTileName = renameTileName;
     window.removeTileFamily = removeTileFamily;
+    window.createDerivedTileFromExisting = createDerivedTileFromExisting;
     window.getTileRegistrySnapshot = getTileRegistrySnapshot;
     window.applyTileRegistrySnapshot = applyTileRegistrySnapshot;
     window.restoreBuiltInRegistryDefaults = restoreBuiltInRegistryDefaults;
@@ -1008,6 +1138,7 @@ if (typeof window !== 'undefined') {
         moveTileToFamily,
         renameTileName,
         removeTileFamily,
+        createDerivedTileFromExisting,
         getTileRegistrySnapshot,
         applyTileRegistrySnapshot,
         restoreBuiltInRegistryDefaults

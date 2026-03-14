@@ -398,6 +398,11 @@ body.assets-focus #exportActions {
 }
 
 #tab-assets.tab-content {
+  --assets-family-col-min: 200px;
+  --assets-family-col-max: 400px;
+  --assets-tiles-col-min: 320px;
+  --assets-inspector-col-min: 250px;
+  --assets-inspector-col-max: 440px;
   padding: 2px 6px 8px 2px;
   box-sizing: border-box;
   scrollbar-gutter: auto;
@@ -414,7 +419,10 @@ body.assets-focus #exportActions {
 
 .assets-main-grid {
   display: grid;
-  grid-template-columns: minmax(180px, 0.9fr) minmax(260px, 1.3fr) minmax(250px, 1fr);
+  grid-template-columns:
+    minmax(var(--assets-family-col-min), var(--assets-family-col-max))
+    minmax(var(--assets-tiles-col-min), 1fr)
+    minmax(var(--assets-inspector-col-min), var(--assets-inspector-col-max));
   gap: 10px;
   flex: 1;
   height: 100%;
@@ -441,7 +449,7 @@ body.assets-focus #exportActions {
 #tab-assets .assets-main-grid > .control-group:first-child > .group-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 #tab-assets .assets-main-grid > .control-group:nth-child(2) > .group-content {
@@ -465,10 +473,21 @@ body.assets-focus #exportActions {
 
 .backup-row {
   align-items: stretch;
+  gap: 8px;
+}
+
+#tab-assets .assets-main-grid > .control-group:first-child .row {
+  gap: 8px;
 }
 
 .backup-row button {
   flex: 1;
+  min-height: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .assets-helper-note {
@@ -488,6 +507,13 @@ body.assets-focus #exportActions {
   color: #fff;
   padding: 7px;
   border-radius: 4px;
+}
+
+#tab-assets input:focus,
+#tab-assets select:focus {
+  outline: none;
+  border-color: #4f89bd;
+  box-shadow: inset 0 0 0 1px #4f89bd;
 }
 
 #assetMoveFamilySelect {
@@ -803,6 +829,53 @@ body.assets-focus #exportActions {
   gap: 6px;
 }
 
+.asset-editor-toolbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.asset-editor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  background: #222;
+  border: 1px solid #3b3b3b;
+  border-radius: 6px;
+  color: #d8d8d8;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.asset-editor-btn:hover {
+  background: #2d2d2d;
+  border-color: #4f4f4f;
+}
+
+.asset-editor-btn.active {
+  background: #245a8a;
+  border-color: #3f84bf;
+  color: #fff;
+}
+
+.asset-editor-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.asset-editor-btn svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 #tab-assets .row {
   flex-wrap: wrap;
   gap: 6px;
@@ -831,7 +904,9 @@ body.assets-focus #exportActions {
 }
 
 .asset-editor-preview {
-  height: 74px;
+  width: min(100%, 160px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
   border: 1px solid #303030;
   border-radius: 6px;
   background: #101010;
@@ -994,8 +1069,12 @@ body.assets-focus #exportActions {
 }
 
 @media (max-width: 1360px) {
-  .assets-main-grid {
-    grid-template-columns: minmax(170px, 0.85fr) minmax(240px, 1.25fr) minmax(230px, 1fr);
+  #tab-assets.tab-content {
+    --assets-family-col-min: 180px;
+    --assets-family-col-max: 330px;
+    --assets-tiles-col-min: 260px;
+    --assets-inspector-col-min: 220px;
+    --assets-inspector-col-max: 360px;
   }
 }
 

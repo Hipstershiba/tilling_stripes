@@ -261,15 +261,31 @@ function getSelectedTileMeta() {
 }
 
 function updateEditorTransformFromControls() {
-  let rotateSelect = document.getElementById('assetEditorRotateSelect');
-  let flipXInput = document.getElementById('assetEditorFlipX');
-  let flipYInput = document.getElementById('assetEditorFlipY');
-
+  let rotate = Number(assetsUiState.editorTransform.rotate) || 0;
+  rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
   assetsUiState.editorTransform = {
-    rotate: rotateSelect ? parseInt(rotateSelect.value, 10) || 0 : 0,
-    flipX: !!(flipXInput && flipXInput.checked),
-    flipY: !!(flipYInput && flipYInput.checked)
+    rotate,
+    flipX: !!assetsUiState.editorTransform.flipX,
+    flipY: !!assetsUiState.editorTransform.flipY
   };
+}
+
+function renderEditorToolbarState(canEditUploaded) {
+  let btnMirrorX = document.getElementById('btnEditorMirrorX');
+  let btnMirrorY = document.getElementById('btnEditorMirrorY');
+  let btnRotateCW = document.getElementById('btnEditorRotateCW');
+  let btnRotateCCW = document.getElementById('btnEditorRotateCCW');
+
+  if (btnRotateCW) btnRotateCW.disabled = !canEditUploaded;
+  if (btnRotateCCW) btnRotateCCW.disabled = !canEditUploaded;
+  if (btnMirrorX) {
+    btnMirrorX.disabled = !canEditUploaded;
+    btnMirrorX.classList.toggle('active', !!assetsUiState.editorTransform.flipX);
+  }
+  if (btnMirrorY) {
+    btnMirrorY.disabled = !canEditUploaded;
+    btnMirrorY.classList.toggle('active', !!assetsUiState.editorTransform.flipY);
+  }
 }
 
 function renderEditorPreview(tileMeta) {
@@ -277,9 +293,17 @@ function renderEditorPreview(tileMeta) {
   if (!preview || !tileMeta) return;
 
   if (!tileMeta.uploaded) {
+    let transform = assetsUiState.editorTransform || { rotate: 0, flipX: false, flipY: false };
+    let rotate = Number(transform.rotate) || 0;
+    rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
+    let scaleX = transform.flipX ? -1 : 1;
+    let scaleY = transform.flipY ? -1 : 1;
+    preview.style.transform = `rotate(${rotate}deg) scale(${scaleX}, ${scaleY})`;
     preview.src = getTileThumbnailSrc(tileMeta.tileId, 96);
     return;
   }
+
+  preview.style.transform = 'none';
 
   if (!window.SVGTileManager || typeof window.SVGTileManager.getTransformedTilePreview !== 'function') {
     preview.src = getTileThumbnailSrc(tileMeta.tileId, 96);
@@ -450,9 +474,6 @@ function renderAssetInspector() {
   let meta = document.getElementById('assetInspectorMeta');
   let tileNameInput = document.getElementById('assetTileNameInput');
   let moveFamilySelect = document.getElementById('assetMoveFamilySelect');
-  let editorRotateSelect = document.getElementById('assetEditorRotateSelect');
-  let editorFlipX = document.getElementById('assetEditorFlipX');
-  let editorFlipY = document.getElementById('assetEditorFlipY');
   let btnCreateEdited = document.getElementById('btnCreateEditedTile');
 
   if (thumb) thumb.src = getTileThumbnailSrc(tileMeta.tileId, 72);
@@ -469,17 +490,12 @@ function renderAssetInspector() {
     moveFamilySelect.value = tileMeta.familyLabel;
   }
 
-  if (editorRotateSelect) editorRotateSelect.value = String(assetsUiState.editorTransform.rotate || 0);
-  if (editorFlipX) editorFlipX.checked = !!assetsUiState.editorTransform.flipX;
-  if (editorFlipY) editorFlipY.checked = !!assetsUiState.editorTransform.flipY;
-
   let canEditUploaded = !!tileMeta.uploaded;
-  if (editorRotateSelect) editorRotateSelect.disabled = !canEditUploaded;
-  if (editorFlipX) editorFlipX.disabled = !canEditUploaded;
-  if (editorFlipY) editorFlipY.disabled = !canEditUploaded;
-  if (btnCreateEdited) btnCreateEdited.disabled = !canEditUploaded;
+  let canEditInEditor = true;
+  if (btnCreateEdited) btnCreateEdited.disabled = !canEditInEditor;
 
   updateEditorTransformFromControls();
+  renderEditorToolbarState(canEditInEditor);
   renderEditorPreview(tileMeta);
 }
 
@@ -796,23 +812,56 @@ function setupSvgUploadUI() {
     });
   }
 
-  let editorRotateSelect = document.getElementById('assetEditorRotateSelect');
-  let editorFlipX = document.getElementById('assetEditorFlipX');
-  let editorFlipY = document.getElementById('assetEditorFlipY');
+  let btnRotateCCW = document.getElementById('btnEditorRotateCCW');
+  let btnRotateCW = document.getElementById('btnEditorRotateCW');
+  let btnMirrorX = document.getElementById('btnEditorMirrorX');
+  let btnMirrorY = document.getElementById('btnEditorMirrorY');
 
-  const onEditorControlChange = () => {
+  const rerenderEditorFromState = () => {
     updateEditorTransformFromControls();
-    renderEditorPreview(getSelectedTileMeta());
+    let tileMeta = getSelectedTileMeta();
+    renderEditorToolbarState(!!tileMeta);
+    renderEditorPreview(tileMeta);
   };
 
-  if (editorRotateSelect) {
-    editorRotateSelect.addEventListener('change', onEditorControlChange);
+  if (btnRotateCCW) {
+    btnRotateCCW.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta) return;
+      assetsUiState.editorTransform.rotate = (Number(assetsUiState.editorTransform.rotate) || 0) - 90;
+      rerenderEditorFromState();
+    });
   }
-  if (editorFlipX) {
-    editorFlipX.addEventListener('change', onEditorControlChange);
+
+  if (btnRotateCW) {
+    btnRotateCW.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta) return;
+      assetsUiState.editorTransform.rotate = (Number(assetsUiState.editorTransform.rotate) || 0) + 90;
+      rerenderEditorFromState();
+    });
   }
-  if (editorFlipY) {
-    editorFlipY.addEventListener('change', onEditorControlChange);
+
+  if (btnMirrorX) {
+    btnMirrorX.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta) return;
+      assetsUiState.editorTransform.flipX = !assetsUiState.editorTransform.flipX;
+      rerenderEditorFromState();
+    });
+  }
+
+  if (btnMirrorY) {
+    btnMirrorY.addEventListener('click', (e) => {
+      e.preventDefault();
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta) return;
+      assetsUiState.editorTransform.flipY = !assetsUiState.editorTransform.flipY;
+      rerenderEditorFromState();
+    });
   }
 
   let btnCreateEditedTile = document.getElementById('btnCreateEditedTile');
@@ -820,17 +869,27 @@ function setupSvgUploadUI() {
     btnCreateEditedTile.addEventListener('click', (e) => {
       e.preventDefault();
       let tileMeta = getSelectedTileMeta();
-      if (!tileMeta || !tileMeta.uploaded) {
-        setSvgStatus('Tile editor is available for uploaded tiles only.', 'error');
+      if (!tileMeta) {
+        setSvgStatus('Select a tile first.', 'error');
         return;
       }
 
       try {
-        if (!window.SVGTileManager || typeof window.SVGTileManager.createEditedTile !== 'function') {
-          throw new Error('Editor API not available.');
-        }
         updateEditorTransformFromControls();
-        let created = window.SVGTileManager.createEditedTile(tileMeta.tileId, assetsUiState.editorTransform);
+        let created;
+        if (tileMeta.uploaded) {
+          if (!window.SVGTileManager || typeof window.SVGTileManager.createEditedTile !== 'function') {
+            throw new Error('Editor API not available.');
+          }
+          created = window.SVGTileManager.createEditedTile(tileMeta.tileId, assetsUiState.editorTransform);
+        } else {
+          if (typeof window.createDerivedTileFromExisting !== 'function') {
+            throw new Error('Built-in editor API not available.');
+          }
+          created = window.createDerivedTileFromExisting(tileMeta.tileId, assetsUiState.editorTransform, {
+            familyLabel: tileMeta.familyLabel
+          });
+        }
         setSvgStatus(`Edited tile created: #${created.tileId}.`, 'success');
         refreshTileCatalogUI([created.tileId]);
       } catch (err) {
