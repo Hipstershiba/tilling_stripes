@@ -58,11 +58,18 @@ You can now add custom SVG files directly from the UI:
 What happens after import:
 
 - New tiles are added to the tile selector and brush palette.
+- Uploaded tiles get generated thumbnails after import.
 - Imported tiles are automatically included in `Allowed Tiles`.
 - The family list is updated with tile counts.
 - `Rotate` mode cycles through members of the same family, including uploaded ones.
 - Uploads are persisted in browser `localStorage` and restored when reopening the page.
 - You can remove individual uploaded tiles or entire uploaded families from the `Uploaded Library` section.
+- SVG dimensions are normalized to a square tile space automatically.
+
+Backup controls (`Assets` tab):
+
+- `Export Backup`: downloads a JSON backup of uploaded SVG tiles.
+- `Import Backup`: restores uploaded SVG tiles from a backup JSON file (deduplicated import).
 
 Technical note:
 
