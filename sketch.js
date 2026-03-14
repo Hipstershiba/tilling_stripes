@@ -535,6 +535,7 @@ function setupSvgUploadUI() {
   let btnAdd = document.getElementById('btnAddSvgTiles');
   let btnExportBackup = document.getElementById('btnExportSvgBackup');
   let btnImportBackup = document.getElementById('btnImportSvgBackup');
+  let btnRestoreBuiltins = document.getElementById('btnRestoreBuiltins');
   let btnCreateFamily = document.getElementById('btnCreateFamily');
   let btnRenameFamilyFromList = document.getElementById('btnRenameFamilyFromList');
   let btnRemoveFamilyFromList = document.getElementById('btnRemoveFamilyFromList');
@@ -589,6 +590,28 @@ function setupSvgUploadUI() {
         }
       } catch (err) {
         setSvgStatus(`Backup import failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnRestoreBuiltins) {
+    btnRestoreBuiltins.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof window.restoreBuiltInRegistryDefaults !== 'function') {
+        setSvgStatus('Built-in restore API not available.', 'error');
+        return;
+      }
+
+      if (!window.confirm('Restore built-in tile names and families to default? Uploaded/custom tiles will be preserved.')) {
+        return;
+      }
+
+      try {
+        window.restoreBuiltInRegistryDefaults();
+        setSvgStatus('Built-ins restored to default layout.', 'success');
+        refreshTileCatalogUI();
+      } catch (err) {
+        setSvgStatus(`Built-in restore failed: ${err.message || err}`, 'error');
       }
     });
   }
@@ -677,11 +700,6 @@ function setupSvgUploadUI() {
       }
 
       let currentFamily = assetsUiState.selectedFamily;
-      if (currentFamily.startsWith('builtin-')) {
-        setSvgStatus('Built-in families cannot be renamed.', 'error');
-        return;
-      }
-
       let input = document.getElementById('assetRenameFamilyInput');
       let newFamilyLabel = input ? input.value.trim() : '';
       if (!newFamilyLabel) {

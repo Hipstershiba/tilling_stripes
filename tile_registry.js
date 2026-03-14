@@ -941,6 +941,45 @@ registerTile({
     }
 });
 
+const DEFAULT_BUILTIN_TILE_LIMIT = TILE_RENDERERS.length;
+const DEFAULT_TILE_NAMES = TILE_NAMES.slice(0, DEFAULT_BUILTIN_TILE_LIMIT);
+const DEFAULT_TILE_FAMILIES = TILE_FAMILIES.map((members) => members.slice());
+const DEFAULT_TILE_FAMILY_LABELS = TILE_FAMILY_INDEX_TO_LABEL.slice();
+
+function restoreBuiltInRegistryDefaults() {
+    // Restore default names for built-in tile ids only.
+    for (let i = 0; i < DEFAULT_TILE_NAMES.length; i++) {
+        TILE_NAMES[i] = DEFAULT_TILE_NAMES[i];
+    }
+
+    // Keep uploaded/custom tile placements, but remove built-in ids from all current families.
+    let preservedMembersByFamily = TILE_FAMILIES.map((members = []) =>
+        members.filter((id) => Number.isInteger(id) && id >= DEFAULT_BUILTIN_TILE_LIMIT && id < TILE_RENDERERS.length)
+    );
+
+    let requiredFamilies = Math.max(DEFAULT_TILE_FAMILIES.length, preservedMembersByFamily.length);
+    while (TILE_FAMILIES.length < requiredFamilies) TILE_FAMILIES.push([]);
+    while (TILE_FAMILY_INDEX_TO_LABEL.length < requiredFamilies) TILE_FAMILY_INDEX_TO_LABEL.push('');
+
+    for (let i = 0; i < requiredFamilies; i++) {
+        TILE_FAMILIES[i] = preservedMembersByFamily[i] ? preservedMembersByFamily[i].slice() : [];
+    }
+
+    // Re-insert built-in tile assignments and default labels.
+    for (let i = 0; i < DEFAULT_TILE_FAMILIES.length; i++) {
+        let defaults = DEFAULT_TILE_FAMILIES[i] || [];
+        for (let id of defaults) {
+            if (!TILE_FAMILIES[i].includes(id)) {
+                TILE_FAMILIES[i].push(id);
+            }
+        }
+        TILE_FAMILY_INDEX_TO_LABEL[i] = DEFAULT_TILE_FAMILY_LABELS[i] || `builtin-${i}`;
+    }
+
+    rebuildFamilyLabelIndexMap();
+    return true;
+}
+
 if (typeof window !== 'undefined') {
     window.TILE_RENDERERS = TILE_RENDERERS;
     window.TILE_NAMES = TILE_NAMES;
@@ -955,6 +994,7 @@ if (typeof window !== 'undefined') {
     window.removeTileFamily = removeTileFamily;
     window.getTileRegistrySnapshot = getTileRegistrySnapshot;
     window.applyTileRegistrySnapshot = applyTileRegistrySnapshot;
+    window.restoreBuiltInRegistryDefaults = restoreBuiltInRegistryDefaults;
 } else if (typeof module !== 'undefined') {
     module.exports = {
         TILE_RENDERERS,
@@ -969,6 +1009,7 @@ if (typeof window !== 'undefined') {
         renameTileName,
         removeTileFamily,
         getTileRegistrySnapshot,
-        applyTileRegistrySnapshot
+        applyTileRegistrySnapshot,
+        restoreBuiltInRegistryDefaults
     };
 }
