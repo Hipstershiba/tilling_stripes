@@ -542,7 +542,17 @@
     return restoredIds;
   }
 
-  function buildBackupPayload() {
+  function normalizeBackupScope(scope) {
+    let clean = (scope || 'full').toString().trim().toLowerCase();
+    if (clean === 'tiles' || clean === 'layout' || clean === 'full') return clean;
+    return 'full';
+  }
+
+  function buildBackupPayload(options = {}) {
+    const scope = normalizeBackupScope(options.scope);
+    const includeTiles = scope !== 'layout';
+    const includeLayout = scope !== 'tiles';
+
     const registrySnapshot = (typeof window.getTileRegistrySnapshot === 'function')
       ? window.getTileRegistrySnapshot()
       : null;
@@ -550,14 +560,16 @@
     return {
       app: 'tilling_stripes',
       version: BACKUP_VERSION,
+      scope,
       exportedAt: new Date().toISOString(),
-      tiles: getStoredEntries(),
-      registry: registrySnapshot
+      tiles: includeTiles ? getStoredEntries() : [],
+      hiddenTileIds: includeLayout ? Array.from(hiddenTileIds) : [],
+      registry: includeLayout ? registrySnapshot : null
     };
   }
 
-  function downloadBackup(filename = null) {
-    const payload = buildBackupPayload();
+  function downloadBackup(filename = null, options = {}) {
+    const payload = buildBackupPayload(options);
     const finalName = filename || `tilling_stripes_svg_backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -577,7 +589,7 @@
     return [];
   }
 
-  function importBackupText(text) {
+  function importBackupText(text, options = {}) {
     let parsed;
     try {
       parsed = JSON.parse(text);
@@ -585,46 +597,94 @@
       throw new Error('Backup JSON invalido.');
     }
 
+    const scope = normalizeBackupScope(options.scope || parsed?.scope || 'full');
+    const applyTiles = scope !== 'layout';
+    const applyLayout = scope !== 'tiles';
     const incoming = normalizeBackupInput(parsed);
     let imported = 0;
     let skipped = 0;
     let ids = [];
     let registryApplied = false;
 
-    for (const entry of incoming) {
-      if (!entry || typeof entry.svgMarkup !== 'string') {
-        skipped++;
-        continue;
+    if (applyTiles) {
+      for (const entry of incoming) {
+        if (!entry || typeof entry.svgMarkup !== 'string') {
+          skipped++;
+          continue;
+        }
+
+        const name = (entry.name || 'Uploaded SVG').trim();
+        const familyLabel = (entry.familyLabel || 'uploads').trim() || 'uploads';
+        const entryId = entry.id || null;
+
+        if (hasStoredEntry(entryId, name, familyLabel, entry.svgMarkup)) {
+          skipped++;
+          continue;
+        }
+
+        const asset = registerUploadedSvgTile({
+          name,
+          familyLabel,
+          svgText: entry.svgMarkup
+        }, {
+          persist: true,
+          entryId: entryId || createEntryId()
+        });
+
+        imported++;
+        ids.push(asset.tileId);
       }
-
-      const name = (entry.name || 'Uploaded SVG').trim();
-      const familyLabel = (entry.familyLabel || 'uploads').trim() || 'uploads';
-      const entryId = entry.id || null;
-
-      if (hasStoredEntry(entryId, name, familyLabel, entry.svgMarkup)) {
-        skipped++;
-        continue;
-      }
-
-      const asset = registerUploadedSvgTile({
-        name,
-        familyLabel,
-        svgText: entry.svgMarkup
-      }, {
-        persist: true,
-        entryId: entryId || createEntryId()
-      });
-
-      imported++;
-      ids.push(asset.tileId);
     }
 
-    if (parsed && parsed.registry && typeof window.applyTileRegistrySnapshot === 'function') {
+    if (applyLayout && parsed && parsed.registry && typeof window.applyTileRegistrySnapshot === 'function') {
       window.applyTileRegistrySnapshot(parsed.registry);
       registryApplied = true;
     }
 
+    if (applyLayout && parsed && Array.isArray(parsed.hiddenTileIds)) {
+      setHiddenTileIds(parsed.hiddenTileIds, { keepUploadedVisible: true });
+    }
+
     return { imported, skipped, ids, registryApplied };
+  }
+
+  function setHiddenTileIds(ids, options = {}) {
+    hiddenTileIds.clear();
+
+    if (Array.isArray(ids)) {
+      for (const id of ids) {
+        if (!Number.isInteger(id) || id < 0) continue;
+        hiddenTileIds.add(id);
+      }
+    }
+
+    if (options.keepUploadedVisible !== false) {
+      for (const tile of uploadedSvgTiles) {
+        hiddenTileIds.delete(tile.tileId);
+      }
+    }
+
+    return hiddenTileIds.size;
+  }
+
+  function hideTile(tileId) {
+    if (!Number.isInteger(tileId) || tileId < 0) return false;
+    hiddenTileIds.add(tileId);
+    return true;
+  }
+
+  function restoreBuiltInVisibility(builtinTileLimit) {
+    let limit = Number.isInteger(builtinTileLimit) && builtinTileLimit > 0
+      ? builtinTileLimit
+      : 0;
+
+    if (limit <= 0) return 0;
+
+    let restored = 0;
+    for (let id = 0; id < limit; id++) {
+      if (hiddenTileIds.delete(id)) restored++;
+    }
+    return restored;
   }
 
   function exportHistoryState() {
@@ -921,6 +981,9 @@
     importBackupText,
     exportHistoryState,
     importHistoryState,
+    hideTile,
+    setHiddenTileIds,
+    restoreBuiltInVisibility,
     renameUploadedFamily,
     renameUploadedTile,
     moveUploadedTileToFamily,

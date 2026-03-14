@@ -348,19 +348,6 @@
                   <button id="btnRenameFamilyFromList" class="btn-accent">Rename Family</button>
                 </div>
 
-                <div class="row backup-row">
-                  <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
-                  <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
-                  <button id="btnRestoreBuiltins" title="Restore built-in tile names/families to default">Restore Built-ins</button>
-                  <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
-                </div>
-
-                <div class="row assets-history-row">
-                  <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
-                  <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
-                  <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
-                </div>
-
                 <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
 
                 <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
@@ -371,75 +358,108 @@
               </div>
             </div>
 
-            <div class="control-group no-collapse">
-              <label><span>Inspector</span></label>
-              <div class="group-content" id="assetInspectorEmpty">
-                <div class="status-text assets-helper-note">Select a tile to edit it.</div>
-              </div>
-              <div class="group-content" id="assetInspectorContent" style="display:none; gap:10px;">
-                <div class="asset-inspector-head">
-                  <div class="asset-inspector-thumb"><img id="assetInspectorThumb" alt="Selected tile preview"></div>
-                  <div>
-                    <div id="assetInspectorTitle" class="library-item-name"></div>
-                    <div id="assetInspectorMeta" class="library-item-family"></div>
-                  </div>
+            <div class="assets-side-stack">
+              <div class="control-group no-collapse" id="assetInspectorCard">
+                <label><span>Inspector</span></label>
+                <div class="group-content" id="assetInspectorEmpty">
+                  <div class="status-text assets-helper-note">Select a tile to edit it.</div>
                 </div>
-
-                <label>Rename Tile</label>
-                <div class="row">
-                  <input type="text" id="assetTileNameInput" placeholder="Tile name">
-                  <button id="btnApplyTileRename" class="btn-accent">Apply</button>
-                </div>
-
-                <label>Move To Family</label>
-                <div class="row">
-                  <select id="assetMoveFamilySelect"></select>
-                  <button id="btnMoveTileFamily" class="btn-accent">Move</button>
-                </div>
-
-                <label>Tile Editor</label>
-                <div class="asset-editor-box">
-                  <div class="asset-editor-toolbar" aria-label="Tile transform tools">
-                    <button id="btnEditorRotateCCW" class="asset-editor-btn" title="Rotate counter-clockwise"
-                      aria-label="Rotate counter-clockwise" type="button">
-                      <svg viewBox="-1 -1 26 26" aria-hidden="true">
-                        <path d="M10 6L6 10l4 4"></path>
-                        <path d="M6.5 10H12a7 7 0 1 1-7 7"></path>
-                      </svg>
-                    </button>
-                    <button id="btnEditorRotateCW" class="asset-editor-btn" title="Rotate clockwise"
-                      aria-label="Rotate clockwise" type="button">
-                      <svg viewBox="-1 -1 26 26" aria-hidden="true">
-                        <path d="M14 6l4 4-4 4"></path>
-                        <path d="M17.5 10H12a7 7 0 1 0 7 7"></path>
-                      </svg>
-                    </button>
-                    <button id="btnEditorMirrorX" class="asset-editor-btn" title="Mirror horizontally"
-                      aria-label="Mirror horizontally" type="button">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 4v16"></path>
-                        <rect x="4" y="7" width="6" height="10" rx="1"></rect>
-                        <rect x="14" y="7" width="6" height="10" rx="1"></rect>
-                      </svg>
-                    </button>
-                    <button id="btnEditorMirrorY" class="asset-editor-btn" title="Mirror vertically"
-                      aria-label="Mirror vertically" type="button">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 12h16"></path>
-                        <rect x="7" y="4" width="10" height="6" rx="1"></rect>
-                        <rect x="7" y="14" width="10" height="6" rx="1"></rect>
-                      </svg>
-                    </button>
+                <div class="group-content" id="assetInspectorContent" style="display:none; gap:10px;">
+                  <div class="asset-inspector-head">
+                    <div class="asset-inspector-thumb"><img id="assetInspectorThumb" alt="Selected tile preview"></div>
+                    <div>
+                      <div id="assetInspectorTitle" class="library-item-name"></div>
+                      <div id="assetInspectorMeta" class="library-item-family"></div>
+                    </div>
                   </div>
-                  <div class="asset-editor-preview">
-                    <img id="assetEditorPreview" alt="Tile editor preview">
-                  </div>
+
+                  <label>Rename Tile</label>
                   <div class="row">
-                    <button id="btnCreateEditedTile" class="btn-accent">Create Edited Tile</button>
+                    <input type="text" id="assetTileNameInput" placeholder="Tile name">
+                    <button id="btnApplyTileRename" class="btn-accent">Apply</button>
+                  </div>
+
+                  <label>Move To Family</label>
+                  <div class="row">
+                    <select id="assetMoveFamilySelect"></select>
+                    <button id="btnMoveTileFamily" class="btn-accent">Move</button>
+                  </div>
+
+                  <label>Tile Editor</label>
+                  <div class="asset-editor-box">
+                    <div class="asset-editor-toolbar" aria-label="Tile transform tools">
+                      <button id="btnEditorRotateCCW" class="asset-editor-btn" title="Rotate counter-clockwise"
+                        aria-label="Rotate counter-clockwise" type="button">
+                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
+                          <path d="M10 6L6 10l4 4"></path>
+                          <path d="M6.5 10H12a7 7 0 1 1-7 7"></path>
+                        </svg>
+                      </button>
+                      <button id="btnEditorRotateCW" class="asset-editor-btn" title="Rotate clockwise"
+                        aria-label="Rotate clockwise" type="button">
+                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
+                          <path d="M14 6l4 4-4 4"></path>
+                          <path d="M17.5 10H12a7 7 0 1 0 7 7"></path>
+                        </svg>
+                      </button>
+                      <button id="btnEditorMirrorX" class="asset-editor-btn" title="Mirror horizontally"
+                        aria-label="Mirror horizontally" type="button">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 4v16"></path>
+                          <rect x="4" y="7" width="6" height="10" rx="1"></rect>
+                          <rect x="14" y="7" width="6" height="10" rx="1"></rect>
+                        </svg>
+                      </button>
+                      <button id="btnEditorMirrorY" class="asset-editor-btn" title="Mirror vertically"
+                        aria-label="Mirror vertically" type="button">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M4 12h16"></path>
+                          <rect x="7" y="4" width="10" height="6" rx="1"></rect>
+                          <rect x="7" y="14" width="10" height="6" rx="1"></rect>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="asset-editor-preview">
+                      <img id="assetEditorPreview" alt="Tile editor preview">
+                    </div>
+                    <div class="row">
+                      <button id="btnCreateEditedTile" class="btn-accent">Create Edited Tile</button>
+                    </div>
+                  </div>
+
+                  <button id="btnRemoveSelectedTile" class="btn-danger">Remove Tile</button>
+                </div>
+              </div>
+
+              <div class="control-group no-collapse assets-ops-card">
+                <label><span>Actions</span></label>
+                <div class="group-content">
+                  <div class="row assets-scope-row">
+                    <label for="assetBackupScope">Backup/Restore Scope</label>
+                    <select id="assetBackupScope">
+                      <option value="full" selected>Full (Files + Organization)</option>
+                      <option value="tiles">Files Only (Imported Tiles)</option>
+                      <option value="layout">Organization Only (Families, Names, Visibility)</option>
+                    </select>
+                  </div>
+                  <div id="assetBackupScopeHelp" class="status-text assets-helper-note">
+                    Full: saves both imported tile files and organization (families, names, visibility).
+                  </div>
+
+                  <div class="row backup-row">
+                    <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
+                    <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
+                    <button id="btnRestoreBuiltins"
+                      title="Restore built-in tile names/families/visibility to default">Restore Built-ins</button>
+                    <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+                  </div>
+
+                  <div class="row assets-history-row">
+                    <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
+                    <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
+                    <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
                   </div>
                 </div>
-
-                <button id="btnRemoveSelectedTile" class="btn-danger">Remove Tile</button>
               </div>
             </div>
           </div>

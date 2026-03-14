@@ -428,7 +428,8 @@ body.assets-focus #exportActions {
   overflow: hidden;
 }
 
-#tab-assets .assets-main-grid>.control-group {
+#tab-assets .assets-main-grid>.control-group,
+#tab-assets .assets-side-stack>.control-group {
   height: auto;
   min-height: 0;
   overflow: hidden;
@@ -438,7 +439,8 @@ body.assets-focus #exportActions {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-#tab-assets .assets-main-grid>.control-group>.group-content {
+#tab-assets .assets-main-grid>.control-group>.group-content,
+#tab-assets .assets-side-stack>.control-group>.group-content {
   min-height: 0;
   overflow: hidden;
   border-radius: 6px;
@@ -455,6 +457,23 @@ body.assets-focus #exportActions {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+#tab-assets .assets-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#assetInspectorCard {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.assets-ops-card {
+  flex: 0 0 auto;
 }
 
 #tab-assets .control-group {
@@ -507,6 +526,30 @@ body.assets-focus #exportActions {
   margin-left: auto;
   text-align: right;
   white-space: nowrap;
+}
+
+.assets-scope-row {
+  align-items: center;
+  gap: 8px;
+}
+
+.assets-scope-row label {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #9ba3ab;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 0 0 auto;
+}
+
+#assetBackupScope {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 6px;
+  border-radius: 4px;
 }
 
 .assets-helper-note {

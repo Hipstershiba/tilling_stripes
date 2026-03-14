@@ -822,10 +822,6 @@ function removeTileFamily(label) {
     }
 
     let clean = label.trim();
-    if (clean.startsWith('builtin-')) {
-        throw new Error('Built-in families cannot be removed');
-    }
-
     let familyIndex = getFamilyIndexByLabel(clean);
     if (familyIndex === null) {
         throw new Error(`Family "${clean}" not found`);
@@ -1187,6 +1183,7 @@ function restoreBuiltInRegistryDefaults() {
 }
 
 if (typeof window !== 'undefined') {
+    window.DEFAULT_BUILTIN_TILE_LIMIT = DEFAULT_BUILTIN_TILE_LIMIT;
     window.TILE_RENDERERS = TILE_RENDERERS;
     window.TILE_NAMES = TILE_NAMES;
     window.TILE_FAMILIES = TILE_FAMILIES;
