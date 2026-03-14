@@ -651,6 +651,11 @@ const TILE_FAMILY_LABEL_TO_INDEX = {};
 const TILE_FAMILY_INDEX_TO_LABEL = TILE_FAMILIES.map((_, idx) => `builtin-${idx}`);
 const TILE_DERIVED_DEFINITIONS = [];
 
+// Seed label->index map for built-in families.
+for (let i = 0; i < TILE_FAMILY_INDEX_TO_LABEL.length; i++) {
+    TILE_FAMILY_LABEL_TO_INDEX[TILE_FAMILY_INDEX_TO_LABEL[i]] = i;
+}
+
 function resolveFamilyIndex(family) {
     if (family === undefined || family === null) return null;
 
@@ -753,6 +758,40 @@ function moveTileToFamily(tileId, targetFamily) {
     }
 
     return targetIndex;
+}
+
+function removeTileFromFamily(tileId, familyLabel = null) {
+    if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid tile id');
+    }
+
+    if (familyLabel !== null && familyLabel !== undefined) {
+        if (typeof familyLabel !== 'string' || familyLabel.trim() === '') {
+            throw new Error('familyLabel must be a non-empty string when provided');
+        }
+
+        let familyIndex = getFamilyIndexByLabel(familyLabel.trim());
+        if (familyIndex === null) {
+            throw new Error(`Family "${familyLabel}" not found`);
+        }
+
+        let idx = TILE_FAMILIES[familyIndex].indexOf(tileId);
+        if (idx !== -1) {
+            TILE_FAMILIES[familyIndex].splice(idx, 1);
+            return true;
+        }
+        return false;
+    }
+
+    let removed = false;
+    for (let i = 0; i < TILE_FAMILIES.length; i++) {
+        let idx = TILE_FAMILIES[i].indexOf(tileId);
+        if (idx !== -1) {
+            TILE_FAMILIES[i].splice(idx, 1);
+            removed = true;
+        }
+    }
+    return removed;
 }
 
 function renameTileName(tileId, newName) {
@@ -1081,28 +1120,66 @@ function restoreBuiltInRegistryDefaults() {
         TILE_NAMES[i] = DEFAULT_TILE_NAMES[i];
     }
 
-    // Keep uploaded/custom tile placements, but remove built-in ids from all current families.
-    let preservedMembersByFamily = TILE_FAMILIES.map((members = []) =>
-        members.filter((id) => Number.isInteger(id) && id >= DEFAULT_BUILTIN_TILE_LIMIT && id < TILE_RENDERERS.length)
-    );
+    const builtinFamilyCount = DEFAULT_TILE_FAMILIES.length;
+    const customIdsInBuiltins = [];
+    const preservedExtraFamilies = [];
 
-    let requiredFamilies = Math.max(DEFAULT_TILE_FAMILIES.length, preservedMembersByFamily.length);
-    while (TILE_FAMILIES.length < requiredFamilies) TILE_FAMILIES.push([]);
-    while (TILE_FAMILY_INDEX_TO_LABEL.length < requiredFamilies) TILE_FAMILY_INDEX_TO_LABEL.push('');
+    // Preserve custom/uploaded tiles from non-built-in families only.
+    // Any custom tile currently inside a built-in family is moved out to a fallback family.
+    for (let i = 0; i < TILE_FAMILIES.length; i++) {
+        let members = Array.isArray(TILE_FAMILIES[i]) ? TILE_FAMILIES[i] : [];
+        let customMembers = members.filter((id) => Number.isInteger(id) && id >= DEFAULT_BUILTIN_TILE_LIMIT && id < TILE_RENDERERS.length);
+        if (customMembers.length === 0) continue;
 
-    for (let i = 0; i < requiredFamilies; i++) {
-        TILE_FAMILIES[i] = preservedMembersByFamily[i] ? preservedMembersByFamily[i].slice() : [];
+        if (i < builtinFamilyCount) {
+            customIdsInBuiltins.push(...customMembers);
+            continue;
+        }
+
+        let label = (TILE_FAMILY_INDEX_TO_LABEL[i] || `family-${i}`).trim();
+        preservedExtraFamilies.push({ label, members: customMembers.slice() });
     }
 
-    // Re-insert built-in tile assignments and default labels.
-    for (let i = 0; i < DEFAULT_TILE_FAMILIES.length; i++) {
-        let defaults = DEFAULT_TILE_FAMILIES[i] || [];
-        for (let id of defaults) {
-            if (!TILE_FAMILIES[i].includes(id)) {
-                TILE_FAMILIES[i].push(id);
-            }
-        }
+    TILE_FAMILIES.length = 0;
+    TILE_FAMILY_INDEX_TO_LABEL.length = 0;
+
+    for (let i = 0; i < builtinFamilyCount; i++) {
+        TILE_FAMILIES[i] = (DEFAULT_TILE_FAMILIES[i] || []).slice();
         TILE_FAMILY_INDEX_TO_LABEL[i] = DEFAULT_TILE_FAMILY_LABELS[i] || `builtin-${i}`;
+    }
+
+    const usedLabels = new Set(TILE_FAMILY_INDEX_TO_LABEL);
+    const assignedCustomIds = new Set();
+
+    const addFamily = (baseLabel, members) => {
+        if (!Array.isArray(members) || members.length === 0) return;
+        let uniqueMembers = [];
+        for (let id of members) {
+            if (assignedCustomIds.has(id)) continue;
+            assignedCustomIds.add(id);
+            uniqueMembers.push(id);
+        }
+        if (uniqueMembers.length === 0) return;
+
+        let cleanBase = (baseLabel || 'custom-restored').trim() || 'custom-restored';
+        let label = cleanBase;
+        let suffix = 1;
+        while (usedLabels.has(label)) {
+            label = `${cleanBase}-${suffix}`;
+            suffix++;
+        }
+
+        usedLabels.add(label);
+        TILE_FAMILY_INDEX_TO_LABEL.push(label);
+        TILE_FAMILIES.push(uniqueMembers);
+    };
+
+    for (let entry of preservedExtraFamilies) {
+        addFamily(entry.label, entry.members);
+    }
+
+    if (customIdsInBuiltins.length > 0) {
+        addFamily('custom-restored', customIdsInBuiltins);
     }
 
     rebuildFamilyLabelIndexMap();
@@ -1119,6 +1196,7 @@ if (typeof window !== 'undefined') {
     window.createOrGetTileFamily = createOrGetTileFamily;
     window.renameTileFamilyLabel = renameTileFamilyLabel;
     window.moveTileToFamily = moveTileToFamily;
+    window.removeTileFromFamily = removeTileFromFamily;
     window.renameTileName = renameTileName;
     window.removeTileFamily = removeTileFamily;
     window.createDerivedTileFromExisting = createDerivedTileFromExisting;
@@ -1136,6 +1214,7 @@ if (typeof window !== 'undefined') {
         createOrGetTileFamily,
         renameTileFamilyLabel,
         moveTileToFamily,
+        removeTileFromFamily,
         renameTileName,
         removeTileFamily,
         createDerivedTileFromExisting,

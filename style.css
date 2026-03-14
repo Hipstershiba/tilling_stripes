@@ -1067,6 +1067,123 @@ body.assets-focus #exportActions {
   /* Force flex display when active */
 }
 
+#tab-setup {
+  overflow: hidden;
+  padding-right: 6px;
+}
+
+#tab-setup .setup-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 8px;
+  scrollbar-width: auto;
+  scrollbar-color: #565656 #1c1c1c;
+}
+
+#tab-setup .setup-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  padding-top: 6px;
+  border-top: 1px solid #353535;
+}
+
+#tab-setup .setup-quick-actions button {
+  background: #2f2f2f;
+  border: 1px solid #434343;
+  color: #d6d6d6;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 9px 10px;
+}
+
+#tab-setup .setup-quick-actions button:hover {
+  background: #393939;
+  color: #ffffff;
+}
+
+#tab-setup .setup-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+#tab-setup .setup-scroll::-webkit-scrollbar-track {
+  background: #1c1c1c;
+  border-radius: 8px;
+}
+
+#tab-setup .setup-scroll::-webkit-scrollbar-thumb {
+  background: #565656;
+  border-radius: 8px;
+}
+
+#tab-setup .control-group {
+  gap: 6px;
+  padding: 10px;
+}
+
+#tab-setup .control-group.seed-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  border-color: #3a3a3a;
+  background: #2b2b2b;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 6px 10px rgba(0, 0, 0, 0.16);
+}
+
+#tab-setup .control-group label {
+  cursor: default;
+}
+
+#tab-setup .control-group label::after {
+  display: none;
+}
+
+#tab-setup .group-summary {
+  display: none !important;
+}
+
+#tab-setup .tile-selector-group {
+  flex: none;
+  min-height: 0;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  border-top: none;
+  padding-top: 0 !important;
+  overflow: hidden;
+  display: flex !important;
+  flex-direction: column;
+}
+
+#tab-setup .tile-selector-group .group-content {
+  flex: none !important;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tab-setup .tile-selector-group>label {
+  position: static;
+  padding: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+#tab-setup #tileSelector {
+  flex: none;
+  min-height: 130px;
+  max-height: var(--setup-allowed-max-height, 280px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 @media (max-width: 1360px) {
   #tab-assets.tab-content {
     --assets-family-col-min: 180px;
@@ -1322,9 +1439,8 @@ body.assets-focus #exportActions {
 
 /* Enhancing Tile Selector visibility */
 #tileSelector {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: min-content;
+  display: flex;
+  flex-direction: column;
   /* Ensure rows respect content height */
   gap: 8px;
   /* Tighter gap */
@@ -1346,6 +1462,31 @@ body.assets-focus #exportActions {
   scrollbar-gutter: stable both-edges;
   padding-right: 14px;
   box-sizing: border-box;
+}
+
+.allowed-family-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.allowed-family-title {
+  font-size: 0.68rem;
+  color: #9aa3ab;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  padding: 2px 2px 0;
+}
+
+.allowed-family-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 #tileSelector::-webkit-scrollbar {
@@ -1444,10 +1585,11 @@ button:hover {
 }
 
 .actions {
-  margin-top: auto;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 #btnSave {

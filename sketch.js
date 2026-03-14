@@ -522,6 +522,7 @@ function renderAssetInspector() {
   let tileNameInput = document.getElementById('assetTileNameInput');
   let moveFamilySelect = document.getElementById('assetMoveFamilySelect');
   let btnCreateEdited = document.getElementById('btnCreateEditedTile');
+  let btnRemoveTile = document.getElementById('btnRemoveSelectedTile');
 
   if (thumb) thumb.src = getTileThumbnailSrc(tileMeta.tileId, 72);
   if (title) title.textContent = `${tileMeta.name} (#${tileMeta.tileId})`;
@@ -540,6 +541,9 @@ function renderAssetInspector() {
   let canEditUploaded = !!tileMeta.uploaded;
   let canEditInEditor = true;
   if (btnCreateEdited) btnCreateEdited.disabled = !canEditInEditor;
+  if (btnRemoveTile) {
+    btnRemoveTile.textContent = tileMeta.uploaded ? 'Remove Tile' : 'Exclude From Family';
+  }
 
   updateEditorTransformFromControls();
   renderEditorToolbarState(canEditInEditor);
@@ -840,10 +844,27 @@ function setupSvgUploadUI() {
     btnRemoveTile.addEventListener('click', (e) => {
       e.preventDefault();
       let tileMeta = getSelectedTileMeta();
-      if (!tileMeta || !tileMeta.uploaded) {
-        setSvgStatus('Only uploaded tiles can be removed.', 'error');
+      if (!tileMeta) {
+        setSvgStatus('Select a tile first.', 'error');
         return;
       }
+
+      if (!tileMeta.uploaded) {
+        if (!window.confirm(`Exclude tile "${tileMeta.name}" from family "${tileMeta.familyLabel}"?`)) return;
+        try {
+          if (typeof window.removeTileFromFamily !== 'function') {
+            throw new Error('Family remove API not available.');
+          }
+          let removed = window.removeTileFromFamily(tileMeta.tileId, tileMeta.familyLabel);
+          if (!removed) throw new Error('Tile is not in the selected family.');
+          setSvgStatus(`Tile "${tileMeta.name}" excluded from "${tileMeta.familyLabel}".`, 'success');
+          refreshTileCatalogUI();
+        } catch (err) {
+          setSvgStatus(`Tile exclude failed: ${err.message || err}`, 'error');
+        }
+        return;
+      }
+
       if (!window.confirm(`Remove uploaded tile "${tileMeta.name}"?`)) return;
       try {
         if (!window.SVGTileManager || typeof window.SVGTileManager.deleteUploadedTile !== 'function') {
@@ -1127,12 +1148,14 @@ function setupUI(mainCanvas) {
     if (!isNaN(val)) { seed = val; initGrid(); }
   });
   
-  select('#btnRandomize').mousePressed(() => {
+  const randomizeSeedAndRegenerate = () => {
     seed = floor(random(10000));
     select('#seedInput').value(seed);
     initGrid();
     if(window.updateAllSummaries) window.updateAllSummaries();
-  });
+  };
+
+  select('#btnRandomize').mousePressed(randomizeSeedAndRegenerate);
   
   // History Button Bindings
   let bPrev = select('#btnPrevSeed');
@@ -1244,8 +1267,17 @@ function setupUI(mainCanvas) {
     });
   }
 
-  select('#selectAll').mousePressed(selectAllTiles);
-  select('#selectNone').mousePressed(selectNoneTiles);
+  let btnSelectAll = select('#selectAll');
+  if (btnSelectAll) btnSelectAll.mousePressed(selectAllTiles);
+
+  let btnSelectNone = select('#selectNone');
+  if (btnSelectNone) btnSelectNone.mousePressed(selectNoneTiles);
+
+  let btnSetupAllTiles = select('#btnSetupAllTiles');
+  if (btnSetupAllTiles) btnSetupAllTiles.mousePressed(selectAllTiles);
+
+  let btnSetupNoTiles = select('#btnSetupNoTiles');
+  if (btnSetupNoTiles) btnSetupNoTiles.mousePressed(selectNoneTiles);
 
   const isMobileInput = () => {
     return window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
@@ -1683,38 +1715,59 @@ function createAllowedTilesList() {
   let container = select('#tileSelector');
   container.html(''); // Clear existing
 
+  let visibleTileIds = [];
   for (let i = 0; i < totalTileTypes; i++) {
-    if (!isTileVisible(i)) continue;
-    // Create wrapper div
+    if (isTileVisible(i)) visibleTileIds.push(i);
+  }
+
+  let groups = [];
+  let seen = new Set();
+  if (typeof window.getTileFamilySummary === 'function') {
+    let summaries = window.getTileFamilySummary() || [];
+    for (let summary of summaries) {
+      if (!summary || !Array.isArray(summary.tileIds)) continue;
+      let ids = summary.tileIds.filter((id) => isTileVisible(id) && !seen.has(id));
+      if (ids.length === 0) continue;
+      ids.forEach((id) => seen.add(id));
+      groups.push({ label: summary.label || `family-${summary.index}`, tileIds: ids });
+    }
+  }
+
+  let ungrouped = visibleTileIds.filter((id) => !seen.has(id));
+  if (ungrouped.length > 0) {
+    groups.push({ label: 'Ungrouped', tileIds: ungrouped });
+  }
+
+  if (groups.length === 0 && visibleTileIds.length > 0) {
+    groups.push({ label: 'All Tiles', tileIds: visibleTileIds.slice() });
+  }
+
+  const createTileOption = (tileId, parentEl) => {
     let div = createDiv('');
     div.class('tile-option');
-    div.attribute('data-type', i);
-    
-    // Restore selection state from global allowedTypes
-    if (allowedTypes.includes(i)) {
-        div.addClass('selected');
+    div.attribute('data-type', tileId);
+
+    if (allowedTypes.includes(tileId)) {
+      div.addClass('selected');
     }
 
-    // Add tooltip
-    if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[i]) {
-        div.attribute('title', `#${i}: ${TILE_NAMES[i]}`);
+    if (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[tileId]) {
+      div.attribute('title', `#${tileId}: ${TILE_NAMES[tileId]}`);
     } else {
-        div.attribute('title', 'Tile #' + i);
+      div.attribute('title', 'Tile #' + tileId);
     }
 
-    div.parent(container);
+    div.parent(parentEl);
 
-    let uploadedMeta = getUploadedTileMeta(i);
+    let uploadedMeta = getUploadedTileMeta(tileId);
     let thumbSrc = uploadedMeta && uploadedMeta.thumbnailDataUrl;
-    
-    // Convert to image element and append to div
     let img;
     if (thumbSrc) {
       img = createImg(thumbSrc);
     } else {
       let gfx = createGraphics(80, 80);
       let c = color(220);
-      let s = new Subtile(80, 80, i);
+      let s = new Subtile(80, 80, tileId);
       s.color = c;
       s.render(gfx, 40, 40);
       img = createImg(gfx.canvas.toDataURL());
@@ -1725,9 +1778,7 @@ function createAllowedTilesList() {
     img.style('display', 'block');
     img.parent(div);
 
-    // Click event
     div.mousePressed(() => {
-      // Normal behavior: Toggle allowed types
       if (div.hasClass('selected')) {
         div.removeClass('selected');
       } else {
@@ -1736,6 +1787,24 @@ function createAllowedTilesList() {
       updateAllowedTypes();
       initGrid();
     });
+  };
+
+  for (let group of groups) {
+    let section = createDiv('');
+    section.class('allowed-family-section');
+    section.parent(container);
+
+    let title = createDiv(`${group.label} (${group.tileIds.length})`);
+    title.class('allowed-family-title');
+    title.parent(section);
+
+    let grid = createDiv('');
+    grid.class('allowed-family-grid');
+    grid.parent(section);
+
+    for (let tileId of group.tileIds) {
+      createTileOption(tileId, grid);
+    }
   }
 }
 
