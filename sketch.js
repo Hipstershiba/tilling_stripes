@@ -2568,6 +2568,18 @@ function handleTileClick(mx, my, modeOverride = null) {
     let oldType = hitInfo.oldType;
     let newType = oldType;
     
+    const resolveMirrorType = (sourceType) => {
+      if (keyIsDown(SHIFT)) {
+        // Shift + Click: Randomize (Reseed)
+        if (allowedTypes && allowedTypes.length > 0) {
+          return random(allowedTypes);
+        }
+        return floor(random(totalTileTypes));
+      }
+      // Standard Click: Cycle Family for this specific source tile.
+      return getNextInFamily(sourceType);
+    };
+
     if (effectiveMode === 'mirror') {
         if (keyIsDown(SHIFT)) {
              // Shift + Click: Randomize (Reseed)
@@ -2607,7 +2619,16 @@ function handleTileClick(mx, my, modeOverride = null) {
     
     // console.log("OldType", oldType, "NewType", newType, "Mode", interactionMode);
 
-    if (oldType === newType && effectiveMode !== 'edit') return; 
+    // In batch mirror scopes, each target computes its own next tile based on its current family.
+    // So we can only early-return safely for non-batch interactions.
+    if (oldType === newType && effectiveMode !== 'edit') {
+      let isBatchMirrorScope = effectiveMode === 'mirror' && (
+        interactionScope === 'supertile'
+        || interactionScope === 'global_pos'
+        || interactionScope === 'global_pos_sym'
+      );
+      if (!isBatchMirrorScope) return;
+    }
     
     // Flag that a modification is happening
     // Note: For 'edit' mode (painting), we might be painting the same color. 
@@ -2632,7 +2653,10 @@ function handleTileClick(mx, my, modeOverride = null) {
     } else if (interactionScope === 'supertile') {
         // Current "Single" behavior: Update mirror-equivalent subtiles in all 4 quadrants of THIS supertile
         for(let t of supertile.tiles) {
-          t.types[activeSubtileIndex] = newType;
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[activeSubtileIndex])
+            : newType;
+          t.types[activeSubtileIndex] = nextType;
             refreshTile(t);
         }
 
@@ -2658,7 +2682,10 @@ function handleTileClick(mx, my, modeOverride = null) {
         for (let s of tiles) {
         let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
         let t = s.tiles[mapped.quadrant]; 
-        t.types[mapped.subtileIndex] = newType;
+        let nextType = (effectiveMode === 'mirror')
+          ? resolveMirrorType(t.types[mapped.subtileIndex])
+          : newType;
+        t.types[mapped.subtileIndex] = nextType;
             refreshTile(t);
         }
     } else if (interactionScope === 'global_pos_sym') {
@@ -2666,7 +2693,10 @@ function handleTileClick(mx, my, modeOverride = null) {
       // Update the same structural subtile slot in all 4 quadrants of ALL supertiles.
         for (let s of tiles) {
         for (let t of s.tiles) {
-          t.types[baseTileSubtileIndex] = newType;
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[baseTileSubtileIndex])
+            : newType;
+          t.types[baseTileSubtileIndex] = nextType;
                 refreshTile(t);
             }
         }
