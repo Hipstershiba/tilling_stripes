@@ -34,6 +34,7 @@
         <div class="tab-nav-bg"></div>
         <button class="tab-btn active" data-tab="setup">Setup</button>
         <button class="tab-btn" data-tab="edit">Edit</button>
+        <button class="tab-btn" data-tab="assets">Assets</button>
       </div>
 
       <!-- TAB CONTENT: SETUP -->
@@ -314,6 +315,30 @@
         </div>
       </div> <!-- End Tab Interact -->
 
+      <!-- TAB CONTENT: ASSETS -->
+      <div id="tab-assets" class="tab-content">
+        <div class="control-group no-collapse" id="svgUploadPanel">
+          <label>
+            <span>Custom SVG Tiles</span>
+          </label>
+          <div class="group-content svg-upload-content">
+            <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
+            <div class="row">
+              <input type="text" id="svgFamilyInput" placeholder="Family name (ex: leaves)">
+              <button id="btnRefreshFamilies" title="Refresh family list">Refresh</button>
+            </div>
+            <select id="svgFamilySelect">
+              <option value="">Use family name above</option>
+            </select>
+            <button id="btnAddSvgTiles">Add SVG Tiles</button>
+            <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
+            <div id="svgFamilyList" class="family-list"></div>
+            <label style="margin-top: 8px;">Uploaded Library</label>
+            <div id="svgLibraryList" class="library-list"></div>
+          </div>
+        </div>
+      </div>
+
 
 
       <div class="control-group actions">
@@ -336,6 +361,7 @@
   </div> <!-- End main-container -->
 
   <script src="tile_registry.js"></script>
+  <script src="svg_tile_manager.js"></script>
   <script src="tile_transforms.js"></script>
   <script src="subtile.js"></script>
   <script src="tiles.js"></script>

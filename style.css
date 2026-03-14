@@ -360,6 +360,127 @@ body.sidebar-closed #canvas-container {
   padding: 0;
 }
 
+#svgUploadPanel {
+  margin-top: 10px;
+}
+
+.svg-upload-content {
+  gap: 10px;
+}
+
+#svgUploadInput,
+#svgFamilyInput,
+#svgFamilySelect {
+  width: 100%;
+  box-sizing: border-box;
+  background: #333;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+#svgFamilySelect {
+  cursor: pointer;
+}
+
+.status-text {
+  font-size: 0.78rem;
+  color: #a8a8a8;
+  line-height: 1.35;
+  border-top: 1px solid #3d3d3d;
+  padding-top: 8px;
+}
+
+.status-text.error {
+  color: #ff9b9b;
+}
+
+.status-text.success {
+  color: #9fe3a7;
+}
+
+.family-list {
+  max-height: 110px;
+  overflow-y: auto;
+  border: 1px solid #3e3e3e;
+  border-radius: 4px;
+  background: #202020;
+  padding: 6px;
+  font-size: 0.74rem;
+  color: #c9c9c9;
+}
+
+.family-list .family-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #303030;
+  padding: 4px 2px;
+}
+
+.family-list .family-item:last-child {
+  border-bottom: none;
+}
+
+.library-list {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #3e3e3e;
+  border-radius: 4px;
+  background: #1b1b1b;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.library-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #303030;
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.library-item-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.library-item-name {
+  color: #e6e6e6;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.library-item-family {
+  color: #9a9a9a;
+  font-size: 0.72rem;
+}
+
+.library-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-danger {
+  background: #7a2f2f;
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 6px 8px;
+}
+
+.btn-danger:hover {
+  background: #984040;
+}
+
 .tile-selector-group {
   flex: 1;
   /* Grow to fill remaining space */
@@ -394,13 +515,14 @@ body.sidebar-closed #canvas-container {
   position: relative;
   height: 36px;
   border: none;
+  --tab-count: 3;
 }
 
 .tab-nav-bg {
   position: absolute;
   top: 2px;
   bottom: 2px;
-  width: calc(50% - 2px);
+  width: calc((100% / var(--tab-count)) - 2px);
   background: #252525;
   border: 1px solid #444;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -413,7 +535,10 @@ body.sidebar-closed #canvas-container {
 
 .tab-nav[data-active="edit"] .tab-nav-bg {
   transform: translateX(100%);
-  left: -2px;
+}
+
+.tab-nav[data-active="assets"] .tab-nav-bg {
+  transform: translateX(200%);
 }
 
 .tab-btn {

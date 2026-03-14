@@ -30,43 +30,38 @@ let editHistoryIndex = -1;
 let isRestoringHistory = false; // Flag to prevent infinite loops during restore
 let hasPendingHistory = false; // Tracks if a gesture modified the state
 
-// Tile Families come from tile_registry metadata (fallback kept for compatibility)
-const TILE_FAMILY_GROUPS =
-  (typeof window !== 'undefined' && Array.isArray(window.TILE_FAMILIES) && window.TILE_FAMILIES.length > 0)
-    ? window.TILE_FAMILIES
-    : [
-        [0, 1, 2, 3],
-        [4, 5, 6, 7],
-        [8, 9, 10, 11],
-        [12, 13, 14, 15],
-        [16, 17],
-        [18, 19],
-        [20, 21, 22, 23],
-        [24, 25],
-        [26, 27],
-        [28, 29, 30, 31],
-        [32, 33, 34, 35],
-        [36, 37],
-        [38, 39, 40, 41],
-        [42],
-        [43, 44]
-      ];
+function getTileFamilies() {
+  if (typeof window !== 'undefined' && Array.isArray(window.TILE_FAMILIES)) {
+    return window.TILE_FAMILIES;
+  }
+  return [];
+}
+
+function syncTotalTileTypes() {
+  if (typeof TILE_RENDERERS !== 'undefined' && Array.isArray(TILE_RENDERERS)) {
+    totalTileTypes = TILE_RENDERERS.length;
+  }
+}
+
+function isTileVisible(tileId) {
+  return !(window.SVGTileManager && typeof window.SVGTileManager.isTileHidden === 'function' && window.SVGTileManager.isTileHidden(tileId));
+}
+
 // Helper to find next family member
 function getNextInFamily(currentType) {
-  for (let family of TILE_FAMILY_GROUPS) {
-        let idx = family.indexOf(currentType);
+  for (let family of getTileFamilies()) {
+    let visibleFamily = family.filter(isTileVisible);
+    let idx = visibleFamily.indexOf(currentType);
         if (idx !== -1) {
-            return family[(idx + 1) % family.length];
+      return visibleFamily[(idx + 1) % visibleFamily.length];
         }
     }
     return currentType; // No family found
 }
 
 function setup() {
-  // Update total types if registry loaded later (unlikely but safe)
-  if (typeof TILE_RENDERERS !== 'undefined') {
-      totalTileTypes = TILE_RENDERERS.length;
-  }
+  // Update total types from registry
+  syncTotalTileTypes();
   // Initial canvas creation
   let canvas = createCanvas(600, 600);
   canvas.parent('canvas-container');
@@ -90,11 +85,258 @@ function setup() {
   // Populate tile selector
   generateTileThumbnails();
 
+  // Setup custom SVG upload panel
+  setupSvgUploadUI();
+
   // Select all by default
   selectAllTiles();
 
   // Initial grid generation
   initGrid();
+}
+
+function setSvgStatus(message, tone = '') {
+  let status = select('#svgUploadStatus');
+  if (!status) return;
+  status.removeClass('error');
+  status.removeClass('success');
+  if (tone) status.addClass(tone);
+  status.html(message);
+}
+
+function refreshFamilyUI() {
+  let familySelect = document.getElementById('svgFamilySelect');
+  let familyList = document.getElementById('svgFamilyList');
+  if (!familySelect || !familyList) return;
+
+  let summary = (typeof window.getTileFamilySummary === 'function')
+    ? window.getTileFamilySummary()
+    : [];
+  let uploadedTiles = (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function')
+    ? window.SVGTileManager.listUploadedSvgTiles()
+    : [];
+  let uploadedFamilies = new Set(uploadedTiles.map((item) => item.familyLabel));
+
+  familySelect.innerHTML = '';
+  let defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Use family name above';
+  familySelect.appendChild(defaultOpt);
+
+  summary.forEach((item) => {
+    let visibleCount = (item.tileIds || []).filter(isTileVisible).length;
+    if (visibleCount === 0) return;
+    let option = document.createElement('option');
+    option.value = item.label;
+    option.textContent = `${item.label} (${visibleCount})`;
+    familySelect.appendChild(option);
+  });
+
+  familyList.innerHTML = '';
+  if (summary.length === 0) {
+    familyList.textContent = 'No families available.';
+    return;
+  }
+
+  summary.forEach((item) => {
+    let visibleIds = (item.tileIds || []).filter(isTileVisible);
+    if (visibleIds.length === 0 && uploadedFamilies.has(item.label)) {
+      return;
+    }
+
+    let row = document.createElement('div');
+    row.className = 'family-item';
+
+    let label = document.createElement('span');
+    label.textContent = item.label;
+    row.appendChild(label);
+
+    let count = document.createElement('span');
+    count.textContent = `${visibleIds.length} tile(s)`;
+    row.appendChild(count);
+
+    if (uploadedFamilies.has(item.label) && window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedFamily === 'function') {
+      let removeBtn = document.createElement('button');
+      removeBtn.className = 'btn-danger';
+      removeBtn.textContent = 'Remove family';
+      removeBtn.title = `Remove uploaded tiles from family ${item.label}`;
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        let removed = window.SVGTileManager.deleteUploadedFamily(item.label);
+        if (removed > 0) {
+          setSvgStatus(`Removed ${removed} tile(s) from family "${item.label}".`, 'success');
+          refreshTileCatalogUI();
+        }
+      });
+      row.appendChild(removeBtn);
+    }
+
+    familyList.appendChild(row);
+  });
+}
+
+function refreshSvgLibraryUI() {
+  let library = document.getElementById('svgLibraryList');
+  if (!library) return;
+
+  library.innerHTML = '';
+  let uploadedTiles = (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function')
+    ? window.SVGTileManager.listUploadedSvgTiles()
+    : [];
+
+  if (uploadedTiles.length === 0) {
+    library.textContent = 'No uploaded SVG tiles yet.';
+    return;
+  }
+
+  uploadedTiles.forEach((item) => {
+    let row = document.createElement('div');
+    row.className = 'library-item';
+
+    let meta = document.createElement('div');
+    meta.className = 'library-item-meta';
+
+    let name = document.createElement('div');
+    name.className = 'library-item-name';
+    name.textContent = `${item.name} (#${item.tileId})`;
+    meta.appendChild(name);
+
+    let fam = document.createElement('div');
+    fam.className = 'library-item-family';
+    fam.textContent = `Family: ${item.familyLabel}`;
+    meta.appendChild(fam);
+
+    row.appendChild(meta);
+
+    let actions = document.createElement('div');
+    actions.className = 'library-item-actions';
+
+    let removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-danger';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedTile === 'function') {
+        let ok = window.SVGTileManager.deleteUploadedTile(item.tileId);
+        if (ok) {
+          setSvgStatus(`Removed tile "${item.name}".`, 'success');
+          refreshTileCatalogUI();
+        }
+      }
+    });
+
+    actions.appendChild(removeBtn);
+    row.appendChild(actions);
+    library.appendChild(row);
+  });
+}
+
+function refreshTileCatalogUI(selectIds = []) {
+  syncTotalTileTypes();
+
+  let selectedSet = new Set(allowedTypes);
+  for (let id of selectIds) {
+    selectedSet.add(id);
+  }
+
+  allowedTypes = [...selectedSet].filter((id) => Number.isInteger(id) && id >= 0 && id < totalTileTypes && isTileVisible(id));
+  generateTileThumbnails();
+  refreshFamilyUI();
+  refreshSvgLibraryUI();
+  initGrid();
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('Could not read file.'));
+    reader.readAsText(file);
+  });
+}
+
+function setupSvgUploadUI() {
+  let uploadInput = document.getElementById('svgUploadInput');
+  let familyInput = document.getElementById('svgFamilyInput');
+  let familySelect = document.getElementById('svgFamilySelect');
+  let btnAdd = document.getElementById('btnAddSvgTiles');
+  let btnRefreshFamilies = document.getElementById('btnRefreshFamilies');
+
+  if (!uploadInput || !familyInput || !familySelect || !btnAdd) return;
+
+  let restoredIds = [];
+  if (window.SVGTileManager && typeof window.SVGTileManager.restoreFromStorage === 'function') {
+    restoredIds = window.SVGTileManager.restoreFromStorage();
+  }
+
+  refreshFamilyUI();
+  refreshSvgLibraryUI();
+
+  if (restoredIds.length > 0) {
+    refreshTileCatalogUI(restoredIds);
+    setSvgStatus(`Restored ${restoredIds.length} uploaded tile(s) from local library.`);
+  }
+
+  if (btnRefreshFamilies) {
+    btnRefreshFamilies.addEventListener('click', (e) => {
+      e.preventDefault();
+      refreshFamilyUI();
+      setSvgStatus('Family list refreshed.');
+    });
+  }
+
+  btnAdd.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    if (!window.SVGTileManager || typeof window.SVGTileManager.registerUploadedSvgTile !== 'function') {
+      setSvgStatus('SVG manager not available.', 'error');
+      return;
+    }
+
+    let files = Array.from(uploadInput.files || []);
+    if (files.length === 0) {
+      setSvgStatus('Select at least one SVG file first.', 'error');
+      return;
+    }
+
+    let chosenFamily = (familySelect.value || familyInput.value || 'uploads').trim() || 'uploads';
+    let newIds = [];
+    let failures = [];
+
+    setSvgStatus(`Importing ${files.length} file(s)...`);
+
+    for (let file of files) {
+      try {
+        let content = await readFileAsText(file);
+        let cleanName = file.name.replace(/\.svg$/i, '').trim() || 'Uploaded SVG';
+        let result = window.SVGTileManager.registerUploadedSvgTile({
+          name: cleanName,
+          familyLabel: chosenFamily,
+          svgText: content
+        });
+        newIds.push(result.tileId);
+      } catch (err) {
+        failures.push(`${file.name}: ${err.message || err}`);
+      }
+    }
+
+    if (newIds.length > 0) {
+      refreshTileCatalogUI(newIds);
+      uploadInput.value = '';
+      setSvgStatus(
+        failures.length > 0
+          ? `Imported ${newIds.length} tile(s). ${failures.length} failed.`
+          : `Imported ${newIds.length} tile(s) in family "${chosenFamily}".`,
+        failures.length > 0 ? '' : 'success'
+      );
+    } else {
+      setSvgStatus('No SVG was imported. Check file validity.', 'error');
+    }
+
+    if (failures.length > 0) {
+      console.warn('SVG import failures:', failures);
+    }
+  });
 }
 
 function setupUI(mainCanvas) {
@@ -537,6 +779,13 @@ function setupUI(mainCanvas) {
        updateHoverPreview();
        updateCanvasStatusHint();
        redraw();
+     } else {
+         interactionMode = 'none';
+         console.log(`Mode set to: none (${tab} Tab)`);
+         updateEditUI();
+       updateHoverPreview();
+       updateCanvasStatusHint();
+       redraw();
      }
   });
   
@@ -685,6 +934,7 @@ function toggleFullscreen() {
 }
 
 function generateTileThumbnails() {
+  syncTotalTileTypes();
     createAllowedTilesList();
     createBrushList(); 
 }
@@ -696,6 +946,7 @@ function createBrushList() {
     container.html('');
     
     for (let i = 0; i < totalTileTypes; i++) {
+      if (!isTileVisible(i)) continue;
         let div = createDiv('');
         div.class('tile-option');
         div.attribute('data-type', i);
@@ -761,6 +1012,7 @@ function createAllowedTilesList() {
   container.html(''); // Clear existing
 
   for (let i = 0; i < totalTileTypes; i++) {
+    if (!isTileVisible(i)) continue;
     // Create wrapper div
     let div = createDiv('');
     div.class('tile-option');
