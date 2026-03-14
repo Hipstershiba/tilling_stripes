@@ -326,6 +326,8 @@
               <label><span>Families</span></label>
               <div class="group-content">
                 <div id="assetFamilyList" class="family-list"></div>
+                <div class="status-text assets-helper-note">Tip: Ctrl/Cmd + click for multi-select; Shift + click for
+                  range selection.</div>
 
                 <div class="row">
                   <input type="text" id="assetCreateFamilyInput" placeholder="New family name">
@@ -334,6 +336,11 @@
 
                 <div class="row">
                   <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
+                </div>
+
+                <div class="row asset-order-row">
+                  <button id="btnMoveFamilyOrderUp" class="btn-accent" type="button">Move Up</button>
+                  <button id="btnMoveFamilyOrderDown" class="btn-accent" type="button">Move Down</button>
                 </div>
               </div>
             </div>
@@ -349,6 +356,8 @@
                 </div>
 
                 <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
+                <div class="status-text assets-helper-note">Tip: Ctrl/Cmd + click for multi-select; Shift + click for
+                  range selection.</div>
 
                 <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
                 <div class="row">
@@ -383,6 +392,14 @@
                   <div class="row">
                     <select id="assetMoveFamilySelect"></select>
                     <button id="btnMoveTileFamily" class="btn-accent">Move</button>
+                  </div>
+
+                  <label>Order in Family</label>
+                  <div class="row asset-order-row">
+                    <button id="btnMoveTileOrderLeft" class="btn-accent" type="button">Move Left</button>
+                    <button id="btnMoveTileOrderRight" class="btn-accent" type="button">Move Right</button>
+                  </div>
+                  <div class="status-text assets-helper-note">Tip: drag tiles in the grid or use Left/Right arrow keys.
                   </div>
 
                   <label>Tile Editor</label>

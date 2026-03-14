@@ -181,8 +181,18 @@ function setSvgStatus(message, tone = '') {
 
 let assetsUiState = {
   selectedFamily: null,
+  selectedFamilies: new Set(),
+  familySelectionAnchor: null,
+  dragFamilyLabel: null,
+  dragOverFamilyLabel: null,
+  dragOverFamilyPosition: null,
   selectedTileId: null,
+  selectedTileIds: new Set(),
+  tileSelectionAnchor: null,
   lastSelectionKind: null,
+  dragTileId: null,
+  dragOverTileId: null,
+  dragOverPosition: null,
   editorTransform: {
     rotate: 0,
     flipX: false,
@@ -315,6 +325,17 @@ function updateAssetUploadTargetLabel() {
   let label = document.getElementById('assetUploadFamilyTarget');
   let renameInput = document.getElementById('assetRenameFamilyInput');
   if (!label) return;
+
+  let selectedFamilies = getSelectedFamilyLabels();
+  if (selectedFamilies.length > 1) {
+    label.textContent = `Selected families: ${selectedFamilies.length} (active: ${assetsUiState.selectedFamily || 'none'})`;
+    if (renameInput) {
+      renameInput.value = assetsUiState.selectedFamily || '';
+      renameInput.placeholder = 'Rename active family';
+    }
+    return;
+  }
+
   if (!assetsUiState.selectedFamily) {
     label.textContent = 'Selected family: none';
     if (renameInput) {
@@ -341,6 +362,322 @@ function getSelectedFamilyTiles() {
   if (!assetsUiState.selectedFamily) return [];
   let match = summary.find((row) => row.label === assetsUiState.selectedFamily);
   return match ? match.tileIds.slice() : [];
+}
+
+function getSelectedFamilyLabels() {
+  let labels = [...assetsUiState.selectedFamilies];
+  if (labels.length > 0) return labels;
+  return assetsUiState.selectedFamily ? [assetsUiState.selectedFamily] : [];
+}
+
+function canReorderSelectedFamiliesByDirection(direction) {
+  let labels = getFamilySummaryForManager().map((item) => item.label);
+  let selected = new Set(getSelectedFamilyLabels());
+  if (selected.size === 0) return false;
+
+  if (direction < 0) {
+    for (let i = 1; i < labels.length; i++) {
+      if (selected.has(labels[i]) && !selected.has(labels[i - 1])) return true;
+    }
+    return false;
+  }
+
+  for (let i = 0; i < labels.length - 1; i++) {
+    if (selected.has(labels[i]) && !selected.has(labels[i + 1])) return true;
+  }
+  return false;
+}
+
+function reorderSelectedFamiliesBulkByDirection(direction) {
+  if (typeof window.moveFamilyRelative !== 'function') return false;
+
+  let selectedLabels = getSelectedFamilyLabels();
+  if (selectedLabels.length === 0) return false;
+
+  let selectedSet = new Set(selectedLabels);
+  let order = getFamilySummaryForManager().map((item) => item.label);
+  let moved = false;
+
+  if (direction < 0) {
+    for (let i = 1; i < order.length; i++) {
+      let current = order[i];
+      let prev = order[i - 1];
+      if (!selectedSet.has(current) || selectedSet.has(prev)) continue;
+      window.moveFamilyRelative(current, prev, false);
+      order[i - 1] = current;
+      order[i] = prev;
+      moved = true;
+    }
+  } else {
+    for (let i = order.length - 2; i >= 0; i--) {
+      let current = order[i];
+      let next = order[i + 1];
+      if (!selectedSet.has(current) || selectedSet.has(next)) continue;
+      window.moveFamilyRelative(current, next, true);
+      order[i] = next;
+      order[i + 1] = current;
+      moved = true;
+    }
+  }
+
+  if (!moved) return false;
+
+  assetsUiState.selectedFamilies = new Set(selectedLabels);
+  if (!assetsUiState.selectedFamily || !assetsUiState.selectedFamilies.has(assetsUiState.selectedFamily)) {
+    assetsUiState.selectedFamily = selectedLabels[0] || null;
+  }
+  assetsUiState.familySelectionAnchor = assetsUiState.selectedFamily;
+  refreshAssetsManagerUI();
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Family order updated for ${selectedLabels.length} family(s).`, 'success');
+  return true;
+}
+
+function applyFamilyOrder(orderedFamilyLabels) {
+  if (!Array.isArray(orderedFamilyLabels) || orderedFamilyLabels.length === 0) return false;
+  if (typeof window.moveFamilyRelative !== 'function') return false;
+
+  let anchor = orderedFamilyLabels[0];
+  for (let i = 1; i < orderedFamilyLabels.length; i++) {
+    let current = orderedFamilyLabels[i];
+    window.moveFamilyRelative(current, anchor, true);
+    anchor = current;
+  }
+  return true;
+}
+
+function reorderSelectedFamiliesBulkByDrop(sourceLabel, targetLabel, placeAfter) {
+  if (typeof sourceLabel !== 'string' || sourceLabel.trim() === '') return false;
+  if (typeof targetLabel !== 'string' || targetLabel.trim() === '') return false;
+  if (sourceLabel === targetLabel) return false;
+
+  let currentOrder = getFamilySummaryForManager().map((item) => item.label);
+  if (currentOrder.length === 0) return false;
+
+  let selectedLabels = getSelectedFamilyLabels();
+  let selectedSet = new Set(selectedLabels);
+
+  if (selectedLabels.length <= 1 || !selectedSet.has(sourceLabel)) {
+    if (selectedSet.has(targetLabel)) return false;
+    if (typeof window.moveFamilyRelative !== 'function') return false;
+    window.moveFamilyRelative(sourceLabel, targetLabel, !!placeAfter);
+    assetsUiState.selectedFamilies = new Set([sourceLabel]);
+    assetsUiState.selectedFamily = sourceLabel;
+    assetsUiState.familySelectionAnchor = sourceLabel;
+    refreshAssetsManagerUI();
+    pushAssetsHistoryCheckpoint();
+    setSvgStatus('Family order updated.', 'success');
+    return true;
+  }
+
+  if (selectedSet.has(targetLabel)) return false;
+
+  let selectedOrder = currentOrder.filter((label) => selectedSet.has(label));
+  let remaining = currentOrder.filter((label) => !selectedSet.has(label));
+  let targetIdx = remaining.indexOf(targetLabel);
+  if (targetIdx === -1) return false;
+
+  let insertAt = placeAfter ? targetIdx + 1 : targetIdx;
+  if (insertAt < 0) insertAt = 0;
+  if (insertAt > remaining.length) insertAt = remaining.length;
+
+  let nextOrder = remaining.slice(0, insertAt).concat(selectedOrder, remaining.slice(insertAt));
+  if (!applyFamilyOrder(nextOrder)) return false;
+
+  assetsUiState.selectedFamilies = new Set(selectedOrder);
+  assetsUiState.selectedFamily = selectedOrder[0] || null;
+  assetsUiState.familySelectionAnchor = assetsUiState.selectedFamily;
+  refreshAssetsManagerUI();
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Family order updated for ${selectedOrder.length} selected family(s).`, 'success');
+  return true;
+}
+
+function clearFamilyDragState() {
+  assetsUiState.dragFamilyLabel = null;
+  assetsUiState.dragOverFamilyLabel = null;
+  assetsUiState.dragOverFamilyPosition = null;
+}
+
+function getSelectedTileIdsInActiveFamily() {
+  let familyTiles = new Set(getSelectedFamilyTiles());
+  let selected = [...assetsUiState.selectedTileIds].filter((id) => familyTiles.has(id));
+  if (selected.length > 0) return selected;
+  if (Number.isInteger(assetsUiState.selectedTileId) && familyTiles.has(assetsUiState.selectedTileId)) {
+    return [assetsUiState.selectedTileId];
+  }
+  return [];
+}
+
+function isMultiSelectInputEvent(evt) {
+  return !!(evt && (evt.ctrlKey || evt.metaKey));
+}
+
+function reorderSelectedFamilyTileByDirection(direction) {
+  if (getSelectedTileIdsInActiveFamily().length > 1) return false;
+  if (!Number.isInteger(assetsUiState.selectedTileId)) return false;
+  if (typeof assetsUiState.selectedFamily !== 'string' || assetsUiState.selectedFamily.trim() === '') return false;
+  if (typeof window.moveTileRelativeInFamily !== 'function') return false;
+
+  let tileIds = getSelectedFamilyTiles();
+  let currentIdx = tileIds.indexOf(assetsUiState.selectedTileId);
+  if (currentIdx === -1) return false;
+
+  let targetIdx = currentIdx + (direction > 0 ? 1 : -1);
+  if (targetIdx < 0 || targetIdx >= tileIds.length) return false;
+
+  let referenceTileId = tileIds[targetIdx];
+  let placeAfter = direction > 0;
+
+  window.moveTileRelativeInFamily(
+    assetsUiState.selectedTileId,
+    assetsUiState.selectedFamily,
+    referenceTileId,
+    placeAfter
+  );
+
+  refreshTileCatalogUI([assetsUiState.selectedTileId]);
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Order updated in family "${assetsUiState.selectedFamily}".`, 'success');
+  return true;
+}
+
+function canReorderSelectedTilesByDirection(direction) {
+  let tileIds = getSelectedFamilyTiles();
+  let selected = new Set(getSelectedTileIdsInActiveFamily());
+  if (selected.size === 0) return false;
+
+  if (direction < 0) {
+    for (let i = 1; i < tileIds.length; i++) {
+      if (selected.has(tileIds[i]) && !selected.has(tileIds[i - 1])) return true;
+    }
+    return false;
+  }
+
+  for (let i = 0; i < tileIds.length - 1; i++) {
+    if (selected.has(tileIds[i]) && !selected.has(tileIds[i + 1])) return true;
+  }
+  return false;
+}
+
+function reorderSelectedTilesBulkByDirection(direction) {
+  if (typeof assetsUiState.selectedFamily !== 'string' || assetsUiState.selectedFamily.trim() === '') return false;
+  if (typeof window.moveTileRelativeInFamily !== 'function') return false;
+
+  let selectedIds = getSelectedTileIdsInActiveFamily();
+  if (selectedIds.length <= 1) {
+    return reorderSelectedFamilyTileByDirection(direction);
+  }
+
+  let selectedSet = new Set(selectedIds);
+  let order = getSelectedFamilyTiles();
+  if (order.length === 0) return false;
+  let moved = false;
+
+  if (direction < 0) {
+    for (let i = 1; i < order.length; i++) {
+      let current = order[i];
+      let prev = order[i - 1];
+      if (!selectedSet.has(current) || selectedSet.has(prev)) continue;
+      window.moveTileRelativeInFamily(current, assetsUiState.selectedFamily, prev, false);
+      order[i - 1] = current;
+      order[i] = prev;
+      moved = true;
+    }
+  } else {
+    for (let i = order.length - 2; i >= 0; i--) {
+      let current = order[i];
+      let next = order[i + 1];
+      if (!selectedSet.has(current) || selectedSet.has(next)) continue;
+      window.moveTileRelativeInFamily(current, assetsUiState.selectedFamily, next, true);
+      order[i] = next;
+      order[i + 1] = current;
+      moved = true;
+    }
+  }
+
+  if (!moved) return false;
+
+  assetsUiState.selectedTileIds = new Set(selectedIds);
+  refreshTileCatalogUI(selectedIds);
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Order updated for ${selectedIds.length} tile(s) in family "${assetsUiState.selectedFamily}".`, 'success');
+  return true;
+}
+
+function reorderSelectedFamilyTileByDrop(sourceTileId, targetTileId, placeAfter) {
+  if (!Number.isInteger(sourceTileId) || !Number.isInteger(targetTileId)) return false;
+  if (sourceTileId === targetTileId) return false;
+  if (typeof assetsUiState.selectedFamily !== 'string' || assetsUiState.selectedFamily.trim() === '') return false;
+  if (typeof window.moveTileRelativeInFamily !== 'function') return false;
+
+  window.moveTileRelativeInFamily(sourceTileId, assetsUiState.selectedFamily, targetTileId, !!placeAfter);
+  assetsUiState.selectedTileId = sourceTileId;
+  assetsUiState.selectedTileIds = new Set([sourceTileId]);
+  assetsUiState.lastSelectionKind = 'tile';
+  refreshTileCatalogUI([sourceTileId]);
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Order updated in family "${assetsUiState.selectedFamily}".`, 'success');
+  return true;
+}
+
+function applyFamilyTileOrder(familyLabel, orderedTileIds) {
+  if (typeof familyLabel !== 'string' || familyLabel.trim() === '') return false;
+  if (!Array.isArray(orderedTileIds) || orderedTileIds.length === 0) return false;
+  if (typeof window.moveTileRelativeInFamily !== 'function') return false;
+
+  let anchor = orderedTileIds[0];
+  for (let i = 1; i < orderedTileIds.length; i++) {
+    let current = orderedTileIds[i];
+    window.moveTileRelativeInFamily(current, familyLabel, anchor, true);
+    anchor = current;
+  }
+  return true;
+}
+
+function reorderSelectedTilesBulkByDrop(sourceTileId, targetTileId, placeAfter) {
+  if (!Number.isInteger(sourceTileId) || !Number.isInteger(targetTileId)) return false;
+  if (typeof assetsUiState.selectedFamily !== 'string' || assetsUiState.selectedFamily.trim() === '') return false;
+
+  let selectedIds = getSelectedTileIdsInActiveFamily();
+  if (selectedIds.length <= 1) {
+    return reorderSelectedFamilyTileByDrop(sourceTileId, targetTileId, placeAfter);
+  }
+
+  let selectedSet = new Set(selectedIds);
+  if (!selectedSet.has(sourceTileId)) {
+    return reorderSelectedFamilyTileByDrop(sourceTileId, targetTileId, placeAfter);
+  }
+  if (selectedSet.has(targetTileId)) return false;
+
+  let familyOrder = getSelectedFamilyTiles();
+  if (familyOrder.length === 0) return false;
+
+  let selectedOrder = familyOrder.filter((id) => selectedSet.has(id));
+  let remaining = familyOrder.filter((id) => !selectedSet.has(id));
+  let targetIdx = remaining.indexOf(targetTileId);
+  if (targetIdx === -1) return false;
+
+  let insertAt = placeAfter ? targetIdx + 1 : targetIdx;
+  if (insertAt < 0) insertAt = 0;
+  if (insertAt > remaining.length) insertAt = remaining.length;
+
+  let nextOrder = remaining.slice(0, insertAt).concat(selectedOrder, remaining.slice(insertAt));
+  if (!applyFamilyTileOrder(assetsUiState.selectedFamily, nextOrder)) return false;
+
+  assetsUiState.selectedTileIds = new Set(selectedOrder);
+  assetsUiState.selectedTileId = selectedOrder[selectedOrder.length - 1] || assetsUiState.selectedTileId;
+  assetsUiState.lastSelectionKind = 'tile';
+  refreshTileCatalogUI(selectedOrder);
+  pushAssetsHistoryCheckpoint();
+  setSvgStatus(`Order updated for ${selectedOrder.length} selected tile(s).`, 'success');
+  return true;
+}
+
+function clearAssetDragState() {
+  assetsUiState.dragTileId = null;
+  assetsUiState.dragOverTileId = null;
+  assetsUiState.dragOverPosition = null;
 }
 
 function getSelectedTileMeta() {
@@ -472,11 +809,29 @@ function ensureAssetSelection() {
   if (!assetsUiState.selectedFamily || !validFamilies.has(assetsUiState.selectedFamily)) {
     assetsUiState.selectedFamily = summary.length > 0 ? summary[0].label : null;
   }
+  if (!assetsUiState.familySelectionAnchor || !validFamilies.has(assetsUiState.familySelectionAnchor)) {
+    assetsUiState.familySelectionAnchor = assetsUiState.selectedFamily;
+  }
+
+  let normalizedFamilySelection = new Set([...assetsUiState.selectedFamilies].filter((label) => validFamilies.has(label)));
+  if (normalizedFamilySelection.size === 0 && assetsUiState.selectedFamily) {
+    normalizedFamilySelection.add(assetsUiState.selectedFamily);
+  }
+  assetsUiState.selectedFamilies = normalizedFamilySelection;
 
   let visibleTiles = new Set(getSelectedFamilyTiles());
   if (!Number.isInteger(assetsUiState.selectedTileId) || !visibleTiles.has(assetsUiState.selectedTileId)) {
     assetsUiState.selectedTileId = visibleTiles.size > 0 ? [...visibleTiles][0] : null;
   }
+  if (!Number.isInteger(assetsUiState.tileSelectionAnchor) || !visibleTiles.has(assetsUiState.tileSelectionAnchor)) {
+    assetsUiState.tileSelectionAnchor = assetsUiState.selectedTileId;
+  }
+
+  let normalizedTileSelection = new Set([...assetsUiState.selectedTileIds].filter((id) => visibleTiles.has(id)));
+  if (normalizedTileSelection.size === 0 && Number.isInteger(assetsUiState.selectedTileId) && visibleTiles.has(assetsUiState.selectedTileId)) {
+    normalizedTileSelection.add(assetsUiState.selectedTileId);
+  }
+  assetsUiState.selectedTileIds = normalizedTileSelection;
 }
 
 function fillFamilySelect(selectEl, includeAll = false) {
@@ -507,6 +862,9 @@ function fillFamilySelect(selectEl, includeAll = false) {
 
 function renderAssetFamilyList() {
   let familyList = document.getElementById('assetFamilyList');
+  let btnRemoveFamily = document.getElementById('btnRemoveFamilyFromList');
+  let btnMoveFamilyUp = document.getElementById('btnMoveFamilyOrderUp');
+  let btnMoveFamilyDown = document.getElementById('btnMoveFamilyOrderDown');
   if (!familyList) return;
 
   let summary = getFamilySummaryForManager();
@@ -516,12 +874,108 @@ function renderAssetFamilyList() {
 
   if (summary.length === 0) {
     familyList.innerHTML = '<div class="status-text">No families available yet.</div>';
+    if (btnRemoveFamily) btnRemoveFamily.textContent = 'Remove Selected Family';
+    if (btnMoveFamilyUp) btnMoveFamilyUp.disabled = true;
+    if (btnMoveFamilyDown) btnMoveFamilyDown.disabled = true;
     return;
   }
 
+  if (!familyList.dataset.dndBound) {
+    familyList.dataset.dndBound = '1';
+
+    familyList.addEventListener('dragover', (e) => {
+      if (!assetsUiState.dragFamilyLabel) return;
+
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+      let rows = Array.from(familyList.querySelectorAll('.family-item'));
+      if (rows.length === 0) return;
+
+      let bestRow = null;
+      let bestDist = Number.POSITIVE_INFINITY;
+      for (let rowEl of rows) {
+        let rect = rowEl.getBoundingClientRect();
+        let cx = rect.left + rect.width / 2;
+        let cy = rect.top + rect.height / 2;
+        let dx = cx - e.clientX;
+        let dy = cy - e.clientY;
+        let dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestRow = rowEl;
+        }
+      }
+
+      if (!bestRow) return;
+
+      let targetLabel = bestRow.dataset.familyLabel || '';
+      if (!targetLabel) return;
+
+      let selected = new Set(getSelectedFamilyLabels());
+      if (selected.size > 1 && selected.has(targetLabel)) return;
+
+      let rect = bestRow.getBoundingClientRect();
+      let midpoint = rect.top + rect.height / 2;
+      let placeAfter = e.clientY >= midpoint;
+
+      if (assetsUiState.dragOverFamilyLabel !== targetLabel || assetsUiState.dragOverFamilyPosition !== (placeAfter ? 'after' : 'before')) {
+        assetsUiState.dragOverFamilyLabel = targetLabel;
+        assetsUiState.dragOverFamilyPosition = placeAfter ? 'after' : 'before';
+        renderAssetFamilyList();
+      }
+    });
+
+    familyList.addEventListener('drop', (e) => {
+      if (!assetsUiState.dragFamilyLabel) return;
+      e.preventDefault();
+
+      let sourceLabel = assetsUiState.dragFamilyLabel;
+      let targetLabel = assetsUiState.dragOverFamilyLabel;
+      let placeAfter = assetsUiState.dragOverFamilyPosition === 'after';
+
+      clearFamilyDragState();
+
+      if (!targetLabel) {
+        renderAssetFamilyList();
+        return;
+      }
+
+      try {
+        reorderSelectedFamiliesBulkByDrop(sourceLabel, targetLabel, placeAfter);
+      } catch (err) {
+        setSvgStatus(`Family move failed: ${err.message || err}`, 'error');
+        renderAssetFamilyList();
+      }
+    });
+  }
+
+  let selectedFamilyCount = getSelectedFamilyLabels().length;
+  if (btnRemoveFamily) {
+    btnRemoveFamily.textContent = selectedFamilyCount > 1
+      ? `Remove ${selectedFamilyCount} Families`
+      : 'Remove Selected Family';
+  }
+  if (btnMoveFamilyUp) btnMoveFamilyUp.disabled = !canReorderSelectedFamiliesByDirection(-1);
+  if (btnMoveFamilyDown) btnMoveFamilyDown.disabled = !canReorderSelectedFamiliesByDirection(1);
+
   for (let item of summary) {
     let row = document.createElement('div');
-    row.className = `family-item${assetsUiState.selectedFamily === item.label ? ' active' : ''}`;
+    let isSelected = assetsUiState.selectedFamilies.has(item.label);
+    let isPrimary = assetsUiState.selectedFamily === item.label;
+    row.className = `family-item${isSelected ? ' active' : ''}${isPrimary ? ' primary' : ''}`;
+    row.draggable = true;
+    row.dataset.familyLabel = item.label;
+
+    if (assetsUiState.dragOverFamilyLabel === item.label && assetsUiState.dragOverFamilyPosition === 'before') {
+      row.classList.add('drag-over-before');
+    }
+    if (assetsUiState.dragOverFamilyLabel === item.label && assetsUiState.dragOverFamilyPosition === 'after') {
+      row.classList.add('drag-over-after');
+    }
+    if (assetsUiState.dragFamilyLabel === item.label) {
+      row.classList.add('dragging');
+    }
 
     let main = document.createElement('div');
     main.className = 'family-item-main';
@@ -550,14 +1004,109 @@ function renderAssetFamilyList() {
       row.appendChild(actions);
     }
 
-    row.addEventListener('click', () => {
+    row.addEventListener('click', (evt) => {
+      let isToggle = isMultiSelectInputEvent(evt);
+      let isRange = !!evt.shiftKey;
+
+      if (isRange) {
+        let labels = summary.map((entry) => entry.label);
+        let anchor = assetsUiState.familySelectionAnchor;
+        if (!anchor || !labels.includes(anchor)) {
+          anchor = item.label;
+        }
+
+        let anchorIdx = labels.indexOf(anchor);
+        let currentIdx = labels.indexOf(item.label);
+        let start = Math.min(anchorIdx, currentIdx);
+        let end = Math.max(anchorIdx, currentIdx);
+        let range = labels.slice(start, end + 1);
+
+        if (isToggle) {
+          for (let label of range) assetsUiState.selectedFamilies.add(label);
+        } else {
+          assetsUiState.selectedFamilies = new Set(range);
+        }
+      } else if (isToggle) {
+        if (assetsUiState.selectedFamilies.has(item.label)) {
+          assetsUiState.selectedFamilies.delete(item.label);
+        } else {
+          assetsUiState.selectedFamilies.add(item.label);
+        }
+      } else {
+        assetsUiState.selectedFamilies = new Set([item.label]);
+      }
+
       assetsUiState.selectedFamily = item.label;
+  assetsUiState.familySelectionAnchor = item.label;
       ensureAssetSelection();
       assetsUiState.lastSelectionKind = 'family';
       updateAssetUploadTargetLabel();
       renderAssetFamilyList();
       renderAssetTileGrid();
       renderAssetInspector();
+    });
+
+    row.addEventListener('dragstart', (e) => {
+      if (!assetsUiState.selectedFamilies.has(item.label)) {
+        assetsUiState.selectedFamilies = new Set([item.label]);
+        assetsUiState.selectedFamily = item.label;
+        assetsUiState.familySelectionAnchor = item.label;
+      }
+      assetsUiState.dragFamilyLabel = item.label;
+      assetsUiState.dragOverFamilyLabel = null;
+      assetsUiState.dragOverFamilyPosition = null;
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', item.label);
+      }
+      requestAnimationFrame(() => row.classList.add('dragging'));
+    });
+
+    row.addEventListener('dragover', (e) => {
+      if (!assetsUiState.dragFamilyLabel) return;
+      if (assetsUiState.dragFamilyLabel === item.label) return;
+
+      let selected = new Set(getSelectedFamilyLabels());
+      if (selected.size > 1 && selected.has(item.label)) return;
+
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+      let rect = row.getBoundingClientRect();
+      let midpoint = rect.top + rect.height / 2;
+      let placeAfter = e.clientY >= midpoint;
+      assetsUiState.dragOverFamilyLabel = item.label;
+      assetsUiState.dragOverFamilyPosition = placeAfter ? 'after' : 'before';
+      renderAssetFamilyList();
+    });
+
+    row.addEventListener('dragleave', () => {
+      if (assetsUiState.dragOverFamilyLabel !== item.label) return;
+      assetsUiState.dragOverFamilyLabel = null;
+      assetsUiState.dragOverFamilyPosition = null;
+      renderAssetFamilyList();
+    });
+
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      let sourceLabel = assetsUiState.dragFamilyLabel || (e.dataTransfer ? e.dataTransfer.getData('text/plain') : '');
+      let placeAfter = assetsUiState.dragOverFamilyPosition === 'after';
+
+      clearFamilyDragState();
+
+      try {
+        reorderSelectedFamiliesBulkByDrop(sourceLabel, item.label, placeAfter);
+      } catch (err) {
+        setSvgStatus(`Family move failed: ${err.message || err}`, 'error');
+        renderAssetFamilyList();
+      }
+    });
+
+    row.addEventListener('dragend', () => {
+      clearFamilyDragState();
+      renderAssetFamilyList();
     });
 
     familyList.appendChild(row);
@@ -567,6 +1116,76 @@ function renderAssetFamilyList() {
 function renderAssetTileGrid() {
   let container = document.getElementById('assetTileGrid');
   if (!container) return;
+
+  if (!container.dataset.dndBound) {
+    container.dataset.dndBound = '1';
+
+    container.addEventListener('dragover', (e) => {
+      if (!Number.isInteger(assetsUiState.dragTileId)) return;
+
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+      let cards = Array.from(container.querySelectorAll('.family-tile-card'));
+      if (cards.length === 0) return;
+
+      let bestCard = null;
+      let bestDist = Number.POSITIVE_INFINITY;
+      for (let cardEl of cards) {
+        let rect = cardEl.getBoundingClientRect();
+        let cx = rect.left + rect.width / 2;
+        let cy = rect.top + rect.height / 2;
+        let dx = cx - e.clientX;
+        let dy = cy - e.clientY;
+        let dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestCard = cardEl;
+        }
+      }
+
+      if (!bestCard) return;
+
+      let targetTileId = Number.parseInt(bestCard.dataset.tileId || '', 10);
+      if (!Number.isInteger(targetTileId)) return;
+
+      let dragSelection = new Set(getSelectedTileIdsInActiveFamily());
+      if (dragSelection.size > 1 && dragSelection.has(targetTileId)) return;
+
+      let rect = bestCard.getBoundingClientRect();
+      let midpoint = rect.left + rect.width / 2;
+      let placeAfter = e.clientX >= midpoint;
+
+      if (assetsUiState.dragOverTileId !== targetTileId || assetsUiState.dragOverPosition !== (placeAfter ? 'after' : 'before')) {
+        assetsUiState.dragOverTileId = targetTileId;
+        assetsUiState.dragOverPosition = placeAfter ? 'after' : 'before';
+        renderAssetTileGrid();
+      }
+    });
+
+    container.addEventListener('drop', (e) => {
+      if (!Number.isInteger(assetsUiState.dragTileId)) return;
+      e.preventDefault();
+
+      let sourceTileId = assetsUiState.dragTileId;
+      let targetTileId = assetsUiState.dragOverTileId;
+      let placeAfter = assetsUiState.dragOverPosition === 'after';
+
+      clearAssetDragState();
+
+      if (!Number.isInteger(targetTileId)) {
+        renderAssetTileGrid();
+        return;
+      }
+
+      try {
+        reorderSelectedTilesBulkByDrop(sourceTileId, targetTileId, placeAfter);
+      } catch (err) {
+        setSvgStatus(`Reorder failed: ${err.message || err}`, 'error');
+        renderAssetTileGrid();
+      }
+    });
+  }
 
   container.innerHTML = '';
   let tileIds = getSelectedFamilyTiles();
@@ -578,7 +1197,21 @@ function renderAssetTileGrid() {
 
   for (let tileId of tileIds) {
     let card = document.createElement('div');
-    card.className = `family-tile-card${assetsUiState.selectedTileId === tileId ? ' active' : ''}`;
+    let isSelected = assetsUiState.selectedTileIds.has(tileId);
+    let isPrimary = assetsUiState.selectedTileId === tileId;
+    card.className = `family-tile-card${isSelected ? ' active' : ''}${isPrimary ? ' primary' : ''}`;
+    card.draggable = true;
+    card.dataset.tileId = String(tileId);
+
+    if (assetsUiState.dragOverTileId === tileId && assetsUiState.dragOverPosition === 'before') {
+      card.classList.add('drag-over-before');
+    }
+    if (assetsUiState.dragOverTileId === tileId && assetsUiState.dragOverPosition === 'after') {
+      card.classList.add('drag-over-after');
+    }
+    if (assetsUiState.dragTileId === tileId) {
+      card.classList.add('dragging');
+    }
 
     let img = document.createElement('img');
     img.src = getTileThumbnailSrc(tileId, 72);
@@ -595,12 +1228,108 @@ function renderAssetTileGrid() {
     name.textContent = getTileNameById(tileId);
     card.appendChild(name);
 
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (evt) => {
+      let isToggle = isMultiSelectInputEvent(evt);
+      let isRange = !!evt.shiftKey;
+
+      if (isRange) {
+        let anchor = assetsUiState.tileSelectionAnchor;
+        if (!Number.isInteger(anchor) || !tileIds.includes(anchor)) {
+          anchor = tileId;
+        }
+
+        let anchorIdx = tileIds.indexOf(anchor);
+        let currentIdx = tileIds.indexOf(tileId);
+        let start = Math.min(anchorIdx, currentIdx);
+        let end = Math.max(anchorIdx, currentIdx);
+        let range = tileIds.slice(start, end + 1);
+
+        if (isToggle) {
+          for (let id of range) assetsUiState.selectedTileIds.add(id);
+        } else {
+          assetsUiState.selectedTileIds = new Set(range);
+        }
+      } else if (isToggle) {
+        if (assetsUiState.selectedTileIds.has(tileId)) {
+          assetsUiState.selectedTileIds.delete(tileId);
+        } else {
+          assetsUiState.selectedTileIds.add(tileId);
+        }
+      } else {
+        assetsUiState.selectedTileIds = new Set([tileId]);
+      }
+
       assetsUiState.selectedTileId = tileId;
+  assetsUiState.tileSelectionAnchor = tileId;
       assetsUiState.lastSelectionKind = 'tile';
       assetsUiState.editorTransform = { rotate: 0, flipX: false, flipY: false };
       renderAssetTileGrid();
       renderAssetInspector();
+    });
+
+    card.addEventListener('dragstart', (e) => {
+      if (!assetsUiState.selectedTileIds.has(tileId)) {
+        assetsUiState.selectedTileIds = new Set([tileId]);
+        assetsUiState.selectedTileId = tileId;
+        assetsUiState.tileSelectionAnchor = tileId;
+      }
+      assetsUiState.dragTileId = tileId;
+      assetsUiState.dragOverTileId = null;
+      assetsUiState.dragOverPosition = null;
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(tileId));
+      }
+      requestAnimationFrame(() => {
+        card.classList.add('dragging');
+      });
+    });
+
+    card.addEventListener('dragover', (e) => {
+      if (!Number.isInteger(assetsUiState.dragTileId)) return;
+      if (assetsUiState.dragTileId === tileId) return;
+
+      let dragSelection = new Set(getSelectedTileIdsInActiveFamily());
+      if (dragSelection.size > 1 && dragSelection.has(tileId)) return;
+
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+      let rect = card.getBoundingClientRect();
+      let midpoint = rect.left + rect.width / 2;
+      let placeAfter = e.clientX >= midpoint;
+      assetsUiState.dragOverTileId = tileId;
+      assetsUiState.dragOverPosition = placeAfter ? 'after' : 'before';
+      renderAssetTileGrid();
+    });
+
+    card.addEventListener('dragleave', () => {
+      if (assetsUiState.dragOverTileId !== tileId) return;
+      assetsUiState.dragOverTileId = null;
+      assetsUiState.dragOverPosition = null;
+      renderAssetTileGrid();
+    });
+
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      let sourceTileId = Number.isInteger(assetsUiState.dragTileId)
+        ? assetsUiState.dragTileId
+        : Number.parseInt(e.dataTransfer?.getData('text/plain') || '', 10);
+      let placeAfter = assetsUiState.dragOverPosition === 'after';
+
+      clearAssetDragState();
+
+      try {
+        reorderSelectedTilesBulkByDrop(sourceTileId, tileId, placeAfter);
+      } catch (err) {
+        setSvgStatus(`Reorder failed: ${err.message || err}`, 'error');
+        renderAssetTileGrid();
+      }
+    });
+
+    card.addEventListener('dragend', () => {
+      clearAssetDragState();
+      renderAssetTileGrid();
     });
 
     container.appendChild(card);
@@ -610,10 +1339,13 @@ function renderAssetTileGrid() {
 function renderAssetInspector() {
   let empty = document.getElementById('assetInspectorEmpty');
   let content = document.getElementById('assetInspectorContent');
-  let tileMeta = getSelectedTileMeta();
+  let selectedTileIds = getSelectedTileIdsInActiveFamily();
+  let tileMeta = selectedTileIds.length > 0 ? getSelectedTileMeta() : null;
+  let selectedCount = selectedTileIds.length;
+  let hasMultiSelection = selectedCount > 1;
 
   if (!empty || !content) return;
-  if (!tileMeta) {
+  if (!tileMeta || selectedCount === 0) {
     empty.style.display = '';
     content.style.display = 'none';
     return;
@@ -626,18 +1358,35 @@ function renderAssetInspector() {
   let title = document.getElementById('assetInspectorTitle');
   let meta = document.getElementById('assetInspectorMeta');
   let tileNameInput = document.getElementById('assetTileNameInput');
+  let btnRenameTile = document.getElementById('btnApplyTileRename');
   let moveFamilySelect = document.getElementById('assetMoveFamilySelect');
+  let btnMoveTile = document.getElementById('btnMoveTileFamily');
   let btnCreateEdited = document.getElementById('btnCreateEditedTile');
   let btnRemoveTile = document.getElementById('btnRemoveSelectedTile');
+  let btnOrderLeft = document.getElementById('btnMoveTileOrderLeft');
+  let btnOrderRight = document.getElementById('btnMoveTileOrderRight');
 
   if (thumb) thumb.src = getTileThumbnailSrc(tileMeta.tileId, 72);
-  if (title) title.textContent = `${tileMeta.name} (#${tileMeta.tileId})`;
+  if (title) {
+    title.textContent = hasMultiSelection
+      ? `${selectedCount} tiles selected`
+      : `${tileMeta.name} (#${tileMeta.tileId})`;
+  }
   if (meta) {
-    let sourceLabel = tileMeta.uploaded ? 'Uploaded' : 'Built-in';
-    meta.textContent = `${sourceLabel} | Family: ${tileMeta.familyLabel}`;
+    if (hasMultiSelection) {
+      meta.textContent = `Family: ${assetsUiState.selectedFamily}`;
+    } else {
+      let sourceLabel = tileMeta.uploaded ? 'Uploaded' : 'Built-in';
+      meta.textContent = `${sourceLabel} | Family: ${tileMeta.familyLabel}`;
+    }
   }
 
-  if (tileNameInput) tileNameInput.value = tileMeta.name;
+  if (tileNameInput) {
+    tileNameInput.value = hasMultiSelection ? '' : tileMeta.name;
+    tileNameInput.disabled = hasMultiSelection;
+    tileNameInput.placeholder = hasMultiSelection ? 'Rename disabled for multi-select' : 'Tile name';
+  }
+  if (btnRenameTile) btnRenameTile.disabled = hasMultiSelection;
 
   fillFamilySelect(moveFamilySelect, false);
   if (moveFamilySelect && Array.from(moveFamilySelect.options).some((op) => op.value === tileMeta.familyLabel)) {
@@ -645,14 +1394,33 @@ function renderAssetInspector() {
   }
 
   let canEditUploaded = !!tileMeta.uploaded;
-  let canEditInEditor = true;
+  let canEditInEditor = !hasMultiSelection;
+  let familyTiles = getSelectedFamilyTiles();
+  let selectedIdx = familyTiles.indexOf(tileMeta.tileId);
   if (btnCreateEdited) btnCreateEdited.disabled = !canEditInEditor;
+  if (btnMoveTile) {
+    btnMoveTile.textContent = hasMultiSelection ? `Move ${selectedCount} Tiles` : 'Move';
+  }
+  if (btnOrderLeft) {
+    btnOrderLeft.disabled = hasMultiSelection
+      ? !canReorderSelectedTilesByDirection(-1)
+      : !(selectedIdx > 0);
+  }
+  if (btnOrderRight) {
+    btnOrderRight.disabled = hasMultiSelection
+      ? !canReorderSelectedTilesByDirection(1)
+      : !(selectedIdx >= 0 && selectedIdx < familyTiles.length - 1);
+  }
   if (btnRemoveTile) {
-    btnRemoveTile.textContent = tileMeta.uploaded ? 'Remove Tile' : 'Delete Tile';
+    if (hasMultiSelection) {
+      btnRemoveTile.textContent = 'Remove Selected Tiles';
+    } else {
+      btnRemoveTile.textContent = tileMeta.uploaded ? 'Remove Tile' : 'Delete Tile';
+    }
   }
 
   updateEditorTransformFromControls();
-  renderEditorToolbarState(canEditInEditor);
+  renderEditorToolbarState(canEditInEditor && canEditUploaded);
   renderEditorPreview(tileMeta);
 }
 
@@ -712,8 +1480,12 @@ function setupSvgUploadUI() {
   let btnCreateFamily = document.getElementById('btnCreateFamily');
   let btnRenameFamilyFromList = document.getElementById('btnRenameFamilyFromList');
   let btnRemoveFamilyFromList = document.getElementById('btnRemoveFamilyFromList');
+  let btnMoveFamilyOrderUp = document.getElementById('btnMoveFamilyOrderUp');
+  let btnMoveFamilyOrderDown = document.getElementById('btnMoveFamilyOrderDown');
   let btnRenameTile = document.getElementById('btnApplyTileRename');
   let btnMoveTile = document.getElementById('btnMoveTileFamily');
+  let btnMoveTileOrderLeft = document.getElementById('btnMoveTileOrderLeft');
+  let btnMoveTileOrderRight = document.getElementById('btnMoveTileOrderRight');
   let btnAssetsUndo = document.getElementById('btnAssetsUndo');
   let btnAssetsRedo = document.getElementById('btnAssetsRedo');
   let backupScopeSelect = document.getElementById('assetBackupScope');
@@ -876,24 +1648,82 @@ function setupSvgUploadUI() {
   if (btnMoveTile) {
     btnMoveTile.addEventListener('click', (e) => {
       e.preventDefault();
+      let selectedTileIds = getSelectedTileIdsInActiveFamily();
       let tileMeta = getSelectedTileMeta();
-      if (!tileMeta || !selectMoveFamily) return;
+      if (selectedTileIds.length === 0 || !tileMeta || !selectMoveFamily) return;
       let targetFamily = selectMoveFamily.value;
-      if (!targetFamily || targetFamily === tileMeta.familyLabel) return;
-      try {
-        if (tileMeta.uploaded && window.SVGTileManager && typeof window.SVGTileManager.moveUploadedTileToFamily === 'function') {
-          window.SVGTileManager.moveUploadedTileToFamily(tileMeta.tileId, targetFamily);
-        } else if (typeof window.moveTileToFamily === 'function') {
-          window.moveTileToFamily(tileMeta.tileId, targetFamily);
-        } else {
-          throw new Error('Move tile API not available.');
+      if (!targetFamily) return;
+
+      let movedIds = [];
+      let failedIds = [];
+
+      for (let tileId of selectedTileIds) {
+        try {
+          let summary = getFamilySummaryForManager();
+          let currentFamily = null;
+          for (let item of summary) {
+            if (item.tileIds.includes(tileId)) {
+              currentFamily = item.label;
+              break;
+            }
+          }
+          if (currentFamily === targetFamily) continue;
+
+          let meta = getUploadedTileMeta(tileId);
+          if (meta && window.SVGTileManager && typeof window.SVGTileManager.moveUploadedTileToFamily === 'function') {
+            window.SVGTileManager.moveUploadedTileToFamily(tileId, targetFamily);
+          } else if (typeof window.moveTileToFamily === 'function') {
+            window.moveTileToFamily(tileId, targetFamily);
+          } else {
+            throw new Error('Move tile API not available.');
+          }
+          movedIds.push(tileId);
+        } catch (_err) {
+          failedIds.push(tileId);
         }
+      }
+
+      if (movedIds.length > 0) {
         assetsUiState.selectedFamily = targetFamily;
-        refreshTileCatalogUI([tileMeta.tileId]);
+        assetsUiState.selectedFamilies = new Set([targetFamily]);
+        assetsUiState.selectedTileIds = new Set(movedIds);
+        assetsUiState.selectedTileId = movedIds[movedIds.length - 1] || null;
+        refreshTileCatalogUI(movedIds);
         pushAssetsHistoryCheckpoint();
-        setSvgStatus(`Tile moved to family "${targetFamily}".`, 'success');
+
+        if (failedIds.length > 0) {
+          setSvgStatus(`Moved ${movedIds.length} tile(s). Failed to move ${failedIds.length}.`, 'error');
+        } else {
+          setSvgStatus(`${movedIds.length} tile(s) moved to family "${targetFamily}".`, 'success');
+        }
+      } else {
+        setSvgStatus('No selected tiles could be moved.', 'error');
+      }
+    });
+  }
+
+  if (btnMoveTileOrderLeft) {
+    btnMoveTileOrderLeft.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (!reorderSelectedTilesBulkByDirection(-1)) {
+          setSvgStatus('Cannot move tile further left.', 'error');
+        }
       } catch (err) {
-        setSvgStatus(`Move failed: ${err.message || err}`, 'error');
+        setSvgStatus(`Reorder failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnMoveTileOrderRight) {
+    btnMoveTileOrderRight.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (!reorderSelectedTilesBulkByDirection(1)) {
+          setSvgStatus('Cannot move tile further right.', 'error');
+        }
+      } catch (err) {
+        setSvgStatus(`Reorder failed: ${err.message || err}`, 'error');
       }
     });
   }
@@ -919,6 +1749,32 @@ function setupSvgUploadUI() {
         setSvgStatus(`Family "${label}" created.`, 'success');
       } catch (err) {
         setSvgStatus(`Family create failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnMoveFamilyOrderUp) {
+    btnMoveFamilyOrderUp.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (!reorderSelectedFamiliesBulkByDirection(-1)) {
+          setSvgStatus('Cannot move selected families further up.', 'error');
+        }
+      } catch (err) {
+        setSvgStatus(`Family move failed: ${err.message || err}`, 'error');
+      }
+    });
+  }
+
+  if (btnMoveFamilyOrderDown) {
+    btnMoveFamilyOrderDown.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (!reorderSelectedFamiliesBulkByDirection(1)) {
+          setSvgStatus('Cannot move selected families further down.', 'error');
+        }
+      } catch (err) {
+        setSvgStatus(`Family move failed: ${err.message || err}`, 'error');
       }
     });
   }
@@ -966,43 +1822,53 @@ function setupSvgUploadUI() {
   if (btnRemoveFamilyFromList) {
     btnRemoveFamilyFromList.addEventListener('click', (e) => {
       e.preventDefault();
-      if (!assetsUiState.selectedFamily) {
+      let targetFamilies = getSelectedFamilyLabels();
+      if (targetFamilies.length === 0) {
         setSvgStatus('Select a family first.', 'error');
         return;
       }
 
-      let targetFamily = assetsUiState.selectedFamily;
-      let summary = getFamilySummaryForManager().find((item) => item.label === targetFamily);
-      let familyTileIds = summary ? summary.tileIds : [];
-      if (!window.confirm(`Remove family "${targetFamily}" and delete all tiles currently assigned to it from library view?`)) return;
+      let prompt = targetFamilies.length === 1
+        ? `Remove family "${targetFamilies[0]}" and delete all tiles currently assigned to it from library view?`
+        : `Remove ${targetFamilies.length} selected families and delete their tiles from library view?`;
+      if (!window.confirm(prompt)) return;
 
       try {
-        for (let tileId of familyTileIds) {
-          let uploadedMeta = getUploadedTileMeta(tileId);
-          if (uploadedMeta) {
-            if (!window.SVGTileManager || typeof window.SVGTileManager.deleteUploadedTile !== 'function') {
-              throw new Error('Uploaded tile remove API not available.');
+        for (let targetFamily of targetFamilies) {
+          let summary = getFamilySummaryForManager().find((item) => item.label === targetFamily);
+          let familyTileIds = summary ? summary.tileIds : [];
+
+          for (let tileId of familyTileIds) {
+            let uploadedMeta = getUploadedTileMeta(tileId);
+            if (uploadedMeta) {
+              if (!window.SVGTileManager || typeof window.SVGTileManager.deleteUploadedTile !== 'function') {
+                throw new Error('Uploaded tile remove API not available.');
+              }
+              window.SVGTileManager.deleteUploadedTile(tileId);
+              continue;
             }
-            window.SVGTileManager.deleteUploadedTile(tileId);
-            continue;
+
+            if (typeof window.removeTileFromFamily === 'function') {
+              window.removeTileFromFamily(tileId);
+            }
+
+            if (window.SVGTileManager && typeof window.SVGTileManager.hideTile === 'function') {
+              window.SVGTileManager.hideTile(tileId);
+            }
           }
 
-          if (typeof window.removeTileFromFamily === 'function') {
-            window.removeTileFromFamily(tileId);
-          }
-
-          if (window.SVGTileManager && typeof window.SVGTileManager.hideTile === 'function') {
-            window.SVGTileManager.hideTile(tileId);
+          if (typeof window.removeTileFamily === 'function') {
+            window.removeTileFamily(targetFamily);
           }
         }
 
-        if (typeof window.removeTileFamily === 'function') {
-          window.removeTileFamily(targetFamily);
-        }
         assetsUiState.selectedFamily = null;
+        assetsUiState.selectedFamilies = new Set();
+        assetsUiState.selectedTileIds = new Set();
+        assetsUiState.selectedTileId = null;
         refreshTileCatalogUI();
         pushAssetsHistoryCheckpoint();
-        setSvgStatus(`Family "${targetFamily}" removed.`, 'success');
+        setSvgStatus(`${targetFamilies.length} family(s) removed.`, 'success');
       } catch (err) {
         setSvgStatus(`Family remove failed: ${err.message || err}`, 'error');
       }
@@ -1013,9 +1879,48 @@ function setupSvgUploadUI() {
   if (btnRemoveTile) {
     btnRemoveTile.addEventListener('click', (e) => {
       e.preventDefault();
-      let tileMeta = getSelectedTileMeta();
-      if (!tileMeta) {
+      let selectedTileIds = getSelectedTileIdsInActiveFamily();
+      if (selectedTileIds.length === 0) {
         setSvgStatus('Select a tile first.', 'error');
+        return;
+      }
+
+      let tileMeta = getSelectedTileMeta();
+      if (!tileMeta) return;
+
+      if (selectedTileIds.length > 1) {
+        if (!window.confirm(`Remove ${selectedTileIds.length} selected tiles?`)) return;
+        try {
+          for (let tileId of selectedTileIds) {
+            let uploadedMeta = getUploadedTileMeta(tileId);
+            if (uploadedMeta) {
+              if (!window.SVGTileManager || typeof window.SVGTileManager.deleteUploadedTile !== 'function') {
+                throw new Error('Tile remove API not available.');
+              }
+              let ok = window.SVGTileManager.deleteUploadedTile(tileId);
+              if (!ok) throw new Error(`Tile #${tileId} could not be removed.`);
+              continue;
+            }
+
+            if (typeof window.removeTileFromFamily !== 'function') {
+              throw new Error('Tile remove API not available.');
+            }
+
+            let removed = window.removeTileFromFamily(tileId);
+            if (!removed) continue;
+            if (window.SVGTileManager && typeof window.SVGTileManager.hideTile === 'function') {
+              window.SVGTileManager.hideTile(tileId);
+            }
+          }
+
+          assetsUiState.selectedTileIds = new Set();
+          assetsUiState.selectedTileId = null;
+          refreshTileCatalogUI();
+          pushAssetsHistoryCheckpoint();
+          setSvgStatus(`${selectedTileIds.length} tile(s) removed.`, 'success');
+        } catch (err) {
+          setSvgStatus(`Tile remove failed: ${err.message || err}`, 'error');
+        }
         return;
       }
 
@@ -1030,6 +1935,8 @@ function setupSvgUploadUI() {
           if (window.SVGTileManager && typeof window.SVGTileManager.hideTile === 'function') {
             window.SVGTileManager.hideTile(tileMeta.tileId);
           }
+          assetsUiState.selectedTileIds = new Set();
+          assetsUiState.selectedTileId = null;
           refreshTileCatalogUI();
           pushAssetsHistoryCheckpoint();
           setSvgStatus(`Tile "${tileMeta.name}" deleted from library view.`, 'success');
@@ -1046,6 +1953,8 @@ function setupSvgUploadUI() {
         }
         let ok = window.SVGTileManager.deleteUploadedTile(tileMeta.tileId);
         if (!ok) throw new Error('Tile could not be removed.');
+        assetsUiState.selectedTileIds = new Set();
+        assetsUiState.selectedTileId = null;
         refreshTileCatalogUI();
         pushAssetsHistoryCheckpoint();
         setSvgStatus(`Tile "${tileMeta.name}" removed.`, 'success');
@@ -2679,6 +3588,14 @@ window.addEventListener('keydown', (e) => {
     }
   }
 
+  if (isAssetsTabActive() && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    let direction = e.key === 'ArrowLeft' ? -1 : 1;
+    if (triggerAssetsReorderShortcut(direction)) {
+      e.preventDefault();
+      return;
+    }
+  }
+
   if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'r' && isEditTabActive()) {
     if (typeof window.toggleEditToolMode === 'function') {
       window.toggleEditToolMode();
@@ -2751,8 +3668,8 @@ function triggerAssetsDeleteShortcut() {
   let removeTileBtn = document.getElementById('btnRemoveSelectedTile');
   let removeFamilyBtn = document.getElementById('btnRemoveFamilyFromList');
 
-  let hasTileSelection = Number.isInteger(assetsUiState.selectedTileId);
-  let hasFamilySelection = typeof assetsUiState.selectedFamily === 'string' && assetsUiState.selectedFamily.trim() !== '';
+  let hasTileSelection = getSelectedTileIdsInActiveFamily().length > 0;
+  let hasFamilySelection = getSelectedFamilyLabels().length > 0;
 
   if (assetsUiState.lastSelectionKind === 'tile' && hasTileSelection && removeTileBtn) {
     removeTileBtn.click();
@@ -2775,6 +3692,30 @@ function triggerAssetsDeleteShortcut() {
   }
 
   return false;
+}
+
+function triggerAssetsReorderShortcut(direction) {
+  if (!isAssetsTabActive()) return false;
+  if (direction !== -1 && direction !== 1) return false;
+
+  try {
+    if (assetsUiState.lastSelectionKind === 'family') {
+      return reorderSelectedFamiliesBulkByDirection(direction);
+    }
+
+    if (reorderSelectedTilesBulkByDirection(direction)) {
+      return true;
+    }
+
+    if (getSelectedTileIdsInActiveFamily().length === 0) {
+      return reorderSelectedFamiliesBulkByDirection(direction);
+    }
+
+    return false;
+  } catch (err) {
+    setSvgStatus(`Reorder failed: ${err.message || err}`, 'error');
+    return false;
+  }
 }
 
 function getPointerInteractionMode() {

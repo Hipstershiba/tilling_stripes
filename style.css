@@ -680,6 +680,20 @@ body.assets-focus #exportActions {
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+.family-item.dragging {
+  opacity: 0.55;
+}
+
+.family-item.drag-over-before {
+  border-top-color: #2f855a;
+  box-shadow: inset 0 3px 0 #2f855a;
+}
+
+.family-item.drag-over-after {
+  border-bottom-color: #2f855a;
+  box-shadow: inset 0 -3px 0 #2f855a;
+}
 }
 
 .library-item {
@@ -819,11 +833,28 @@ body.assets-focus #exportActions {
   border: 1px solid #333;
   border-radius: 4px;
   padding: 5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 .family-tile-card.active {
   border-color: #4d89b6;
   box-shadow: 0 0 0 1px rgba(77, 137, 182, 0.45);
+}
+
+.family-tile-card.dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+}
+
+.family-tile-card.drag-over-before {
+  border-left-color: #8cc8ff;
+  box-shadow: inset 3px 0 0 rgba(140, 200, 255, 0.9);
+}
+
+.family-tile-card.drag-over-after {
+  border-right-color: #8cc8ff;
+  box-shadow: inset -3px 0 0 rgba(140, 200, 255, 0.9);
 }
 
 .family-tile-card img {
@@ -860,6 +891,10 @@ body.assets-focus #exportActions {
   border-radius: 6px;
   background: #1b1b1b;
   padding: 6px;
+}
+
+.asset-order-row button {
+  flex: 1 1 0;
 }
 
 .asset-inspector-thumb {

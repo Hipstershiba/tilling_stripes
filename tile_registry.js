@@ -760,6 +760,89 @@ function moveTileToFamily(tileId, targetFamily) {
     return targetIndex;
 }
 
+function moveTileRelativeInFamily(tileId, familyLabel, referenceTileId, placeAfter = false) {
+    if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid tile id');
+    }
+    if (!Number.isInteger(referenceTileId) || referenceTileId < 0 || referenceTileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid reference tile id');
+    }
+    if (tileId === referenceTileId) return -1;
+    if (typeof familyLabel !== 'string' || familyLabel.trim() === '') {
+        throw new Error('familyLabel must be a non-empty string');
+    }
+
+    let familyIndex = getFamilyIndexByLabel(familyLabel.trim());
+    if (familyIndex === null) {
+        throw new Error(`Family "${familyLabel}" not found`);
+    }
+
+    let members = TILE_FAMILIES[familyIndex];
+    if (!Array.isArray(members)) {
+        throw new Error(`Family "${familyLabel}" has invalid member list`);
+    }
+
+    let fromIndex = members.indexOf(tileId);
+    if (fromIndex === -1) {
+        throw new Error(`Tile #${tileId} is not in family "${familyLabel}"`);
+    }
+
+    let referenceIndex = members.indexOf(referenceTileId);
+    if (referenceIndex === -1) {
+        throw new Error(`Reference tile #${referenceTileId} is not in family "${familyLabel}"`);
+    }
+
+    members.splice(fromIndex, 1);
+
+    referenceIndex = members.indexOf(referenceTileId);
+    let insertIndex = placeAfter ? referenceIndex + 1 : referenceIndex;
+    if (insertIndex < 0) insertIndex = 0;
+    if (insertIndex > members.length) insertIndex = members.length;
+
+    members.splice(insertIndex, 0, tileId);
+    return insertIndex;
+}
+
+function moveFamilyRelative(label, referenceLabel, placeAfter = false) {
+    if (typeof label !== 'string' || label.trim() === '') {
+        throw new Error('label must be a non-empty string');
+    }
+    if (typeof referenceLabel !== 'string' || referenceLabel.trim() === '') {
+        throw new Error('referenceLabel must be a non-empty string');
+    }
+
+    let source = label.trim();
+    let reference = referenceLabel.trim();
+    if (source === reference) return -1;
+
+    let sourceIndex = getFamilyIndexByLabel(source);
+    if (sourceIndex === null) {
+        throw new Error(`Family "${source}" not found`);
+    }
+
+    let referenceIndex = getFamilyIndexByLabel(reference);
+    if (referenceIndex === null) {
+        throw new Error(`Reference family "${reference}" not found`);
+    }
+
+    let sourceMembers = TILE_FAMILIES[sourceIndex];
+    let sourceLabel = TILE_FAMILY_INDEX_TO_LABEL[sourceIndex];
+
+    TILE_FAMILIES.splice(sourceIndex, 1);
+    TILE_FAMILY_INDEX_TO_LABEL.splice(sourceIndex, 1);
+
+    referenceIndex = getFamilyIndexByLabel(reference);
+    let insertIndex = placeAfter ? referenceIndex + 1 : referenceIndex;
+    if (insertIndex < 0) insertIndex = 0;
+    if (insertIndex > TILE_FAMILIES.length) insertIndex = TILE_FAMILIES.length;
+
+    TILE_FAMILIES.splice(insertIndex, 0, sourceMembers);
+    TILE_FAMILY_INDEX_TO_LABEL.splice(insertIndex, 0, sourceLabel);
+    rebuildFamilyLabelIndexMap();
+
+    return insertIndex;
+}
+
 function removeTileFromFamily(tileId, familyLabel = null) {
     if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_RENDERERS.length) {
         throw new Error('Invalid tile id');
@@ -1230,6 +1313,8 @@ if (typeof window !== 'undefined') {
     window.createOrGetTileFamily = createOrGetTileFamily;
     window.renameTileFamilyLabel = renameTileFamilyLabel;
     window.moveTileToFamily = moveTileToFamily;
+    window.moveTileRelativeInFamily = moveTileRelativeInFamily;
+    window.moveFamilyRelative = moveFamilyRelative;
     window.removeTileFromFamily = removeTileFromFamily;
     window.renameTileName = renameTileName;
     window.removeTileFamily = removeTileFamily;
@@ -1248,6 +1333,8 @@ if (typeof window !== 'undefined') {
         createOrGetTileFamily,
         renameTileFamilyLabel,
         moveTileToFamily,
+        moveTileRelativeInFamily,
+        moveFamilyRelative,
         removeTileFromFamily,
         renameTileName,
         removeTileFamily,

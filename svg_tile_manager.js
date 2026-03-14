@@ -571,7 +571,7 @@
     return byTileId;
   }
 
-  function inferTileIdMapFromRegistry(parsed, importedAssets) {
+  function inferTileIdMapFromRegistry(parsed, availableAssets) {
     const map = {};
     const builtinLimit = getBuiltinTileLimit();
 
@@ -581,15 +581,16 @@
       }
     }
 
-    if (!parsed || !parsed.registry || !Array.isArray(importedAssets) || importedAssets.length === 0) {
+    if (!parsed || !parsed.registry || !Array.isArray(availableAssets) || availableAssets.length === 0) {
       return map;
     }
 
     const familyLabelByOldId = buildFamilyLabelByTileIdFromRegistry(parsed.registry);
+    const parsedTiles = normalizeBackupInput(parsed);
     const uploadedRefs = Array.isArray(parsed.uploadedTileRefs) ? parsed.uploadedTileRefs : [];
     const entryIdToNewId = new Map();
 
-    for (const asset of importedAssets) {
+    for (const asset of availableAssets) {
       if (!asset || !asset.entryId || !Number.isInteger(asset.tileId)) continue;
       entryIdToNewId.set(asset.entryId, asset.tileId);
     }
@@ -602,14 +603,62 @@
       }
     }
 
-    const importedByKey = new Map();
-    for (const asset of importedAssets) {
+    const availableByKey = new Map();
+    const availableBySvg = new Map();
+    for (const asset of availableAssets) {
       if (!asset || !Number.isInteger(asset.tileId)) continue;
       const name = (asset.name || '').toString().trim();
       const family = (asset.familyLabel || '').toString().trim();
       const key = `${name}\u0000${family}`;
-      if (!importedByKey.has(key)) importedByKey.set(key, []);
-      importedByKey.get(key).push(asset.tileId);
+      if (!availableByKey.has(key)) availableByKey.set(key, []);
+      availableByKey.get(key).push(asset.tileId);
+
+      const svgMarkup = (asset.svgMarkup || '').toString();
+      if (svgMarkup) {
+        if (!availableBySvg.has(svgMarkup)) availableBySvg.set(svgMarkup, []);
+        availableBySvg.get(svgMarkup).push(asset.tileId);
+      }
+    }
+
+    const parsedTileByEntryId = new Map();
+    for (const entry of parsedTiles) {
+      if (!entry || typeof entry !== 'object') continue;
+      if (!entry.id) continue;
+      parsedTileByEntryId.set(entry.id, entry);
+    }
+
+    const tryMapByEntry = (oldId, entryId) => {
+      if (!entryId || Number.isInteger(map[oldId])) return;
+      const mapped = entryIdToNewId.get(entryId);
+      if (Number.isInteger(mapped)) {
+        map[oldId] = mapped;
+        return;
+      }
+
+      const entry = parsedTileByEntryId.get(entryId);
+      if (!entry) return;
+
+      const entrySvg = (entry.svgMarkup || '').toString();
+      if (entrySvg && availableBySvg.has(entrySvg)) {
+        const svgCandidates = availableBySvg.get(entrySvg);
+        if (Array.isArray(svgCandidates) && svgCandidates.length === 1) {
+          map[oldId] = svgCandidates[0];
+          return;
+        }
+      }
+
+      const entryName = (entry.name || '').toString().trim();
+      const entryFamily = (entry.familyLabel || '').toString().trim();
+      const key = `${entryName}\u0000${entryFamily}`;
+      const candidates = availableByKey.get(key);
+      if (Array.isArray(candidates) && candidates.length === 1) {
+        map[oldId] = candidates[0];
+      }
+    };
+
+    for (const ref of uploadedRefs) {
+      if (!ref || !Number.isInteger(ref.tileId)) continue;
+      tryMapByEntry(ref.tileId, ref.entryId || null);
     }
 
     if (parsed.registry && Array.isArray(parsed.registry.tileNames)) {
@@ -622,7 +671,7 @@
 
         const oldFamily = familyLabelByOldId[oldId];
         const key = `${oldName.trim()}\u0000${(oldFamily || '').toString().trim()}`;
-        const candidates = importedByKey.get(key);
+        const candidates = availableByKey.get(key);
         if (Array.isArray(candidates) && candidates.length === 1) {
           map[oldId] = candidates[0];
         }
@@ -756,7 +805,20 @@
       }
     }
 
-    const tileIdMap = inferTileIdMapFromRegistry(parsed, importedAssets);
+    const availableAssets = uploadedSvgTiles.map((asset) => ({
+      tileId: asset.tileId,
+      entryId: asset.entryId,
+      name: asset.name,
+      familyLabel: asset.familyLabel,
+      svgMarkup: asset.svgMarkup
+    }));
+
+    // Keep newest imports first to prefer this backup's instances in ambiguous name/family matches.
+    const availableForMapping = importedAssets.concat(availableAssets.filter((asset) => {
+      return !importedAssets.some((added) => added.tileId === asset.tileId);
+    }));
+
+    const tileIdMap = inferTileIdMapFromRegistry(parsed, availableForMapping);
 
     if (applyLayout && parsed && parsed.registry && typeof window.applyTileRegistrySnapshot === 'function') {
       window.applyTileRegistrySnapshot(parsed.registry, { tileIdMap });
@@ -893,6 +955,18 @@
       hiddenTileIds.delete(asset.tileId);
     }
 
+    const historyTileIdMap = {};
+    const builtinLimit = getBuiltinTileLimit();
+    if (builtinLimit > 0) {
+      for (let i = 0; i < builtinLimit; i++) {
+        historyTileIdMap[i] = i;
+      }
+    }
+    for (const asset of uploadedSvgTiles) {
+      if (!asset || !Number.isInteger(asset.tileId)) continue;
+      historyTileIdMap[asset.tileId] = asset.tileId;
+    }
+
     if (Array.isArray(state.storageEntries)) {
       writeStorage(state.storageEntries.map((entry) => ({ ...entry })));
     } else {
@@ -908,7 +982,7 @@
     }
 
     if (state.registry && typeof window.applyTileRegistrySnapshot === 'function') {
-      window.applyTileRegistrySnapshot(state.registry);
+      window.applyTileRegistrySnapshot(state.registry, { tileIdMap: historyTileIdMap });
     }
 
     return {
