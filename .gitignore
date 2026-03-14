@@ -1,1 +1,7 @@
 gems/
+
+# Local asset upload/backup artifacts
+uploads/
+assets/uploads/
+tmp/uploads/
+*.tiles-backup.json

@@ -338,10 +338,8 @@
                   <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
                 </div>
 
-                <div class="row asset-order-row">
-                  <button id="btnMoveFamilyOrderUp" class="btn-accent" type="button">Move Up</button>
-                  <button id="btnMoveFamilyOrderDown" class="btn-accent" type="button">Move Down</button>
-                </div>
+                <div class="status-text assets-helper-note">Tip: drag families with mouse. Keyboard: Up/Down move 1
+                  step; Shift + Up sends to top; Shift + Down sends to bottom.</div>
               </div>
             </div>
 
@@ -359,10 +357,9 @@
                 <div class="status-text assets-helper-note">Tip: Ctrl/Cmd + click for multi-select; Shift + click for
                   range selection.</div>
 
-                <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
-                <div class="row">
-                  <button id="btnAddSvgTiles">Import Tile</button>
-                </div>
+                <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple style="display:none">
+                <div class="status-text assets-helper-note">Use o card + na grade para adicionar um ou mais SVGs na
+                  família selecionada.</div>
                 <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
               </div>
             </div>
@@ -395,11 +392,8 @@
                   </div>
 
                   <label>Order in Family</label>
-                  <div class="row asset-order-row">
-                    <button id="btnMoveTileOrderLeft" class="btn-accent" type="button">Move Left</button>
-                    <button id="btnMoveTileOrderRight" class="btn-accent" type="button">Move Right</button>
-                  </div>
-                  <div class="status-text assets-helper-note">Tip: drag tiles in the grid or use Left/Right arrow keys.
+                  <div class="status-text assets-helper-note">Tip: drag tiles with mouse. Keyboard: Left/Right move 1
+                    step; Shift + Left sends to start; Shift + Right sends to end.
                   </div>
 
                   <label>Tile Editor</label>
