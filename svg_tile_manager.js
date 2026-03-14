@@ -2,6 +2,8 @@
   'use strict';
 
   const STORAGE_KEY = 'tilling_stripes_uploaded_svg_v1';
+  const BACKUP_VERSION = 1;
+  const THUMBNAIL_SIZE = 96;
   const uploadedSvgTiles = [];
   const hiddenTileIds = new Set();
 
@@ -65,6 +67,20 @@
     };
   }
 
+  function normalizeToSquareViewBox(dims) {
+    const size = Math.max(dims.width, dims.height) || 1;
+    const minX = dims.minX - (size - dims.width) / 2;
+    const minY = dims.minY - (size - dims.height) / 2;
+
+    return {
+      minX,
+      minY,
+      width: size,
+      height: size,
+      normalized: (size !== dims.width || size !== dims.height)
+    };
+  }
+
   function sanitizeSvg(svgText) {
     const parser = new DOMParser();
     const xml = parser.parseFromString(svgText, 'image/svg+xml');
@@ -81,11 +97,13 @@
 
     stripUnsafeNodesAndAttrs(svgElement);
 
-    const dims = parseSvgDimensions(svgElement);
+    const rawDims = parseSvgDimensions(svgElement);
+    const dims = normalizeToSquareViewBox(rawDims);
     const viewBox = `${dims.minX} ${dims.minY} ${dims.width} ${dims.height}`;
 
     svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     svgElement.setAttribute('viewBox', viewBox);
+    svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svgElement.removeAttribute('width');
     svgElement.removeAttribute('height');
 
@@ -99,7 +117,44 @@
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}`;
   }
 
-  function drawSvgOnP5Context(ctx, imageObj, w, h, padding) {
+  function getContainSize(srcW, srcH, dstW, dstH) {
+    const scale = Math.min(dstW / srcW, dstH / srcH);
+    return {
+      width: Math.max(1, srcW * scale),
+      height: Math.max(1, srcH * scale)
+    };
+  }
+
+  function generateThumbnailDataUrl(asset, size = THUMBNAIL_SIZE) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        resolve(null);
+        return;
+      }
+
+      const src = asset.dataUrl;
+      const img = new Image();
+      img.onload = () => {
+        const dims = getContainSize(img.width || 1, img.height || 1, size, size);
+        const dx = (size - dims.width) / 2;
+        const dy = (size - dims.height) / 2;
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, dx, dy, dims.width, dims.height);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  function drawSvgOnP5Context(ctx, asset, w, h, padding) {
+    const imageObj = asset ? asset.image : null;
     if (!imageObj || !imageObj.complete) {
       ctx.push();
       ctx.noFill();
@@ -116,11 +171,13 @@
 
     const drawW = Math.max(1, w - padding * 2);
     const drawH = Math.max(1, h - padding * 2);
+    const vb = asset && asset.viewBox ? asset.viewBox : { width: 1, height: 1 };
+    const contain = getContainSize(vb.width || 1, vb.height || 1, drawW, drawH);
 
     ctx.push();
     ctx.imageMode(CENTER);
     ctx.noStroke();
-    ctx.image(imageObj, 0, 0, drawW, drawH);
+    ctx.image(imageObj, 0, 0, contain.width, contain.height);
     ctx.pop();
   }
 
@@ -153,7 +210,7 @@
         return;
       }
 
-      drawSvgOnP5Context(ctx, asset.image, w, h, padding);
+      drawSvgOnP5Context(ctx, asset, w, h, padding);
     };
   }
 
@@ -182,6 +239,16 @@
     return `svg_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
   }
 
+  function getStoredEntries() {
+    return readStorage();
+  }
+
+  function hasStoredEntry(entryId, name, familyLabel, svgMarkup) {
+    const entries = readStorage();
+    if (entryId && entries.some((item) => item.id === entryId)) return true;
+    return entries.some((item) => item.name === name && item.familyLabel === familyLabel && item.svgMarkup === svgMarkup);
+  }
+
   function registerUploadedSvgTile(config, options = {}) {
     if (!window.registerTile) {
       throw new Error('registerTile nao esta disponivel.');
@@ -193,7 +260,6 @@
     const dataUrl = buildDataUrl(sanitized.svgMarkup);
 
     const imageObj = new Image();
-    imageObj.src = dataUrl;
 
     const parser = new DOMParser();
     const xml = parser.parseFromString(sanitized.svgMarkup, 'image/svg+xml');
@@ -207,7 +273,8 @@
       innerMarkup: svgElement ? svgElement.innerHTML : '',
       viewBox: sanitized.viewBox,
       image: imageObj,
-      dataUrl
+      dataUrl,
+      thumbnailDataUrl: null
     };
 
     const tileId = window.registerTile({
@@ -219,6 +286,14 @@
 
     asset.tileId = tileId;
     uploadedSvgTiles.push(asset);
+
+    imageObj.onload = async () => {
+      asset.thumbnailDataUrl = await generateThumbnailDataUrl(asset);
+      if (typeof window.onUploadedTileThumbnailReady === 'function') {
+        window.onUploadedTileThumbnailReady(asset.tileId);
+      }
+    };
+    imageObj.src = dataUrl;
 
     if (options.persist !== false) {
       const entries = readStorage();
@@ -240,8 +315,22 @@
       entryId: tile.entryId,
       tileId: tile.tileId,
       name: tile.name,
-      familyLabel: tile.familyLabel
+      familyLabel: tile.familyLabel,
+      thumbnailDataUrl: tile.thumbnailDataUrl
     }));
+  }
+
+  function getUploadedTileMeta(tileId) {
+    const item = uploadedSvgTiles.find((tile) => tile.tileId === tileId);
+    if (!item) return null;
+    return {
+      entryId: item.entryId,
+      tileId: item.tileId,
+      name: item.name,
+      familyLabel: item.familyLabel,
+      thumbnailDataUrl: item.thumbnailDataUrl,
+      viewBox: item.viewBox
+    };
   }
 
   function deleteUploadedTile(tileId) {
@@ -299,6 +388,80 @@
     return restoredIds;
   }
 
+  function buildBackupPayload() {
+    return {
+      app: 'tilling_stripes',
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      tiles: getStoredEntries()
+    };
+  }
+
+  function downloadBackup(filename = null) {
+    const payload = buildBackupPayload();
+    const finalName = filename || `tilling_stripes_svg_backup_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = finalName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  function normalizeBackupInput(parsed) {
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && Array.isArray(parsed.tiles)) return parsed.tiles;
+    return [];
+  }
+
+  function importBackupText(text) {
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (err) {
+      throw new Error('Backup JSON invalido.');
+    }
+
+    const incoming = normalizeBackupInput(parsed);
+    let imported = 0;
+    let skipped = 0;
+    let ids = [];
+
+    for (const entry of incoming) {
+      if (!entry || typeof entry.svgMarkup !== 'string') {
+        skipped++;
+        continue;
+      }
+
+      const name = (entry.name || 'Uploaded SVG').trim();
+      const familyLabel = (entry.familyLabel || 'uploads').trim() || 'uploads';
+      const entryId = entry.id || null;
+
+      if (hasStoredEntry(entryId, name, familyLabel, entry.svgMarkup)) {
+        skipped++;
+        continue;
+      }
+
+      const asset = registerUploadedSvgTile({
+        name,
+        familyLabel,
+        svgText: entry.svgMarkup
+      }, {
+        persist: true,
+        entryId: entryId || createEntryId()
+      });
+
+      imported++;
+      ids.push(asset.tileId);
+    }
+
+    return { imported, skipped, ids };
+  }
+
   function isTileHidden(tileId) {
     return hiddenTileIds.has(tileId);
   }
@@ -313,9 +476,12 @@
   window.SVGTileManager = {
     registerUploadedSvgTile,
     restoreFromStorage,
+    getUploadedTileMeta,
     deleteUploadedTile,
     deleteUploadedFamily,
     isTileHidden,
+    downloadBackup,
+    importBackupText,
     listUploadedSvgTiles,
     getFamilyOptions
   };
