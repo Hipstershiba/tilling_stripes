@@ -4,6 +4,15 @@
   const STORAGE_KEY = 'tilling_stripes_uploaded_svg_v1';
   const BACKUP_VERSION = 1;
   const THUMBNAIL_SIZE = 96;
+  const SYMMETRY_VARIANTS = [
+    { key: 'r90', label: 'R90', rotate: 90, flipX: false, flipY: false },
+    { key: 'r180', label: 'R180', rotate: 180, flipX: false, flipY: false },
+    { key: 'r270', label: 'R270', rotate: 270, flipX: false, flipY: false },
+    { key: 'mx', label: 'MX', rotate: 0, flipX: true, flipY: false },
+    { key: 'my', label: 'MY', rotate: 0, flipX: false, flipY: true },
+    { key: 'md', label: 'MD', rotate: 90, flipX: true, flipY: false },
+    { key: 'mad', label: 'MAD', rotate: 90, flipX: false, flipY: true }
+  ];
   const uploadedSvgTiles = [];
   const hiddenTileIds = new Set();
 
@@ -153,6 +162,35 @@
     });
   }
 
+  function buildTransformOps(viewBox, transform) {
+    const cx = viewBox.minX + viewBox.width / 2;
+    const cy = viewBox.minY + viewBox.height / 2;
+    const sx = transform.flipX ? -1 : 1;
+    const sy = transform.flipY ? -1 : 1;
+
+    const ops = [`translate(${cx} ${cy})`];
+    if (transform.rotate) ops.push(`rotate(${transform.rotate})`);
+    if (sx !== 1 || sy !== 1) ops.push(`scale(${sx} ${sy})`);
+    ops.push(`translate(${-cx} ${-cy})`);
+    return ops.join(' ');
+  }
+
+  function makeVariantSvgMarkup(sourceSvgMarkup, sourceViewBox, transform) {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(sourceSvgMarkup, 'image/svg+xml');
+    const svg = xml.querySelector('svg');
+    if (!svg) return null;
+
+    const group = xml.createElementNS('http://www.w3.org/2000/svg', 'g');
+    group.setAttribute('transform', buildTransformOps(sourceViewBox, transform));
+
+    while (svg.firstChild) {
+      group.appendChild(svg.firstChild);
+    }
+    svg.appendChild(group);
+    return svg.outerHTML;
+  }
+
   function drawSvgOnP5Context(ctx, asset, w, h, padding) {
     const imageObj = asset ? asset.image : null;
     const imageReady = !!(
@@ -284,6 +322,7 @@
       entryId: options.entryId || createEntryId(),
       name: safeName,
       familyLabel,
+      metadata: options.metadata || null,
       svgMarkup: sanitized.svgMarkup,
       innerMarkup: svgElement ? svgElement.innerHTML : '',
       viewBox: sanitized.viewBox,
@@ -316,6 +355,7 @@
         id: asset.entryId,
         name: asset.name,
         familyLabel: asset.familyLabel,
+        metadata: asset.metadata,
         svgMarkup: asset.svgMarkup,
         createdAt: new Date().toISOString()
       });
@@ -331,6 +371,7 @@
       tileId: tile.tileId,
       name: tile.name,
       familyLabel: tile.familyLabel,
+      metadata: tile.metadata,
       thumbnailDataUrl: tile.thumbnailDataUrl
     }));
   }
@@ -343,6 +384,7 @@
       tileId: item.tileId,
       name: item.name,
       familyLabel: item.familyLabel,
+      metadata: item.metadata,
       thumbnailDataUrl: item.thumbnailDataUrl,
       viewBox: item.viewBox
     };
@@ -392,7 +434,8 @@
           svgText: entry.svgMarkup
         }, {
           persist: false,
-          entryId: entry.id
+          entryId: entry.id,
+          metadata: entry.metadata || null
         });
         restoredIds.push(asset.tileId);
       } catch (err) {
@@ -477,6 +520,54 @@
     return { imported, skipped, ids };
   }
 
+  function hasStoredVariantFor(entryId, variantKey) {
+    const entries = readStorage();
+    return entries.some((entry) => entry.metadata && entry.metadata.variantOf === entryId && entry.metadata.variantKey === variantKey);
+  }
+
+  function generateSymmetryVariants(tileId) {
+    const source = uploadedSvgTiles.find((item) => item.tileId === tileId);
+    if (!source) {
+      throw new Error('Source tile not found in uploaded library.');
+    }
+
+    const createdIds = [];
+    let skipped = 0;
+
+    for (const variant of SYMMETRY_VARIANTS) {
+      if (hasStoredVariantFor(source.entryId, variant.key)) {
+        skipped++;
+        continue;
+      }
+
+      const variantMarkup = makeVariantSvgMarkup(source.svgMarkup, source.viewBox, variant);
+      if (!variantMarkup) {
+        skipped++;
+        continue;
+      }
+
+      const variantName = `${source.name} [${variant.label}]`;
+      const created = registerUploadedSvgTile({
+        name: variantName,
+        familyLabel: source.familyLabel,
+        svgText: variantMarkup
+      }, {
+        metadata: {
+          variantOf: source.entryId,
+          variantKey: variant.key
+        }
+      });
+
+      createdIds.push(created.tileId);
+    }
+
+    return {
+      created: createdIds.length,
+      skipped,
+      ids: createdIds
+    };
+  }
+
   function isTileHidden(tileId) {
     return hiddenTileIds.has(tileId);
   }
@@ -497,6 +588,7 @@
     isTileHidden,
     downloadBackup,
     importBackupText,
+    generateSymmetryVariants,
     listUploadedSvgTiles,
     getFamilyOptions
   };
