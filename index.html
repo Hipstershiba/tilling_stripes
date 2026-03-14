@@ -316,30 +316,42 @@
 
       <!-- TAB CONTENT: ASSETS -->
       <div id="tab-assets" class="tab-content">
-        <div class="control-group no-collapse" id="svgUploadPanel">
-          <label>
-            <span>Custom SVG Tiles</span>
-          </label>
-          <div class="group-content svg-upload-content">
-            <div class="row backup-row">
-              <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
-              <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
-              <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+        <div class="assets-layout">
+          <div class="control-group no-collapse" id="svgUploadPanel">
+            <label>
+              <span>Custom SVG Tiles</span>
+            </label>
+            <div class="group-content svg-upload-content">
+              <div class="row backup-row">
+                <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
+                <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
+                <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+              </div>
+              <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
+              <div class="row">
+                <input type="text" id="svgFamilyInput" placeholder="Family name (ex: leaves)">
+                <button id="btnRefreshFamilies" title="Refresh family list">Refresh</button>
+              </div>
+              <select id="svgFamilySelect">
+                <option value="">Use family name above</option>
+              </select>
+              <button id="btnAddSvgTiles">Add SVG Tiles</button>
+              <div class="status-text assets-helper-note">All uploads are normalized to square tiles automatically.</div>
+              <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
+              <div id="svgFamilyList" class="family-list"></div>
+              <label style="margin-top: 8px;">Uploaded Library</label>
+              <div id="svgLibraryList" class="library-list"></div>
             </div>
-            <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
-            <div class="row">
-              <input type="text" id="svgFamilyInput" placeholder="Family name (ex: leaves)">
-              <button id="btnRefreshFamilies" title="Refresh family list">Refresh</button>
+          </div>
+
+          <div class="control-group no-collapse" id="familyTilesPanel">
+            <label>
+              <span>Tiles by Family</span>
+            </label>
+            <div class="group-content">
+              <div class="status-text assets-helper-note">Preview all visible tiles grouped by family.</div>
+              <div id="familyTilesView" class="family-tiles-view"></div>
             </div>
-            <select id="svgFamilySelect">
-              <option value="">Use family name above</option>
-            </select>
-            <button id="btnAddSvgTiles">Add SVG Tiles</button>
-            <div class="status-text assets-helper-note">All uploads are normalized to square tiles automatically.</div>
-            <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
-            <div id="svgFamilyList" class="family-list"></div>
-            <label style="margin-top: 8px;">Uploaded Library</label>
-            <div id="svgLibraryList" class="library-list"></div>
           </div>
         </div>
       </div>

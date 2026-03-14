@@ -29,6 +29,7 @@ let editHistory = [];
 let editHistoryIndex = -1;
 let isRestoringHistory = false; // Flag to prevent infinite loops during restore
 let hasPendingHistory = false; // Tracks if a gesture modified the state
+let tileThumbnailCache = new Map();
 
 function getTileFamilies() {
   if (typeof window !== 'undefined' && Array.isArray(window.TILE_FAMILIES)) {
@@ -52,6 +53,30 @@ function getUploadedTileMeta(tileId) {
     return window.SVGTileManager.getUploadedTileMeta(tileId);
   }
   return null;
+}
+
+function resetTileThumbnailCache() {
+  tileThumbnailCache = new Map();
+}
+
+function getTileThumbnailSrc(tileId, size = 72) {
+  let uploaded = getUploadedTileMeta(tileId);
+  if (uploaded && uploaded.thumbnailDataUrl) {
+    return uploaded.thumbnailDataUrl;
+  }
+
+  let key = `${tileId}_${size}`;
+  if (tileThumbnailCache.has(key)) return tileThumbnailCache.get(key);
+
+  let gfx = createGraphics(size, size);
+  let s = new Subtile(size, size, tileId);
+  s.color = color(220);
+  s.render(gfx, size / 2, size / 2);
+  let dataUrl = gfx.canvas.toDataURL();
+  gfx.remove();
+
+  tileThumbnailCache.set(key, dataUrl);
+  return dataUrl;
 }
 
 // Helper to find next family member
@@ -94,8 +119,10 @@ function setup() {
 
   // Refresh thumbnails when uploaded SVG image previews become available.
   window.onUploadedTileThumbnailReady = () => {
+    resetTileThumbnailCache();
     generateTileThumbnails();
     refreshSvgLibraryUI();
+    refreshFamilyTilesView();
   };
 
   // Setup custom SVG upload panel
@@ -106,6 +133,14 @@ function setup() {
 
   // Initial grid generation
   initGrid();
+}
+
+function setAssetsManagerMode(active) {
+  if (active) {
+    document.body.classList.add('assets-focus');
+  } else {
+    document.body.classList.remove('assets-focus');
+  }
 }
 
 function setSvgStatus(message, tone = '') {
@@ -207,6 +242,14 @@ function refreshSvgLibraryUI() {
     let row = document.createElement('div');
     row.className = 'library-item';
 
+    let thumb = document.createElement('div');
+    thumb.className = 'library-item-thumb';
+    let thumbImg = document.createElement('img');
+    thumbImg.src = getTileThumbnailSrc(item.tileId, 60);
+    thumbImg.alt = item.name;
+    thumb.appendChild(thumbImg);
+    row.appendChild(thumb);
+
     let meta = document.createElement('div');
     meta.className = 'library-item-meta';
 
@@ -224,6 +267,32 @@ function refreshSvgLibraryUI() {
 
     let actions = document.createElement('div');
     actions.className = 'library-item-actions';
+
+    let isVariant = !!(item.metadata && item.metadata.variantOf);
+    if (!isVariant) {
+      let variantsBtn = document.createElement('button');
+      variantsBtn.className = 'btn-accent';
+      variantsBtn.textContent = 'Generate Symmetry Set';
+      variantsBtn.title = 'Create rotations and mirror variants in this family';
+      variantsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!window.SVGTileManager || typeof window.SVGTileManager.generateSymmetryVariants !== 'function') {
+          return;
+        }
+        try {
+          let result = window.SVGTileManager.generateSymmetryVariants(item.tileId);
+          if (result.created > 0) {
+            setSvgStatus(`Generated ${result.created} variants (${result.skipped} skipped).`, 'success');
+            refreshTileCatalogUI(result.ids);
+          } else {
+            setSvgStatus(`No new variants generated (${result.skipped} already existed).`, 'error');
+          }
+        } catch (err) {
+          setSvgStatus(`Variant generation failed: ${err.message || err}`, 'error');
+        }
+      });
+      actions.appendChild(variantsBtn);
+    }
 
     let removeBtn = document.createElement('button');
     removeBtn.className = 'btn-danger';
@@ -246,8 +315,69 @@ function refreshSvgLibraryUI() {
   });
 }
 
+function refreshFamilyTilesView() {
+  let container = document.getElementById('familyTilesView');
+  if (!container) return;
+
+  container.innerHTML = '';
+  let summary = (typeof window.getTileFamilySummary === 'function')
+    ? window.getTileFamilySummary()
+    : [];
+
+  let nonEmptyFamilies = summary
+    .map((item) => ({
+      label: item.label,
+      ids: (item.tileIds || []).filter(isTileVisible)
+    }))
+    .filter((item) => item.ids.length > 0);
+
+  if (nonEmptyFamilies.length === 0) {
+    container.textContent = 'No visible tiles to preview.';
+    return;
+  }
+
+  for (let family of nonEmptyFamilies) {
+    let section = document.createElement('div');
+    section.className = 'family-section';
+
+    let header = document.createElement('div');
+    header.className = 'family-section-header';
+    header.innerHTML = `<span>${family.label}</span><span>${family.ids.length} tile(s)</span>`;
+    section.appendChild(header);
+
+    let grid = document.createElement('div');
+    grid.className = 'family-tile-grid';
+
+    for (let tileId of family.ids) {
+      let card = document.createElement('div');
+      card.className = 'family-tile-card';
+
+      let img = document.createElement('img');
+      img.src = getTileThumbnailSrc(tileId, 72);
+      img.alt = `Tile ${tileId}`;
+      card.appendChild(img);
+
+      let id = document.createElement('div');
+      id.className = 'family-tile-id';
+      id.textContent = `#${tileId}`;
+      card.appendChild(id);
+
+      let name = document.createElement('div');
+      name.className = 'family-tile-name';
+      name.textContent = (typeof TILE_NAMES !== 'undefined' && TILE_NAMES[tileId]) ? TILE_NAMES[tileId] : `Tile ${tileId}`;
+      card.appendChild(name);
+
+      grid.appendChild(card);
+    }
+
+    section.appendChild(grid);
+    container.appendChild(section);
+  }
+}
+
 function refreshTileCatalogUI(selectIds = []) {
   syncTotalTileTypes();
+  resetTileThumbnailCache();
 
   let selectedSet = new Set(allowedTypes);
   for (let id of selectIds) {
@@ -258,6 +388,8 @@ function refreshTileCatalogUI(selectIds = []) {
   generateTileThumbnails();
   refreshFamilyUI();
   refreshSvgLibraryUI();
+  refreshFamilyTilesView();
+  refreshFamilyTilesView();
   initGrid();
 }
 
@@ -299,6 +431,7 @@ function setupSvgUploadUI() {
     btnRefreshFamilies.addEventListener('click', (e) => {
       e.preventDefault();
       refreshFamilyUI();
+      refreshFamilyTilesView();
       setSvgStatus('Family list refreshed.');
     });
   }
@@ -823,6 +956,7 @@ function setupUI(mainCanvas) {
   window.addEventListener('tabChanged', (e) => {
      let tab = e.detail.tab;
      if (tab === 'setup') {
+         setAssetsManagerMode(false);
          interactionMode = 'none';
          // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
          select('#tileSelector').removeClass('paint-mode');
@@ -830,14 +964,17 @@ function setupUI(mainCanvas) {
        updateCanvasStatusHint();
        redraw();
      } else if (tab === 'edit') {
+         setAssetsManagerMode(false);
          interactionMode = 'edit';
          updateEditUI();
        updateHoverPreview();
        updateCanvasStatusHint();
        redraw();
      } else {
+         setAssetsManagerMode(true);
          interactionMode = 'none';
          updateEditUI();
+       refreshFamilyTilesView();
        updateHoverPreview();
        updateCanvasStatusHint();
        redraw();
@@ -847,6 +984,7 @@ function setupUI(mainCanvas) {
   // Set initial UI state
   updateEditUI();
   updateEditModeUI();
+  setAssetsManagerMode(false);
   updateCanvasStatusHint();
 
   window.toggleEditToolMode = toggleEditToolMode;
