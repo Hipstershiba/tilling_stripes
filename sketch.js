@@ -47,6 +47,13 @@ function isTileVisible(tileId) {
   return !(window.SVGTileManager && typeof window.SVGTileManager.isTileHidden === 'function' && window.SVGTileManager.isTileHidden(tileId));
 }
 
+function getUploadedTileMeta(tileId) {
+  if (window.SVGTileManager && typeof window.SVGTileManager.getUploadedTileMeta === 'function') {
+    return window.SVGTileManager.getUploadedTileMeta(tileId);
+  }
+  return null;
+}
+
 // Helper to find next family member
 function getNextInFamily(currentType) {
   for (let family of getTileFamilies()) {
@@ -84,6 +91,12 @@ function setup() {
 
   // Populate tile selector
   generateTileThumbnails();
+
+  // Refresh thumbnails when uploaded SVG image previews become available.
+  window.onUploadedTileThumbnailReady = () => {
+    generateTileThumbnails();
+    refreshSvgLibraryUI();
+  };
 
   // Setup custom SVG upload panel
   setupSvgUploadUI();
@@ -162,6 +175,7 @@ function refreshFamilyUI() {
       removeBtn.title = `Remove uploaded tiles from family ${item.label}`;
       removeBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        if (!window.confirm(`Remove all uploaded tiles in family "${item.label}"?`)) return;
         let removed = window.SVGTileManager.deleteUploadedFamily(item.label);
         if (removed > 0) {
           setSvgStatus(`Removed ${removed} tile(s) from family "${item.label}".`, 'success');
@@ -216,6 +230,7 @@ function refreshSvgLibraryUI() {
     removeBtn.textContent = 'Remove';
     removeBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      if (!window.confirm(`Remove uploaded tile "${item.name}"?`)) return;
       if (window.SVGTileManager && typeof window.SVGTileManager.deleteUploadedTile === 'function') {
         let ok = window.SVGTileManager.deleteUploadedTile(item.tileId);
         if (ok) {
@@ -257,9 +272,12 @@ function readFileAsText(file) {
 
 function setupSvgUploadUI() {
   let uploadInput = document.getElementById('svgUploadInput');
+  let backupInput = document.getElementById('svgBackupImportInput');
   let familyInput = document.getElementById('svgFamilyInput');
   let familySelect = document.getElementById('svgFamilySelect');
   let btnAdd = document.getElementById('btnAddSvgTiles');
+  let btnExportBackup = document.getElementById('btnExportSvgBackup');
+  let btnImportBackup = document.getElementById('btnImportSvgBackup');
   let btnRefreshFamilies = document.getElementById('btnRefreshFamilies');
 
   if (!uploadInput || !familyInput || !familySelect || !btnAdd) return;
@@ -282,6 +300,46 @@ function setupSvgUploadUI() {
       e.preventDefault();
       refreshFamilyUI();
       setSvgStatus('Family list refreshed.');
+    });
+  }
+
+  if (btnExportBackup) {
+    btnExportBackup.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.SVGTileManager && typeof window.SVGTileManager.downloadBackup === 'function') {
+        window.SVGTileManager.downloadBackup();
+        setSvgStatus('Backup exported successfully.', 'success');
+      }
+    });
+  }
+
+  if (btnImportBackup && backupInput) {
+    btnImportBackup.addEventListener('click', (e) => {
+      e.preventDefault();
+      backupInput.value = '';
+      backupInput.click();
+    });
+
+    backupInput.addEventListener('change', async () => {
+      let file = backupInput.files && backupInput.files[0];
+      if (!file) return;
+
+      try {
+        let text = await readFileAsText(file);
+        if (!window.SVGTileManager || typeof window.SVGTileManager.importBackupText !== 'function') {
+          throw new Error('Backup import is not available.');
+        }
+
+        let result = window.SVGTileManager.importBackupText(text);
+        if (result.imported > 0) {
+          refreshTileCatalogUI(result.ids);
+          setSvgStatus(`Backup imported: ${result.imported} new tile(s), ${result.skipped} skipped.`, 'success');
+        } else {
+          setSvgStatus(`Backup processed: 0 imported, ${result.skipped} skipped.`, 'error');
+        }
+      } catch (err) {
+        setSvgStatus(`Backup import failed: ${err.message || err}`, 'error');
+      }
     });
   }
 
@@ -963,21 +1021,27 @@ function createBrushList() {
         div.attribute('title', tooltip);
         
         div.parent(container);
+
+        let uploadedMeta = getUploadedTileMeta(i);
+        let thumbSrc = uploadedMeta && uploadedMeta.thumbnailDataUrl;
         
         // Render Thumbnail
-        let gfx = createGraphics(40, 40);
-        let c = color(220);
-        let s = new Subtile(40, 40, i);
-        s.color = c;
-        s.render(gfx, 20, 20); // Render centered
-        
-        let img = createImg(gfx.canvas.toDataURL());
+        let img;
+        if (thumbSrc) {
+          img = createImg(thumbSrc);
+        } else {
+          let gfx = createGraphics(40, 40);
+          let c = color(220);
+          let s = new Subtile(40, 40, i);
+          s.color = c;
+          s.render(gfx, 20, 20);
+          img = createImg(gfx.canvas.toDataURL());
+          gfx.remove();
+        }
         img.style('width', '100%');
         img.style('height', '100%');
         img.style('display', 'block');
         img.parent(div);
-        
-        gfx.remove();
         
         // Click Handler (Select Brush)
         div.mousePressed(() => {
@@ -1031,29 +1095,27 @@ function createAllowedTilesList() {
     }
 
     div.parent(container);
-    
-    // Create a graphics object to render the tile
-    let gfx = createGraphics(80, 80);
-    // Determine color based on CSS variables or fixed contrast
-    // Since background is dark (#2d2d2d), let's use a light color
-    let c = color(220); 
-    
-    let s = new Subtile(80, 80, i);
-    s.color = c;
-    
-    // Subtile renders centered at (0,0), so we translate to center of graphics
-    // Note: Render method usually expects context and x,y translation
-    s.render(gfx, 40, 40); 
+
+    let uploadedMeta = getUploadedTileMeta(i);
+    let thumbSrc = uploadedMeta && uploadedMeta.thumbnailDataUrl;
     
     // Convert to image element and append to div
-    let img = createImg(gfx.canvas.toDataURL());
+    let img;
+    if (thumbSrc) {
+      img = createImg(thumbSrc);
+    } else {
+      let gfx = createGraphics(80, 80);
+      let c = color(220);
+      let s = new Subtile(80, 80, i);
+      s.color = c;
+      s.render(gfx, 40, 40);
+      img = createImg(gfx.canvas.toDataURL());
+      gfx.remove();
+    }
     img.style('width', '100%');
     img.style('height', '100%');
     img.style('display', 'block');
     img.parent(div);
-    
-    // Cleanup graphics
-    gfx.remove();
 
     // Click event
     div.mousePressed(() => {

@@ -368,6 +368,19 @@ body.sidebar-closed #canvas-container {
   gap: 10px;
 }
 
+.backup-row {
+  align-items: stretch;
+}
+
+.backup-row button {
+  flex: 1;
+}
+
+.assets-helper-note {
+  border-top: none;
+  padding-top: 0;
+}
+
 #svgUploadInput,
 #svgFamilyInput,
 #svgFamilySelect {
