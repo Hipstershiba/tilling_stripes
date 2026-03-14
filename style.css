@@ -635,6 +635,10 @@ body.assets-focus #exportActions {
   border-radius: 4px;
 }
 
+.family-item.primary {
+  box-shadow: inset 0 0 0 1px rgba(126, 190, 255, 0.7);
+}
+
 .family-item-main {
   display: flex;
   flex-direction: column;
@@ -680,6 +684,7 @@ body.assets-focus #exportActions {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
 
 .family-item.dragging {
   opacity: 0.55;
@@ -693,7 +698,6 @@ body.assets-focus #exportActions {
 .family-item.drag-over-after {
   border-bottom-color: #2f855a;
   box-shadow: inset 0 -3px 0 #2f855a;
-}
 }
 
 .library-item {
@@ -866,6 +870,42 @@ body.assets-focus #exportActions {
   background: #171717;
 }
 
+.family-tile-card.add-new {
+  justify-content: center;
+  min-height: 92px;
+  border-style: dashed;
+  border-color: #4a4a4a;
+  background: #171717;
+  cursor: pointer;
+}
+
+.family-tile-card.add-new:hover {
+  border-color: #5f748a;
+  box-shadow: 0 0 0 1px rgba(95, 116, 138, 0.45);
+  transform: translateY(-1px);
+}
+
+.family-tile-card.add-new:focus {
+  outline: none;
+  border-color: #5f748a;
+  box-shadow: 0 0 0 1px rgba(95, 116, 138, 0.55);
+}
+
+.family-tile-add-icon {
+  width: 54px;
+  height: 54px;
+  border: 1px dashed #4d4d4d;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ea6af;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1;
+  background: #1d1d1d;
+}
+
 .family-tile-id {
   color: #9ea3a8;
   font-size: 0.68rem;
@@ -895,6 +935,7 @@ body.assets-focus #exportActions {
 
 .asset-order-row button {
   flex: 1 1 0;
+  min-width: 0;
 }
 
 .asset-inspector-thumb {
