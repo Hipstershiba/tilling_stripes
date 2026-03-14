@@ -155,7 +155,16 @@
 
   function drawSvgOnP5Context(ctx, asset, w, h, padding) {
     const imageObj = asset ? asset.image : null;
-    if (!imageObj || !imageObj.complete) {
+    const imageReady = !!(
+      imageObj
+      && imageObj.complete
+      && typeof imageObj.naturalWidth === 'number'
+      && typeof imageObj.naturalHeight === 'number'
+      && imageObj.naturalWidth > 0
+      && imageObj.naturalHeight > 0
+    );
+
+    if (!imageReady) {
       ctx.push();
       ctx.noFill();
       ctx.stroke(180);
@@ -175,9 +184,15 @@
     const contain = getContainSize(vb.width || 1, vb.height || 1, drawW, drawH);
 
     ctx.push();
-    ctx.imageMode(CENTER);
     ctx.noStroke();
-    ctx.image(imageObj, 0, 0, contain.width, contain.height);
+    // Use native drawImage for robustness with HTMLImageElement sources.
+    ctx.drawingContext.drawImage(
+      imageObj,
+      -contain.width / 2,
+      -contain.height / 2,
+      contain.width,
+      contain.height
+    );
     ctx.pop();
   }
 
