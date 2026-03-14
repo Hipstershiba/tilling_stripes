@@ -71,6 +71,12 @@ Backup controls (`Assets` tab):
 - `Export Backup`: downloads a JSON backup of uploaded SVG tiles.
 - `Import Backup`: restores uploaded SVG tiles from a backup JSON file (deduplicated import).
 
+Asset manager upgrades:
+
+- `Assets` tab now focuses on asset management (canvas hidden while managing).
+- `Tiles by Family` panel previews all visible tiles grouped by family.
+- In `Uploaded Library`, each source tile can generate a full symmetry set (rotations + mirrors) in the same family.
+
 Technical note:
 
 - Upload logic is isolated in [svg_tile_manager.js](svg_tile_manager.js).
