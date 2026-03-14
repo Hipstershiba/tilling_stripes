@@ -420,9 +420,7 @@ body.assets-focus #exportActions {
 .assets-main-grid {
   display: grid;
   grid-template-columns:
-    minmax(var(--assets-family-col-min), var(--assets-family-col-max))
-    minmax(var(--assets-tiles-col-min), 1fr)
-    minmax(var(--assets-inspector-col-min), var(--assets-inspector-col-max));
+    minmax(var(--assets-family-col-min), var(--assets-family-col-max)) minmax(var(--assets-tiles-col-min), 1fr) minmax(var(--assets-inspector-col-min), var(--assets-inspector-col-max));
   gap: 10px;
   flex: 1;
   height: 100%;
@@ -430,7 +428,7 @@ body.assets-focus #exportActions {
   overflow: hidden;
 }
 
-#tab-assets .assets-main-grid > .control-group {
+#tab-assets .assets-main-grid>.control-group {
   height: auto;
   min-height: 0;
   overflow: hidden;
@@ -440,19 +438,20 @@ body.assets-focus #exportActions {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-#tab-assets .assets-main-grid > .control-group > .group-content {
+#tab-assets .assets-main-grid>.control-group>.group-content {
   min-height: 0;
   overflow: hidden;
   border-radius: 6px;
 }
 
-#tab-assets .assets-main-grid > .control-group:first-child > .group-content {
+#tab-assets .assets-main-grid>.control-group:first-child>.group-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+  flex: 1 1 auto;
 }
 
-#tab-assets .assets-main-grid > .control-group:nth-child(2) > .group-content {
+#tab-assets .assets-main-grid>.control-group:nth-child(2)>.group-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -473,11 +472,11 @@ body.assets-focus #exportActions {
 
 .backup-row {
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
 }
 
-#tab-assets .assets-main-grid > .control-group:first-child .row {
-  gap: 8px;
+#tab-assets .assets-main-grid>.control-group:first-child .row {
+  gap: 6px;
 }
 
 .backup-row button {
@@ -1111,7 +1110,7 @@ body.assets-focus #exportActions {
     max-height: none;
   }
 
-  #tab-assets .assets-main-grid > .control-group:first-child > .group-content {
+  #tab-assets .assets-main-grid>.control-group:first-child>.group-content {
     display: flex;
     flex-direction: column;
     gap: 5px;
