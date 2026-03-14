@@ -270,21 +270,68 @@ function updateEditorTransformFromControls() {
   };
 }
 
+function toggleEditorMirrorAxis(axis) {
+  let rotate = Number(assetsUiState.editorTransform.rotate) || 0;
+  rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
+  let quarterTurns = ((rotate / 90) % 4 + 4) % 4;
+  let oddTurn = quarterTurns % 2 === 1;
+
+  // Keep mirror buttons intuitive in screen space:
+  // at 90/270deg, visual X/Y axes are swapped.
+  if (axis === 'x') {
+    if (oddTurn) {
+      assetsUiState.editorTransform.flipY = !assetsUiState.editorTransform.flipY;
+    } else {
+      assetsUiState.editorTransform.flipX = !assetsUiState.editorTransform.flipX;
+    }
+    return;
+  }
+
+  if (axis === 'y') {
+    if (oddTurn) {
+      assetsUiState.editorTransform.flipX = !assetsUiState.editorTransform.flipX;
+    } else {
+      assetsUiState.editorTransform.flipY = !assetsUiState.editorTransform.flipY;
+    }
+  }
+}
+
+function getEditorVisualMirrorState() {
+  let rotate = Number(assetsUiState.editorTransform.rotate) || 0;
+  rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
+  let quarterTurns = ((rotate / 90) % 4 + 4) % 4;
+  let oddTurn = quarterTurns % 2 === 1;
+
+  if (oddTurn) {
+    return {
+      mirrorXActive: !!assetsUiState.editorTransform.flipY,
+      mirrorYActive: !!assetsUiState.editorTransform.flipX
+    };
+  }
+
+  return {
+    mirrorXActive: !!assetsUiState.editorTransform.flipX,
+    mirrorYActive: !!assetsUiState.editorTransform.flipY
+  };
+}
+
 function renderEditorToolbarState(canEditUploaded) {
   let btnMirrorX = document.getElementById('btnEditorMirrorX');
   let btnMirrorY = document.getElementById('btnEditorMirrorY');
   let btnRotateCW = document.getElementById('btnEditorRotateCW');
   let btnRotateCCW = document.getElementById('btnEditorRotateCCW');
 
+  let visualState = getEditorVisualMirrorState();
+
   if (btnRotateCW) btnRotateCW.disabled = !canEditUploaded;
   if (btnRotateCCW) btnRotateCCW.disabled = !canEditUploaded;
   if (btnMirrorX) {
     btnMirrorX.disabled = !canEditUploaded;
-    btnMirrorX.classList.toggle('active', !!assetsUiState.editorTransform.flipX);
+    btnMirrorX.classList.toggle('active', visualState.mirrorXActive);
   }
   if (btnMirrorY) {
     btnMirrorY.disabled = !canEditUploaded;
-    btnMirrorY.classList.toggle('active', !!assetsUiState.editorTransform.flipY);
+    btnMirrorY.classList.toggle('active', visualState.mirrorYActive);
   }
 }
 
@@ -849,7 +896,7 @@ function setupSvgUploadUI() {
       e.preventDefault();
       let tileMeta = getSelectedTileMeta();
       if (!tileMeta) return;
-      assetsUiState.editorTransform.flipX = !assetsUiState.editorTransform.flipX;
+      toggleEditorMirrorAxis('x');
       rerenderEditorFromState();
     });
   }
@@ -859,7 +906,7 @@ function setupSvgUploadUI() {
       e.preventDefault();
       let tileMeta = getSelectedTileMeta();
       if (!tileMeta) return;
-      assetsUiState.editorTransform.flipY = !assetsUiState.editorTransform.flipY;
+      toggleEditorMirrorAxis('y');
       rerenderEditorFromState();
     });
   }
