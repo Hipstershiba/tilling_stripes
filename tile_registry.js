@@ -648,6 +648,7 @@ const TILE_TRANSFORM_MAP = {
 // Optional family labels for newly registered tiles.
 // Existing built-in families keep their numeric grouping order.
 const TILE_FAMILY_LABEL_TO_INDEX = {};
+const TILE_FAMILY_INDEX_TO_LABEL = TILE_FAMILIES.map((_, idx) => `builtin-${idx}`);
 
 function resolveFamilyIndex(family) {
     if (family === undefined || family === null) return null;
@@ -664,10 +665,31 @@ function resolveFamilyIndex(family) {
         TILE_FAMILIES.push([]);
         let idx = TILE_FAMILIES.length - 1;
         TILE_FAMILY_LABEL_TO_INDEX[family] = idx;
+        TILE_FAMILY_INDEX_TO_LABEL[idx] = family;
         return idx;
     }
 
     return null;
+}
+
+function getFamilyLabel(index) {
+    return TILE_FAMILY_INDEX_TO_LABEL[index] || `family-${index}`;
+}
+
+function getTileFamilySummary() {
+    return TILE_FAMILIES.map((members, index) => ({
+        index,
+        label: getFamilyLabel(index),
+        size: members.length,
+        tileIds: [...members]
+    }));
+}
+
+function createOrGetTileFamily(label) {
+    if (typeof label !== 'string' || label.trim() === '') {
+        throw new Error('Family label must be a non-empty string');
+    }
+    return resolveFamilyIndex(label.trim());
 }
 
 function normalizeTransformTarget(value, selfId) {
@@ -747,12 +769,16 @@ if (typeof window !== 'undefined') {
     window.TILE_FAMILIES = TILE_FAMILIES;
     window.TILE_TRANSFORMS = TILE_TRANSFORM_MAP;
     window.registerTile = registerTile;
+    window.getTileFamilySummary = getTileFamilySummary;
+    window.createOrGetTileFamily = createOrGetTileFamily;
 } else if (typeof module !== 'undefined') {
     module.exports = {
         TILE_RENDERERS,
         TILE_NAMES,
         TILE_FAMILIES,
         TILE_TRANSFORM_MAP,
-        registerTile
+        registerTile,
+        getTileFamilySummary,
+        createOrGetTileFamily
     };
 }
