@@ -182,6 +182,7 @@ function setSvgStatus(message, tone = '') {
 let assetsUiState = {
   selectedFamily: null,
   selectedTileId: null,
+  lastSelectionKind: null,
   editorTransform: {
     rotate: 0,
     flipX: false,
@@ -552,6 +553,7 @@ function renderAssetFamilyList() {
     row.addEventListener('click', () => {
       assetsUiState.selectedFamily = item.label;
       ensureAssetSelection();
+      assetsUiState.lastSelectionKind = 'family';
       updateAssetUploadTargetLabel();
       renderAssetFamilyList();
       renderAssetTileGrid();
@@ -595,6 +597,7 @@ function renderAssetTileGrid() {
 
     card.addEventListener('click', () => {
       assetsUiState.selectedTileId = tileId;
+      assetsUiState.lastSelectionKind = 'tile';
       assetsUiState.editorTransform = { rotate: 0, flipX: false, flipY: false };
       renderAssetTileGrid();
       renderAssetInspector();
@@ -2649,7 +2652,14 @@ function keyPressed() {
 // Global Key Handler
 window.addEventListener('keydown', (e) => {
     // Check if user is typing in an input field
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
+
+  if (isAssetsTabActive() && (e.key === 'Delete' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (triggerAssetsDeleteShortcut()) {
+      e.preventDefault();
+      return;
+    }
+  }
 
   if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'r' && isEditTabActive()) {
     if (typeof window.toggleEditToolMode === 'function') {
@@ -2715,6 +2725,38 @@ function isEditTabActive() {
 function isAssetsTabActive() {
   let assetsTab = document.getElementById('tab-assets');
   return !!(assetsTab && assetsTab.classList.contains('active'));
+}
+
+function triggerAssetsDeleteShortcut() {
+  if (!isAssetsTabActive()) return false;
+
+  let removeTileBtn = document.getElementById('btnRemoveSelectedTile');
+  let removeFamilyBtn = document.getElementById('btnRemoveFamilyFromList');
+
+  let hasTileSelection = Number.isInteger(assetsUiState.selectedTileId);
+  let hasFamilySelection = typeof assetsUiState.selectedFamily === 'string' && assetsUiState.selectedFamily.trim() !== '';
+
+  if (assetsUiState.lastSelectionKind === 'tile' && hasTileSelection && removeTileBtn) {
+    removeTileBtn.click();
+    return true;
+  }
+
+  if (assetsUiState.lastSelectionKind === 'family' && hasFamilySelection && removeFamilyBtn) {
+    removeFamilyBtn.click();
+    return true;
+  }
+
+  if (hasTileSelection && removeTileBtn) {
+    removeTileBtn.click();
+    return true;
+  }
+
+  if (hasFamilySelection && removeFamilyBtn) {
+    removeFamilyBtn.click();
+    return true;
+  }
+
+  return false;
 }
 
 function getPointerInteractionMode() {
