@@ -10,7 +10,6 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 
   <script src="libraries/p5.min.js"></script>
-  <script src="libraries/p5.sound.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
 </head>
 
@@ -34,141 +33,146 @@
         <div class="tab-nav-bg"></div>
         <button class="tab-btn active" data-tab="setup">Setup</button>
         <button class="tab-btn" data-tab="edit">Edit</button>
+        <button class="tab-btn" data-tab="assets">Assets</button>
       </div>
 
       <!-- TAB CONTENT: SETUP -->
       <div id="tab-setup" class="tab-content active">
+        <div class="setup-scroll">
 
-        <div class="control-group">
-          <label>
-            <span>Canvas Size</span>
-            <span class="group-summary"></span>
-          </label>
-          <div class="group-content">
-            <div class="row">
-              <input type="number" id="canvasW" value="600" step="50">
-              <span>x</span>
-              <input type="number" id="canvasH" value="600" step="50">
-              <button id="btnLockCanvasRatio" title="Lock Aspect Ratio"
-                style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
-                <!-- Default Unlock Icon -->
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                </svg>
-              </button>
+          <div class="control-group">
+            <label>
+              <span>Canvas Size</span>
+              <span class="group-summary"></span>
+            </label>
+            <div class="group-content">
+              <div class="row">
+                <input type="number" id="canvasW" value="600" step="50">
+                <span>x</span>
+                <input type="number" id="canvasH" value="600" step="50">
+                <button id="btnLockCanvasRatio" title="Lock Aspect Ratio"
+                  style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
+                  <!-- Default Unlock Icon -->
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                  </svg>
+                </button>
+              </div>
+              <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
+              <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
             </div>
-            <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
-            <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
           </div>
-        </div>
 
-        <div class="control-group">
-          <label>
-            <span>Grid (Rows x Cols)</span>
-            <span class="group-summary"></span>
-          </label>
-          <div class="group-content">
-            <div class="row">
-              <input type="number" id="gridRows" value="4" min="1" max="50">
-              <span>x</span>
-              <input type="number" id="gridCols" value="4" min="1" max="50">
-              <button id="btnLockGridRatio" title="Lock Aspect Ratio"
-                style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                </svg>
-              </button>
+          <div class="control-group">
+            <label>
+              <span>Grid (Rows x Cols)</span>
+              <span class="group-summary"></span>
+            </label>
+            <div class="group-content">
+              <div class="row">
+                <input type="number" id="gridRows" value="4" min="1" max="50">
+                <span>x</span>
+                <input type="number" id="gridCols" value="4" min="1" max="50">
+                <button id="btnLockGridRatio" title="Lock Aspect Ratio"
+                  style="width:30px; padding:0; display:flex; justify-content:center; align-items:center;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                  </svg>
+                </button>
+              </div>
+              <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
             </div>
-            <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
           </div>
-        </div>
 
-        <div class="control-group">
-          <label>
-            <span>Margin (px)</span>
-            <span class="group-summary"></span>
-          </label>
-          <div class="group-content">
-            <input type="number" id="gridMargin" value="0" min="0" step="10">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>
-            <span>Seed</span>
-            <span class="group-summary"></span>
-          </label>
-          <div class="group-content">
-            <div class="row">
-              <input type="number" id="seedInput" value="0">
-              <button id="btnRandomize" style="display:flex; justify-content:center; align-items:center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="16 3 21 3 21 8"></polyline>
-                  <line x1="4" y1="20" x2="21" y2="3"></line>
-                  <polyline points="21 16 21 21 16 21"></polyline>
-                  <line x1="15" y1="15" x2="21" y2="21"></line>
-                  <line x1="4" y1="4" x2="9" y2="9"></line>
-                </svg>
-              </button>
+          <div class="control-group">
+            <label>
+              <span>Margin (px)</span>
+              <span class="group-summary"></span>
+            </label>
+            <div class="group-content">
+              <input type="number" id="gridMargin" value="0" min="0" step="10">
             </div>
+          </div>
 
-            <!-- History Controls for Generation -->
-            <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
-              <button id="btnPrevSeed" title="Previous Generation (←)" disabled
-                style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              <button id="btnNextSeed" title="Next Generation (→)" disabled
-                style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-              <button id="btnToggleHistory" title="Full History List"
-                style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6"></line>
-                  <line x1="8" y1="12" x2="21" y2="12"></line>
-                  <line x1="8" y1="18" x2="21" y2="18"></line>
-                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                </svg>
-              </button>
+          <div class="control-group seed-sticky">
+            <label>
+              <span>Seed</span>
+              <span class="group-summary"></span>
+            </label>
+            <div class="group-content">
+              <div class="row">
+                <input type="number" id="seedInput" value="0">
+                <button id="btnRandomize" style="display:flex; justify-content:center; align-items:center;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                    <line x1="4" y1="20" x2="21" y2="3"></line>
+                    <polyline points="21 16 21 21 16 21"></polyline>
+                    <line x1="15" y1="15" x2="21" y2="21"></line>
+                    <line x1="4" y1="4" x2="9" y2="9"></line>
+                  </svg>
+                </button>
+              </div>
 
-              <!-- Floating History List -->
-              <div id="seedHistoryList" style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
+              <!-- History Controls for Generation -->
+              <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
+                <button id="btnPrevSeed" title="Previous Generation (←)" disabled
+                  style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+                <button id="btnNextSeed" title="Next Generation (→)" disabled
+                  style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+                <button id="btnToggleHistory" title="Full History List"
+                  style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                  </svg>
+                </button>
+
+                <!-- Floating History List -->
+                <div id="seedHistoryList" style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
                        overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; 
                        padding: 4px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-                <!-- Populated via JS -->
-                <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
+                  <!-- Populated via JS -->
+                  <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="control-group tile-selector-group">
-          <label>Allowed Tiles</label>
-          <div class="group-content"
-            style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
-            <div id="tileSelector">
-              <!-- Javascript will populate this -->
-            </div>
-            <div class="row">
-              <button id="selectAll">All</button>
-              <button id="selectNone">None</button>
+          <div class="control-group tile-selector-group">
+            <label>Allowed Tiles</label>
+            <div class="group-content"
+              style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
+              <div id="tileSelector">
+                <!-- Javascript will populate this -->
+              </div>
             </div>
           </div>
+
+        </div>
+
+        <div class="setup-quick-actions" aria-label="Setup quick actions">
+          <button id="btnSetupAllTiles" type="button">All Tiles</button>
+          <button id="btnSetupNoTiles" type="button">None</button>
         </div>
 
       </div> <!-- End Tab Setup -->
@@ -314,9 +318,157 @@
         </div>
       </div> <!-- End Tab Interact -->
 
+      <!-- TAB CONTENT: ASSETS -->
+      <div id="tab-assets" class="tab-content">
+        <div class="assets-workspace">
+          <div class="assets-main-grid">
+            <div class="control-group no-collapse">
+              <label><span>Families</span></label>
+              <div class="group-content">
+                <div id="assetFamilyList" class="family-list"></div>
+
+                <div class="row">
+                  <input type="text" id="assetCreateFamilyInput" placeholder="New family name">
+                  <button id="btnCreateFamily" class="btn-accent">Create</button>
+                </div>
+
+                <div class="row">
+                  <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group no-collapse">
+              <label><span>Tiles</span></label>
+              <div class="group-content">
+                <div id="assetUploadFamilyTarget" class="status-text assets-helper-note">Selected family: none</div>
+
+                <div class="row">
+                  <input type="text" id="assetRenameFamilyInput" placeholder="Rename selected family">
+                  <button id="btnRenameFamilyFromList" class="btn-accent">Rename Family</button>
+                </div>
+
+                <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
+
+                <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple>
+                <div class="row">
+                  <button id="btnAddSvgTiles">Import Tile</button>
+                </div>
+                <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
+              </div>
+            </div>
+
+            <div class="assets-side-stack">
+              <div class="control-group no-collapse" id="assetInspectorCard">
+                <label><span>Inspector</span></label>
+                <div class="group-content" id="assetInspectorEmpty">
+                  <div class="status-text assets-helper-note">Select a tile to edit it.</div>
+                </div>
+                <div class="group-content" id="assetInspectorContent" style="display:none; gap:10px;">
+                  <div class="asset-inspector-head">
+                    <div class="asset-inspector-thumb"><img id="assetInspectorThumb" alt="Selected tile preview"></div>
+                    <div>
+                      <div id="assetInspectorTitle" class="library-item-name"></div>
+                      <div id="assetInspectorMeta" class="library-item-family"></div>
+                    </div>
+                  </div>
+
+                  <label>Rename Tile</label>
+                  <div class="row">
+                    <input type="text" id="assetTileNameInput" placeholder="Tile name">
+                    <button id="btnApplyTileRename" class="btn-accent">Apply</button>
+                  </div>
+
+                  <label>Move To Family</label>
+                  <div class="row">
+                    <select id="assetMoveFamilySelect"></select>
+                    <button id="btnMoveTileFamily" class="btn-accent">Move</button>
+                  </div>
+
+                  <label>Tile Editor</label>
+                  <div class="asset-editor-box">
+                    <div class="asset-editor-toolbar" aria-label="Tile transform tools">
+                      <button id="btnEditorRotateCCW" class="asset-editor-btn" title="Rotate counter-clockwise"
+                        aria-label="Rotate counter-clockwise" type="button">
+                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
+                          <path d="M10 6L6 10l4 4"></path>
+                          <path d="M6.5 10H12a7 7 0 1 1-7 7"></path>
+                        </svg>
+                      </button>
+                      <button id="btnEditorRotateCW" class="asset-editor-btn" title="Rotate clockwise"
+                        aria-label="Rotate clockwise" type="button">
+                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
+                          <path d="M14 6l4 4-4 4"></path>
+                          <path d="M17.5 10H12a7 7 0 1 0 7 7"></path>
+                        </svg>
+                      </button>
+                      <button id="btnEditorMirrorX" class="asset-editor-btn" title="Mirror horizontally"
+                        aria-label="Mirror horizontally" type="button">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 4v16"></path>
+                          <rect x="4" y="7" width="6" height="10" rx="1"></rect>
+                          <rect x="14" y="7" width="6" height="10" rx="1"></rect>
+                        </svg>
+                      </button>
+                      <button id="btnEditorMirrorY" class="asset-editor-btn" title="Mirror vertically"
+                        aria-label="Mirror vertically" type="button">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M4 12h16"></path>
+                          <rect x="7" y="4" width="10" height="6" rx="1"></rect>
+                          <rect x="7" y="14" width="10" height="6" rx="1"></rect>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="asset-editor-preview">
+                      <img id="assetEditorPreview" alt="Tile editor preview">
+                    </div>
+                    <div class="row">
+                      <button id="btnCreateEditedTile" class="btn-accent">Create Edited Tile</button>
+                    </div>
+                  </div>
+
+                  <button id="btnRemoveSelectedTile" class="btn-danger">Remove Tile</button>
+                </div>
+              </div>
+
+              <div class="control-group no-collapse assets-ops-card">
+                <label><span>Actions</span></label>
+                <div class="group-content">
+                  <div class="row assets-scope-row">
+                    <label for="assetBackupScope">Backup/Restore Scope</label>
+                    <select id="assetBackupScope">
+                      <option value="full" selected>Full (Files + Organization)</option>
+                      <option value="tiles">Files Only (Imported Tiles)</option>
+                      <option value="layout">Organization Only (Families, Names, Visibility)</option>
+                    </select>
+                  </div>
+                  <div id="assetBackupScopeHelp" class="status-text assets-helper-note">
+                    Full: saves both imported tile files and organization (families, names, visibility).
+                  </div>
+
+                  <div class="row backup-row">
+                    <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
+                    <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
+                    <button id="btnRestoreBuiltins"
+                      title="Restore built-in tile names/families/visibility to default">Restore Built-ins</button>
+                    <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
+                  </div>
+
+                  <div class="row assets-history-row">
+                    <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
+                    <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
+                    <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
 
-      <div class="control-group actions">
+
+      <div class="control-group actions" id="exportActions">
         <button id="btnSave">Save Image</button>
         <button id="btnSaveSVG">Save SVG</button>
       </div>
@@ -336,6 +488,7 @@
   </div> <!-- End main-container -->
 
   <script src="tile_registry.js"></script>
+  <script src="svg_tile_manager.js"></script>
   <script src="tile_transforms.js"></script>
   <script src="subtile.js"></script>
   <script src="tiles.js"></script>
@@ -390,10 +543,29 @@
       // Close on backdrop click (for mobile)
       if (backdrop) backdrop.addEventListener('click', toggleSidebar);
 
+      const setupTab = document.getElementById('tab-setup');
+
+      function updateSetupAdaptiveLayout() {
+        if (!setupTab) return;
+
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
+        let allowedMax = Math.round(viewportHeight * 0.27);
+
+        if (viewportHeight < 760) {
+          allowedMax = Math.round(viewportHeight * 0.24);
+        }
+
+        if (viewportHeight > 1200) {
+          allowedMax = Math.round(viewportHeight * 0.31);
+        }
+
+        allowedMax = Math.max(130, Math.min(340, allowedMax));
+        setupTab.style.setProperty('--setup-allowed-max-height', `${allowedMax}px`);
+      }
+
       // Handle resize to reset states if needed
       window.addEventListener('resize', () => {
-        // Optional: Reset states if crossing breakpoint to avoid weirdness
-        // For now, simpler is better.
+        updateSetupAdaptiveLayout();
       });
 
       // Tab Switching Logic
@@ -413,10 +585,16 @@
           const targetId = 'tab-' + tab.getAttribute('data-tab');
           document.getElementById(targetId).classList.add('active');
 
+          if (targetId === 'tab-setup') {
+            requestAnimationFrame(updateSetupAdaptiveLayout);
+          }
+
           // Trigger custom event for Sketch.js to pick up
           window.dispatchEvent(new CustomEvent('tabChanged', { detail: { tab: tab.getAttribute('data-tab') } }));
         });
       });
+
+      requestAnimationFrame(updateSetupAdaptiveLayout);
 
       // Update summary helper - Global so Sketch.js can call it
       window.updateSummary = function (group) {
@@ -446,7 +624,12 @@
       }
 
       // Accordion Logic
+      document.querySelectorAll('#tab-setup .control-group > label').forEach(label => {
+        window.updateSummary(label.parentElement);
+      });
+
       document.querySelectorAll('.control-group:not(.tile-selector-group):not(.no-collapse) > label').forEach(label => {
+        if (label.closest('#tab-setup')) return;
         // Initial summary update
         window.updateSummary(label.parentElement);
 

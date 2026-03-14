@@ -648,6 +648,13 @@ const TILE_TRANSFORM_MAP = {
 // Optional family labels for newly registered tiles.
 // Existing built-in families keep their numeric grouping order.
 const TILE_FAMILY_LABEL_TO_INDEX = {};
+const TILE_FAMILY_INDEX_TO_LABEL = TILE_FAMILIES.map((_, idx) => `builtin-${idx}`);
+const TILE_DERIVED_DEFINITIONS = [];
+
+// Seed label->index map for built-in families.
+for (let i = 0; i < TILE_FAMILY_INDEX_TO_LABEL.length; i++) {
+    TILE_FAMILY_LABEL_TO_INDEX[TILE_FAMILY_INDEX_TO_LABEL[i]] = i;
+}
 
 function resolveFamilyIndex(family) {
     if (family === undefined || family === null) return null;
@@ -664,10 +671,367 @@ function resolveFamilyIndex(family) {
         TILE_FAMILIES.push([]);
         let idx = TILE_FAMILIES.length - 1;
         TILE_FAMILY_LABEL_TO_INDEX[family] = idx;
+        TILE_FAMILY_INDEX_TO_LABEL[idx] = family;
         return idx;
     }
 
     return null;
+}
+
+function getFamilyLabel(index) {
+    return TILE_FAMILY_INDEX_TO_LABEL[index] || `family-${index}`;
+}
+
+function getTileFamilySummary() {
+    return TILE_FAMILIES.map((members, index) => ({
+        index,
+        label: getFamilyLabel(index),
+        size: members.length,
+        tileIds: [...members]
+    }));
+}
+
+function createOrGetTileFamily(label) {
+    if (typeof label !== 'string' || label.trim() === '') {
+        throw new Error('Family label must be a non-empty string');
+    }
+    return resolveFamilyIndex(label.trim());
+}
+
+function getFamilyIndexByLabel(label) {
+    if (typeof label !== 'string' || label.trim() === '') return null;
+    let clean = label.trim();
+    if (TILE_FAMILY_LABEL_TO_INDEX[clean] !== undefined) {
+        return TILE_FAMILY_LABEL_TO_INDEX[clean];
+    }
+    for (let i = 0; i < TILE_FAMILY_INDEX_TO_LABEL.length; i++) {
+        if (TILE_FAMILY_INDEX_TO_LABEL[i] === clean) return i;
+    }
+    return null;
+}
+
+function renameTileFamilyLabel(oldLabel, newLabel) {
+    if (typeof oldLabel !== 'string' || oldLabel.trim() === '') {
+        throw new Error('oldLabel must be a non-empty string');
+    }
+    if (typeof newLabel !== 'string' || newLabel.trim() === '') {
+        throw new Error('newLabel must be a non-empty string');
+    }
+
+    let source = oldLabel.trim();
+    let target = newLabel.trim();
+    if (source === target) return getFamilyIndexByLabel(source);
+
+    let sourceIndex = getFamilyIndexByLabel(source);
+    if (sourceIndex === null) {
+        throw new Error(`Family "${source}" not found`);
+    }
+
+    let targetIndex = getFamilyIndexByLabel(target);
+    if (targetIndex !== null && targetIndex !== sourceIndex) {
+        throw new Error(`Family "${target}" already exists`);
+    }
+
+    delete TILE_FAMILY_LABEL_TO_INDEX[source];
+    TILE_FAMILY_LABEL_TO_INDEX[target] = sourceIndex;
+    TILE_FAMILY_INDEX_TO_LABEL[sourceIndex] = target;
+    return sourceIndex;
+}
+
+function moveTileToFamily(tileId, targetFamily) {
+    if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid tile id');
+    }
+
+    let targetIndex = resolveFamilyIndex(targetFamily);
+    if (targetIndex === null) {
+        throw new Error('Invalid target family');
+    }
+
+    for (let i = 0; i < TILE_FAMILIES.length; i++) {
+        let idx = TILE_FAMILIES[i].indexOf(tileId);
+        if (idx !== -1) TILE_FAMILIES[i].splice(idx, 1);
+    }
+
+    if (!TILE_FAMILIES[targetIndex].includes(tileId)) {
+        TILE_FAMILIES[targetIndex].push(tileId);
+    }
+
+    return targetIndex;
+}
+
+function removeTileFromFamily(tileId, familyLabel = null) {
+    if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid tile id');
+    }
+
+    if (familyLabel !== null && familyLabel !== undefined) {
+        if (typeof familyLabel !== 'string' || familyLabel.trim() === '') {
+            throw new Error('familyLabel must be a non-empty string when provided');
+        }
+
+        let familyIndex = getFamilyIndexByLabel(familyLabel.trim());
+        if (familyIndex === null) {
+            throw new Error(`Family "${familyLabel}" not found`);
+        }
+
+        let idx = TILE_FAMILIES[familyIndex].indexOf(tileId);
+        if (idx !== -1) {
+            TILE_FAMILIES[familyIndex].splice(idx, 1);
+            return true;
+        }
+        return false;
+    }
+
+    let removed = false;
+    for (let i = 0; i < TILE_FAMILIES.length; i++) {
+        let idx = TILE_FAMILIES[i].indexOf(tileId);
+        if (idx !== -1) {
+            TILE_FAMILIES[i].splice(idx, 1);
+            removed = true;
+        }
+    }
+    return removed;
+}
+
+function renameTileName(tileId, newName) {
+    if (!Number.isInteger(tileId) || tileId < 0 || tileId >= TILE_NAMES.length) {
+        throw new Error('Invalid tile id');
+    }
+    if (typeof newName !== 'string' || newName.trim() === '') {
+        throw new Error('Tile name must be a non-empty string');
+    }
+
+    TILE_NAMES[tileId] = newName.trim();
+    return TILE_NAMES[tileId];
+}
+
+function rebuildFamilyLabelIndexMap() {
+    Object.keys(TILE_FAMILY_LABEL_TO_INDEX).forEach((key) => delete TILE_FAMILY_LABEL_TO_INDEX[key]);
+    for (let i = 0; i < TILE_FAMILY_INDEX_TO_LABEL.length; i++) {
+        let label = TILE_FAMILY_INDEX_TO_LABEL[i];
+        if (typeof label === 'string' && label.trim() !== '') {
+            TILE_FAMILY_LABEL_TO_INDEX[label] = i;
+        }
+    }
+}
+
+function removeTileFamily(label) {
+    if (typeof label !== 'string' || label.trim() === '') {
+        throw new Error('Family label must be a non-empty string');
+    }
+
+    let clean = label.trim();
+    let familyIndex = getFamilyIndexByLabel(clean);
+    if (familyIndex === null) {
+        throw new Error(`Family "${clean}" not found`);
+    }
+
+    let members = TILE_FAMILIES[familyIndex] || [];
+    let hasVisibleMembers = members.some((id) => {
+        if (typeof window === 'undefined' || !window.SVGTileManager || typeof window.SVGTileManager.isTileHidden !== 'function') {
+            return true;
+        }
+        return !window.SVGTileManager.isTileHidden(id);
+    });
+
+    if (hasVisibleMembers) {
+        throw new Error(`Family "${clean}" is not empty`);
+    }
+
+    TILE_FAMILIES.splice(familyIndex, 1);
+    TILE_FAMILY_INDEX_TO_LABEL.splice(familyIndex, 1);
+    rebuildFamilyLabelIndexMap();
+    return true;
+}
+
+function getTileRegistrySnapshot() {
+    return {
+        tileNames: [...TILE_NAMES],
+        families: getTileFamilySummary().map((family) => ({
+            label: family.label,
+            tileIds: [...family.tileIds]
+        })),
+        derivedTiles: TILE_DERIVED_DEFINITIONS.map((item) => ({
+            tileId: item.tileId,
+            sourceTileId: item.sourceTileId,
+            name: item.name,
+            familyLabel: item.familyLabel,
+            transform: {
+                rotate: item.transform.rotate,
+                flipX: item.transform.flipX,
+                flipY: item.transform.flipY
+            }
+        }))
+    };
+}
+
+function normalizeEditorTransformForRegistry(transform) {
+    let input = transform || {};
+    let rotate = Number(input.rotate);
+    if (!Number.isFinite(rotate)) rotate = 0;
+    rotate = ((Math.round(rotate / 90) * 90) % 360 + 360) % 360;
+    return {
+        rotate,
+        flipX: !!input.flipX,
+        flipY: !!input.flipY
+    };
+}
+
+function buildDerivedName(sourceName, normalized) {
+    let suffixParts = [];
+    if (normalized.rotate) suffixParts.push(`R${normalized.rotate}`);
+    if (normalized.flipX) suffixParts.push('MX');
+    if (normalized.flipY) suffixParts.push('MY');
+    return `${sourceName} [${suffixParts.join('+')}]`;
+}
+
+function areTransformsEqual(a, b) {
+    if (!a || !b) return false;
+    return a.rotate === b.rotate && !!a.flipX === !!b.flipX && !!a.flipY === !!b.flipY;
+}
+
+function createDerivedTileFromExisting(sourceTileId, transform, options = {}) {
+    if (!Number.isInteger(sourceTileId) || sourceTileId < 0 || sourceTileId >= TILE_RENDERERS.length) {
+        throw new Error('Invalid source tile id');
+    }
+
+    let sourceRenderer = TILE_RENDERERS[sourceTileId];
+    if (typeof sourceRenderer !== 'function') {
+        throw new Error('Source renderer is not available');
+    }
+
+    let normalized = normalizeEditorTransformForRegistry(transform);
+    if (normalized.rotate === 0 && !normalized.flipX && !normalized.flipY) {
+        throw new Error('No transform selected.');
+    }
+
+    let sourceName = TILE_NAMES[sourceTileId] || `Tile ${sourceTileId}`;
+    let nextName = (options.name || '').trim() || buildDerivedName(sourceName, normalized);
+    let familyLabel = (options.familyLabel || '').trim();
+    if (!familyLabel) {
+        throw new Error('familyLabel is required for derived tiles');
+    }
+
+    let existing = TILE_DERIVED_DEFINITIONS.find((item) =>
+        item.sourceTileId === sourceTileId &&
+        item.name === nextName &&
+        areTransformsEqual(item.transform, normalized)
+    );
+
+    if (existing) {
+        if (existing.familyLabel !== familyLabel) {
+            moveTileToFamily(existing.tileId, familyLabel);
+            existing.familyLabel = familyLabel;
+        }
+        return {
+            tileId: existing.tileId,
+            name: existing.name,
+            familyLabel: existing.familyLabel
+        };
+    }
+
+    let radians = normalized.rotate * Math.PI / 180;
+    let render = function(ctx, w, h, padding, color) {
+        ctx.push();
+        if (normalized.rotate !== 0) ctx.rotate(radians);
+        if (normalized.flipX || normalized.flipY) {
+            ctx.scale(normalized.flipX ? -1 : 1, normalized.flipY ? -1 : 1);
+        }
+        sourceRenderer(ctx, w, h, padding, color);
+        ctx.pop();
+    };
+
+    let createdTileId = registerTile({
+        name: nextName,
+        family: familyLabel,
+        symmetric: true,
+        render
+    });
+
+    TILE_DERIVED_DEFINITIONS.push({
+        tileId: createdTileId,
+        sourceTileId,
+        name: nextName,
+        familyLabel,
+        transform: normalized
+    });
+
+    return {
+        tileId: createdTileId,
+        name: nextName,
+        familyLabel
+    };
+}
+
+function applyDerivedTilesSnapshot(derivedTiles) {
+    if (!Array.isArray(derivedTiles) || derivedTiles.length === 0) return;
+
+    for (let item of derivedTiles) {
+        if (!item || !Number.isInteger(item.sourceTileId)) continue;
+        if (!item.transform || typeof item.transform !== 'object') continue;
+        try {
+            createDerivedTileFromExisting(item.sourceTileId, item.transform, {
+                name: item.name,
+                familyLabel: item.familyLabel
+            });
+        } catch (err) {
+            // Ignore malformed derived entries and continue applying others.
+        }
+    }
+}
+
+function applyTileRegistrySnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') return false;
+
+    applyDerivedTilesSnapshot(snapshot.derivedTiles);
+
+    if (Array.isArray(snapshot.tileNames)) {
+        let limit = Math.min(snapshot.tileNames.length, TILE_NAMES.length);
+        for (let i = 0; i < limit; i++) {
+            let name = snapshot.tileNames[i];
+            if (typeof name === 'string' && name.trim() !== '') {
+                TILE_NAMES[i] = name.trim();
+            }
+        }
+    }
+
+    if (!Array.isArray(snapshot.families) || snapshot.families.length === 0) {
+        return true;
+    }
+
+    TILE_FAMILIES.length = 0;
+    TILE_FAMILY_INDEX_TO_LABEL.length = 0;
+    Object.keys(TILE_FAMILY_LABEL_TO_INDEX).forEach((key) => delete TILE_FAMILY_LABEL_TO_INDEX[key]);
+
+    let usedLabels = new Set();
+    snapshot.families.forEach((family, index) => {
+        let baseLabel = (family && typeof family.label === 'string' && family.label.trim() !== '')
+            ? family.label.trim()
+            : `family-${index}`;
+        let label = baseLabel;
+        let suffix = 1;
+        while (usedLabels.has(label)) {
+            label = `${baseLabel}-${suffix}`;
+            suffix++;
+        }
+        usedLabels.add(label);
+
+        TILE_FAMILY_LABEL_TO_INDEX[label] = index;
+        TILE_FAMILY_INDEX_TO_LABEL[index] = label;
+
+        let ids = [];
+        if (family && Array.isArray(family.tileIds)) {
+            for (let id of family.tileIds) {
+                if (!Number.isInteger(id)) continue;
+                if (id < 0 || id >= TILE_RENDERERS.length) continue;
+                if (!ids.includes(id)) ids.push(id);
+            }
+        }
+        TILE_FAMILIES[index] = ids;
+    });
+
+    return true;
 }
 
 function normalizeTransformTarget(value, selfId) {
@@ -741,18 +1105,118 @@ registerTile({
     }
 });
 
+const DEFAULT_BUILTIN_TILE_LIMIT = TILE_RENDERERS.length;
+const DEFAULT_TILE_NAMES = TILE_NAMES.slice(0, DEFAULT_BUILTIN_TILE_LIMIT);
+const DEFAULT_TILE_FAMILIES = TILE_FAMILIES.map((members) => members.slice());
+const DEFAULT_TILE_FAMILY_LABELS = TILE_FAMILY_INDEX_TO_LABEL.slice();
+
+function restoreBuiltInRegistryDefaults() {
+    // Restore default names for built-in tile ids only.
+    for (let i = 0; i < DEFAULT_TILE_NAMES.length; i++) {
+        TILE_NAMES[i] = DEFAULT_TILE_NAMES[i];
+    }
+
+    const builtinFamilyCount = DEFAULT_TILE_FAMILIES.length;
+    const customIdsInBuiltins = [];
+    const preservedExtraFamilies = [];
+
+    // Preserve custom/uploaded tiles from non-built-in families only.
+    // Any custom tile currently inside a built-in family is moved out to a fallback family.
+    for (let i = 0; i < TILE_FAMILIES.length; i++) {
+        let members = Array.isArray(TILE_FAMILIES[i]) ? TILE_FAMILIES[i] : [];
+        let customMembers = members.filter((id) => Number.isInteger(id) && id >= DEFAULT_BUILTIN_TILE_LIMIT && id < TILE_RENDERERS.length);
+        if (customMembers.length === 0) continue;
+
+        if (i < builtinFamilyCount) {
+            customIdsInBuiltins.push(...customMembers);
+            continue;
+        }
+
+        let label = (TILE_FAMILY_INDEX_TO_LABEL[i] || `family-${i}`).trim();
+        preservedExtraFamilies.push({ label, members: customMembers.slice() });
+    }
+
+    TILE_FAMILIES.length = 0;
+    TILE_FAMILY_INDEX_TO_LABEL.length = 0;
+
+    for (let i = 0; i < builtinFamilyCount; i++) {
+        TILE_FAMILIES[i] = (DEFAULT_TILE_FAMILIES[i] || []).slice();
+        TILE_FAMILY_INDEX_TO_LABEL[i] = DEFAULT_TILE_FAMILY_LABELS[i] || `builtin-${i}`;
+    }
+
+    const usedLabels = new Set(TILE_FAMILY_INDEX_TO_LABEL);
+    const assignedCustomIds = new Set();
+
+    const addFamily = (baseLabel, members) => {
+        if (!Array.isArray(members) || members.length === 0) return;
+        let uniqueMembers = [];
+        for (let id of members) {
+            if (assignedCustomIds.has(id)) continue;
+            assignedCustomIds.add(id);
+            uniqueMembers.push(id);
+        }
+        if (uniqueMembers.length === 0) return;
+
+        let cleanBase = (baseLabel || 'custom-restored').trim() || 'custom-restored';
+        let label = cleanBase;
+        let suffix = 1;
+        while (usedLabels.has(label)) {
+            label = `${cleanBase}-${suffix}`;
+            suffix++;
+        }
+
+        usedLabels.add(label);
+        TILE_FAMILY_INDEX_TO_LABEL.push(label);
+        TILE_FAMILIES.push(uniqueMembers);
+    };
+
+    for (let entry of preservedExtraFamilies) {
+        addFamily(entry.label, entry.members);
+    }
+
+    if (customIdsInBuiltins.length > 0) {
+        addFamily('custom-restored', customIdsInBuiltins);
+    }
+
+    rebuildFamilyLabelIndexMap();
+    return true;
+}
+
 if (typeof window !== 'undefined') {
+    window.DEFAULT_BUILTIN_TILE_LIMIT = DEFAULT_BUILTIN_TILE_LIMIT;
     window.TILE_RENDERERS = TILE_RENDERERS;
     window.TILE_NAMES = TILE_NAMES;
     window.TILE_FAMILIES = TILE_FAMILIES;
     window.TILE_TRANSFORMS = TILE_TRANSFORM_MAP;
     window.registerTile = registerTile;
+    window.getTileFamilySummary = getTileFamilySummary;
+    window.createOrGetTileFamily = createOrGetTileFamily;
+    window.renameTileFamilyLabel = renameTileFamilyLabel;
+    window.moveTileToFamily = moveTileToFamily;
+    window.removeTileFromFamily = removeTileFromFamily;
+    window.renameTileName = renameTileName;
+    window.removeTileFamily = removeTileFamily;
+    window.createDerivedTileFromExisting = createDerivedTileFromExisting;
+    window.getTileRegistrySnapshot = getTileRegistrySnapshot;
+    window.applyTileRegistrySnapshot = applyTileRegistrySnapshot;
+    window.restoreBuiltInRegistryDefaults = restoreBuiltInRegistryDefaults;
 } else if (typeof module !== 'undefined') {
     module.exports = {
         TILE_RENDERERS,
         TILE_NAMES,
         TILE_FAMILIES,
         TILE_TRANSFORM_MAP,
-        registerTile
+        registerTile,
+        getTileFamilySummary,
+        createOrGetTileFamily,
+        renameTileFamilyLabel,
+        moveTileToFamily,
+        removeTileFromFamily,
+        renameTileName,
+        removeTileFamily,
+        createDerivedTileFromExisting,
+        getTileRegistrySnapshot,
+        applyTileRegistrySnapshot,
+        restoreBuiltInRegistryDefaults
     };
 }

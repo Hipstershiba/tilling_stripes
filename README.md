@@ -46,6 +46,42 @@ No build step is required.
 - **Seed**: input + randomize + generation history navigation.
 - **Edit Panel**: tool mode, target scope, paint palette, undo/redo.
 
+## Upload Your Own SVG Tiles
+
+You can now add custom SVG files directly from the UI:
+
+1. In `Assets`, open `Custom SVG Tiles`.
+2. Pick one or more `.svg` files.
+3. Set a family name (example: `flowers`) or choose an existing family.
+4. Click `Add SVG Tiles`.
+
+What happens after import:
+
+- New tiles are added to the tile selector and brush palette.
+- Uploaded tiles get generated thumbnails after import.
+- Imported tiles are automatically included in `Allowed Tiles`.
+- The family list is updated with tile counts.
+- `Rotate` mode cycles through members of the same family, including uploaded ones.
+- Uploads are persisted in browser `localStorage` and restored when reopening the page.
+- You can remove individual uploaded tiles or entire uploaded families from the `Uploaded Library` section.
+- SVG dimensions are normalized to a square tile space automatically.
+
+Backup controls (`Assets` tab):
+
+- `Export Backup`: downloads a JSON backup of uploaded SVG tiles.
+- `Import Backup`: restores uploaded SVG tiles from a backup JSON file (deduplicated import).
+
+Asset manager upgrades:
+
+- `Assets` tab now focuses on asset management (canvas hidden while managing).
+- `Tiles by Family` panel previews all visible tiles grouped by family.
+- In `Uploaded Library`, each source tile can generate a full symmetry set (rotations + mirrors) in the same family.
+
+Technical note:
+
+- Upload logic is isolated in [svg_tile_manager.js](svg_tile_manager.js).
+- Family metadata is centralized in [tile_registry.js](tile_registry.js) and reused by [sketch.js](sketch.js).
+
 ## Tutorial: Adding New Tiles
 
 The project now supports a registration API in [tile_registry.js](tile_registry.js) so you can add tiles without manually editing multiple arrays.
