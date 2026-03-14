@@ -627,6 +627,114 @@
     return { imported, skipped, ids, registryApplied };
   }
 
+  function exportHistoryState() {
+    const registrySnapshot = (typeof window.getTileRegistrySnapshot === 'function')
+      ? window.getTileRegistrySnapshot()
+      : null;
+
+    return {
+      version: 1,
+      registry: registrySnapshot,
+      uploaded: uploadedSvgTiles.map((tile) => ({
+        entryId: tile.entryId,
+        tileId: tile.tileId,
+        name: tile.name,
+        familyLabel: tile.familyLabel,
+        metadata: tile.metadata,
+        svgMarkup: tile.svgMarkup
+      })),
+      hiddenTileIds: Array.from(hiddenTileIds),
+      storageEntries: getStoredEntries().map((entry) => ({ ...entry }))
+    };
+  }
+
+  function importHistoryState(state) {
+    if (!state || typeof state !== 'object') {
+      throw new Error('Invalid history state.');
+    }
+
+    const uploaded = Array.isArray(state.uploaded) ? state.uploaded : [];
+    const hiddenIds = Array.isArray(state.hiddenTileIds) ? state.hiddenTileIds : [];
+
+    uploadedSvgTiles.length = 0;
+    hiddenTileIds.clear();
+
+    for (const item of uploaded) {
+      if (!item || typeof item.svgMarkup !== 'string') continue;
+      if (!Number.isInteger(item.tileId) || item.tileId < 0) continue;
+      if (!Array.isArray(window.TILE_RENDERERS) || item.tileId >= window.TILE_RENDERERS.length) continue;
+
+      try {
+        const sanitized = sanitizeSvg(item.svgMarkup);
+        const dataUrl = buildDataUrl(sanitized.svgMarkup);
+        const imageObj = new Image();
+
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(sanitized.svgMarkup, 'image/svg+xml');
+        const svgElement = xml.querySelector('svg');
+
+        const asset = {
+          entryId: item.entryId || createEntryId(),
+          tileId: item.tileId,
+          name: (item.name || 'Uploaded SVG').trim() || 'Uploaded SVG',
+          familyLabel: (item.familyLabel || 'uploads').trim() || 'uploads',
+          metadata: item.metadata || null,
+          svgMarkup: sanitized.svgMarkup,
+          innerMarkup: svgElement ? svgElement.innerHTML : '',
+          viewBox: sanitized.viewBox,
+          image: imageObj,
+          dataUrl,
+          thumbnailDataUrl: null
+        };
+
+        imageObj.onload = async () => {
+          asset.thumbnailDataUrl = await generateThumbnailDataUrl(asset);
+          if (typeof window.onUploadedTileThumbnailReady === 'function') {
+            window.onUploadedTileThumbnailReady(asset.tileId);
+          }
+        };
+        imageObj.src = dataUrl;
+
+        uploadedSvgTiles.push(asset);
+      } catch (err) {
+        // Skip malformed entries while restoring history.
+      }
+    }
+
+    for (const id of hiddenIds) {
+      if (!Number.isInteger(id) || id < 0) continue;
+      hiddenTileIds.add(id);
+    }
+
+    // Uploaded assets currently in library must not stay hidden.
+    for (const asset of uploadedSvgTiles) {
+      hiddenTileIds.delete(asset.tileId);
+    }
+
+    if (Array.isArray(state.storageEntries)) {
+      writeStorage(state.storageEntries.map((entry) => ({ ...entry })));
+    } else {
+      const fallbackEntries = uploadedSvgTiles.map((tile) => ({
+        id: tile.entryId,
+        name: tile.name,
+        familyLabel: tile.familyLabel,
+        metadata: tile.metadata,
+        svgMarkup: tile.svgMarkup,
+        createdAt: new Date().toISOString()
+      }));
+      writeStorage(fallbackEntries);
+    }
+
+    if (state.registry && typeof window.applyTileRegistrySnapshot === 'function') {
+      window.applyTileRegistrySnapshot(state.registry);
+    }
+
+    return {
+      uploadedCount: uploadedSvgTiles.length,
+      hiddenCount: hiddenTileIds.size
+    };
+  }
+
   function hasStoredVariantFor(entryId, variantKey) {
     const entries = readStorage();
     return entries.some((entry) => entry.metadata && entry.metadata.variantOf === entryId && entry.metadata.variantKey === variantKey);
@@ -811,6 +919,8 @@
     isTileHidden,
     downloadBackup,
     importBackupText,
+    exportHistoryState,
+    importHistoryState,
     renameUploadedFamily,
     renameUploadedTile,
     moveUploadedTileToFamily,

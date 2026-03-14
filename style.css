@@ -489,6 +489,26 @@ body.assets-focus #exportActions {
   white-space: nowrap;
 }
 
+.assets-history-row {
+  align-items: center;
+  gap: 6px;
+}
+
+.assets-history-row button {
+  min-height: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+
+.assets-history-state {
+  font-size: 0.68rem;
+  color: #9ba3ab;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .assets-helper-note {
   border-top: none;
   padding-top: 0;

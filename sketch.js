@@ -189,6 +189,109 @@ let assetsUiState = {
   }
 };
 
+let assetsHistory = [];
+let assetsHistoryIndex = -1;
+let isRestoringAssetsHistory = false;
+
+function canUseAssetsHistory() {
+  return !!(window.SVGTileManager
+    && typeof window.SVGTileManager.exportHistoryState === 'function'
+    && typeof window.SVGTileManager.importHistoryState === 'function');
+}
+
+function updateAssetsHistoryUi() {
+  let btnUndo = document.getElementById('btnAssetsUndo');
+  let btnRedo = document.getElementById('btnAssetsRedo');
+  let state = document.getElementById('assetsHistoryState');
+  let total = assetsHistory.length;
+  let current = assetsHistoryIndex + 1;
+
+  if (btnUndo) {
+    btnUndo.disabled = !canUseAssetsHistory() || total <= 1 || assetsHistoryIndex <= 0 || isRestoringAssetsHistory;
+  }
+  if (btnRedo) {
+    btnRedo.disabled = !canUseAssetsHistory() || total <= 1 || assetsHistoryIndex >= total - 1 || isRestoringAssetsHistory;
+  }
+  if (state) {
+    if (!canUseAssetsHistory() || total === 0) {
+      state.textContent = 'Assets history: -';
+    } else {
+      state.textContent = `Assets history: ${current} / ${total}`;
+    }
+  }
+}
+
+function resetAssetsHistory() {
+  assetsHistory = [];
+  assetsHistoryIndex = -1;
+  pushAssetsHistoryCheckpoint();
+}
+
+function pushAssetsHistoryCheckpoint() {
+  if (isRestoringAssetsHistory) return false;
+  if (!canUseAssetsHistory()) {
+    updateAssetsHistoryUi();
+    return false;
+  }
+
+  let snapshot = window.SVGTileManager.exportHistoryState();
+  if (!snapshot) {
+    updateAssetsHistoryUi();
+    return false;
+  }
+
+  let encoded = JSON.stringify(snapshot);
+  if (assetsHistoryIndex >= 0) {
+    let last = assetsHistory[assetsHistoryIndex];
+    if (last && last.encoded === encoded) {
+      updateAssetsHistoryUi();
+      return false;
+    }
+  }
+
+  if (assetsHistoryIndex < assetsHistory.length - 1) {
+    assetsHistory = assetsHistory.slice(0, assetsHistoryIndex + 1);
+  }
+
+  assetsHistory.push({ encoded, snapshot });
+
+  const MAX_ASSETS_HISTORY = 80;
+  if (assetsHistory.length > MAX_ASSETS_HISTORY) {
+    assetsHistory = assetsHistory.slice(assetsHistory.length - MAX_ASSETS_HISTORY);
+  }
+
+  assetsHistoryIndex = assetsHistory.length - 1;
+  updateAssetsHistoryUi();
+  return true;
+}
+
+function restoreAssetsHistoryTo(targetIndex) {
+  if (!canUseAssetsHistory()) return false;
+  if (!Number.isInteger(targetIndex)) return false;
+  if (targetIndex < 0 || targetIndex >= assetsHistory.length) return false;
+  if (targetIndex === assetsHistoryIndex) return false;
+
+  let entry = assetsHistory[targetIndex];
+  if (!entry || !entry.snapshot) return false;
+
+  isRestoringAssetsHistory = true;
+  updateAssetsHistoryUi();
+
+  try {
+    window.SVGTileManager.importHistoryState(entry.snapshot);
+    assetsHistoryIndex = targetIndex;
+    refreshTileCatalogUI();
+    setSvgStatus(`Assets history restored (${assetsHistoryIndex + 1}/${assetsHistory.length}).`, 'success');
+    return true;
+  } catch (err) {
+    setSvgStatus(`Assets undo/redo failed: ${err.message || err}`, 'error');
+    return false;
+  } finally {
+    isRestoringAssetsHistory = false;
+    updateAssetsHistoryUi();
+  }
+}
+
 function listUploadedTiles() {
   if (window.SVGTileManager && typeof window.SVGTileManager.listUploadedSvgTiles === 'function') {
     return window.SVGTileManager.listUploadedSvgTiles();
@@ -606,6 +709,8 @@ function setupSvgUploadUI() {
   let btnCreateFamily = document.getElementById('btnCreateFamily');
   let btnRenameFamilyFromList = document.getElementById('btnRenameFamilyFromList');
   let btnRemoveFamilyFromList = document.getElementById('btnRemoveFamilyFromList');
+  let btnAssetsUndo = document.getElementById('btnAssetsUndo');
+  let btnAssetsRedo = document.getElementById('btnAssetsRedo');
 
   if (!uploadInput || !btnAdd) return;
 
@@ -651,6 +756,7 @@ function setupSvgUploadUI() {
         let result = window.SVGTileManager.importBackupText(text);
         if (result.imported > 0 || result.registryApplied) {
           refreshTileCatalogUI(result.ids);
+          pushAssetsHistoryCheckpoint();
           setSvgStatus(`Backup imported: ${result.imported} new tile(s), ${result.skipped} skipped.${result.registryApplied ? ' Registry state restored.' : ''}`, 'success');
         } else {
           setSvgStatus(`Backup processed: 0 imported, ${result.skipped} skipped.`, 'error');
@@ -675,8 +781,9 @@ function setupSvgUploadUI() {
 
       try {
         window.restoreBuiltInRegistryDefaults();
-        setSvgStatus('Built-ins restored to default layout.', 'success');
         refreshTileCatalogUI();
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus('Built-ins restored to default layout.', 'success');
       } catch (err) {
         setSvgStatus(`Built-in restore failed: ${err.message || err}`, 'error');
       }
@@ -700,8 +807,9 @@ function setupSvgUploadUI() {
         } else {
           throw new Error('Tile rename API not available.');
         }
-        setSvgStatus(`Tile renamed to "${nextName}".`, 'success');
         refreshTileCatalogUI([tileMeta.tileId]);
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Tile renamed to "${nextName}".`, 'success');
       } catch (err) {
         setSvgStatus(`Tile rename failed: ${err.message || err}`, 'error');
       }
@@ -726,8 +834,9 @@ function setupSvgUploadUI() {
           throw new Error('Move tile API not available.');
         }
         assetsUiState.selectedFamily = targetFamily;
-        setSvgStatus(`Tile moved to family "${targetFamily}".`, 'success');
         refreshTileCatalogUI([tileMeta.tileId]);
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Tile moved to family "${targetFamily}".`, 'success');
       } catch (err) {
         setSvgStatus(`Move failed: ${err.message || err}`, 'error');
       }
@@ -750,8 +859,9 @@ function setupSvgUploadUI() {
         window.createOrGetTileFamily(label);
         assetsUiState.selectedFamily = label;
         if (input) input.value = '';
-        setSvgStatus(`Family "${label}" created.`, 'success');
         refreshTileCatalogUI();
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Family "${label}" created.`, 'success');
       } catch (err) {
         setSvgStatus(`Family create failed: ${err.message || err}`, 'error');
       }
@@ -789,8 +899,9 @@ function setupSvgUploadUI() {
         }
 
         assetsUiState.selectedFamily = newFamilyLabel;
-        setSvgStatus(`Family renamed to "${newFamilyLabel}".`, 'success');
         refreshTileCatalogUI();
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Family renamed to "${newFamilyLabel}".`, 'success');
       } catch (err) {
         setSvgStatus(`Family rename failed: ${err.message || err}`, 'error');
       }
@@ -831,8 +942,9 @@ function setupSvgUploadUI() {
           window.removeTileFamily(targetFamily);
         }
         assetsUiState.selectedFamily = null;
-        setSvgStatus(`Family "${targetFamily}" removed.`, 'success');
         refreshTileCatalogUI();
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Family "${targetFamily}" removed.`, 'success');
       } catch (err) {
         setSvgStatus(`Family remove failed: ${err.message || err}`, 'error');
       }
@@ -857,8 +969,9 @@ function setupSvgUploadUI() {
           }
           let removed = window.removeTileFromFamily(tileMeta.tileId, tileMeta.familyLabel);
           if (!removed) throw new Error('Tile is not in the selected family.');
-          setSvgStatus(`Tile "${tileMeta.name}" excluded from "${tileMeta.familyLabel}".`, 'success');
           refreshTileCatalogUI();
+          pushAssetsHistoryCheckpoint();
+          setSvgStatus(`Tile "${tileMeta.name}" excluded from "${tileMeta.familyLabel}".`, 'success');
         } catch (err) {
           setSvgStatus(`Tile exclude failed: ${err.message || err}`, 'error');
         }
@@ -872,8 +985,9 @@ function setupSvgUploadUI() {
         }
         let ok = window.SVGTileManager.deleteUploadedTile(tileMeta.tileId);
         if (!ok) throw new Error('Tile could not be removed.');
-        setSvgStatus(`Tile "${tileMeta.name}" removed.`, 'success');
         refreshTileCatalogUI();
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Tile "${tileMeta.name}" removed.`, 'success');
       } catch (err) {
         setSvgStatus(`Tile remove failed: ${err.message || err}`, 'error');
       }
@@ -958,8 +1072,9 @@ function setupSvgUploadUI() {
             familyLabel: tileMeta.familyLabel
           });
         }
-        setSvgStatus(`Edited tile created: #${created.tileId}.`, 'success');
         refreshTileCatalogUI([created.tileId]);
+        pushAssetsHistoryCheckpoint();
+        setSvgStatus(`Edited tile created: #${created.tileId}.`, 'success');
       } catch (err) {
         setSvgStatus(`Could not create edited tile: ${err.message || err}`, 'error');
       }
@@ -1008,6 +1123,7 @@ function setupSvgUploadUI() {
 
     if (newIds.length > 0) {
       refreshTileCatalogUI(newIds);
+      pushAssetsHistoryCheckpoint();
       uploadInput.value = '';
       setSvgStatus(
         failures.length > 0
@@ -1023,6 +1139,22 @@ function setupSvgUploadUI() {
       setSvgStatus(`Some files failed: ${failures.join(' | ')}`, 'error');
     }
   });
+
+  if (btnAssetsUndo) {
+    btnAssetsUndo.addEventListener('click', (e) => {
+      e.preventDefault();
+      restoreAssetsHistoryTo(assetsHistoryIndex - 1);
+    });
+  }
+
+  if (btnAssetsRedo) {
+    btnAssetsRedo.addEventListener('click', (e) => {
+      e.preventDefault();
+      restoreAssetsHistoryTo(assetsHistoryIndex + 1);
+    });
+  }
+
+  resetAssetsHistory();
 }
 
 function setupUI(mainCanvas) {
