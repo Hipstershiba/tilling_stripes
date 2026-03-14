@@ -712,10 +712,16 @@ function setupSvgUploadUI() {
   let btnCreateFamily = document.getElementById('btnCreateFamily');
   let btnRenameFamilyFromList = document.getElementById('btnRenameFamilyFromList');
   let btnRemoveFamilyFromList = document.getElementById('btnRemoveFamilyFromList');
+  let btnRenameTile = document.getElementById('btnApplyTileRename');
+  let btnMoveTile = document.getElementById('btnMoveTileFamily');
   let btnAssetsUndo = document.getElementById('btnAssetsUndo');
   let btnAssetsRedo = document.getElementById('btnAssetsRedo');
   let backupScopeSelect = document.getElementById('assetBackupScope');
   let backupScopeHelp = document.getElementById('assetBackupScopeHelp');
+  let inputCreateFamily = document.getElementById('assetCreateFamilyInput');
+  let inputRenameFamily = document.getElementById('assetRenameFamilyInput');
+  let inputRenameTile = document.getElementById('assetTileNameInput');
+  let selectMoveFamily = document.getElementById('assetMoveFamilySelect');
 
   const getBackupScope = () => {
     let scope = backupScopeSelect && typeof backupScopeSelect.value === 'string'
@@ -743,6 +749,21 @@ function setupSvgUploadUI() {
     backupScopeSelect.addEventListener('change', updateBackupScopeHelp);
   }
   updateBackupScopeHelp();
+
+  const bindEnterToButton = (fieldEl, buttonEl) => {
+    if (!fieldEl || !buttonEl) return;
+    fieldEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      buttonEl.click();
+    });
+  };
+
+  bindEnterToButton(inputCreateFamily, btnCreateFamily);
+  bindEnterToButton(inputRenameFamily, btnRenameFamilyFromList);
+  bindEnterToButton(inputRenameTile, btnRenameTile);
+  bindEnterToButton(selectMoveFamily, btnMoveTile);
 
   if (!uploadInput || !btnAdd) return;
 
@@ -827,7 +848,6 @@ function setupSvgUploadUI() {
     });
   }
 
-  let btnRenameTile = document.getElementById('btnApplyTileRename');
   if (btnRenameTile) {
     btnRenameTile.addEventListener('click', (e) => {
       e.preventDefault();
@@ -853,14 +873,12 @@ function setupSvgUploadUI() {
     });
   }
 
-  let btnMoveTile = document.getElementById('btnMoveTileFamily');
   if (btnMoveTile) {
     btnMoveTile.addEventListener('click', (e) => {
       e.preventDefault();
       let tileMeta = getSelectedTileMeta();
-      let selectFamily = document.getElementById('assetMoveFamilySelect');
-      if (!tileMeta || !selectFamily) return;
-      let targetFamily = selectFamily.value;
+      if (!tileMeta || !selectMoveFamily) return;
+      let targetFamily = selectMoveFamily.value;
       if (!targetFamily || targetFamily === tileMeta.familyLabel) return;
       try {
         if (tileMeta.uploaded && window.SVGTileManager && typeof window.SVGTileManager.moveUploadedTileToFamily === 'function') {
