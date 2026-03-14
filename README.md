@@ -40,6 +40,10 @@ Open [index.html](index.html) in your browser.
 
 No build step is required.
 
+## Maintenance Guide
+
+For a complete technical walkthrough (architecture, maintenance routines, backup/import internals, and extension patterns), see [MANUAL_MANUTENCAO.md](MANUAL_MANUTENCAO.md).
+
 ## Main Controls
 
 - **Canvas**: width, height, fit-to-screen, fit-to-grid, fullscreen.
