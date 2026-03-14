@@ -4,6 +4,7 @@ Interactive generative art tool for creating mirrored tiling compositions with e
 
 ## What’s New in This Version
 
+- Added a more intuitive **Assets** workflow for importing tile files directly in the UI.
 - Added full **Edit History** with UI buttons and keyboard shortcuts:
   - Undo: `Ctrl + Z`
   - Redo: `Ctrl + Shift + Z`
@@ -39,6 +40,10 @@ Open [index.html](index.html) in your browser.
 
 No build step is required.
 
+## Maintenance Guide
+
+For a complete technical walkthrough (architecture, maintenance routines, backup/import internals, and extension patterns), see [MANUAL_MANUTENCAO.md](MANUAL_MANUTENCAO.md).
+
 ## Main Controls
 
 - **Canvas**: width, height, fit-to-screen, fit-to-grid, fullscreen.
@@ -48,7 +53,9 @@ No build step is required.
 
 ## Upload Your Own SVG Tiles
 
-You can now add custom SVG files directly from the UI:
+Recommended path: add custom tiles directly from the UI.
+
+This is the easiest and safest workflow for most users:
 
 1. In `Assets`, open `Custom SVG Tiles`.
 2. Pick one or more `.svg` files.
@@ -71,6 +78,8 @@ Backup controls (`Assets` tab):
 - `Export Backup`: downloads a JSON backup of uploaded SVG tiles.
 - `Import Backup`: restores uploaded SVG tiles from a backup JSON file (deduplicated import).
 
+Note: this UI-based flow is the primary way to extend the tile library.
+
 Asset manager upgrades:
 
 - `Assets` tab now focuses on asset management (canvas hidden while managing).
@@ -82,7 +91,11 @@ Technical note:
 - Upload logic is isolated in [svg_tile_manager.js](svg_tile_manager.js).
 - Family metadata is centralized in [tile_registry.js](tile_registry.js) and reused by [sketch.js](sketch.js).
 
-## Tutorial: Adding New Tiles
+## Advanced Alternative: Add Tiles by Code
+
+If needed, you can still add tiles manually in code.
+
+This path is more complex and intended for contributors who are editing the source directly.
 
 The project now supports a registration API in [tile_registry.js](tile_registry.js) so you can add tiles without manually editing multiple arrays.
 
