@@ -824,7 +824,6 @@ function setupUI(mainCanvas) {
      let tab = e.detail.tab;
      if (tab === 'setup') {
          interactionMode = 'none';
-         console.log('Mode set to: none (Setup Tab)');
          // Ensure paint mode Visuals are cleared from allowed tiles if they were there (unlikely due to split)
          select('#tileSelector').removeClass('paint-mode');
        updateHoverPreview();
@@ -832,14 +831,12 @@ function setupUI(mainCanvas) {
        redraw();
      } else if (tab === 'edit') {
          interactionMode = 'edit';
-         console.log('Mode set to: edit (Edit Tab)');
          updateEditUI();
        updateHoverPreview();
        updateCanvasStatusHint();
        redraw();
      } else {
          interactionMode = 'none';
-         console.log(`Mode set to: none (${tab} Tab)`);
          updateEditUI();
        updateHoverPreview();
        updateCanvasStatusHint();
@@ -872,7 +869,6 @@ function setupUI(mainCanvas) {
           selectAll('.scope-btn').forEach(b => b.removeClass('active'));
           btn.addClass('active');
           interactionScope = btn.attribute('data-scope');
-          console.log('Scope set to:', interactionScope);
           
           // Update description
           let descDiv = select('#scopeDesc');
@@ -1377,27 +1373,20 @@ function pushEditState() {
   // Update index
   editHistoryIndex = editHistory.length - 1;
   
-  console.log(`History Push: ${editHistory.length} states. Index: ${editHistoryIndex}`);
   updateHistoryUI();
 }
 
 function undoEdit() {
   if (editHistoryIndex > 0) {
     editHistoryIndex--;
-    console.log(`Undo to index: ${editHistoryIndex}`);
     restoreEditState(editHistory[editHistoryIndex]);
-  } else {
-    console.log("Nothing to undo");
   }
 }
 
 function redoEdit() {
   if (editHistoryIndex < editHistory.length - 1) {
     editHistoryIndex++;
-    console.log(`Redo to index: ${editHistoryIndex}`);
     restoreEditState(editHistory[editHistoryIndex]);
-  } else {
-    console.log("Nothing to redo");
   }
 }
 
