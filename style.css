@@ -1893,7 +1893,11 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #111;
+  background-color: #161b21;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.05));
+  background-size: 16px 16px, 100% 100%;
   overflow: auto;
   /* allows scrolling if canvas is larger than available space */
   padding: 10px;
@@ -2125,7 +2129,7 @@ button:hover {
 }
 
 canvas {
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 26px rgba(0, 0, 0, 0.45);
   display: block;
   transform-origin: center center;
 }
