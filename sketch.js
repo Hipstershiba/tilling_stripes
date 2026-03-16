@@ -2651,6 +2651,10 @@ function setupUI(mainCanvas) {
   };
 
   const fitCanvasZoom = (mode) => {
+    if (zoomFitMode && mode && mode !== CUSTOM_FIT_VALUE) {
+      zoomFitMode.value(mode);
+    }
+
     let canvasContainer = document.getElementById('canvas-container');
 
     if (mode === 'original') {
@@ -4190,6 +4194,22 @@ function keyPressed() {
 
 // Global Key Handler
 window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      let target = e.target;
+      let isEditableTarget = !!target && (
+        target.tagName === 'INPUT'
+        || target.tagName === 'TEXTAREA'
+        || target.tagName === 'SELECT'
+        || target.isContentEditable
+      );
+
+      if (isEditableTarget && typeof target.blur === 'function') {
+        target.blur();
+        e.preventDefault();
+        return;
+      }
+    }
+
     // Check if user is typing in an input field
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
 
