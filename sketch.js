@@ -2548,9 +2548,13 @@ function setupUI(mainCanvas) {
   select('#btnSquareGrid').mousePressed(makeGridSquare);
   select('#btnFullscreen').mousePressed(toggleFullscreen);
 
-  const MIN_CANVAS_ZOOM = 25;
-  const MAX_CANVAS_ZOOM = 300;
+  const MIN_CANVAS_ZOOM = 0.1;
+  const MAX_CANVAS_ZOOM = Number.POSITIVE_INFINITY;
+  const MIN_SLIDER_ZOOM = 10;
+  const MAX_SLIDER_ZOOM = 1200;
+  const ZOOM_MULTIPLIER = 1.15;
   const CANVAS_ZOOM_STEP = canvasZoomStep;
+  const CUSTOM_FIT_VALUE = 'custom';
 
   let zoomSlider = select('#canvasZoom');
   let zoomValue = select('#canvasZoomValue');
@@ -2561,22 +2565,62 @@ function setupUI(mainCanvas) {
   let zoomFitMode = select('#zoomFitMode');
   let zoomOverlay = document.getElementById('canvasZoomOverlay');
 
+  const getCustomFitOption = () => {
+    if (!zoomFitMode || !zoomFitMode.elt) return null;
+    return zoomFitMode.elt.querySelector(`option[value="${CUSTOM_FIT_VALUE}"]`);
+  };
+
+  const ensureCustomFitSelected = () => {
+    if (!zoomFitMode || !zoomFitMode.elt) return;
+
+    let customOption = getCustomFitOption();
+    if (!customOption) {
+      customOption = document.createElement('option');
+      customOption.value = CUSTOM_FIT_VALUE;
+      customOption.textContent = 'Custom';
+      zoomFitMode.elt.appendChild(customOption);
+    }
+
+    zoomFitMode.value(CUSTOM_FIT_VALUE);
+  };
+
+  const removeCustomFitOption = () => {
+    if (!zoomFitMode || !zoomFitMode.elt) return;
+    let customOption = getCustomFitOption();
+    if (customOption) customOption.remove();
+  };
+
   const clampCanvasZoom = (value) => {
     if (!Number.isFinite(value)) return canvasZoomPercent;
-    return Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, Math.round(value)));
+    return Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, value));
   };
 
   const updateZoomUi = () => {
-    if (zoomSlider) zoomSlider.value(canvasZoomPercent);
-    if (zoomValue) zoomValue.html(`${canvasZoomPercent}%`);
+    if (zoomSlider) {
+      let sliderValue = Math.max(MIN_SLIDER_ZOOM, Math.min(MAX_SLIDER_ZOOM, Math.round(canvasZoomPercent)));
+      zoomSlider.value(sliderValue);
+    }
+    if (zoomValue) {
+      let displayValue = canvasZoomPercent >= 10
+        ? Math.round(canvasZoomPercent)
+        : Math.round(canvasZoomPercent * 10) / 10;
+      zoomValue.value(displayValue);
+    }
   };
 
-  const applyCanvasZoom = (value) => {
+  const applyCanvasZoom = (value, options = {}) => {
+    let markManual = options.markManual !== false;
     canvasZoomPercent = clampCanvasZoom(value);
     if (mainCanvas && mainCanvas.elt) {
       mainCanvas.elt.style.transform = `scale(${canvasZoomPercent / 100})`;
     }
     updateZoomUi();
+
+    if (markManual) {
+      ensureCustomFitSelected();
+    } else {
+      removeCustomFitOption();
+    }
   };
 
   const updateCanvasCursor = () => {
@@ -2606,10 +2650,10 @@ function setupUI(mainCanvas) {
 
   const fitCanvasZoom = (mode) => {
     if (mode === 'original') {
-      applyCanvasZoom(100);
+      applyCanvasZoom(100, { markManual: false });
       return;
     }
-    applyCanvasZoom(getViewportFitZoom(mode));
+    applyCanvasZoom(getViewportFitZoom(mode), { markManual: false });
   };
 
   applyCanvasZoomHandler = applyCanvasZoom;
@@ -2629,12 +2673,21 @@ function setupUI(mainCanvas) {
     });
   }
 
+  if (zoomValue) {
+    zoomValue.input(() => {
+      let typedValue = parseFloat(zoomValue.value());
+      if (!isNaN(typedValue) && typedValue > 0) {
+        applyCanvasZoom(typedValue);
+      }
+    });
+  }
+
   if (btnZoomIn) {
-    btnZoomIn.mousePressed(() => applyCanvasZoom(canvasZoomPercent + CANVAS_ZOOM_STEP));
+    btnZoomIn.mousePressed(() => applyCanvasZoom(canvasZoomPercent * ZOOM_MULTIPLIER));
   }
 
   if (btnZoomOut) {
-    btnZoomOut.mousePressed(() => applyCanvasZoom(canvasZoomPercent - CANVAS_ZOOM_STEP));
+    btnZoomOut.mousePressed(() => applyCanvasZoom(canvasZoomPercent / ZOOM_MULTIPLIER));
   }
 
   if (btnZoomHide) {
@@ -2648,12 +2701,27 @@ function setupUI(mainCanvas) {
   if (zoomFitMode) {
     zoomFitMode.changed(() => {
       let mode = zoomFitMode.value() || 'best';
+      if (mode === CUSTOM_FIT_VALUE) return;
       fitCanvasZoom(mode);
     });
   }
 
   if (mainCanvas && mainCanvas.elt) {
     mainCanvas.elt.style.transformOrigin = 'center center';
+
+    mainCanvas.elt.addEventListener('mousedown', (event) => {
+      if (!zoomToolActive || isAssetsTabActive()) return;
+      if (event.button !== 0 && event.button !== 2) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      let zoomTarget = (event.button === 2)
+        ? (canvasZoomPercent / ZOOM_MULTIPLIER)
+        : (canvasZoomPercent * ZOOM_MULTIPLIER);
+
+      applyCanvasZoom(zoomTarget);
+    });
   }
 
   const isTypingContext = (target) => {
@@ -2673,10 +2741,10 @@ function setupUI(mainCanvas) {
 
     if (key === '-' || code === 'NumpadSubtract') {
       event.preventDefault();
-      applyCanvasZoom(canvasZoomPercent - CANVAS_ZOOM_STEP);
+      applyCanvasZoom(canvasZoomPercent / ZOOM_MULTIPLIER);
     } else if (key === '=' || key === '+' || code === 'NumpadAdd') {
       event.preventDefault();
-      applyCanvasZoom(canvasZoomPercent + CANVAS_ZOOM_STEP);
+      applyCanvasZoom(canvasZoomPercent * ZOOM_MULTIPLIER);
     } else if (key === '0' || code === 'Numpad0') {
       event.preventDefault();
       fitCanvasZoom('original');
@@ -4330,10 +4398,6 @@ function mousePressed() {
   let pointerMode = getPointerInteractionMode();
 
   if (pointerMode === 'zoom') {
-    if (applyCanvasZoomHandler) {
-      let zoomDelta = (mouseButton === RIGHT) ? -canvasZoomStep : canvasZoomStep;
-      applyCanvasZoomHandler(canvasZoomPercent + zoomDelta);
-    }
     isDrawing = false;
     return;
   }

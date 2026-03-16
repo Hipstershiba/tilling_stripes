@@ -499,15 +499,18 @@
       <div id="canvasZoomOverlay" class="canvas-zoom-overlay" aria-label="Canvas zoom controls">
         <div id="canvasZoomControls" class="canvas-zoom-controls">
           <button id="btnZoomOut" type="button" title="Zoom out">−</button>
-          <input type="range" id="canvasZoom" min="25" max="300" step="5" value="100">
-          <span id="canvasZoomValue">100%</span>
+          <input type="range" id="canvasZoom" min="10" max="1200" step="5" value="100">
+          <div class="canvas-zoom-value-wrap">
+            <input type="number" id="canvasZoomValue" min="1" step="1" value="100" aria-label="Zoom percent">
+            <span class="canvas-zoom-percent">%</span>
+          </div>
           <button id="btnZoomIn" type="button" title="Zoom in">+</button>
           <select id="zoomFitMode" aria-label="Zoom fit mode" title="Fit mode">
-            <option value="best" selected>Fit Best</option>
+            <option value="original" selected>Original Size</option>
+            <option value="best">Fit Best</option>
             <option value="horizontal">Fit Horizontal</option>
             <option value="vertical">Fit Vertical</option>
             <option value="fill">Fit Fill</option>
-            <option value="original">Original Size</option>
           </select>
           <button id="btnZoomHide" type="button" title="Hide zoom controls">✕</button>
         </div>
