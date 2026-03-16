@@ -496,6 +496,28 @@
     </div>
 
     <div id="canvas-container">
+      <div id="canvasZoomOverlay" class="canvas-zoom-overlay" aria-label="Canvas zoom controls">
+        <div id="canvasZoomControls" class="canvas-zoom-controls">
+          <div class="zoom-primary-row">
+            <button id="btnZoomOut" type="button" title="Zoom out">−</button>
+            <input type="range" id="canvasZoom" min="25" max="300" step="5" value="100">
+            <span id="canvasZoomValue">100%</span>
+            <button id="btnZoomIn" type="button" title="Zoom in">+</button>
+            <button id="btnZoomReset" type="button" title="Reset zoom">Reset</button>
+            <button id="btnZoomHide" type="button" title="Hide zoom controls">✕</button>
+          </div>
+          <div class="zoom-fit-row">
+            <button id="btnZoomFitH" type="button" title="Fit horizontal">Fit H</button>
+            <button id="btnZoomFitV" type="button" title="Fit vertical">Fit V</button>
+            <button id="btnZoomFitBest" type="button" title="Fit best">Fit Best</button>
+            <button id="btnZoomFitFill" type="button" title="Fit fill">Fit Fill</button>
+            <button id="btnZoomOriginal" type="button" title="Original size">Original</button>
+          </div>
+          <div class="zoom-shortcut-hint">[ / ] zoom • \ reset • H horizontal • V vertical • F best • G fill • O original</div>
+        </div>
+        <button id="btnZoomShow" class="canvas-zoom-show" type="button" title="Show zoom controls">Zoom</button>
+      </div>
+
       <button id="btnFullscreen" title="Toggle Fullscreen"
         style="display:flex; justify-content:center; align-items:center;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

@@ -12,6 +12,7 @@ let isCanvasLocked = false;
 let isGridLocked = false;
 let canvasRatio = 1;
 let gridRatio = 1;
+let canvasZoomPercent = 100;
 
 // Interaction State
 let interactionMode = 'none'; // 'none' (Setup tab) or 'edit' (Edit tab). Right-click temporarily rotates.
@@ -2542,6 +2543,166 @@ function setupUI(mainCanvas) {
   select('#btnSquareGrid').mousePressed(makeGridSquare);
   select('#btnFullscreen').mousePressed(toggleFullscreen);
 
+  const MIN_CANVAS_ZOOM = 25;
+  const MAX_CANVAS_ZOOM = 300;
+  const CANVAS_ZOOM_STEP = 5;
+
+  let zoomSlider = select('#canvasZoom');
+  let zoomValue = select('#canvasZoomValue');
+  let btnZoomReset = select('#btnZoomReset');
+  let btnZoomIn = select('#btnZoomIn');
+  let btnZoomOut = select('#btnZoomOut');
+  let btnZoomHide = select('#btnZoomHide');
+  let btnZoomShow = select('#btnZoomShow');
+  let btnZoomFitH = select('#btnZoomFitH');
+  let btnZoomFitV = select('#btnZoomFitV');
+  let btnZoomFitBest = select('#btnZoomFitBest');
+  let btnZoomFitFill = select('#btnZoomFitFill');
+  let btnZoomOriginal = select('#btnZoomOriginal');
+  let zoomOverlay = document.getElementById('canvasZoomOverlay');
+
+  const clampCanvasZoom = (value) => {
+    if (!Number.isFinite(value)) return canvasZoomPercent;
+    return Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, Math.round(value)));
+  };
+
+  const updateZoomUi = () => {
+    if (zoomSlider) zoomSlider.value(canvasZoomPercent);
+    if (zoomValue) zoomValue.html(`${canvasZoomPercent}%`);
+  };
+
+  const applyCanvasZoom = (value) => {
+    canvasZoomPercent = clampCanvasZoom(value);
+    if (mainCanvas && mainCanvas.elt) {
+      mainCanvas.elt.style.transform = `scale(${canvasZoomPercent / 100})`;
+    }
+    updateZoomUi();
+  };
+
+  const getViewportFitZoom = (mode) => {
+    let canvasContainer = document.getElementById('canvas-container');
+    if (!canvasContainer || width <= 0 || height <= 0) return 100;
+
+    let availableWidth = Math.max(1, canvasContainer.clientWidth - 20);
+    let availableHeight = Math.max(1, canvasContainer.clientHeight - 20);
+
+    let horizontalZoom = (availableWidth / width) * 100;
+    let verticalZoom = (availableHeight / height) * 100;
+
+    if (mode === 'horizontal') return horizontalZoom;
+    if (mode === 'vertical') return verticalZoom;
+    if (mode === 'fill') return Math.max(horizontalZoom, verticalZoom);
+    return Math.min(horizontalZoom, verticalZoom);
+  };
+
+  const fitCanvasZoom = (mode) => {
+    if (mode === 'original') {
+      applyCanvasZoom(100);
+      return;
+    }
+    applyCanvasZoom(getViewportFitZoom(mode));
+  };
+
+  const setZoomOverlayVisible = (visible) => {
+    if (!zoomOverlay) return;
+    if (visible) zoomOverlay.classList.remove('hidden');
+    else zoomOverlay.classList.add('hidden');
+  };
+
+  if (zoomSlider) {
+    zoomSlider.input(() => {
+      let sliderVal = parseInt(zoomSlider.value(), 10);
+      if (!isNaN(sliderVal)) applyCanvasZoom(sliderVal);
+    });
+  }
+
+  if (btnZoomReset) {
+    btnZoomReset.mousePressed(() => applyCanvasZoom(100));
+  }
+
+  if (btnZoomIn) {
+    btnZoomIn.mousePressed(() => applyCanvasZoom(canvasZoomPercent + CANVAS_ZOOM_STEP));
+  }
+
+  if (btnZoomOut) {
+    btnZoomOut.mousePressed(() => applyCanvasZoom(canvasZoomPercent - CANVAS_ZOOM_STEP));
+  }
+
+  if (btnZoomHide) {
+    btnZoomHide.mousePressed(() => setZoomOverlayVisible(false));
+  }
+
+  if (btnZoomShow) {
+    btnZoomShow.mousePressed(() => setZoomOverlayVisible(true));
+  }
+
+  if (btnZoomFitH) {
+    btnZoomFitH.mousePressed(() => fitCanvasZoom('horizontal'));
+  }
+
+  if (btnZoomFitV) {
+    btnZoomFitV.mousePressed(() => fitCanvasZoom('vertical'));
+  }
+
+  if (btnZoomFitBest) {
+    btnZoomFitBest.mousePressed(() => fitCanvasZoom('best'));
+  }
+
+  if (btnZoomFitFill) {
+    btnZoomFitFill.mousePressed(() => fitCanvasZoom('fill'));
+  }
+
+  if (btnZoomOriginal) {
+    btnZoomOriginal.mousePressed(() => fitCanvasZoom('original'));
+  }
+
+  if (mainCanvas && mainCanvas.elt) {
+    mainCanvas.elt.style.transformOrigin = 'center center';
+  }
+
+  const isTypingContext = (target) => {
+    if (!target) return false;
+    if (target.isContentEditable) return true;
+    let tag = target.tagName ? target.tagName.toUpperCase() : '';
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  };
+
+  document.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (isTypingContext(event.target)) return;
+
+    let key = event.key;
+    if (key === '[') {
+      event.preventDefault();
+      applyCanvasZoom(canvasZoomPercent - CANVAS_ZOOM_STEP);
+    } else if (key === ']') {
+      event.preventDefault();
+      applyCanvasZoom(canvasZoomPercent + CANVAS_ZOOM_STEP);
+    } else if (key === '\\') {
+      event.preventDefault();
+      fitCanvasZoom('original');
+    } else if (key === 'h' || key === 'H') {
+      event.preventDefault();
+      fitCanvasZoom('horizontal');
+    } else if (key === 'v' || key === 'V') {
+      event.preventDefault();
+      fitCanvasZoom('vertical');
+    } else if (key === 'f' || key === 'F') {
+      event.preventDefault();
+      fitCanvasZoom('best');
+    } else if (key === 'g' || key === 'G') {
+      event.preventDefault();
+      fitCanvasZoom('fill');
+    } else if (key === 'o' || key === 'O') {
+      event.preventDefault();
+      fitCanvasZoom('original');
+    }
+  });
+
+  setZoomOverlayVisible(true);
+  applyCanvasZoom(canvasZoomPercent);
+
   select('#seedInput').value(seed);
   select('#seedInput').input(() => { 
     let val = parseInt(select('#seedInput').value());
@@ -2600,10 +2761,15 @@ function setupUI(mainCanvas) {
   // select('#btnRedraw').mousePressed(initGrid); // Removed as it auto-updates
   
   const buildExportMeta = () => {
-    let ratio = (width / height).toFixed(2);
+    let currentRows = parseInt(select('#gridRows').value(), 10);
+    let currentCols = parseInt(select('#gridCols').value(), 10);
+    if (isNaN(currentRows) || currentRows < 1) currentRows = rows;
+    if (isNaN(currentCols) || currentCols < 1) currentCols = cols;
+
     let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
-    let basename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}`;
-    return { ratio, timestamp, basename };
+    let ratio = (width / height).toFixed(2);
+    let basename = `tilling_stripes_seed-${seed}_canvas-${width}x${height}_grid-${currentRows}x${currentCols}_margin-${margin}_${timestamp}`;
+    return { ratio, timestamp, basename, currentRows, currentCols };
   };
 
   const exportAsPng = () => {
@@ -2651,6 +2817,8 @@ function setupUI(mainCanvas) {
         '; tilling_stripes GCode export (initial scaffold)',
         `; seed: ${seed}`,
         `; canvas: ${width}x${height}`,
+        `; grid: ${meta.currentRows}x${meta.currentCols}`,
+        `; margin: ${margin}`,
         `; ratio: ${meta.ratio}`,
         '; NOTE: motion paths/conversion settings will be implemented in a future iteration.',
         'G21',

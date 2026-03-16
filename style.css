@@ -1827,6 +1827,127 @@ button:hover {
   height: 100vh;
 }
 
+.canvas-zoom-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.canvas-zoom-controls {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  background: rgba(24, 24, 24, 0.78);
+  border: 1px solid rgba(90, 90, 90, 0.78);
+  border-radius: 8px;
+  padding: 6px;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.canvas-zoom-controls button,
+.canvas-zoom-controls input,
+.canvas-zoom-show {
+  pointer-events: auto;
+}
+
+.zoom-primary-row {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 170px) 52px auto auto auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.zoom-fit-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.zoom-shortcut-hint {
+  font-size: 0.64rem;
+  color: #9aa3ab;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+#canvasZoom {
+  width: 100%;
+}
+
+#canvasZoomValue {
+  text-align: right;
+  font-size: 0.72rem;
+  color: #d6d6d6;
+  font-family: monospace;
+}
+
+#btnZoomOut,
+#btnZoomIn,
+#btnZoomReset,
+#btnZoomHide,
+#btnZoomFitH,
+#btnZoomFitV,
+#btnZoomFitBest,
+#btnZoomFitFill,
+#btnZoomOriginal,
+.canvas-zoom-show {
+  height: 28px;
+  background: #2f2f2f;
+  border: 1px solid #434343;
+  color: #d6d6d6;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+#btnZoomOut,
+#btnZoomIn,
+#btnZoomHide {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  font-size: 0.9rem;
+  text-transform: none;
+}
+
+#btnZoomOut:hover,
+#btnZoomIn:hover,
+#btnZoomReset:hover,
+#btnZoomHide:hover,
+#btnZoomFitH:hover,
+#btnZoomFitV:hover,
+#btnZoomFitBest:hover,
+#btnZoomFitFill:hover,
+#btnZoomOriginal:hover,
+.canvas-zoom-show:hover {
+  background: #393939;
+  color: #ffffff;
+}
+
+.canvas-zoom-show {
+  display: none;
+  background: rgba(24, 24, 24, 0.78);
+}
+
+#canvasZoomOverlay.hidden .canvas-zoom-controls {
+  display: none;
+}
+
+#canvasZoomOverlay.hidden .canvas-zoom-show {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #canvasStatusHint {
   position: absolute;
   left: 50%;
@@ -1868,6 +1989,7 @@ button:hover {
 canvas {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   display: block;
+  transform-origin: center center;
 }
 
 /* Locked button state */
