@@ -2552,8 +2552,7 @@ function setupUI(mainCanvas) {
   const MAX_CANVAS_ZOOM = Number.POSITIVE_INFINITY;
   const MIN_SLIDER_ZOOM = 10;
   const MAX_SLIDER_ZOOM = 1200;
-  const ZOOM_MULTIPLIER = 1.15;
-  const CANVAS_ZOOM_STEP = canvasZoomStep;
+  const ZOOM_MULTIPLIER = 1.05;
   const CUSTOM_FIT_VALUE = 'custom';
   const FIT_WIDTH_SAFE_FACTOR = 0.985;
   const FIT_HEIGHT_SAFE_FACTOR = 0.955;
@@ -2739,6 +2738,13 @@ function setupUI(mainCanvas) {
     else zoomOverlay.classList.add('hidden');
   };
 
+  const setZoomSnapEnabled = (enabled) => {
+    zoomSnapEnabled = !!enabled;
+    if (zoomSnapToggle && zoomSnapToggle.elt) {
+      zoomSnapToggle.elt.checked = zoomSnapEnabled;
+    }
+  };
+
   if (zoomSlider) {
     zoomSlider.input(() => {
       let sliderVal = parseInt(zoomSlider.value(), 10);
@@ -2803,9 +2809,9 @@ function setupUI(mainCanvas) {
   }
 
   if (zoomSnapToggle) {
-    zoomSnapEnabled = !!zoomSnapToggle.elt.checked;
+    setZoomSnapEnabled(!!zoomSnapToggle.elt.checked);
     zoomSnapToggle.changed(() => {
-      zoomSnapEnabled = !!zoomSnapToggle.elt.checked;
+      setZoomSnapEnabled(!!zoomSnapToggle.elt.checked);
     });
   }
 
@@ -2844,6 +2850,9 @@ function setupUI(mainCanvas) {
     } else if (key === '=' || key === '+' || code === 'NumpadAdd') {
       event.preventDefault();
       applySteppedZoom(1);
+    } else if ((key === 'u' || key === 'U') && !isAssetsTabActive()) {
+      event.preventDefault();
+      setZoomSnapEnabled(!zoomSnapEnabled);
     } else if (key === '0' || code === 'Numpad0') {
       event.preventDefault();
       fitCanvasZoom('original');
