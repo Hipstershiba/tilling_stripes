@@ -22,6 +22,11 @@ let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
 let hoverPreviewTargets = [];
 let hoverPreviewAnchor = null;
+let zoomToolActive = false;
+let applyCanvasZoomHandler = null;
+let fitCanvasZoomHandler = null;
+let canvasZoomStep = 5;
+let updateCanvasCursorHandler = null;
 
 // History State
 let generationHistory = [];
@@ -2545,20 +2550,15 @@ function setupUI(mainCanvas) {
 
   const MIN_CANVAS_ZOOM = 25;
   const MAX_CANVAS_ZOOM = 300;
-  const CANVAS_ZOOM_STEP = 5;
+  const CANVAS_ZOOM_STEP = canvasZoomStep;
 
   let zoomSlider = select('#canvasZoom');
   let zoomValue = select('#canvasZoomValue');
-  let btnZoomReset = select('#btnZoomReset');
   let btnZoomIn = select('#btnZoomIn');
   let btnZoomOut = select('#btnZoomOut');
   let btnZoomHide = select('#btnZoomHide');
   let btnZoomShow = select('#btnZoomShow');
-  let btnZoomFitH = select('#btnZoomFitH');
-  let btnZoomFitV = select('#btnZoomFitV');
-  let btnZoomFitBest = select('#btnZoomFitBest');
-  let btnZoomFitFill = select('#btnZoomFitFill');
-  let btnZoomOriginal = select('#btnZoomOriginal');
+  let zoomFitMode = select('#zoomFitMode');
   let zoomOverlay = document.getElementById('canvasZoomOverlay');
 
   const clampCanvasZoom = (value) => {
@@ -2577,6 +2577,15 @@ function setupUI(mainCanvas) {
       mainCanvas.elt.style.transform = `scale(${canvasZoomPercent / 100})`;
     }
     updateZoomUi();
+  };
+
+  const updateCanvasCursor = () => {
+    if (!mainCanvas || !mainCanvas.elt) return;
+    if (zoomToolActive && !isAssetsTabActive()) {
+      mainCanvas.elt.style.cursor = 'zoom-in';
+    } else {
+      mainCanvas.elt.style.cursor = '';
+    }
   };
 
   const getViewportFitZoom = (mode) => {
@@ -2603,6 +2612,10 @@ function setupUI(mainCanvas) {
     applyCanvasZoom(getViewportFitZoom(mode));
   };
 
+  applyCanvasZoomHandler = applyCanvasZoom;
+  fitCanvasZoomHandler = fitCanvasZoom;
+  updateCanvasCursorHandler = updateCanvasCursor;
+
   const setZoomOverlayVisible = (visible) => {
     if (!zoomOverlay) return;
     if (visible) zoomOverlay.classList.remove('hidden');
@@ -2614,10 +2627,6 @@ function setupUI(mainCanvas) {
       let sliderVal = parseInt(zoomSlider.value(), 10);
       if (!isNaN(sliderVal)) applyCanvasZoom(sliderVal);
     });
-  }
-
-  if (btnZoomReset) {
-    btnZoomReset.mousePressed(() => applyCanvasZoom(100));
   }
 
   if (btnZoomIn) {
@@ -2636,24 +2645,11 @@ function setupUI(mainCanvas) {
     btnZoomShow.mousePressed(() => setZoomOverlayVisible(true));
   }
 
-  if (btnZoomFitH) {
-    btnZoomFitH.mousePressed(() => fitCanvasZoom('horizontal'));
-  }
-
-  if (btnZoomFitV) {
-    btnZoomFitV.mousePressed(() => fitCanvasZoom('vertical'));
-  }
-
-  if (btnZoomFitBest) {
-    btnZoomFitBest.mousePressed(() => fitCanvasZoom('best'));
-  }
-
-  if (btnZoomFitFill) {
-    btnZoomFitFill.mousePressed(() => fitCanvasZoom('fill'));
-  }
-
-  if (btnZoomOriginal) {
-    btnZoomOriginal.mousePressed(() => fitCanvasZoom('original'));
+  if (zoomFitMode) {
+    zoomFitMode.changed(() => {
+      let mode = zoomFitMode.value() || 'best';
+      fitCanvasZoom(mode);
+    });
   }
 
   if (mainCanvas && mainCanvas.elt) {
@@ -2673,35 +2669,35 @@ function setupUI(mainCanvas) {
     if (isTypingContext(event.target)) return;
 
     let key = event.key;
-    if (key === '[') {
+    let code = event.code;
+
+    if (key === '-' || code === 'NumpadSubtract') {
       event.preventDefault();
       applyCanvasZoom(canvasZoomPercent - CANVAS_ZOOM_STEP);
-    } else if (key === ']') {
+    } else if (key === '=' || key === '+' || code === 'NumpadAdd') {
       event.preventDefault();
       applyCanvasZoom(canvasZoomPercent + CANVAS_ZOOM_STEP);
-    } else if (key === '\\') {
+    } else if (key === '0' || code === 'Numpad0') {
       event.preventDefault();
       fitCanvasZoom('original');
-    } else if (key === 'h' || key === 'H') {
+    } else if (key === '1') {
       event.preventDefault();
       fitCanvasZoom('horizontal');
-    } else if (key === 'v' || key === 'V') {
+    } else if (key === '2') {
       event.preventDefault();
       fitCanvasZoom('vertical');
-    } else if (key === 'f' || key === 'F') {
+    } else if (key === '3') {
       event.preventDefault();
       fitCanvasZoom('best');
-    } else if (key === 'g' || key === 'G') {
+    } else if (key === '4') {
       event.preventDefault();
       fitCanvasZoom('fill');
-    } else if (key === 'o' || key === 'O') {
-      event.preventDefault();
-      fitCanvasZoom('original');
     }
   });
 
   setZoomOverlayVisible(true);
   applyCanvasZoom(canvasZoomPercent);
+  updateCanvasCursor();
 
   select('#seedInput').value(seed);
   select('#seedInput').input(() => { 
@@ -2961,6 +2957,11 @@ function setupUI(mainCanvas) {
     let hint = select('#canvasStatusHint');
     if (!hint) return;
 
+    if (zoomToolActive && isEditTabActive()) {
+      hint.html('ZOOM tool • LMB + • RMB - • Z toggle');
+      return;
+    }
+
     if (editToolMode === 'edit') {
       hint.html('LMB paint • RMB rotate • R toggle');
     } else {
@@ -3059,6 +3060,8 @@ function setupUI(mainCanvas) {
     }
   };
 
+  window.refreshCanvasStatusHint = updateCanvasStatusHint;
+
   // Listen for Tab Changes
   window.addEventListener('tabChanged', (e) => {
      let tab = e.detail.tab;
@@ -3069,6 +3072,7 @@ function setupUI(mainCanvas) {
          select('#tileSelector').removeClass('paint-mode');
        updateHoverPreview();
        updateCanvasStatusHint();
+       updateCanvasCursor();
        redraw();
      } else if (tab === 'edit') {
          setAssetsManagerMode(false);
@@ -3076,14 +3080,17 @@ function setupUI(mainCanvas) {
          updateEditUI();
        updateHoverPreview();
        updateCanvasStatusHint();
+       updateCanvasCursor();
        redraw();
      } else {
          setAssetsManagerMode(true);
          interactionMode = 'none';
+         zoomToolActive = false;
          updateEditUI();
        refreshAssetsManagerUI();
        updateHoverPreview();
        updateCanvasStatusHint();
+       updateCanvasCursor();
        redraw();
      }
   });
@@ -3093,6 +3100,7 @@ function setupUI(mainCanvas) {
   updateEditModeUI();
   setAssetsManagerMode(false);
   updateCanvasStatusHint();
+  updateCanvasCursor();
 
   window.toggleEditToolMode = toggleEditToolMode;
   
@@ -3940,7 +3948,7 @@ function buildScopePreviewTargets(hitInfo) {
 }
 
 function updateHoverPreview(mx = mouseX, my = mouseY) {
-  if (interactionMode === 'none') {
+  if (interactionMode === 'none' || (interactionMode === 'edit' && zoomToolActive)) {
     hoverPreviewTargets = [];
     hoverPreviewAnchor = null;
     return;
@@ -4037,7 +4045,7 @@ function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
 }
 
 function drawScopePreview() {
-  if (interactionMode === 'none' || hoverPreviewTargets.length === 0) return;
+  if (interactionMode === 'none' || (interactionMode === 'edit' && zoomToolActive) || hoverPreviewTargets.length === 0) return;
 
   for (let marker of hoverPreviewTargets) {
     let supertile = tiles[marker.supertileIndex];
@@ -4123,6 +4131,18 @@ window.addEventListener('keydown', (e) => {
       e.preventDefault();
       return;
     }
+  }
+
+  if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'z' && !isAssetsTabActive()) {
+    zoomToolActive = !zoomToolActive;
+    if (typeof window.refreshCanvasStatusHint === 'function') {
+      window.refreshCanvasStatusHint();
+    }
+    if (typeof updateCanvasCursorHandler === 'function') {
+      updateCanvasCursorHandler();
+    }
+    e.preventDefault();
+    return;
   }
 
     // Ctrl+Z: Undo or Redo
@@ -4283,6 +4303,10 @@ function triggerAssetsMoveExtremeShortcut(direction) {
 function getPointerInteractionMode() {
   let isMobileInput = window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(pointer: coarse)').matches;
 
+  if ((isEditTabActive() || isSetupTabActive()) && zoomToolActive) {
+    return 'zoom';
+  }
+
   if (isMobileInput && isEditTabActive()) {
     return editToolMode;
   }
@@ -4304,6 +4328,15 @@ function mousePressed() {
     }
 
   let pointerMode = getPointerInteractionMode();
+
+  if (pointerMode === 'zoom') {
+    if (applyCanvasZoomHandler) {
+      let zoomDelta = (mouseButton === RIGHT) ? -canvasZoomStep : canvasZoomStep;
+      applyCanvasZoomHandler(canvasZoomPercent + zoomDelta);
+    }
+    isDrawing = false;
+    return;
+  }
     
     // Ignore clicks if mode is none
   if (pointerMode === 'none') return;
@@ -4326,6 +4359,8 @@ function mouseDragged() {
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
 
     let pointerMode = getPointerInteractionMode();
+
+    if (pointerMode === 'zoom') return;
     
     // Ignore clicks if mode is none
     if (pointerMode === 'none') return;

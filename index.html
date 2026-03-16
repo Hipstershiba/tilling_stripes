@@ -498,22 +498,18 @@
     <div id="canvas-container">
       <div id="canvasZoomOverlay" class="canvas-zoom-overlay" aria-label="Canvas zoom controls">
         <div id="canvasZoomControls" class="canvas-zoom-controls">
-          <div class="zoom-primary-row">
-            <button id="btnZoomOut" type="button" title="Zoom out">−</button>
-            <input type="range" id="canvasZoom" min="25" max="300" step="5" value="100">
-            <span id="canvasZoomValue">100%</span>
-            <button id="btnZoomIn" type="button" title="Zoom in">+</button>
-            <button id="btnZoomReset" type="button" title="Reset zoom">Reset</button>
-            <button id="btnZoomHide" type="button" title="Hide zoom controls">✕</button>
-          </div>
-          <div class="zoom-fit-row">
-            <button id="btnZoomFitH" type="button" title="Fit horizontal">Fit H</button>
-            <button id="btnZoomFitV" type="button" title="Fit vertical">Fit V</button>
-            <button id="btnZoomFitBest" type="button" title="Fit best">Fit Best</button>
-            <button id="btnZoomFitFill" type="button" title="Fit fill">Fit Fill</button>
-            <button id="btnZoomOriginal" type="button" title="Original size">Original</button>
-          </div>
-          <div class="zoom-shortcut-hint">[ / ] zoom • \ reset • H horizontal • V vertical • F best • G fill • O original</div>
+          <button id="btnZoomOut" type="button" title="Zoom out">−</button>
+          <input type="range" id="canvasZoom" min="25" max="300" step="5" value="100">
+          <span id="canvasZoomValue">100%</span>
+          <button id="btnZoomIn" type="button" title="Zoom in">+</button>
+          <select id="zoomFitMode" aria-label="Zoom fit mode" title="Fit mode">
+            <option value="best" selected>Fit Best</option>
+            <option value="horizontal">Fit Horizontal</option>
+            <option value="vertical">Fit Vertical</option>
+            <option value="fill">Fit Fill</option>
+            <option value="original">Original Size</option>
+          </select>
+          <button id="btnZoomHide" type="button" title="Hide zoom controls">✕</button>
         </div>
         <button id="btnZoomShow" class="canvas-zoom-show" type="button" title="Show zoom controls">Zoom</button>
       </div>
