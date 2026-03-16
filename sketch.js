@@ -7,6 +7,7 @@ let seed = 0;
 let allowedTypes = []; 
 let totalTileTypes = (typeof TILE_RENDERERS !== 'undefined') ? TILE_RENDERERS.length : 21;
 let margin = 0;
+let generationSymmetryMode = 'axis_mirror';
 
 let isCanvasLocked = false;
 let isGridLocked = false;
@@ -2523,6 +2524,7 @@ function setupUI(mainCanvas) {
   let gridRowsInput = select('#gridRows');
   let gridColsInput = select('#gridCols');
   let gridMarginInput = select('#gridMargin');
+  let gridSymmetryModeInput = select('#gridSymmetryMode');
 
   const applyGridRowsFromInput = () => {
     let val = parseInt(gridRowsInput.value(), 10);
@@ -2594,6 +2596,24 @@ function setupUI(mainCanvas) {
   bindEnterApply(gridRowsInput, applyGridRowsFromInput);
   bindEnterApply(gridColsInput, applyGridColsFromInput);
   bindEnterApply(gridMarginInput, applyGridMarginFromInput);
+
+  if (gridSymmetryModeInput) {
+    const normalizeGenerationMode = (value) => {
+      if (value === 'legacy_axes') return 'axis_mirror';
+      if (value === 'dihedral_enhanced') return 'rotational_orbit';
+      if (value === 'axis_mirror' || value === 'rotational_orbit') return value;
+      return 'axis_mirror';
+    };
+
+    generationSymmetryMode = normalizeGenerationMode(generationSymmetryMode);
+    gridSymmetryModeInput.value(generationSymmetryMode);
+    gridSymmetryModeInput.changed(() => {
+      let nextMode = normalizeGenerationMode(gridSymmetryModeInput.value());
+      generationSymmetryMode = nextMode;
+      initGrid();
+      if (window.updateAllSummaries) window.updateAllSummaries();
+    });
+  }
   
   gridMarginInput.input(applyGridMarginFromInput);
 
@@ -3624,7 +3644,8 @@ function setupUI(mainCanvas) {
     'supertile': '<strong style="color: #fff;">Block (2x2)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the entire 2x2 group.</span>',
     'global_exact': '<strong style="color: #fff;">Global Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update ALL tiles of this type entirely.</span>',
     'global_pos': '<strong style="color: #fff;">Grid Position</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update this specific slot in ALL blocks.</span>',
-    'global_pos_sym': '<strong style="color: #fff;">Symmetry (4x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update all 4 symmetric slots in ALL blocks.</span>'
+    'global_pos_sym': '<strong style="color: #fff;">Symmetry (4x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update all 4 symmetric slots in ALL blocks.</span>',
+    'global_pos_sym8': '<strong style="color: #fff;">Symmetry (8x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the same slot across the 8 dihedral-symmetric block positions.</span>'
   };
 
   // Set initial tooltip
@@ -4006,9 +4027,139 @@ function initGrid(recordHistory = true) {
   // Create a 2D array to hold supertiles for reference
   let grid = new Array(cols).fill(0).map(() => new Array(rows));
 
-  // Determine the center indices for symmetry.
-  let centerX = ceil(cols / 2);
-  let centerY = ceil(rows / 2);
+  const getLegacySource = (row, col) => {
+    let centerX = ceil(cols / 2);
+    let centerY = ceil(rows / 2);
+    let sourceI = row < centerY ? row : rows - 1 - row;
+    let sourceJ = col < centerX ? col : cols - 1 - col;
+    return [sourceI, sourceJ];
+  };
+
+  const transformCellCoords = (row, col, transformKey) => {
+    if (transformKey === 'id') return [row, col];
+    if (transformKey === 'r90') return [col, rows - 1 - row];
+    if (transformKey === 'r180') return [rows - 1 - row, cols - 1 - col];
+    if (transformKey === 'r270') return [cols - 1 - col, row];
+    if (transformKey === 'mx') return [row, cols - 1 - col];
+    if (transformKey === 'my') return [rows - 1 - row, col];
+    if (transformKey === 'md') return [col, row];
+    if (transformKey === 'mad') return [rows - 1 - col, cols - 1 - row];
+    return [row, col];
+  };
+
+  const D4_TRANSFORMS = ['id', 'r90', 'r180', 'r270', 'mx', 'my', 'md', 'mad'];
+
+  const getTransformsForGenerationMode = () => {
+    if (generationSymmetryMode === 'rotational_orbit') return D4_TRANSFORMS;
+    return D4_TRANSFORMS;
+  };
+
+  const mapCellTransformToContentTransform = (transformKey) => {
+    if (generationSymmetryMode !== 'rotational_orbit') return transformKey;
+
+    // Stable orbit mode: all cells in the same positional orbit share identical content orientation.
+    return 'id';
+  };
+
+  const getDihedralSymmetryOrbit = (row, col) => {
+    let unique = [];
+    let seen = new Set();
+    let transforms = getTransformsForGenerationMode();
+    for (let transformKey of transforms) {
+      let [r, c] = transformCellCoords(row, col, transformKey);
+      if (r < 0 || r >= rows || c < 0 || c >= cols) continue;
+      let key = `${r},${c}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push([r, c]);
+    }
+    return unique;
+  };
+
+  const getCanonicalOrbitSource = (row, col) => {
+    let orbit = getDihedralSymmetryOrbit(row, col);
+    orbit.sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+    return orbit[0];
+  };
+
+  const getTransformFromSourceToTarget = (sourceRow, sourceCol, targetRow, targetCol) => {
+    let transforms = getTransformsForGenerationMode();
+    for (let transformKey of transforms) {
+      let [r, c] = transformCellCoords(sourceRow, sourceCol, transformKey);
+      if (r === targetRow && c === targetCol) return transformKey;
+    }
+    return 'id';
+  };
+
+  const transformMicroCoords4 = (row, col, transformKey) => {
+    let n = 3;
+    if (transformKey === 'id') return [row, col];
+    if (transformKey === 'r90') return [col, n - row];
+    if (transformKey === 'r180') return [n - row, n - col];
+    if (transformKey === 'r270') return [n - col, row];
+    if (transformKey === 'mx') return [row, n - col];
+    if (transformKey === 'my') return [n - row, col];
+    if (transformKey === 'md') return [col, row];
+    if (transformKey === 'mad') return [n - col, n - row];
+    return [row, col];
+  };
+
+  const visualCellFromLogicalIndices = (quadrant, subtileIndex) => {
+    let qRow = floor(quadrant / 2);
+    let qCol = quadrant % 2;
+
+    let subRow = floor(subtileIndex / 2);
+    let subCol = subtileIndex % 2;
+
+    if (quadrant === 1 || quadrant === 3) subCol = 1 - subCol;
+    if (quadrant === 2 || quadrant === 3) subRow = 1 - subRow;
+
+    return {
+      row: qRow * 2 + subRow,
+      col: qCol * 2 + subCol
+    };
+  };
+
+  const visualMatrixFromSupertile = (supertile) => {
+    let matrix = new Array(4).fill(0).map(() => new Array(4).fill(0));
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      let tileObj = supertile.tiles[quadrant];
+      for (let subtileIndex = 0; subtileIndex < 4; subtileIndex++) {
+        let visualCell = visualCellFromLogicalIndices(quadrant, subtileIndex);
+        matrix[visualCell.row][visualCell.col] = tileObj.types[subtileIndex];
+      }
+    }
+    return matrix;
+  };
+
+  const applyVisualMatrixToSupertile = (supertile, matrix) => {
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      let tileObj = supertile.tiles[quadrant];
+      let nextTypes = [];
+      for (let subtileIndex = 0; subtileIndex < 4; subtileIndex++) {
+        let visualCell = visualCellFromLogicalIndices(quadrant, subtileIndex);
+        nextTypes[subtileIndex] = matrix[visualCell.row][visualCell.col];
+      }
+      tileObj.types = nextTypes;
+      tileObj.subtiles = [];
+      if (tileObj.buffer) tileObj.buffer.remove();
+      tileObj.buffer = createGraphics(tileObj.w, tileObj.h);
+      tileObj.create_subtiles();
+      tileObj.render_to_buffer();
+    }
+  };
+
+  const copyTransformedSupertile = (targetSupertile, sourceSupertile, transformKey) => {
+    let sourceMatrix = visualMatrixFromSupertile(sourceSupertile);
+    let targetMatrix = new Array(4).fill(0).map(() => new Array(4).fill(0));
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        let [targetRow, targetCol] = transformMicroCoords4(row, col, transformKey);
+        targetMatrix[targetRow][targetCol] = sourceMatrix[row][col];
+      }
+    }
+    applyVisualMatrixToSupertile(targetSupertile, targetMatrix);
+  };
 
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -4016,47 +4167,54 @@ function initGrid(recordHistory = true) {
       let x = margin + j * tilesWidth + tilesWidth / 2;
       let y = margin + i * tilesHeight + tilesHeight / 2;
       
-      // Determine the source coordinates. 
-      // i=0,1,2,3. Maps to 0,1,1,0.
-      let sourceI = i < centerY ? i : rows - 1 - i;
-      let sourceJ = j < centerX ? j : cols - 1 - j;
+      let sourceI = i;
+      let sourceJ = j;
+      if (generationSymmetryMode === 'axis_mirror') {
+        [sourceI, sourceJ] = getLegacySource(i, j);
+      } else {
+        [sourceI, sourceJ] = getCanonicalOrbitSource(i, j);
+      }
       
       // Check if this tile IS the source tile
       if (i === sourceI && j === sourceJ) {
-        // This is a source tile (Top-Left quadrant or center axes)
+        // This is the source tile for this symmetry mode
         let supertile = new Supertile(x, y, tilesWidth, tilesHeight, allowedTypes);
         grid[j][i] = supertile;
         tiles.push(supertile);
       } else {
-        // This is a mirrored tile. 
-        // We reuse the types from the source tile to ensure symmetry.
+        // Reuse/transform source tile according to selected symmetry mode.
         let sourceTile = grid[sourceJ][sourceI];
         
         let supertile = new Supertile(x, y, tilesWidth, tilesHeight, allowedTypes);
         
-        // Force the same types as the source
-        // CRITICAL FIX: Ensure sourceTile exists before accessing property
         if (sourceTile && sourceTile.tiles) {
-             // Copy types for each of the 4 independent quadrant tiles
-             for(let k=0; k<4; k++) {
-                 if (sourceTile.tiles[k] && sourceTile.tiles[k].types) {
-                     supertile.tiles[k].types = [...sourceTile.tiles[k].types];
-                     // Recreate buffer since we changed types
-                     supertile.tiles[k].subtiles = [];
-                     if (supertile.tiles[k].buffer) supertile.tiles[k].buffer.remove();
-                     supertile.tiles[k].buffer = createGraphics(supertile.tiles[k].w, supertile.tiles[k].h);
-                     supertile.tiles[k].create_subtiles();
-                     supertile.tiles[k].render_to_buffer();
-                 }
-             }
+          if (generationSymmetryMode === 'axis_mirror') {
+            for (let k = 0; k < 4; k++) {
+              if (sourceTile.tiles[k] && sourceTile.tiles[k].types) {
+                supertile.tiles[k].types = [...sourceTile.tiles[k].types];
+                supertile.tiles[k].subtiles = [];
+                if (supertile.tiles[k].buffer) supertile.tiles[k].buffer.remove();
+                supertile.tiles[k].buffer = createGraphics(supertile.tiles[k].w, supertile.tiles[k].h);
+                supertile.tiles[k].create_subtiles();
+                supertile.tiles[k].render_to_buffer();
+              }
+            }
+          } else {
+            let transformKey = getTransformFromSourceToTarget(sourceI, sourceJ, i, j);
+            let contentTransformKey = mapCellTransformToContentTransform(transformKey);
+            copyTransformedSupertile(supertile, sourceTile, contentTransformKey);
+          }
         } else {
-            // Fallback: This shouldn't happen if loop order is correct, but just in case
-            console.warn(`Source tile missing at ${sourceJ},${sourceI} for target ${j},${i}`);
+          console.warn(`Source tile missing at ${sourceJ},${sourceI} for target ${j},${i}`);
         }
         
-        // Mark for mirroring in render
-        supertile.mirrorX = (j >= cols / 2); 
-        supertile.mirrorY = (i >= rows / 2); 
+        if (generationSymmetryMode === 'axis_mirror') {
+          supertile.mirrorX = (j >= cols / 2);
+          supertile.mirrorY = (i >= rows / 2);
+        } else {
+          supertile.mirrorX = false;
+          supertile.mirrorY = false;
+        }
         
         tiles.push(supertile);
         grid[j][i] = supertile; 
@@ -4102,6 +4260,7 @@ function pushGenerationState() {
     seed: seed,
     rows: rows,
     cols: cols,
+    generationSymmetryMode: generationSymmetryMode,
     margin: margin,
     width: width,
     height: height,
@@ -4124,17 +4283,26 @@ function restoreGenerationState(index) {
   
   isRestoringHistory = true;
   let state = generationHistory[index];
+  const normalizeGenerationMode = (value) => {
+    if (value === 'legacy_axes') return 'axis_mirror';
+    if (value === 'dihedral_enhanced') return 'rotational_orbit';
+    if (value === 'axis_mirror' || value === 'rotational_orbit') return value;
+    return 'axis_mirror';
+  };
   
   // Apply State
   seed = state.seed;
   rows = state.rows;
   cols = state.cols;
+  generationSymmetryMode = normalizeGenerationMode(state.generationSymmetryMode);
   margin = state.margin;
   
   // Update inputs
   select('#seedInput').value(seed);
   select('#gridRows').value(rows);
   select('#gridCols').value(cols);
+  let symmetryInput = select('#gridSymmetryMode');
+  if (symmetryInput) symmetryInput.value(generationSymmetryMode);
   select('#gridMargin').value(margin);
   
   if (width !== state.width || height !== state.height) {
@@ -4422,6 +4590,36 @@ function mapVisualTargetToLogical(supertile, visualQuadrant, visualSubtileDispla
   };
 }
 
+function getSymmetry8SupertileIndices(anchorIndex) {
+  let anchorRow = floor(anchorIndex / cols);
+  let anchorCol = anchorIndex % cols;
+
+  let candidates = [
+    [anchorRow, anchorCol],
+    [anchorCol, rows - 1 - anchorRow],
+    [rows - 1 - anchorRow, cols - 1 - anchorCol],
+    [cols - 1 - anchorCol, anchorRow],
+    [anchorRow, cols - 1 - anchorCol],
+    [rows - 1 - anchorRow, anchorCol],
+    [anchorCol, anchorRow],
+    [rows - 1 - anchorCol, cols - 1 - anchorRow]
+  ];
+
+  let uniqueIndices = [];
+  let seen = new Set();
+
+  for (let [row, col] of candidates) {
+    if (row < 0 || row >= rows || col < 0 || col >= cols) continue;
+    let index = row * cols + col;
+    if (index < 0 || index >= tiles.length) continue;
+    if (seen.has(index)) continue;
+    seen.add(index);
+    uniqueIndices.push(index);
+  }
+
+  return uniqueIndices;
+}
+
 function buildScopePreviewTargets(hitInfo) {
   if (!hitInfo) return [];
 
@@ -4463,6 +4661,16 @@ function buildScopePreviewTargets(hitInfo) {
         pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
       }
     }
+  } else if (interactionScope === 'global_pos_sym8') {
+    let symmetryIndices = getSymmetry8SupertileIndices(hitInfo.index);
+    for (let supertileIndex of symmetryIndices) {
+      let mapped = mapVisualTargetToLogical(
+        tiles[supertileIndex],
+        hitInfo.visualQuadrant,
+        hitInfo.visualSubtileDisplayIndex
+      );
+      pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
+    }
   }
 
   return targets;
@@ -4485,7 +4693,7 @@ function updateHoverPreview(mx = mouseX, my = mouseY) {
   hoverPreviewTargets = buildScopePreviewTargets(hitInfo);
   let anchorQuadrant = hitInfo.logicalQuadrant;
   let anchorSubtileIndex = hitInfo.baseTileSubtileIndex;
-  if (interactionScope === 'global_pos') {
+  if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym8') {
     let mapped = mapVisualTargetToLogical(
       hitInfo.supertile,
       hitInfo.visualQuadrant,
@@ -4960,7 +5168,7 @@ function handleTileClick(mx, my, modeOverride = null) {
   let activeSubtileIndex = baseTileSubtileIndex;
   let activeQuadrant = logicalQuadrant;
 
-  if (interactionScope === 'global_pos') {
+  if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym8') {
     let mappedCurrent = mapVisualTargetToLogical(
       supertile,
       visualQuadrant,
@@ -5020,7 +5228,7 @@ function handleTileClick(mx, my, modeOverride = null) {
       let isFlippedX = (logicalQuadrant === 1 || logicalQuadrant === 3);
       let isFlippedY = (logicalQuadrant === 2 || logicalQuadrant === 3);
 
-      if (interactionScope === 'global_pos') {
+      if (interactionScope === 'global_pos' || interactionScope === 'global_pos_sym8') {
         isFlippedX = (activeQuadrant === 1 || activeQuadrant === 3);
         isFlippedY = (activeQuadrant === 2 || activeQuadrant === 3);
       }
@@ -5044,6 +5252,7 @@ function handleTileClick(mx, my, modeOverride = null) {
         interactionScope === 'supertile'
         || interactionScope === 'global_pos'
         || interactionScope === 'global_pos_sym'
+        || interactionScope === 'global_pos_sym8'
       );
       if (!isBatchMirrorScope) return;
     }
@@ -5118,6 +5327,20 @@ function handleTileClick(mx, my, modeOverride = null) {
                 refreshTile(t);
             }
         }
+    } else if (interactionScope === 'global_pos_sym8') {
+        // Global Equivalent by Position (Symmetric 8x / Dihedral):
+      // Update the same visual slot in the 8 symmetric supertile positions.
+      let symmetryIndices = getSymmetry8SupertileIndices(index);
+      for (let supertileIndex of symmetryIndices) {
+        let s = tiles[supertileIndex];
+        let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
+        let t = s.tiles[mapped.quadrant];
+        let nextType = (effectiveMode === 'mirror')
+          ? resolveMirrorType(t.types[mapped.subtileIndex])
+          : newType;
+        t.types[mapped.subtileIndex] = nextType;
+        refreshTile(t);
+      }
     }
     
     redraw();
