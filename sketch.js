@@ -2743,6 +2743,25 @@ function setupUI(mainCanvas) {
   let zoomOverlay = document.getElementById('canvasZoomOverlay');
   let zoomSnapEnabled = true;
 
+  const syncZoomOverlayToViewport = () => {
+    if (!zoomOverlay) return;
+    let canvasContainer = document.getElementById('canvas-container');
+    if (!canvasContainer) return;
+
+    let x = canvasContainer.scrollLeft;
+    let y = canvasContainer.scrollTop;
+    zoomOverlay.style.transform = `translate(${x}px, ${y}px)`;
+  };
+
+  let zoomOverlaySyncRaf = null;
+  const requestZoomOverlaySync = () => {
+    if (zoomOverlaySyncRaf !== null) return;
+    zoomOverlaySyncRaf = requestAnimationFrame(() => {
+      zoomOverlaySyncRaf = null;
+      syncZoomOverlayToViewport();
+    });
+  };
+
   const getCustomFitOption = () => {
     if (!zoomFitMode || !zoomFitMode.elt) return null;
     return zoomFitMode.elt.querySelector(`option[value="${CUSTOM_FIT_VALUE}"]`);
@@ -2789,44 +2808,81 @@ function setupUI(mainCanvas) {
   const updateCanvasOverflowState = (canvasContainer) => {
     if (!canvasContainer || !mainCanvas || !mainCanvas.elt) return;
 
-    let hasOverflow = false;
-
     const rawOverflowX = Math.max(0, canvasContainer.scrollWidth - canvasContainer.clientWidth);
     const rawOverflowY = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
-    if (rawOverflowX > 0.25 || rawOverflowY > 0.25) {
-      hasOverflow = true;
-    } else {
-      const styles = window.getComputedStyle(canvasContainer);
-      const padTop = parseFloat(styles.paddingTop) || 0;
-      const padRight = parseFloat(styles.paddingRight) || 0;
-      const padBottom = parseFloat(styles.paddingBottom) || 0;
-      const padLeft = parseFloat(styles.paddingLeft) || 0;
+    const styles = window.getComputedStyle(canvasContainer);
+    const padTop = parseFloat(styles.paddingTop) || 0;
+    const padRight = parseFloat(styles.paddingRight) || 0;
+    const padBottom = parseFloat(styles.paddingBottom) || 0;
+    const padLeft = parseFloat(styles.paddingLeft) || 0;
 
-      const containerRect = canvasContainer.getBoundingClientRect();
-      const canvasRect = mainCanvas.elt.getBoundingClientRect();
+    const containerRect = canvasContainer.getBoundingClientRect();
+    const canvasRect = mainCanvas.elt.getBoundingClientRect();
 
-      const innerLeft = containerRect.left + padLeft;
-      const innerTop = containerRect.top + padTop;
-      const innerRight = containerRect.right - padRight;
-      const innerBottom = containerRect.bottom - padBottom;
+    const innerLeft = containerRect.left + padLeft;
+    const innerTop = containerRect.top + padTop;
+    const innerRight = containerRect.right - padRight;
+    const innerBottom = containerRect.bottom - padBottom;
 
-      const visualOverflow = Math.max(
-        0,
-        innerTop - canvasRect.top,
-        canvasRect.bottom - innerBottom,
-        innerLeft - canvasRect.left,
-        canvasRect.right - innerRight
-      );
+    const visualOverflowLeft = Math.max(0, innerLeft - canvasRect.left);
+    const visualOverflowRight = Math.max(0, canvasRect.right - innerRight);
+    const visualOverflowTop = Math.max(0, innerTop - canvasRect.top);
+    const visualOverflowBottom = Math.max(0, canvasRect.bottom - innerBottom);
 
-      hasOverflow = visualOverflow > 0.25;
-    }
+    const hasOverflowX = rawOverflowX > 0.25 || visualOverflowLeft > 0.25 || visualOverflowRight > 0.25;
+    const hasOverflowY = rawOverflowY > 0.25 || visualOverflowTop > 0.25 || visualOverflowBottom > 0.25;
 
-    if (hasOverflow) canvasContainer.classList.add('canvas-overflowing');
+    if (hasOverflowX) canvasContainer.classList.add('canvas-overflowing-x');
+    else canvasContainer.classList.remove('canvas-overflowing-x');
+
+    if (hasOverflowY) canvasContainer.classList.add('canvas-overflowing-y');
+    else canvasContainer.classList.remove('canvas-overflowing-y');
+
+    if (hasOverflowX || hasOverflowY) canvasContainer.classList.add('canvas-overflowing');
     else canvasContainer.classList.remove('canvas-overflowing');
+  };
+
+  const captureCanvasViewportAnchor = (canvasContainer) => {
+    if (!canvasContainer) return null;
+
+    let scrollWidth = Math.max(1, canvasContainer.scrollWidth);
+    let scrollHeight = Math.max(1, canvasContainer.scrollHeight);
+    let centerX = canvasContainer.scrollLeft + (canvasContainer.clientWidth / 2);
+    let centerY = canvasContainer.scrollTop + (canvasContainer.clientHeight / 2);
+
+    return {
+      centerRatioX: centerX / scrollWidth,
+      centerRatioY: centerY / scrollHeight
+    };
+  };
+
+  const restoreCanvasViewportAnchor = (canvasContainer, anchor) => {
+    if (!canvasContainer || !anchor) return;
+
+    let maxScrollLeft = Math.max(0, canvasContainer.scrollWidth - canvasContainer.clientWidth);
+    let maxScrollTop = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
+
+    let targetLeft = (anchor.centerRatioX * canvasContainer.scrollWidth) - (canvasContainer.clientWidth / 2);
+    let targetTop = (anchor.centerRatioY * canvasContainer.scrollHeight) - (canvasContainer.clientHeight / 2);
+
+    if (!Number.isFinite(targetLeft)) targetLeft = 0;
+    if (!Number.isFinite(targetTop)) targetTop = 0;
+
+    canvasContainer.scrollLeft = Math.max(0, Math.min(maxScrollLeft, targetLeft));
+    canvasContainer.scrollTop = Math.max(0, Math.min(maxScrollTop, targetTop));
   };
 
   const applyCanvasZoom = (value, options = {}) => {
     let markManual = options.markManual !== false;
+    let preserveViewportCenter = options.preserveViewportCenter !== false;
+
+    let canvasContainer = null;
+    let viewportAnchor = null;
+    if (preserveViewportCenter) {
+      canvasContainer = document.getElementById('canvas-container');
+      viewportAnchor = captureCanvasViewportAnchor(canvasContainer);
+    }
+
     canvasZoomPercent = clampCanvasZoom(value);
     if (mainCanvas && mainCanvas.elt) {
       let zoomScale = canvasZoomPercent / 100;
@@ -2834,17 +2890,17 @@ function setupUI(mainCanvas) {
       mainCanvas.elt.style.width = `${width * zoomScale}px`;
       mainCanvas.elt.style.height = `${height * zoomScale}px`;
 
-      let { canvasContainer, width: availableWidth, height: availableHeight } = getCanvasContainerAvailableSpace();
-      if (canvasContainer) {
-        let overflowX = (width * zoomScale) > (availableWidth + 0.1);
-        let overflowY = (height * zoomScale) > (availableHeight + 0.1);
-
-        if (overflowX || overflowY) canvasContainer.classList.add('canvas-overflowing');
-        else canvasContainer.classList.remove('canvas-overflowing');
-
-        updateCanvasOverflowState(canvasContainer);
+      let { canvasContainer: measuredContainer, width: availableWidth, height: availableHeight } = getCanvasContainerAvailableSpace();
+      if (!canvasContainer) canvasContainer = measuredContainer;
+      if (measuredContainer) {
+        updateCanvasOverflowState(measuredContainer);
       }
     }
+
+    if (preserveViewportCenter) {
+      restoreCanvasViewportAnchor(canvasContainer, viewportAnchor);
+    }
+
     updateZoomUi();
 
     if (markManual) {
@@ -2852,6 +2908,8 @@ function setupUI(mainCanvas) {
     } else {
       removeCustomFitOption();
     }
+
+    requestZoomOverlaySync();
   };
 
   const updateCanvasCursor = () => {
@@ -3116,6 +3174,7 @@ function setupUI(mainCanvas) {
     if (!zoomOverlay) return;
     if (visible) zoomOverlay.classList.remove('hidden');
     else zoomOverlay.classList.add('hidden');
+    requestZoomOverlaySync();
   };
 
   const setZoomSnapEnabled = (enabled) => {
@@ -3184,9 +3243,17 @@ function setupUI(mainCanvas) {
         let mode = zoomFitMode.value();
         if (!mode || mode === CUSTOM_FIT_VALUE) return;
         fitCanvasZoom(mode);
+        requestZoomOverlaySync();
       });
     });
   }
+
+  let canvasContainerForOverlay = document.getElementById('canvas-container');
+  if (canvasContainerForOverlay) {
+    canvasContainerForOverlay.addEventListener('scroll', requestZoomOverlaySync, { passive: true });
+  }
+
+  window.addEventListener('resize', requestZoomOverlaySync);
 
   if (zoomSnapToggle) {
     setZoomSnapEnabled(!!zoomSnapToggle.elt.checked);
@@ -3251,6 +3318,7 @@ function setupUI(mainCanvas) {
 
   setZoomOverlayVisible(true);
   applyCanvasZoom(canvasZoomPercent);
+  requestZoomOverlaySync();
   updateCanvasCursor();
 
   select('#seedInput').value(seed);

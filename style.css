@@ -1901,8 +1901,13 @@ button:hover {
   height: 100vh;
 }
 
-#canvas-container.canvas-overflowing {
+#canvas-container.canvas-overflowing {}
+
+#canvas-container.canvas-overflowing-x {
   justify-content: flex-start;
+}
+
+#canvas-container.canvas-overflowing-y {
   align-items: flex-start;
 }
 
