@@ -60,8 +60,10 @@
                   </svg>
                 </button>
               </div>
-              <button id="btnFitScreen" style="margin-top:5px; width:100%">Fit to Screen</button>
-              <button id="btnFitCanvas" style="margin-top:5px; width:100%">Fit Canvas to Grid</button>
+              <div class="setup-inline-actions">
+                <button id="btnFitScreen" style="width:100%">Fit Screen</button>
+                <button id="btnFitCanvas" style="width:100%">Fit to Grid</button>
+              </div>
             </div>
           </div>
 
@@ -479,9 +481,17 @@
 
 
 
-      <div class="control-group actions" id="exportActions">
-        <button id="btnSave">Save Image</button>
-        <button id="btnSaveSVG">Save SVG</button>
+      <div class="control-group actions no-collapse" id="exportActions">
+        <label for="exportFormatSelect"><span>Export</span></label>
+        <div class="export-controls-row">
+          <select id="exportFormatSelect" aria-label="Export format">
+            <option value="png" selected>PNG</option>
+            <option value="svg">SVG</option>
+            <option value="gcode">GCode</option>
+          </select>
+          <button id="btnExport">Export</button>
+        </div>
+        <div class="export-hint">PNG raster • SVG vector • GCode (base scaffold)</div>
       </div>
     </div>
 
@@ -570,7 +580,7 @@
           allowedMax = Math.round(viewportHeight * 0.31);
         }
 
-        allowedMax = Math.max(130, Math.min(340, allowedMax));
+        allowedMax = Math.max(220, Math.min(460, allowedMax));
         setupTab.style.setProperty('--setup-allowed-max-height', `${allowedMax}px`);
       }
 

@@ -2599,71 +2599,104 @@ function setupUI(mainCanvas) {
   
   // select('#btnRedraw').mousePressed(initGrid); // Removed as it auto-updates
   
-  // Use Vanilla JS for save button to ensure reliability
-  let btnSave = document.getElementById('btnSave');
-  if (btnSave) {
-    btnSave.addEventListener('click', (e) => {
-      e.preventDefault(); 
+  const buildExportMeta = () => {
+    let ratio = (width / height).toFixed(2);
+    let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
+    let basename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}`;
+    return { ratio, timestamp, basename };
+  };
+
+  const exportAsPng = () => {
+    let meta = buildExportMeta();
+    let filename = `${meta.basename}.png`;
+    try {
+      let dataURL = mainCanvas.elt.toDataURL('image/png');
+      let link = document.createElement('a');
+      link.download = filename;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error saving PNG:', err);
+      alert('Error saving PNG. See console for details.');
+    }
+  };
+
+  const exportAsSvg = () => {
+    try {
+      let svg = new SimpleSVG(width, height);
+      let exportColor = 'black';
+
+      for (let tile of tiles) {
+        if (typeof tile.renderVector === 'function') {
+          tile.renderVector(svg, exportColor);
+        } else {
+          console.warn('Tile missing renderVector method');
+        }
+      }
+
+      let meta = buildExportMeta();
+      svg.save(`${meta.basename}.svg`);
+    } catch (err) {
+      console.error('Error saving SVG:', err);
+      alert('Error saving SVG. See console for details.');
+    }
+  };
+
+  const exportAsGcode = () => {
+    try {
+      let meta = buildExportMeta();
+      let lines = [
+        '; tilling_stripes GCode export (initial scaffold)',
+        `; seed: ${seed}`,
+        `; canvas: ${width}x${height}`,
+        `; ratio: ${meta.ratio}`,
+        '; NOTE: motion paths/conversion settings will be implemented in a future iteration.',
+        'G21',
+        'G90',
+        'M5',
+        '; No toolpaths generated yet.',
+        'M2'
+      ];
+
+      let blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      let link = document.createElement('a');
+      link.download = `${meta.basename}.gcode`;
+      link.href = URL.createObjectURL(blob);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error('Error saving GCode:', err);
+      alert('Error saving GCode. See console for details.');
+    }
+  };
+
+  const exportHandlers = {
+    png: exportAsPng,
+    svg: exportAsSvg,
+    gcode: exportAsGcode
+  };
+
+  let btnExport = document.getElementById('btnExport');
+  let exportFormatSelect = document.getElementById('exportFormatSelect');
+
+  if (btnExport && exportFormatSelect) {
+    btnExport.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
 
-      let ratio = (width / height).toFixed(2);
-      let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
-      let filename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}.png`;
-      
-      // Manual save to avoid potential p5.js/browser conflicts
-      // mainCanvas is a p5.Element, .elt is the HTML5 canvas
-      try {
-        let dataURL = mainCanvas.elt.toDataURL('image/png');
-        let link = document.createElement('a');
-        link.download = filename;
-        link.href = dataURL;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        console.error("Error saving canvas:", err);
+      let format = (exportFormatSelect.value || 'png').toLowerCase();
+      let handler = exportHandlers[format];
+
+      if (!handler) {
+        console.warn('Unknown export format:', format);
+        return;
       }
-    });
-  }
 
-  // Save SVG Logic
-  let btnSaveSVG = document.getElementById('btnSaveSVG');
-  if (btnSaveSVG) {
-    btnSaveSVG.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        try {
-            // Create off-screen SVG graphics using our custom SimpleSVG context
-            let svg = new SimpleSVG(width, height);
-            
-            // Note: We do NOT draw a background rect here, so the background is transparent.
-            // This is ideal for plotting.
-            
-            // Render all tiles to SVG buffer
-            // We pass 'black' (or any dark color) to force high contrast for the plotter
-            // regardless of the on-screen colors (which might be white-on-black).
-            let exportColor = 'black'; 
-
-            for (let tile of tiles) {
-                if (typeof tile.renderVector === 'function') {
-                    // Pass export color down the chain
-                    tile.renderVector(svg, exportColor);
-                } else {
-                    console.warn('Tile missing renderVector method');
-                }
-            }
-
-            let ratio = (width / height).toFixed(2);
-            let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '-' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
-            let filename = `tilling_stripes_seed-${seed}_${width}x${height}_ratio-${ratio}_${timestamp}.svg`;
-            
-            svg.save(filename);
-            
-        } catch (err) {
-            console.error("Error saving SVG:", err);
-            alert("Error saving SVG. See console for details.");
-        }
+      handler();
     });
   }
 

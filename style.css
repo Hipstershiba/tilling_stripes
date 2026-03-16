@@ -1224,6 +1224,28 @@ body.assets-focus #exportActions {
   scrollbar-color: #565656 #1c1c1c;
 }
 
+#tab-setup .setup-inline-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 5px;
+  align-items: stretch;
+}
+
+#tab-setup .setup-inline-actions button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.72rem;
+  line-height: 1;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #tab-setup .setup-quick-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1317,8 +1339,8 @@ body.assets-focus #exportActions {
 
 #tab-setup #tileSelector {
   flex: none;
-  min-height: 130px;
-  max-height: var(--setup-allowed-max-height, 280px);
+  min-height: 220px;
+  max-height: var(--setup-allowed-max-height, 420px);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1727,13 +1749,69 @@ button:hover {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-#btnSave {
-  background-color: #4CAF50;
-  padding: 12px;
+#exportActions {
+  border-top: 1px solid #353535;
+  padding-top: 10px;
+}
+
+#exportActions label {
+  margin: 0;
+}
+
+.export-controls-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 8px;
+  align-items: center;
+}
+
+#exportFormatSelect {
+  width: 100%;
+  height: 34px;
+  background: #2f2f2f;
+  border: 1px solid #434343;
+  color: #d6d6d6;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 7px 8px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#exportFormatSelect:focus {
+  outline: none;
+  border-color: #4f89bd;
+  box-shadow: inset 0 0 0 1px #4f89bd;
+}
+
+#btnExport {
+  height: 34px;
+  background: #2f2f2f;
+  border: 1px solid #434343;
+  color: #d6d6d6;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+#btnExport:hover {
+  background: #393939;
+  color: #ffffff;
+}
+
+.export-hint {
+  font-size: 0.68rem;
+  color: #9aa3ab;
+  letter-spacing: 0.3px;
 }
 
 #canvas-container {
