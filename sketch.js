@@ -4048,9 +4048,14 @@ function initGrid(recordHistory = true) {
   };
 
   const D4_TRANSFORMS = ['id', 'r90', 'r180', 'r270', 'mx', 'my', 'md', 'mad'];
+  const D2_TRANSFORMS_RECT = ['id', 'r180', 'mx', 'my'];
 
   const getTransformsForGenerationMode = () => {
-    if (generationSymmetryMode === 'rotational_orbit') return D4_TRANSFORMS;
+    if (generationSymmetryMode === 'rotational_orbit') {
+      // 90/270-degree rotations and diagonal mirrors only preserve bounds on square grids.
+      if (rows !== cols) return D2_TRANSFORMS_RECT;
+      return D4_TRANSFORMS;
+    }
     return D4_TRANSFORMS;
   };
 
