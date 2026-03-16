@@ -2555,8 +2555,43 @@ function setupUI(mainCanvas) {
   const ZOOM_MULTIPLIER = 1.05;
   const CUSTOM_FIT_VALUE = 'custom';
   const FIT_WIDTH_SAFE_FACTOR = 0.985;
-  const FIT_HEIGHT_SAFE_FACTOR = 0.955;
+  const FIT_HEIGHT_SAFE_FACTOR = 1;
+  const VERTICAL_FIT_SAFE_FACTOR = 0.97;
   const ZOOM_SNAP_EPSILON = 0.0001;
+
+  const getNativeScrollbarSize = () => {
+    let probe = document.createElement('div');
+    probe.style.position = 'absolute';
+    probe.style.left = '-9999px';
+    probe.style.top = '-9999px';
+    probe.style.width = '100px';
+    probe.style.height = '100px';
+    probe.style.overflow = 'scroll';
+    document.body.appendChild(probe);
+    let size = {
+      width: probe.offsetWidth - probe.clientWidth,
+      height: probe.offsetHeight - probe.clientHeight
+    };
+    probe.remove();
+    return size;
+  };
+
+  const getCanvasContainerAvailableSpace = () => {
+    let canvasContainer = document.getElementById('canvas-container');
+    if (!canvasContainer) {
+      return { canvasContainer: null, width: 1, height: 1 };
+    }
+
+    let styles = window.getComputedStyle(canvasContainer);
+    let padX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+    let padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+
+    return {
+      canvasContainer,
+      width: Math.max(1, canvasContainer.clientWidth - padX),
+      height: Math.max(1, canvasContainer.clientHeight - padY)
+    };
+  };
 
   let zoomSlider = select('#canvasZoom');
   let zoomValue = select('#canvasZoomValue');
@@ -2612,11 +2647,64 @@ function setupUI(mainCanvas) {
     }
   };
 
+  const updateCanvasOverflowState = (canvasContainer) => {
+    if (!canvasContainer || !mainCanvas || !mainCanvas.elt) return;
+
+    let hasOverflow = false;
+
+    const rawOverflowX = Math.max(0, canvasContainer.scrollWidth - canvasContainer.clientWidth);
+    const rawOverflowY = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
+    if (rawOverflowX > 0.25 || rawOverflowY > 0.25) {
+      hasOverflow = true;
+    } else {
+      const styles = window.getComputedStyle(canvasContainer);
+      const padTop = parseFloat(styles.paddingTop) || 0;
+      const padRight = parseFloat(styles.paddingRight) || 0;
+      const padBottom = parseFloat(styles.paddingBottom) || 0;
+      const padLeft = parseFloat(styles.paddingLeft) || 0;
+
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const canvasRect = mainCanvas.elt.getBoundingClientRect();
+
+      const innerLeft = containerRect.left + padLeft;
+      const innerTop = containerRect.top + padTop;
+      const innerRight = containerRect.right - padRight;
+      const innerBottom = containerRect.bottom - padBottom;
+
+      const visualOverflow = Math.max(
+        0,
+        innerTop - canvasRect.top,
+        canvasRect.bottom - innerBottom,
+        innerLeft - canvasRect.left,
+        canvasRect.right - innerRight
+      );
+
+      hasOverflow = visualOverflow > 0.25;
+    }
+
+    if (hasOverflow) canvasContainer.classList.add('canvas-overflowing');
+    else canvasContainer.classList.remove('canvas-overflowing');
+  };
+
   const applyCanvasZoom = (value, options = {}) => {
     let markManual = options.markManual !== false;
     canvasZoomPercent = clampCanvasZoom(value);
     if (mainCanvas && mainCanvas.elt) {
-      mainCanvas.elt.style.transform = `scale(${canvasZoomPercent / 100})`;
+      let zoomScale = canvasZoomPercent / 100;
+      mainCanvas.elt.style.transform = 'none';
+      mainCanvas.elt.style.width = `${width * zoomScale}px`;
+      mainCanvas.elt.style.height = `${height * zoomScale}px`;
+
+      let { canvasContainer, width: availableWidth, height: availableHeight } = getCanvasContainerAvailableSpace();
+      if (canvasContainer) {
+        let overflowX = (width * zoomScale) > (availableWidth + 0.1);
+        let overflowY = (height * zoomScale) > (availableHeight + 0.1);
+
+        if (overflowX || overflowY) canvasContainer.classList.add('canvas-overflowing');
+        else canvasContainer.classList.remove('canvas-overflowing');
+
+        updateCanvasOverflowState(canvasContainer);
+      }
     }
     updateZoomUi();
 
@@ -2637,17 +2725,63 @@ function setupUI(mainCanvas) {
   };
 
   const getViewportFitZoom = (mode) => {
-    let canvasContainer = document.getElementById('canvas-container');
+    let { canvasContainer, width: containerWidth, height: containerHeight } = getCanvasContainerAvailableSpace();
     if (!canvasContainer || width <= 0 || height <= 0) return 100;
 
-    let availableWidth = Math.max(1, (canvasContainer.clientWidth - 20) * FIT_WIDTH_SAFE_FACTOR);
-    let availableHeight = Math.max(1, (canvasContainer.clientHeight - 20) * FIT_HEIGHT_SAFE_FACTOR);
+    let scrollbarSize = getNativeScrollbarSize();
 
-    let horizontalZoom = (availableWidth / width) * 100;
-    let verticalZoom = (availableHeight / height) * 100;
+    let baseWidth = Math.max(1, containerWidth * FIT_WIDTH_SAFE_FACTOR);
+    let baseHeight = Math.max(1, containerHeight * FIT_HEIGHT_SAFE_FACTOR);
+
+    const resolveAvailableSpaceAtScale = (zoomPercent) => {
+      let scale = zoomPercent / 100;
+      let scaledWidth = width * scale;
+      let scaledHeight = height * scale;
+
+      let availableWidth = baseWidth;
+      let availableHeight = baseHeight;
+
+      for (let i = 0; i < 4; i++) {
+        let needsHorizontal = scaledWidth > (availableWidth + 0.1);
+        let needsVertical = scaledHeight > (availableHeight + 0.1);
+
+        let nextAvailableWidth = Math.max(1, baseWidth - (needsVertical ? scrollbarSize.width : 0));
+        let nextAvailableHeight = Math.max(1, baseHeight - (needsHorizontal ? scrollbarSize.height : 0));
+
+        if (Math.abs(nextAvailableWidth - availableWidth) < 0.1 && Math.abs(nextAvailableHeight - availableHeight) < 0.1) {
+          break;
+        }
+
+        availableWidth = nextAvailableWidth;
+        availableHeight = nextAvailableHeight;
+      }
+
+      return { availableWidth, availableHeight, scaledWidth, scaledHeight };
+    };
+
+    const solveMaxZoom = (axis) => {
+      let low = 0.1;
+      let high = 5000;
+
+      for (let i = 0; i < 28; i++) {
+        let mid = (low + high) / 2;
+        let space = resolveAvailableSpaceAtScale(mid);
+        let fits = axis === 'horizontal'
+          ? (space.scaledWidth <= space.availableWidth + 0.1)
+          : (space.scaledHeight <= space.availableHeight + 0.1);
+
+        if (fits) low = mid;
+        else high = mid;
+      }
+
+      return Math.max(0.1, low);
+    };
+
+    let horizontalZoom = solveMaxZoom('horizontal');
+    let verticalZoom = solveMaxZoom('vertical');
 
     if (mode === 'horizontal') return horizontalZoom;
-    if (mode === 'vertical') return verticalZoom;
+    if (mode === 'vertical') return verticalZoom * VERTICAL_FIT_SAFE_FACTOR;
     if (mode === 'fill') return Math.max(horizontalZoom, verticalZoom);
     return Math.min(horizontalZoom, verticalZoom);
   };
@@ -2659,21 +2793,128 @@ function setupUI(mainCanvas) {
 
     let canvasContainer = document.getElementById('canvas-container');
 
+    let horizontalFitZoom = null;
+    let verticalFitZoom = null;
+    let fitZoomTarget = 100;
+
+    if (mode === 'best') {
+      horizontalFitZoom = getViewportFitZoom('horizontal');
+      verticalFitZoom = getViewportFitZoom('vertical');
+      fitZoomTarget = Math.min(horizontalFitZoom, verticalFitZoom);
+    } else {
+      fitZoomTarget = getViewportFitZoom(mode);
+    }
+
+    const effectiveVerticalFit = mode === 'vertical'
+      || (mode === 'best'
+        && verticalFitZoom !== null
+        && horizontalFitZoom !== null
+        && (verticalFitZoom <= (horizontalFitZoom + 0.25)));
+
+    const centerCanvasScroll = () => {
+      if (!canvasContainer) return;
+      let maxScrollLeft = Math.max(0, canvasContainer.scrollWidth - canvasContainer.clientWidth);
+      let maxScrollTop = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
+      canvasContainer.scrollLeft = maxScrollLeft / 2;
+      canvasContainer.scrollTop = effectiveVerticalFit ? maxScrollTop : 0;
+    };
+
+    const tightenFitIfNeeded = () => {
+      if (!canvasContainer || !mainCanvas || !mainCanvas.elt) return;
+      if (mode === 'fill' || mode === CUSTOM_FIT_VALUE) return;
+
+      const styles = window.getComputedStyle(canvasContainer);
+      const padTop = parseFloat(styles.paddingTop) || 0;
+      const padRight = parseFloat(styles.paddingRight) || 0;
+      const padBottom = parseFloat(styles.paddingBottom) || 0;
+      const padLeft = parseFloat(styles.paddingLeft) || 0;
+
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const innerLeft = containerRect.left + padLeft;
+      const innerTop = containerRect.top + padTop;
+      const innerRight = containerRect.right - padRight;
+      const innerBottom = containerRect.bottom - padBottom;
+
+      if (effectiveVerticalFit) {
+        const BOTTOM_SAFE_MARGIN = 8;
+        for (let attempts = 0; attempts < 80; attempts++) {
+          const canvasRect = mainCanvas.elt.getBoundingClientRect();
+          const bottomOverflow = Math.max(0, canvasRect.bottom - (innerBottom - BOTTOM_SAFE_MARGIN));
+          const verticalScrollOverflow = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
+          const overflowPx = Math.max(bottomOverflow, verticalScrollOverflow);
+
+          if (overflowPx <= 0.25) break;
+
+          const axisSize = Math.max(1, canvasRect.height);
+          const targetRatio = (axisSize - overflowPx - 2) / axisSize;
+          const reductionFactor = Math.max(0.9, Math.min(0.995, targetRatio * 0.998));
+          const nextZoom = canvasZoomPercent * reductionFactor;
+          if (nextZoom >= canvasZoomPercent - 0.0001) break;
+
+          applyCanvasZoom(nextZoom, { markManual: false });
+        }
+        return;
+      }
+
+      for (let attempts = 0; attempts < 32; attempts++) {
+        const canvasRect = mainCanvas.elt.getBoundingClientRect();
+
+        const verticalVisualOverflow = Math.max(0, innerTop - canvasRect.top, canvasRect.bottom - innerBottom);
+        const horizontalVisualOverflow = Math.max(0, innerLeft - canvasRect.left, canvasRect.right - innerRight);
+        const verticalScrollOverflow = Math.max(0, canvasContainer.scrollHeight - canvasContainer.clientHeight);
+        const horizontalScrollOverflow = Math.max(0, canvasContainer.scrollWidth - canvasContainer.clientWidth);
+
+        let overflowPx = 0;
+        let axisSize = 0;
+
+        if (mode === 'horizontal') {
+          overflowPx = Math.max(horizontalVisualOverflow, horizontalScrollOverflow);
+          axisSize = Math.max(1, canvasRect.width);
+        } else {
+          const combinedVertical = Math.max(verticalVisualOverflow, verticalScrollOverflow);
+          const combinedHorizontal = Math.max(horizontalVisualOverflow, horizontalScrollOverflow);
+          overflowPx = Math.max(combinedVertical, combinedHorizontal);
+
+          const verticalRatio = combinedVertical > 0
+            ? (combinedVertical / Math.max(1, canvasRect.height))
+            : 0;
+          const horizontalRatio = combinedHorizontal > 0
+            ? (combinedHorizontal / Math.max(1, canvasRect.width))
+            : 0;
+          axisSize = horizontalRatio > verticalRatio
+            ? Math.max(1, canvasRect.width)
+            : Math.max(1, canvasRect.height);
+        }
+
+        if (overflowPx <= 0.25) break;
+
+        const targetRatio = (axisSize - overflowPx - 1) / axisSize;
+        const reductionFactor = Math.max(0.85, Math.min(0.995, targetRatio * 0.999));
+        const nextZoom = canvasZoomPercent * reductionFactor;
+        if (nextZoom >= canvasZoomPercent - 0.0001) break;
+
+        applyCanvasZoom(nextZoom, { markManual: false });
+      }
+    };
+
     if (mode === 'original') {
       applyCanvasZoom(100, { markManual: false });
-      if (canvasContainer) {
-        canvasContainer.scrollLeft = 0;
-        canvasContainer.scrollTop = 0;
-      }
+      requestAnimationFrame(centerCanvasScroll);
       return;
     }
 
-    applyCanvasZoom(getViewportFitZoom(mode), { markManual: false });
+    applyCanvasZoom(fitZoomTarget, { markManual: false });
 
-    if (canvasContainer) {
-      canvasContainer.scrollLeft = 0;
-      canvasContainer.scrollTop = 0;
-    }
+    const runFitPass = (remainingPasses) => {
+      requestAnimationFrame(() => {
+        tightenFitIfNeeded();
+        updateCanvasOverflowState(canvasContainer);
+        centerCanvasScroll();
+        if (remainingPasses > 1) runFitPass(remainingPasses - 1);
+      });
+    };
+
+    runFitPass(6);
   };
 
   const getZoomSnapPoints = () => {
@@ -2816,8 +3057,6 @@ function setupUI(mainCanvas) {
   }
 
   if (mainCanvas && mainCanvas.elt) {
-    mainCanvas.elt.style.transformOrigin = 'center center';
-
     mainCanvas.elt.addEventListener('mousedown', (event) => {
       if (!zoomToolActive || isAssetsTabActive()) return;
       if (event.button !== 0 && event.button !== 2) return;
@@ -3345,6 +3584,9 @@ function updateEditUI() {
 
 function resizeCanvasAndUpdate(w, h) {
   resizeCanvas(w, h);
+  if (typeof applyCanvasZoomHandler === 'function') {
+    applyCanvasZoomHandler(canvasZoomPercent, { markManual: false });
+  }
   initGrid();
 }
 

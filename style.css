@@ -1827,6 +1827,11 @@ button:hover {
   height: 100vh;
 }
 
+#canvas-container.canvas-overflowing {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
 .canvas-zoom-overlay {
   position: absolute;
   top: 12px;
