@@ -2465,34 +2465,112 @@ function setupUI(mainCanvas) {
     });
   }
 
-  wInput.input(() => {
-    let val = parseInt(wInput.value());
-    if (val > 0) {
-      if (isCanvasLocked) {
-        let newH = floor(val / canvasRatio);
-        hInput.value(newH);
-        resizeCanvasAndUpdate(val, newH);
-      } else {
-        resizeCanvasAndUpdate(val, height);
-      }
+  const applyCanvasWidthFromInput = () => {
+    let val = parseInt(wInput.value(), 10);
+    if (!(val > 0)) {
+      wInput.value(width);
+      return false;
     }
-  });
+
+    if (isCanvasLocked) {
+      let newH = floor(val / canvasRatio);
+      if (newH < 1) newH = 1;
+      hInput.value(newH);
+      resizeCanvasAndUpdate(val, newH);
+    } else {
+      resizeCanvasAndUpdate(val, height);
+    }
+    return true;
+  };
+
+  const applyCanvasHeightFromInput = () => {
+    let val = parseInt(hInput.value(), 10);
+    if (!(val > 0)) {
+      hInput.value(height);
+      return false;
+    }
+
+    if (isCanvasLocked) {
+      let newW = floor(val * canvasRatio);
+      if (newW < 1) newW = 1;
+      wInput.value(newW);
+      resizeCanvasAndUpdate(newW, val);
+    } else {
+      resizeCanvasAndUpdate(width, val);
+    }
+    return true;
+  };
+
+  const bindEnterApply = (inputEl, applyFn) => {
+    if (!inputEl || !inputEl.elt) return;
+    inputEl.elt.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      applyFn();
+      if (window.updateAllSummaries) window.updateAllSummaries();
+      if (event.target && typeof event.target.blur === 'function') event.target.blur();
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  };
+
+  wInput.input(applyCanvasWidthFromInput);
   
-  hInput.input(() => {
-    let val = parseInt(hInput.value());
-    if (val > 0) {
-      if (isCanvasLocked) {
-        let newW = floor(val * canvasRatio);
-        wInput.value(newW);
-        resizeCanvasAndUpdate(newW, val);
-      } else {
-        resizeCanvasAndUpdate(width, val);
-      }
-    }
-  });
+  hInput.input(applyCanvasHeightFromInput);
+
+  bindEnterApply(wInput, applyCanvasWidthFromInput);
+  bindEnterApply(hInput, applyCanvasHeightFromInput);
 
   let gridRowsInput = select('#gridRows');
   let gridColsInput = select('#gridCols');
+  let gridMarginInput = select('#gridMargin');
+
+  const applyGridRowsFromInput = () => {
+    let val = parseInt(gridRowsInput.value(), 10);
+    if (!(val > 0)) {
+      gridRowsInput.value(rows);
+      return false;
+    }
+
+    rows = val;
+    if (isGridLocked) {
+      let newCols = floor(rows * gridRatio);
+      if (newCols < 1) newCols = 1;
+      cols = newCols;
+      gridColsInput.value(cols);
+    }
+    initGrid();
+    return true;
+  };
+
+  const applyGridColsFromInput = () => {
+    let val = parseInt(gridColsInput.value(), 10);
+    if (!(val > 0)) {
+      gridColsInput.value(cols);
+      return false;
+    }
+
+    cols = val;
+    if (isGridLocked) {
+      let newRows = floor(cols / gridRatio);
+      if (newRows < 1) newRows = 1;
+      rows = newRows;
+      gridRowsInput.value(rows);
+    }
+    initGrid();
+    return true;
+  };
+
+  const applyGridMarginFromInput = () => {
+    let val = parseInt(gridMarginInput.value(), 10);
+    if (isNaN(val) || val < 0) {
+      gridMarginInput.value(margin);
+      return false;
+    }
+
+    margin = val;
+    initGrid();
+    return true;
+  };
 
   if (btnLockGridRatio) {
      btnLockGridRatio.mousePressed(() => {
@@ -2509,38 +2587,59 @@ function setupUI(mainCanvas) {
      });
   }
   
-  gridRowsInput.input(() => { 
-    let val = parseInt(gridRowsInput.value());
-    if (val > 0) {
-      rows = val;
-      if (isGridLocked) {
-         let newCols = floor(rows * gridRatio);
-         if (newCols < 1) newCols = 1;
-         cols = newCols;
-         gridColsInput.value(cols);
-      }
-      initGrid(); 
-    }
-  });
+  gridRowsInput.input(applyGridRowsFromInput);
   
-  gridColsInput.input(() => { 
-    let val = parseInt(gridColsInput.value());
-    if (val > 0) { 
-      cols = val;
-      if (isGridLocked) {
-        let newRows = floor(cols / gridRatio);
-        if (newRows < 1) newRows = 1;
-        rows = newRows;
-        gridRowsInput.value(rows);
-      }
-      initGrid(); 
-    }
-  });
+  gridColsInput.input(applyGridColsFromInput);
+
+  bindEnterApply(gridRowsInput, applyGridRowsFromInput);
+  bindEnterApply(gridColsInput, applyGridColsFromInput);
+  bindEnterApply(gridMarginInput, applyGridMarginFromInput);
   
-  select('#gridMargin').input(() => {
-    let val = parseInt(select('#gridMargin').value());
-    if (!isNaN(val) && val >= 0) { margin = val; initGrid(); }
-  });
+  gridMarginInput.input(applyGridMarginFromInput);
+
+  let btnSwapCanvasSize = select('#btnSwapCanvasSize');
+  if (btnSwapCanvasSize) {
+    btnSwapCanvasSize.mousePressed(() => {
+      let currentW = parseInt(wInput.value(), 10);
+      let currentH = parseInt(hInput.value(), 10);
+      if (!(currentW > 0)) currentW = width;
+      if (!(currentH > 0)) currentH = height;
+
+      let newW = currentH;
+      let newH = currentW;
+
+      wInput.value(newW);
+      hInput.value(newH);
+      resizeCanvasAndUpdate(newW, newH);
+
+      if (isCanvasLocked && newH > 0) {
+        canvasRatio = newW / newH;
+      }
+      if (window.updateAllSummaries) window.updateAllSummaries();
+    });
+  }
+
+  let btnSwapGridSize = select('#btnSwapGridSize');
+  if (btnSwapGridSize) {
+    btnSwapGridSize.mousePressed(() => {
+      let currentRows = parseInt(gridRowsInput.value(), 10);
+      let currentCols = parseInt(gridColsInput.value(), 10);
+      if (!(currentRows > 0)) currentRows = rows;
+      if (!(currentCols > 0)) currentCols = cols;
+
+      rows = currentCols;
+      cols = currentRows;
+      gridRowsInput.value(rows);
+      gridColsInput.value(cols);
+
+      if (isGridLocked && rows > 0) {
+        gridRatio = cols / rows;
+      }
+
+      initGrid();
+      if (window.updateAllSummaries) window.updateAllSummaries();
+    });
+  }
 
   select('#btnFitScreen').mousePressed(fitCanvasToScreen);
   // select('#btnSquareGrid').mousePressed(makeGridSquare); // Removing this one? No, I'll keep both.
@@ -3583,11 +3682,15 @@ function updateEditUI() {
 }
 
 function resizeCanvasAndUpdate(w, h) {
-  resizeCanvas(w, h);
+  let nextW = Math.max(1, Math.floor(w));
+  let nextH = Math.max(1, Math.floor(h));
+
+  resizeCanvas(nextW, nextH);
+  initGrid();
   if (typeof applyCanvasZoomHandler === 'function') {
     applyCanvasZoomHandler(canvasZoomPercent, { markManual: false });
   }
-  initGrid();
+  redraw();
 }
 
 function fitCanvasToScreen() {
