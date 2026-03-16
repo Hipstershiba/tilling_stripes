@@ -1893,10 +1893,10 @@ button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #161b21;
+  background-color: #131517;
   background-image:
-    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.05));
+    radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.075));
   background-size: 16px 16px, 100% 100%;
   overflow: auto;
   /* allows scrolling if canvas is larger than available space */
