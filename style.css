@@ -1227,8 +1227,8 @@ body.assets-focus #exportActions {
 #tab-setup .setup-inline-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 5px;
+  gap: 6px;
+  margin-top: 4px;
   align-items: stretch;
 }
 
@@ -1287,8 +1287,29 @@ body.assets-focus #exportActions {
 }
 
 #tab-setup .control-group {
+  gap: 5px;
+  padding: 8px;
+}
+
+#tab-setup .row {
   gap: 6px;
-  padding: 10px;
+}
+
+#tab-setup input[type="number"] {
+  padding: 7px;
+}
+
+#tab-setup .setup-icon-btn {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 #tab-setup .control-group.seed-sticky {
