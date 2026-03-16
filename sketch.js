@@ -2557,6 +2557,7 @@ function setupUI(mainCanvas) {
   const CUSTOM_FIT_VALUE = 'custom';
   const FIT_WIDTH_SAFE_FACTOR = 0.985;
   const FIT_HEIGHT_SAFE_FACTOR = 0.955;
+  const ZOOM_SNAP_EPSILON = 0.0001;
 
   let zoomSlider = select('#canvasZoom');
   let zoomValue = select('#canvasZoomValue');
@@ -2565,7 +2566,9 @@ function setupUI(mainCanvas) {
   let btnZoomHide = select('#btnZoomHide');
   let btnZoomShow = select('#btnZoomShow');
   let zoomFitMode = select('#zoomFitMode');
+  let zoomSnapToggle = select('#zoomSnapToggle');
   let zoomOverlay = document.getElementById('canvasZoomOverlay');
+  let zoomSnapEnabled = true;
 
   const getCustomFitOption = () => {
     if (!zoomFitMode || !zoomFitMode.elt) return null;
@@ -2674,6 +2677,58 @@ function setupUI(mainCanvas) {
     }
   };
 
+  const getZoomSnapPoints = () => {
+    let points = [
+      { mode: 'original', value: 100 },
+      { mode: 'best', value: getViewportFitZoom('best') },
+      { mode: 'horizontal', value: getViewportFitZoom('horizontal') },
+      { mode: 'vertical', value: getViewportFitZoom('vertical') }
+    ].filter((row) => Number.isFinite(row.value) && row.value > 0);
+
+    points.sort((a, b) => a.value - b.value);
+    return points;
+  };
+
+  const getSteppedZoomTarget = (direction) => {
+    let baseTarget = direction > 0
+      ? (canvasZoomPercent * ZOOM_MULTIPLIER)
+      : (canvasZoomPercent / ZOOM_MULTIPLIER);
+
+    if (!zoomSnapEnabled) {
+      return { target: baseTarget, snappedMode: null };
+    }
+
+    let current = canvasZoomPercent;
+    let points = getZoomSnapPoints();
+
+    if (direction > 0) {
+      let crossed = points.find((point) =>
+        point.value > (current + ZOOM_SNAP_EPSILON)
+        && point.value <= (baseTarget + ZOOM_SNAP_EPSILON)
+      );
+      if (crossed) return { target: crossed.value, snappedMode: crossed.mode };
+    } else {
+      let reversed = points.slice().reverse();
+      let crossed = reversed.find((point) =>
+        point.value < (current - ZOOM_SNAP_EPSILON)
+        && point.value >= (baseTarget - ZOOM_SNAP_EPSILON)
+      );
+      if (crossed) return { target: crossed.value, snappedMode: crossed.mode };
+    }
+
+    return { target: baseTarget, snappedMode: null };
+  };
+
+  const applySteppedZoom = (direction) => {
+    let result = getSteppedZoomTarget(direction);
+    if (result.snappedMode) {
+      if (zoomFitMode) zoomFitMode.value(result.snappedMode);
+      applyCanvasZoom(result.target, { markManual: false });
+      return;
+    }
+    applyCanvasZoom(result.target);
+  };
+
   applyCanvasZoomHandler = applyCanvasZoom;
   fitCanvasZoomHandler = fitCanvasZoom;
   updateCanvasCursorHandler = updateCanvasCursor;
@@ -2713,11 +2768,11 @@ function setupUI(mainCanvas) {
   }
 
   if (btnZoomIn) {
-    btnZoomIn.mousePressed(() => applyCanvasZoom(canvasZoomPercent * ZOOM_MULTIPLIER));
+    btnZoomIn.mousePressed(() => applySteppedZoom(1));
   }
 
   if (btnZoomOut) {
-    btnZoomOut.mousePressed(() => applyCanvasZoom(canvasZoomPercent / ZOOM_MULTIPLIER));
+    btnZoomOut.mousePressed(() => applySteppedZoom(-1));
   }
 
   if (btnZoomHide) {
@@ -2747,6 +2802,13 @@ function setupUI(mainCanvas) {
     });
   }
 
+  if (zoomSnapToggle) {
+    zoomSnapEnabled = !!zoomSnapToggle.elt.checked;
+    zoomSnapToggle.changed(() => {
+      zoomSnapEnabled = !!zoomSnapToggle.elt.checked;
+    });
+  }
+
   if (mainCanvas && mainCanvas.elt) {
     mainCanvas.elt.style.transformOrigin = 'center center';
 
@@ -2757,11 +2819,7 @@ function setupUI(mainCanvas) {
       event.preventDefault();
       event.stopPropagation();
 
-      let zoomTarget = (event.button === 2)
-        ? (canvasZoomPercent / ZOOM_MULTIPLIER)
-        : (canvasZoomPercent * ZOOM_MULTIPLIER);
-
-      applyCanvasZoom(zoomTarget);
+      applySteppedZoom(event.button === 2 ? -1 : 1);
     });
   }
 
@@ -2782,10 +2840,10 @@ function setupUI(mainCanvas) {
 
     if (key === '-' || code === 'NumpadSubtract') {
       event.preventDefault();
-      applyCanvasZoom(canvasZoomPercent / ZOOM_MULTIPLIER);
+      applySteppedZoom(-1);
     } else if (key === '=' || key === '+' || code === 'NumpadAdd') {
       event.preventDefault();
-      applyCanvasZoom(canvasZoomPercent * ZOOM_MULTIPLIER);
+      applySteppedZoom(1);
     } else if (key === '0' || code === 'Numpad0') {
       event.preventDefault();
       fitCanvasZoom('original');
@@ -4194,6 +4252,26 @@ function keyPressed() {
 
 // Global Key Handler
 window.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      let target = e.target;
+      let tag = target && target.tagName ? target.tagName.toUpperCase() : '';
+      let type = target && target.type ? String(target.type).toLowerCase() : '';
+      let shouldBlurOnEnter = !!target
+        && (tag === 'INPUT' || tag === 'SELECT')
+        && !target.isContentEditable
+        && type !== 'checkbox'
+        && type !== 'radio'
+        && type !== 'button'
+        && type !== 'submit'
+        && type !== 'file';
+
+      if (shouldBlurOnEnter && typeof target.blur === 'function') {
+        target.blur();
+        e.preventDefault();
+        return;
+      }
+    }
+
     if (e.key === 'Escape') {
       let target = e.target;
       let isEditableTarget = !!target && (

@@ -1837,7 +1837,7 @@ button:hover {
 
 .canvas-zoom-controls {
   display: inline-grid;
-  grid-template-columns: 26px minmax(150px, 220px) 62px 26px minmax(138px, 170px) 26px;
+  grid-template-columns: 26px minmax(150px, 220px) 62px 26px minmax(138px, 170px) auto 26px;
   gap: 8px;
   align-items: center;
   background: rgba(24, 24, 24, 0.78);
@@ -1957,10 +1957,28 @@ button:hover {
 
 @media (max-width: 980px) {
   .canvas-zoom-controls {
-    grid-template-columns: 24px minmax(120px, 150px) 58px 24px minmax(120px, 150px) 24px;
+    grid-template-columns: 24px minmax(120px, 150px) 58px 24px minmax(120px, 150px) auto 24px;
     gap: 4px;
     padding: 5px;
   }
+}
+
+.zoom-snap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c7c7c7;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+
+#zoomSnapToggle {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #4f89bd;
 }
 
 #zoomFitMode:focus {
