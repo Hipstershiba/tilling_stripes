@@ -98,6 +98,30 @@ function getNextInFamily(currentType) {
     return currentType; // No family found
 }
 
+function normalizeGenerationModeValue(value) {
+  if (value === 'legacy_axes') return 'axis_mirror';
+  if (value === 'dihedral_enhanced') return 'rotational_orbit';
+  if (value === 'axis_mirror' || value === 'rotational_orbit') return value;
+  return 'axis_mirror';
+}
+
+function updateGridSymmetryUi(mode) {
+  let normalized = normalizeGenerationModeValue(mode);
+  let nativeSelect = document.getElementById('gridSymmetryMode');
+
+  if (nativeSelect && nativeSelect.value !== normalized) {
+    nativeSelect.value = normalized;
+  }
+
+  if (nativeSelect) {
+    if (normalized === 'rotational_orbit') {
+      nativeSelect.title = 'Center Orbit: repeats grouped by center symmetry. On rectangular grids it uses safe transforms.';
+    } else {
+      nativeSelect.title = 'Bilateral Mirror: mirrors the pattern across X and Y axes.';
+    }
+  }
+}
+
 function setup() {
   // Update total types from registry
   syncTotalTileTypes();
@@ -2598,18 +2622,14 @@ function setupUI(mainCanvas) {
   bindEnterApply(gridMarginInput, applyGridMarginFromInput);
 
   if (gridSymmetryModeInput) {
-    const normalizeGenerationMode = (value) => {
-      if (value === 'legacy_axes') return 'axis_mirror';
-      if (value === 'dihedral_enhanced') return 'rotational_orbit';
-      if (value === 'axis_mirror' || value === 'rotational_orbit') return value;
-      return 'axis_mirror';
-    };
-
-    generationSymmetryMode = normalizeGenerationMode(generationSymmetryMode);
+    generationSymmetryMode = normalizeGenerationModeValue(generationSymmetryMode);
     gridSymmetryModeInput.value(generationSymmetryMode);
+    updateGridSymmetryUi(generationSymmetryMode);
+
     gridSymmetryModeInput.changed(() => {
-      let nextMode = normalizeGenerationMode(gridSymmetryModeInput.value());
+      let nextMode = normalizeGenerationModeValue(gridSymmetryModeInput.value());
       generationSymmetryMode = nextMode;
+      updateGridSymmetryUi(nextMode);
       initGrid();
       if (window.updateAllSummaries) window.updateAllSummaries();
     });
@@ -4288,18 +4308,12 @@ function restoreGenerationState(index) {
   
   isRestoringHistory = true;
   let state = generationHistory[index];
-  const normalizeGenerationMode = (value) => {
-    if (value === 'legacy_axes') return 'axis_mirror';
-    if (value === 'dihedral_enhanced') return 'rotational_orbit';
-    if (value === 'axis_mirror' || value === 'rotational_orbit') return value;
-    return 'axis_mirror';
-  };
   
   // Apply State
   seed = state.seed;
   rows = state.rows;
   cols = state.cols;
-  generationSymmetryMode = normalizeGenerationMode(state.generationSymmetryMode);
+  generationSymmetryMode = normalizeGenerationModeValue(state.generationSymmetryMode);
   margin = state.margin;
   
   // Update inputs
@@ -4308,6 +4322,7 @@ function restoreGenerationState(index) {
   select('#gridCols').value(cols);
   let symmetryInput = select('#gridSymmetryMode');
   if (symmetryInput) symmetryInput.value(generationSymmetryMode);
+  updateGridSymmetryUi(generationSymmetryMode);
   select('#gridMargin').value(margin);
   
   if (width !== state.width || height !== state.height) {

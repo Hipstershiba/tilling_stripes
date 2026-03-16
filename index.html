@@ -87,11 +87,20 @@
                 </button>
               </div>
               <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
-              <div class="row" style="margin-top:5px;">
-                <select id="gridSymmetryMode" aria-label="Grid symmetry mode" title="Grid symmetry mode"
-                  style="width:100%;">
-                  <option value="axis_mirror" selected>Grid Symmetry: Axis Mirror</option>
-                  <option value="rotational_orbit">Grid Symmetry: Rotational Orbit</option>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>Pattern Symmetry</span>
+              <span class="group-summary"></span>
+            </label>
+            <div class="group-content">
+              <div class="row">
+                <select id="gridSymmetryMode" aria-label="Grid symmetry mode"
+                  title="Choose how supertiles repeat across the grid" style="width:100%;">
+                  <option value="axis_mirror" selected>Bilateral Mirror (X and Y)</option>
+                  <option value="rotational_orbit">Center Orbit (Grouped Repeats)</option>
                 </select>
               </div>
             </div>
