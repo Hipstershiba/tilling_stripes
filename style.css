@@ -1103,7 +1103,7 @@ body.assets-focus #exportActions {
   position: relative;
   height: 34px;
   border: none;
-  --tab-count: 3;
+  --tab-count: 4;
 }
 
 .tab-nav-bg {
@@ -1127,6 +1127,10 @@ body.assets-focus #exportActions {
 
 .tab-nav[data-active="assets"] .tab-nav-bg {
   transform: translateX(200%);
+}
+
+.tab-nav[data-active="vector"] .tab-nav-bg {
+  transform: translateX(300%);
 }
 
 .tab-btn {
