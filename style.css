@@ -2303,11 +2303,17 @@ button.locked {
   background: transparent;
   border: 1px solid transparent;
   color: #aaa;
-  padding: 3px 8px;
+  width: 30px;
+  height: 26px;
+  padding: 0;
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 #tab-vector .vec-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
@@ -2316,9 +2322,9 @@ button.locked {
 #tab-vector .vec-sep {
   display: inline-block;
   width: 1px;
-  height: 18px;
+  height: 20px;
   background: #444;
-  margin: 0 3px;
+  margin: 0 2px;
 }
 
 /* Layers list */
