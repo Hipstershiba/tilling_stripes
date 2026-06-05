@@ -3780,9 +3780,15 @@ function setupUI(mainCanvas) {
       'global_wedge': 'Wedge',
       'global_cascade': 'Cascade',
       'global_alternate': 'Alternate'
-    }[interactionScope] || 'Radial') + '</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit from the <strong>' +
+    }[interactionScope] || 'Radial') + '</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">' + ({
+      'global_radial': 'Same distance from center. Selects all blocks at the same ring.',
+      'global_wedge': 'Same angular direction from center. Selects blocks in the same pie-slice sector.',
+      'global_cascade': 'Center to ring. Selects everything from center outward to the clicked ring.',
+      'global_alternate': 'Alternating rings. Selects only even or odd rings — creates a checkerboard radial pattern.'
+    }[interactionScope] || '') +
+    '<br><span style="font-size: 0.85em; opacity: 0.6">Center: <strong>' +
     (RADIAL_CENTER_LABELS[radialCenterMode] || 'Grid Center') +
-    '</strong>. Click again to cycle center.</span>';
+    '</strong> (click to cycle)</span></span>';
 
   // Set initial tooltip
   select('#scopeDesc').html(SCOPE_DESCRIPTIONS['single']);
@@ -4837,12 +4843,12 @@ function getRadialCenter() {
 function getRadialRingIndices(col, row) {
   let { cx, cy } = getRadialCenter();
   let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
-  let refRing = round(refDist);
+  let refRing = floor(refDist);
   let indices = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      let d = sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
-      if (round(d) === refRing) {
+      let d = floor(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
+      if (d === refRing) {
         indices.push(r * cols + c);
       }
     }
@@ -4875,11 +4881,11 @@ function getWedgeIndices(col, row) {
 function getCascadeIndices(col, row) {
   let { cx, cy } = getRadialCenter();
   let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
-  let refRing = round(refDist);
+  let refRing = floor(refDist);
   let indices = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      let d = round(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
+      let d = floor(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
       if (d <= refRing) {
         indices.push(r * cols + c);
       }
@@ -4892,11 +4898,11 @@ function getCascadeIndices(col, row) {
 function getAlternateIndices(col, row) {
   let { cx, cy } = getRadialCenter();
   let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
-  let parity = round(refDist) % 2;
+  let parity = floor(refDist) % 2;
   let indices = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      let d = round(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
+      let d = floor(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
       if (d % 2 === parity) {
         indices.push(r * cols + c);
       }
