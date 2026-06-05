@@ -24,6 +24,7 @@ let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
 let hoverPreviewTargets = [];
 let hoverPreviewAnchor = null;
+let radialCenterMode = 'center'; // 'center', 'tl', 'tr', 'bl', 'br' — center point for Radial scope
 let zoomToolActive = false;
 let applyCanvasZoomHandler = null;
 let fitCanvasZoomHandler = null;
@@ -3760,47 +3761,87 @@ function setupUI(mainCanvas) {
     'supertile': '<strong style="color: #fff;">Mirror</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile across all 4 mirrored faces of this block. Keeps the kaleidoscope symmetry.</span>',
     'global_exact': '<strong style="color: #fff;">Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
     'global_pos': '<strong style="color: #fff;">Repeat</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
-    'global_pos_sym': '<strong style="color: #fff;">Flood</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile in ALL 4 faces of EVERY block — covers the entire grid at once.</span>',
-    'global_radial': '<strong style="color: #fff;">Radial</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit all blocks at the same radial distance from the center of the grid. Like concentric rings.</span>'
+    'global_pos_sym': '<strong style="color: #fff;">Flood</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile in ALL 4 faces of EVERY block — covers the entire grid at once.</span>'
   };
+
+  // Radial scope description with dynamic center label
+  const RADIAL_CENTER_LABELS = {
+    'center': 'Grid Center',
+    'tl': 'TL Quadrant',
+    'tr': 'TR Quadrant',
+    'bl': 'BL Quadrant',
+    'br': 'BR Quadrant'
+  };
+  const getRadialDesc = () =>
+    '<strong style="color: #fff;">Radial</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit all blocks at the same radial distance from the <strong>' +
+    (RADIAL_CENTER_LABELS[radialCenterMode] || 'Grid Center') +
+    '</strong>. Click again to cycle center.</span>';
 
   // Set initial tooltip
   select('#scopeDesc').html(SCOPE_DESCRIPTIONS['single']);
 
   selectAll('.scope-btn').forEach(btn => {
-      // Click Handler
-      btn.mousePressed(() => {
-          selectAll('.scope-btn').forEach(b => b.removeClass('active'));
-          btn.addClass('active');
-          interactionScope = btn.attribute('data-scope');
-          
-          // Update description
-          let descDiv = select('#scopeDesc');
-          if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
-             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
-          }
+        // Click Handler
+        btn.mousePressed(() => {
+            let scope = btn.attribute('data-scope');
+            let wasActive = btn.hasClass('active');
 
-           updateHoverPreview();
-           redraw();
-      });
+            // Radial center cycle: clicking again while active cycles the center
+            if (scope === 'global_radial' && wasActive) {
+              const order = ['center', 'tl', 'tr', 'bl', 'br'];
+              let idx = order.indexOf(radialCenterMode);
+              radialCenterMode = order[(idx + 1) % order.length];
 
-      // Hover Effects for Description
-      btn.mouseOver(() => {
-           let scope = btn.attribute('data-scope');
-           let descDiv = select('#scopeDesc');
-           if(descDiv && SCOPE_DESCRIPTIONS[scope]) {
-             descDiv.html(SCOPE_DESCRIPTIONS[scope]);
-           }
-      });
-      
-      btn.mouseOut(() => {
-           // Revert to active scope description
-           let descDiv = select('#scopeDesc');
-           if(descDiv && SCOPE_DESCRIPTIONS[interactionScope]) {
-             descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
-           }
-      });
-  });
+              let descDiv = select('#scopeDesc');
+              if (descDiv) descDiv.html(getRadialDesc());
+              updateHoverPreview();
+              redraw();
+              return;
+            }
+
+            selectAll('.scope-btn').forEach(b => b.removeClass('active'));
+            btn.addClass('active');
+            interactionScope = scope;
+
+            // Update description
+            let descDiv = select('#scopeDesc');
+            if (descDiv) {
+              if (interactionScope === 'global_radial') {
+                descDiv.html(getRadialDesc());
+              } else if (SCOPE_DESCRIPTIONS[interactionScope]) {
+                descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+              }
+            }
+
+             updateHoverPreview();
+             redraw();
+        });
+
+        // Hover Effects for Description
+        btn.mouseOver(() => {
+             let scope = btn.attribute('data-scope');
+             let descDiv = select('#scopeDesc');
+             if (descDiv) {
+               if (scope === 'global_radial') {
+                 descDiv.html(getRadialDesc());
+               } else if (SCOPE_DESCRIPTIONS[scope]) {
+                 descDiv.html(SCOPE_DESCRIPTIONS[scope]);
+               }
+             }
+        });
+
+        btn.mouseOut(() => {
+             // Revert to active scope description
+             let descDiv = select('#scopeDesc');
+             if (descDiv) {
+               if (interactionScope === 'global_radial') {
+                 descDiv.html(getRadialDesc());
+               } else if (SCOPE_DESCRIPTIONS[interactionScope]) {
+                 descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
+               }
+             }
+        });
+    });
 }
 
 function updateEditUI() {
@@ -4774,16 +4815,23 @@ function getSymmetryOrbitPreviewTargets(anchorIndex, subtileInfo) {
   return targets;
 }
 
-// Gets all supertile indices in the same radial ring (Euclidean distance from grid center)
+// Gets all supertile indices in the same radial ring from a configurable center
+// centerMode: 'center' (grid geometric center), 'tl'/'tr'/'bl'/'br' (quadrant centers)
 function getRadialRingIndices(col, row) {
-  let centerCol = (cols - 1) / 2;
-  let centerRow = (rows - 1) / 2;
-  let refDist = sqrt((col - centerCol) * (col - centerCol) + (row - centerRow) * (row - centerRow));
+  let cx, cy;
+  switch (radialCenterMode) {
+    case 'tl': cx = (cols / 2 - 1) / 2; cy = (rows / 2 - 1) / 2; break;
+    case 'tr': cx = cols - 1 - (cols / 2 - 1) / 2; cy = (rows / 2 - 1) / 2; break;
+    case 'bl': cx = (cols / 2 - 1) / 2; cy = rows - 1 - (rows / 2 - 1) / 2; break;
+    case 'br': cx = cols - 1 - (cols / 2 - 1) / 2; cy = rows - 1 - (rows / 2 - 1) / 2; break;
+    default:   cx = (cols - 1) / 2; cy = (rows - 1) / 2; break;
+  }
+  let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
   let refRing = round(refDist);
   let indices = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      let d = sqrt((c - centerCol) * (c - centerCol) + (r - centerRow) * (r - centerRow));
+      let d = sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
       if (round(d) === refRing) {
         indices.push(r * cols + c);
       }
