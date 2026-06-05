@@ -5440,7 +5440,7 @@ function handleTileClick(mx, my, modeOverride = null) {
           if (stampPattern.types) {
             for (let s of tiles) {
               let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
-              s.tiles[mapped.quadrant].types[mapped.subtileIndex] = [...stampPattern.types];
+              s.tiles[mapped.quadrant].types = [...stampPattern.types];
               _refreshTile(s.tiles[mapped.quadrant]);
             }
           }
