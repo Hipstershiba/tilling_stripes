@@ -2366,3 +2366,58 @@ button.locked {
   cursor: pointer; opacity: 0.3; font-size: 10px; padding: 0 2px;
 }
 #tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
+
+/* ── Tile Mode ── */
+#tab-vector .vec-tile-mode-indicator {
+  display: none;
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid #4CAF50;
+  border-radius: 4px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+#tab-vector .vec-3x3-wrap {
+  display: none;
+  width: 180px;
+  flex-shrink: 0;
+  padding: 8px;
+  background: #222;
+  border-radius: 6px;
+  border: 1px solid #333;
+  align-self: flex-start;
+}
+#tab-vector .vec-3x3-wrap canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: #1a1a1a;
+}
+#tab-vector .vec-3x3-label {
+  font-size: 0.65rem;
+  color: #888;
+  text-align: center;
+  margin-top: 4px;
+}
+#tab-vector #vecRegisterTileBtn {
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.15s;
+}
+#tab-vector #vecRegisterTileBtn:hover {
+  background: #66BB6A;
+}
+/* In tile mode, the root layout becomes flex row with preview on right */
+#tab-vector.tile-mode-active .vec-root {
+  gap: 8px;
+}

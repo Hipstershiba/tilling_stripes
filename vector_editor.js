@@ -14,6 +14,7 @@ class VecShape {
     this.selected = false;
     this.points = []; // for polygon/path
     this.closed = true;
+    this.usePatternColor = true; // tile mode: use pattern color instead of fixed fill
     this.dragOffset = null; // {dx, dy} while dragging
   }
 
@@ -165,6 +166,8 @@ const vecEditor = {
   _baseSize: 400,
   undoStack: [],
   redoStack: [],
+  tileMode: false, // tile editing mode (fixed 100x100 canvas)
+  tileBaseSize: 100, // logical tile size in tile mode
 
   init() {
     this.canvas = document.getElementById('vecCanvas');
@@ -177,6 +180,14 @@ const vecEditor = {
   },
 
   resize() {
+    if (this.tileMode) {
+      // Fixed tile canvas size
+      this._baseSize = this.tileBaseSize;
+      this.canvas.width = Math.round(this._baseSize * this.zoom);
+      this.canvas.height = Math.round(this._baseSize * this.zoom);
+      this.render();
+      return;
+    }
     let wrap = this.canvas.parentElement;
     if (!wrap) return;
     let rect = wrap.getBoundingClientRect();
@@ -208,9 +219,11 @@ const vecEditor = {
     shape.fill = document.getElementById('vecFillColor').value;
     shape.stroke = document.getElementById('vecStrokeColor').value;
     shape.strokeWidth = parseFloat(document.getElementById('vecStrokeWidth').value) || 2;
+    shape.usePatternColor = document.getElementById('vecPatternColorCheck')?.checked ?? true;
     this.activeLayer.shapes.push(shape);
     this.render();
     this.updateLayersUI();
+    if (this.tileMode) this.render3x3Preview();
   },
 
   selectedShapes() {
@@ -287,6 +300,109 @@ const vecEditor = {
   zoomIn() { this.setZoom(this.zoom * 1.25); },
   zoomOut() { this.setZoom(this.zoom / 1.25); },
   resetZoom() { this.setZoom(1); },
+
+  // ── Tile Mode ──
+  setTileMode(active) {
+    this.tileMode = active;
+    this.setZoom(1);
+    this.resize();
+    // Toggle body class
+    document.getElementById('tab-vector').classList.toggle('tile-mode-active', active);
+    document.getElementById('vecTileModeBtn').classList.toggle('active', active);
+    document.getElementById('vec3x3Preview').style.display = active ? 'block' : 'none';
+    document.getElementById('vecPatternColorCheck').style.display = active ? 'flex' : 'none';
+    document.getElementById('vecRegisterTileBtn').style.display = active ? 'inline-flex' : 'none';
+    document.getElementById('vecTileName').style.display = active ? 'flex' : 'none';
+    document.getElementById('vecTileFamily').style.display = active ? 'flex' : 'none';
+    document.querySelector('.vec-tile-mode-indicator').style.display = active ? 'block' : 'none';
+    this.updateStatus(active ? 'Tile Mode — draw a single subtile (100×100)' : 'Vector Mode');
+    this.render();
+    if (active) this.render3x3Preview();
+  },
+
+  // ── 3x3 Preview ──
+  render3x3Preview() {
+    let wrap = document.getElementById('vec3x3Preview');
+    if (!wrap) return;
+    let canvas = wrap.querySelector('canvas');
+    if (!canvas) return;
+    let ctx = canvas.getContext('2d');
+    let w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, w, h);
+
+    let tileW = w / 3, tileH = h / 3;
+    // Colors to alternate in preview (simulate pattern colors)
+    let colors = ['#888888', '#aaaaaa', '#666666', '#999999', '#777777', '#bbbbbb', '#555555', '#999999', '#888888'];
+
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        let x = col * tileW, y = row * tileH;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, tileW, tileH);
+        ctx.clip();
+        ctx.translate(x + tileW / 2, y + tileH / 2);
+        ctx.scale(tileW / this.tileBaseSize, tileH / this.tileBaseSize);
+
+        // Draw tile shapes
+        let patternColor = colors[(row * 3 + col) % colors.length];
+        for (let layer of this.layers) {
+          if (!layer.visible) continue;
+          for (let shape of layer.shapes) {
+            this.renderShapeForPreview(ctx, shape, patternColor);
+          }
+        }
+        ctx.restore();
+
+        // Tile border
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, tileW, tileH);
+
+        // Highlight center tile
+        if (row === 1 && col === 1) {
+          ctx.strokeStyle = '#4CAF50';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, tileW, tileH);
+        }
+      }
+    }
+  },
+
+  renderShapeForPreview(ctx, shape, patternColor) {
+    ctx.save();
+    ctx.translate(shape.x, shape.y);
+    ctx.rotate(shape.rotation);
+    let fillColor = shape.usePatternColor ? patternColor : shape.fill;
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = shape.stroke;
+    ctx.lineWidth = shape.strokeWidth;
+
+    if (shape.type === 'rect') {
+      ctx.beginPath();
+      ctx.rect(-shape.w / 2, -shape.h / 2, shape.w, shape.h);
+      ctx.fill();
+      if (shape.strokeWidth > 0) ctx.stroke();
+    } else if (shape.type === 'ellipse') {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, shape.w / 2, shape.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (shape.strokeWidth > 0) ctx.stroke();
+    } else if (shape.type === 'polygon' || shape.type === 'path') {
+      if (shape.points.length < 2) { ctx.restore(); return; }
+      ctx.beginPath();
+      ctx.moveTo(shape.points[0].x, shape.points[0].y);
+      for (let i = 1; i < shape.points.length; i++) {
+        ctx.lineTo(shape.points[i].x, shape.points[i].y);
+      }
+      if (shape.closed) ctx.closePath();
+      ctx.fill();
+      if (shape.strokeWidth > 0) ctx.stroke();
+    }
+    ctx.restore();
+  },
 
   // ── Screen coords → canvas coords (in _baseSize space, before zoom) ──
   canvasCoords(e) {
@@ -394,13 +510,39 @@ const vecEditor = {
       ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(this._baseSize, p); ctx.stroke();
     }
 
-    // Center cross
+    // Center cross  
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(this._baseSize / 2, 0); ctx.lineTo(this._baseSize / 2, this._baseSize); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, this._baseSize / 2); ctx.lineTo(this._baseSize, this._baseSize / 2); ctx.stroke();
     ctx.setLineDash([]);
+
+    // Tile mode overlay — tile boundary
+    if (this.tileMode) {
+      ctx.strokeStyle = '#4CAF50';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(0, 0, this.tileBaseSize, this.tileBaseSize);
+      ctx.setLineDash([]);
+
+      // Subtile quadrants (2x2 grid inside tile)
+      ctx.strokeStyle = 'rgba(76, 175, 80, 0.2)';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(this.tileBaseSize / 2, 0);
+      ctx.lineTo(this.tileBaseSize / 2, this.tileBaseSize);
+      ctx.moveTo(0, this.tileBaseSize / 2);
+      ctx.lineTo(this.tileBaseSize, this.tileBaseSize / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Tile label
+      ctx.fillStyle = 'rgba(76, 175, 80, 0.6)';
+      ctx.font = '9px sans-serif';
+      ctx.fillText('TILE BOUNDARY', 4, 10);
+    }
 
     // Render shapes per layer
     for (let layer of this.layers) {
@@ -490,6 +632,7 @@ const vecEditor = {
 
     ctx.restore();
 
+    if (this.tileMode) { this.render3x3Preview(); }
     this.updateStatus();
   },
 
@@ -582,6 +725,30 @@ const vecEditor = {
       this.gridSize = Math.max(4, Math.min(200, g));
       this.render();
     });
+
+    // Tile Mode toggle
+    document.getElementById('vecTileModeBtn').addEventListener('click', () => {
+      this.setTileMode(!this.tileMode);
+    });
+
+    // Pattern color checkbox
+    document.getElementById('vecPatternColorCheck').addEventListener('change', (e) => {
+      let usePattern = e.target.checked;
+      for (let s of this.selectedShapes()) s.usePatternColor = usePattern;
+      this.render();
+      if (this.tileMode) this.render3x3Preview();
+    });
+
+    // Register tile
+    document.getElementById('vecRegisterTileBtn').addEventListener('click', () => {
+      this.registerCurrentTile();
+    });
+
+    // Refresh 3x3 preview when shapes change
+    let refreshPreview = () => { if (this.tileMode) this.render3x3Preview(); };
+    document.getElementById('vecFillColor').addEventListener('input', refreshPreview);
+    document.getElementById('vecStrokeColor').addEventListener('input', refreshPreview);
+    document.getElementById('vecStrokeWidth').addEventListener('change', refreshPreview);
 
     this.updateLayersUI();
   },
@@ -956,6 +1123,7 @@ const vecEditor = {
     }
     this.render();
     this.updateLayersUI();
+    if (this.tileMode) this.render3x3Preview();
   },
 
   // ── Boolean Operations (simplified) ──
@@ -1018,63 +1186,111 @@ const vecEditor = {
     this.updateStatus(`Boolean ${op} done`);
   },
 
-  // ── Export as Tile Renderer ──
-  exportTile() {
-    // Rasterize the canvas to get the pixel pattern
-    let w = this.canvas.width, h = this.canvas.height;
-    let tempCanvas = document.createElement('canvas');
-    tempCanvas.width = this.gridSize;
-    tempCanvas.height = this.gridSize;
-    let tCtx = tempCanvas.getContext('2d');
-    tCtx.drawImage(this.canvas, 0, 0, w, h, 0, 0, this.gridSize, this.gridSize);
+  // ── Generate p5.js tile render code from vector shapes ──
+  generateTileRenderCode() {
+    if (this.activeLayer.shapes.length === 0) return '';
+    let code = '';
+    for (let shape of this.activeLayer.shapes) {
+      code += this._shapeToP5Code(shape);
+    }
+    return code;
+  },
 
-    // Get pixel data
-    let data = tCtx.getImageData(0, 0, this.gridSize, this.gridSize).data;
-
-    // Generate renderer function code
-    let code = `// Vector tile renderer — exported from Vector Editor\n`;
-    code += `TILE_RENDERERS.push((ctx, w, h, pad, c) => {\n`;
-    code += `  ctx.push();\n`;
-    code += `  ctx.translate(w/2, h/2);\n`;
-    code += `  ctx.fill(c);\n`;
-    code += `  ctx.noStroke();\n`;
-    code += `  ctx.rectMode(ctx.CENTER);\n`;
-    code += `  // Raster pattern (${this.gridSize}x${this.gridSize})\n`;
-
-    // Sample grid points for pixel pattern
-    let step = this.gridSize / 4; // 4x4 subtile sampling
-    for (let subY = 0; subY < 4; subY++) {
-      for (let subX = 0; subX < 4; subX++) {
-        // Sample center of each subtile area
-        let sx = Math.floor((subX + 0.5) * step);
-        let sy = Math.floor((subY + 0.5) * step);
-        let idx = (sy * this.gridSize + sx) * 4;
-        let r = data[idx], g = data[idx + 1], b = data[idx + 2], a = data[idx + 3];
-        if (a > 128) {
-          let lx = (subX - 1.5) * w / 4;
-          let ly = (subY - 1.5) * h / 4;
-          code += `  ctx.fill(${r}, ${g}, ${b}, ${a});\n`;
-          code += `  ctx.rect(${lx.toFixed(1)}, ${ly.toFixed(1)}, w/4, h/4);\n`;
-        }
-      }
+  _shapeToP5Code(shape) {
+    let parts = [];
+    if (shape.usePatternColor) {
+      parts.push('  ctx.fill(c);');
+    } else {
+      let hex = shape.fill.replace('#', '');
+      let r = parseInt(hex.substr(0,2), 16);
+      let g = parseInt(hex.substr(2,2), 16);
+      let b = parseInt(hex.substr(4,2), 16);
+      parts.push(`  ctx.fill(${r}, ${g}, ${b});`);
+    }
+    if (shape.strokeWidth > 0) {
+      let shex = shape.stroke.replace('#', '');
+      let sr = parseInt(shex.substr(0,2), 16);
+      let sg = parseInt(shex.substr(2,2), 16);
+      let sb = parseInt(shex.substr(4,2), 16);
+      parts.push(`  ctx.stroke(${sr}, ${sg}, ${sb});`);
+      parts.push(`  ctx.strokeWeight(${shape.strokeWidth});`);
+    } else {
+      parts.push('  ctx.noStroke();');
     }
 
-    code += `  ctx.pop();\n`;
-    code += `});\n`;
+    let sx = shape.x.toFixed(1), sy = shape.y.toFixed(1);
 
-    // Show in a modal or console
-    this.updateStatus(`Tile renderer generated! Registered as tile #${TILE_RENDERERS.length}`);
+    if (shape.type === 'rect') {
+      let sw = shape.w.toFixed(1), sh = shape.h.toFixed(1);
+      parts.push(`  ctx.rect(${sx} - ${sw}/2, ${sy} - ${sh}/2, ${sw}, ${sh});`);
+    } else if (shape.type === 'ellipse') {
+      let sw = shape.w.toFixed(1), sh = shape.h.toFixed(1);
+      parts.push(`  ctx.ellipse(${sx}, ${sy}, ${sw}, ${sh});`);
+    } else if (shape.type === 'polygon' || shape.type === 'path') {
+      if (shape.points.length < 2) return '';
+      parts.push('  ctx.beginShape();');
+      for (let p of shape.points) {
+        let px = (shape.x + p.x).toFixed(1);
+        let py = (shape.y + p.y).toFixed(1);
+        if (p.handleIn || p.handleOut) {
+          let cx1 = (shape.x + p.x + (p.handleIn ? p.handleIn.x : 0)).toFixed(1);
+          let cy1 = (shape.y + p.y + (p.handleIn ? p.handleIn.y : 0)).toFixed(1);
+          parts.push(`  ctx.vertex(${px}, ${py}, ${cx1}, ${cy1});`);
+        } else {
+          parts.push(`  ctx.vertex(${px}, ${py});`);
+        }
+      }
+      if (shape.closed) parts.push('  ctx.endShape(ctx.CLOSE);');
+      else parts.push('  ctx.endShape();');
+    }
+    return parts.join('\n') + '\n';
+  },
+
+  // ── Export Tile Mode: Generate complete tile renderer ──
+  exportTile() {
+    let shapeCode = this.generateTileRenderCode();
+    if (!shapeCode) {
+      this.updateStatus('❌ No shapes to export — draw something first!');
+      return;
+    }
+
+    let name = document.getElementById('vecTileName')?.value?.trim() || `Vector Tile #${Date.now()}`;
+    let code = `(ctx, w, h, pad, c) => {\n`;
+    code += `  ctx.push();\n`;
+    code += `  ctx.rectMode(ctx.CENTER);\n`;
+    code += `  ctx.noStroke();\n`;
+    code += `  // Auto-generated from Vector Editor shapes\n`;
+    code += `  ctx.translate(w/2, h/2);\n`;
+    code += `  ctx.scale(w/${this.tileBaseSize}, h/${this.tileBaseSize});\n`;
+    code += shapeCode;
+    code += `  ctx.pop();\n`;
+    code += `};`;
+
     console.log('=== VECTOR TILE RENDERER ===');
     console.log(code);
     console.log('=== END ===');
 
-    // Actually register it
     try {
-      eval(code);
-      this.updateStatus(`✅ Tile #${TILE_RENDERERS.length - 1} registered! Check console for code.`);
+      let renderFn = eval(code);
+      let tileId = registerTile({
+        name: name,
+        family: document.getElementById('vecTileFamily')?.value?.trim() || 'vector',
+        symmetric: true,
+        render: renderFn
+      });
+      this.updateStatus(`✅ Tile #${tileId} ("${name}") registered!`);
+      if (typeof generateTileThumbnails === 'function') {
+        generateTileThumbnails();
+      }
     } catch (err) {
       this.updateStatus(`❌ Export error: ${err.message}`);
+      console.error(err);
     }
+  },
+
+  // ── Register current composition from UI ──
+  registerCurrentTile() {
+    this.exportTile();
   }
 };
 
