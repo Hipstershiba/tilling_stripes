@@ -10,8 +10,8 @@ Interactive generative art tool for creating mirrored tiling compositions with e
   - Redo: `Ctrl + Shift + Z`
 - Improved edit reliability during drag interactions and fixed multiple hit-test/mirroring edge cases.
 - Refined **Target Scope** UX (icons + tooltips) and added live preview of affected tiles while hovering.
-- Fixed `Grid Position` behavior across mirrored canvas halves.
-- Restored stable behavior for `Symmetry (4x)` scope after scope-mapping updates.
+- Fixed `Same Slot` (Grid Position) behavior across mirrored canvas halves.
+- Restored stable behavior for `All Blocks` (Symmetry 4x) scope after scope-mapping updates.
 
 ## Core Features
 
@@ -22,11 +22,12 @@ Interactive generative art tool for creating mirrored tiling compositions with e
   - `Rotate` (cycle/randomize families)
   - `Paint` (apply selected tile type with transform-aware mapping)
 - **Target Scopes**:
-  - `Single Tile`
-  - `Block (2x2)`
-  - `Global Match`
-  - `Grid Position`
-  - `Symmetry (4x)`
+  - `Tile`
+  - `Block` (2x2)
+  - `Same Type` (Global Match)
+  - `Same Slot` (Grid Position)
+  - `All Blocks` (Symmetry 4x)
+  - `Dihedral 8` (Symmetry 8x)
 - **History Systems**:
   - Generation history (seed/grid states)
   - Edit history (undo/redo snapshots)
@@ -50,6 +51,17 @@ For a complete technical walkthrough (architecture, maintenance routines, backup
 - **Grid**: rows, columns, margin, ratio locks.
 - **Seed**: input + randomize + generation history navigation.
 - **Edit Panel**: tool mode, target scope, paint palette, undo/redo.
+
+## Scope Reference
+
+| Scope | What it edits |
+|-------|---------------|
+| **Tile** | 1 subtile in 1 supertile |
+| **Block** | Same subtile in all 4 quadrants of 1 supertile |
+| **Same Type** | All subtiles matching this pattern anywhere in the grid |
+| **Same Slot** | Same visual position (mirror-aware) in every supertile |
+| **All Blocks** | Same subtile slot in ALL 4 quadrants of EVERY supertile |
+| **Dihedral 8** | Same visual position across 8 dihedral-symmetric positions |
 
 ## Upload Your Own SVG Tiles
 
@@ -166,7 +178,7 @@ After adding tiles:
 - Reload browser and confirm tile appears in palette.
 - Test `Rotate` cycle behavior (family order).
 - Test `Paint` in mirrored areas (transform mapping).
-- Test `Grid Position` and `Symmetry (4x)` scopes for expected output.
+- Test `Same Slot` and `All Blocks` scopes for expected output.
 
 ## Notes
 

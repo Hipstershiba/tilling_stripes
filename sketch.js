@@ -3728,12 +3728,12 @@ function setupUI(mainCanvas) {
   
   // Scope Descriptions
   const SCOPE_DESCRIPTIONS = {
-    'single': '<strong style="color: #fff;">Single Tile</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update only the tile you click.</span>',
-    'supertile': '<strong style="color: #fff;">Block (2x2)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the entire 2x2 group.</span>',
-    'global_exact': '<strong style="color: #fff;">Global Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update ALL tiles of this type entirely.</span>',
-    'global_pos': '<strong style="color: #fff;">Grid Position</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update this specific slot in ALL blocks.</span>',
-    'global_pos_sym': '<strong style="color: #fff;">Symmetry (4x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update all 4 symmetric slots in ALL blocks.</span>',
-    'global_pos_sym8': '<strong style="color: #fff;">Symmetry (8x)</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Update the same slot across the 8 dihedral-symmetric block positions.</span>'
+    'single': '<strong style="color: #fff;">Tile</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit only the subtile you click. One cell, one block.</span>',
+    'supertile': '<strong style="color: #fff;">Block</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile slot across all 4 mirrored quadrants of this block.</span>',
+    'global_exact': '<strong style="color: #fff;">Same Type</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
+    'global_pos': '<strong style="color: #fff;">Same Slot</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
+    'global_pos_sym': '<strong style="color: #fff;">All Blocks</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile slot in ALL 4 quadrants of EVERY block — full grid coverage.</span>',
+    'global_pos_sym8': '<strong style="color: #fff;">Dihedral 8</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position across the 8 dihedral-symmetric block positions.</span>'
   };
 
   // Set initial tooltip

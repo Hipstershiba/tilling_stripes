@@ -1524,6 +1524,15 @@ body.assets-focus #exportActions {
   /* Let clicks pass through */
 }
 
+.scope-divider {
+  width: 1px;
+  min-height: 24px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
 #scopeDesc {
   font-size: 0.75rem;
   color: #aaa;
