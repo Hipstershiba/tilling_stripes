@@ -5386,7 +5386,13 @@ function handleTileClick(mx, my, modeOverride = null) {
         // Second click: apply the pattern
         for (let q = 0; q < 4; q++) {
           supertile.tiles[q].types = [...stampPattern.quadrants[q]];
-          refreshTile(supertile.tiles[q]);
+          // Inline refreshTile to avoid TDZ issue with const below
+          const _t = supertile.tiles[q];
+          _t.subtiles = [];
+          if (_t.buffer) _t.buffer.remove();
+          _t.buffer = createGraphics(_t.w, _t.h);
+          _t.create_subtiles();
+          _t.render_to_buffer();
         }
         pushEditState();
         if (descEl) {
