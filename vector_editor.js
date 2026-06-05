@@ -668,22 +668,23 @@ const vecEditor = {
 
     if (this.tool === 'direct') {
       let hit = this.hitTest(mx, my);
-      this.deselectAll();
+      if (!e.shiftKey) this.deselectAll();
       this.selectedPoint = null;
       if (hit) {
         if (hit.point !== undefined) {
-          // Clicked a point
           hit.shape.selected = true;
           this.selectedPoint = { shape: hit.shape, pointIdx: hit.point };
         } else if (hit.handle) {
-          // Clicked a bezier handle
           hit.shape.selected = true;
           this.selectedPoint = { shape: hit.shape, pointIdx: hit.handlePoint };
           let hp = this.getHandlePositions(hit.shape, hit.handlePoint);
           this.dragPoint = { shape: hit.shape, pointIdx: hit.handlePoint, handle: hit.handle, startX: mx, startY: my, origHandle: { ...hit.shape.points[hit.handlePoint][hit.handle] } };
         } else {
-          // Clicked a shape body
-          hit.shape.selected = true;
+          if (e.shiftKey) {
+            hit.shape.selected = !hit.shape.selected;
+          } else {
+            hit.shape.selected = true;
+          }
         }
       }
       this.render();
@@ -694,8 +695,12 @@ const vecEditor = {
     if (this.tool === 'select') {
       let hit = this.hitTest(mx, my);
       if (hit) {
-        this.deselectAll();
-        hit.shape.selected = true;
+        if (!e.shiftKey) this.deselectAll();
+        if (e.shiftKey && hit.shape.selected) {
+          hit.shape.selected = false;
+        } else {
+          hit.shape.selected = true;
+        }
         this.syncPropsToUI();
         if (hit.handle) {
           this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...hit.shape.bounds} };
@@ -705,7 +710,7 @@ const vecEditor = {
         this.render();
         this.updateLayersUI();
       } else {
-        this.deselectAll();
+        if (!e.shiftKey) this.deselectAll();
         this.render();
       }
     } else if (this.tool === 'pen') {
