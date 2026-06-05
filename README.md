@@ -27,7 +27,7 @@ Interactive generative art tool for creating mirrored tiling compositions with e
   - `Same Type` (Global Match)
   - `Same Slot` (Grid Position)
   - `All Blocks` (Symmetry 4x)
-  - `Dihedral 8` (Symmetry 8x)
+  - `Mirror Group` (Symmetry Orbit)
 - **History Systems**:
   - Generation history (seed/grid states)
   - Edit history (undo/redo snapshots)
@@ -61,7 +61,7 @@ For a complete technical walkthrough (architecture, maintenance routines, backup
 | **Same Type** | All subtiles matching this pattern anywhere in the grid |
 | **Same Slot** | Same visual position (mirror-aware) in every supertile |
 | **All Blocks** | Same subtile slot in ALL 4 quadrants of EVERY supertile |
-| **Dihedral 8** | Same visual position across 8 dihedral-symmetric positions |
+| **Mirror Group** | Same visual position in all symmetry-orbit supertiles (depends on grid's symmetry mode) |
 
 ## Upload Your Own SVG Tiles
 

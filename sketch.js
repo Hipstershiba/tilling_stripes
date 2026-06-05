@@ -3733,7 +3733,7 @@ function setupUI(mainCanvas) {
     'global_exact': '<strong style="color: #fff;">Same Type</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
     'global_pos': '<strong style="color: #fff;">Same Slot</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
     'global_pos_sym': '<strong style="color: #fff;">All Blocks</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile slot in ALL 4 quadrants of EVERY block — full grid coverage.</span>',
-    'global_pos_sym8': '<strong style="color: #fff;">Dihedral 8</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position across the 8 dihedral-symmetric block positions.</span>'
+    'global_pos_sym8': '<strong style="color: #fff;">Mirror Group</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same slot in all supertiles that share a symmetry orbit — respects the grid\'s symmetry mode (Bilateral Mirror or Center Orbit).</span>'
   };
 
   // Set initial tooltip
@@ -4678,34 +4678,57 @@ function mapVisualTargetToLogical(supertile, visualQuadrant, visualSubtileDispla
   };
 }
 
-function getSymmetry8SupertileIndices(anchorIndex) {
+function getTransformCellCoords(row, col, rows, cols, transformKey) {
+  if (transformKey === 'id') return [row, col];
+  if (transformKey === 'r90') return [col, rows - 1 - row];
+  if (transformKey === 'r180') return [rows - 1 - row, cols - 1 - col];
+  if (transformKey === 'r270') return [cols - 1 - col, row];
+  if (transformKey === 'mx') return [row, cols - 1 - col];
+  if (transformKey === 'my') return [rows - 1 - row, col];
+  if (transformKey === 'md') return [col, row];
+  if (transformKey === 'mad') return [rows - 1 - col, cols - 1 - row];
+  return [row, col];
+}
+
+function getGenerationTransforms(rows, cols, symmetryMode) {
+  const D4 = ['id', 'r90', 'r180', 'r270', 'mx', 'my', 'md', 'mad'];
+  const D2_RECT = ['id', 'r180', 'mx', 'my'];
+  if (symmetryMode === 'rotational_orbit' && rows !== cols) return D2_RECT;
+  return D4;
+}
+
+/**
+ * Returns the symmetry orbit for a grid cell — the group of (row,col) positions
+ * that are equivalent under the current generation symmetry mode.
+ * Used by the Mirror Group edit scope.
+ */
+function getSymmetryOrbitIndices(row, col) {
+  let transforms = getGenerationTransforms(rows, cols, generationSymmetryMode);
+  let unique = [];
+  let seen = new Set();
+  for (let key of transforms) {
+    let [r, c] = getTransformCellCoords(row, col, rows, cols, key);
+    if (r < 0 || r >= rows || c < 0 || c >= cols) continue;
+    let k = `${r},${c}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    unique.push(r * cols + c);
+  }
+  return unique;
+}
+
+function getSymmetryOrbitPreviewTargets(anchorIndex, subtileInfo) {
   let anchorRow = floor(anchorIndex / cols);
   let anchorCol = anchorIndex % cols;
-
-  let candidates = [
-    [anchorRow, anchorCol],
-    [anchorCol, rows - 1 - anchorRow],
-    [rows - 1 - anchorRow, cols - 1 - anchorCol],
-    [cols - 1 - anchorCol, anchorRow],
-    [anchorRow, cols - 1 - anchorCol],
-    [rows - 1 - anchorRow, anchorCol],
-    [anchorCol, anchorRow],
-    [rows - 1 - anchorCol, cols - 1 - anchorRow]
-  ];
-
-  let uniqueIndices = [];
-  let seen = new Set();
-
-  for (let [row, col] of candidates) {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) continue;
-    let index = row * cols + col;
-    if (index < 0 || index >= tiles.length) continue;
-    if (seen.has(index)) continue;
-    seen.add(index);
-    uniqueIndices.push(index);
+  let orbitIndices = getSymmetryOrbitIndices(anchorRow, anchorCol);
+  let targets = [];
+  for (let idx of orbitIndices) {
+    let s = tiles[idx];
+    if (!s) continue;
+    let mapped = mapVisualTargetToLogical(s, subtileInfo.visualQuadrant, subtileInfo.visualSubtileDisplayIndex);
+    targets.push({ supertileIndex: idx, quadrant: mapped.quadrant, subtileIndex: mapped.subtileIndex });
   }
-
-  return uniqueIndices;
+  return targets;
 }
 
 function buildScopePreviewTargets(hitInfo) {
@@ -4750,7 +4773,10 @@ function buildScopePreviewTargets(hitInfo) {
       }
     }
   } else if (interactionScope === 'global_pos_sym8') {
-    let symmetryIndices = getSymmetry8SupertileIndices(hitInfo.index);
+    let symmetryIndices = getSymmetryOrbitIndices(
+      floor(hitInfo.index / cols),
+      hitInfo.index % cols
+    );
     for (let supertileIndex of symmetryIndices) {
       let mapped = mapVisualTargetToLogical(
         tiles[supertileIndex],
@@ -5416,9 +5442,8 @@ function handleTileClick(mx, my, modeOverride = null) {
             }
         }
     } else if (interactionScope === 'global_pos_sym8') {
-        // Global Equivalent by Position (Symmetric 8x / Dihedral):
-      // Update the same visual slot in the 8 symmetric supertile positions.
-      let symmetryIndices = getSymmetry8SupertileIndices(index);
+        // Mirror Group: same slot in all symmetry-orbit supertiles (respects grid mode)
+      let symmetryIndices = getSymmetryOrbitIndices(floor(index / cols), index % cols);
       for (let supertileIndex of symmetryIndices) {
         let s = tiles[supertileIndex];
         let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
