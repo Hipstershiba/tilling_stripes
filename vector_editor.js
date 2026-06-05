@@ -659,7 +659,11 @@ const vecEditor = {
 // ── Initialize on tab switch ──
 window.addEventListener('tabChanged', (e) => {
   if (e.detail.tab === 'vector') {
-    if (!vecEditor.canvas) vecEditor.init();
-    else { vecEditor.resize(); vecEditor.render(); }
+    try {
+      if (!vecEditor.canvas || !vecEditor.canvas.isConnected) vecEditor.init();
+      else { vecEditor.resize(); vecEditor.render(); }
+    } catch (err) {
+      console.error('Vector Editor init error:', err);
+    }
   }
 });

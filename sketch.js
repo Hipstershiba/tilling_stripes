@@ -3733,17 +3733,27 @@ function setupUI(mainCanvas) {
        updateCanvasStatusHint();
        updateCanvasCursor();
        redraw();
-     } else {
-         setAssetsManagerMode(true);
-         interactionMode = 'none';
-         zoomToolActive = false;
-         updateEditUI();
-       refreshAssetsManagerUI();
-       updateHoverPreview();
-       updateCanvasStatusHint();
-       updateCanvasCursor();
-       redraw();
-     }
+     } else if (tab === 'assets') {
+             setAssetsManagerMode(true);
+             interactionMode = 'none';
+             zoomToolActive = false;
+             updateEditUI();
+           refreshAssetsManagerUI();
+           updateHoverPreview();
+           updateCanvasStatusHint();
+           updateCanvasCursor();
+           redraw();
+         } else {
+             // 'vector' or any future tab — no assets mode, just idle
+             setAssetsManagerMode(false);
+             interactionMode = 'none';
+             zoomToolActive = false;
+             updateEditUI();
+           updateHoverPreview();
+           updateCanvasStatusHint();
+           updateCanvasCursor();
+           redraw();
+         }
   });
   
   // Set initial UI state
