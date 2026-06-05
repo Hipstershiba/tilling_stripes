@@ -20,7 +20,7 @@ class VecShape {
   get bounds() {
     if (this.type === 'polygon' || this.type === 'path') {
       if (this.points.length === 0) return { x: this.x, y: this.y, w: 0, h: 0 };
-      let xs = this.points.map(p => p.x), ys = this.points.map(p => p.y);
+      let xs = this.points.map(p => this.x + p.x), ys = this.points.map(p => this.y + p.y);
       let minX = Math.min(...xs), maxX = Math.max(...xs);
       let minY = Math.min(...ys), maxY = Math.max(...ys);
       return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
@@ -35,6 +35,19 @@ class VecShape {
       let cx = b.x + b.w / 2, cy = b.y + b.h / 2;
       let dx = (px - cx) / (b.w / 2), dy = (py - cy) / (b.h / 2);
       return dx * dx + dy * dy <= 1;
+    }
+    if ((this.type === 'polygon' || this.type === 'path') && this.points.length >= 3) {
+      // Ray casting algorithm for point-in-polygon
+      let pts = this.points.map(p => ({ x: this.x + p.x, y: this.y + p.y }));
+      let inside = false;
+      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        let xi = pts[i].x, yi = pts[i].y;
+        let xj = pts[j].x, yj = pts[j].y;
+        if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) {
+          inside = !inside;
+        }
+      }
+      return inside;
     }
     return true;
   }
@@ -232,10 +245,9 @@ const vecEditor = {
   // ── Finish pen/polygon path ──
   finishPath() {
     if (this.penPoints.length < 2) return;
-    let type = this.tool === 'pen' ? 'path' : 'polygon';
-    let shape = new VecShape(type);
+    let shape = new VecShape('path');
     shape.points = [...this.penPoints];
-    shape.closed = type === 'polygon';
+    shape.closed = false;
     let cx = this.penPoints.reduce((s, p) => s + p.x, 0) / this.penPoints.length;
     let cy = this.penPoints.reduce((s, p) => s + p.y, 0) / this.penPoints.length;
     shape.x = cx;
@@ -288,7 +300,6 @@ const vecEditor = {
   // ── Get shape points in absolute canvas coords ──
   getShapePoints(shape) {
     if (!shape.points || shape.points.length === 0) return [];
-    let s = 1 / this.zoom;
     return shape.points.map(p => ({
       x: (shape.x + p.x),
       y: (shape.y + p.y)
@@ -456,7 +467,7 @@ const vecEditor = {
     }
 
     // Pen preview
-    if ((this.tool === 'pen' || this.tool === 'polygon') && this.penPoints.length > 0) {
+    if (this.tool === 'pen' && this.penPoints.length > 0) {
       ctx.strokeStyle = '#4CAF50';
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);
@@ -464,7 +475,7 @@ const vecEditor = {
       ctx.moveTo(this.penPoints[0].x, this.penPoints[0].y);
       for (let i = 1; i < this.penPoints.length; i++)
         ctx.lineTo(this.penPoints[i].x, this.penPoints[i].y);
-      if (this.tool === 'polygon' || this.penPoints.length > 1) ctx.closePath();
+      if (this.penPoints.length > 1) ctx.closePath();
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -507,7 +518,7 @@ const vecEditor = {
         else if (e.key === 'g' || e.key === 'G') this.setTool('polygon');
         else if (e.key === 'Delete' || e.key === 'Backspace') this.deleteSelected();
         else if (e.key === 'Escape') { this.deselectAll(); this.penPoints = []; this.render(); }
-        else if (e.key === 'Enter' && (this.tool === 'pen' || this.tool === 'polygon')) {
+        else if (e.key === 'Enter' && this.tool === 'pen') {
           this.finishPath();
           e.preventDefault();
         }
@@ -720,8 +731,7 @@ const vecEditor = {
         this.render();
       }
     } else if (this.tool === 'polygon') {
-      this.penPoints.push({ x: mx, y: my });
-      this.render();
+      this.dragState = { tool: 'polygon', startX: mx, startY: my };
     } else if (this.tool === 'rect') {
       this.dragState = { tool: 'rect', startX: mx, startY: my };
     } else if (this.tool === 'ellipse') {
@@ -790,6 +800,10 @@ const vecEditor = {
         this.dragState.w = mx - this.dragState.startX;
         this.dragState.h = my - this.dragState.startY;
         this.renderPreview(this.dragState);
+      } else if (this.dragState.tool === 'polygon') {
+        this.dragState.w = mx - this.dragState.startX;
+        this.dragState.h = my - this.dragState.startY;
+        this.renderPreview(this.dragState);
       }
     } else {
       // Update cursor
@@ -835,6 +849,26 @@ const vecEditor = {
           shape.h = h;
           this.addShape(shape);
         }
+      } else if (this.dragState.tool === 'polygon') {
+        let dx = this.dragState.w || 0;
+        let dy = this.dragState.h || 0;
+        let radius = Math.sqrt(dx * dx + dy * dy);
+        if (radius > 5) {
+          let sides = parseInt(document.getElementById('vecPolySides').value) || 6;
+          let shape = new VecShape('polygon');
+          shape.x = this.dragState.startX;
+          shape.y = this.dragState.startY;
+          shape.closed = true;
+          shape.points = [];
+          for (let i = 0; i < sides; i++) {
+            let angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+            shape.points.push({
+              x: Math.cos(angle) * radius,
+              y: Math.sin(angle) * radius
+            });
+          }
+          this.addShape(shape);
+        }
       }
       this.dragState = null;
       this.render();
@@ -847,17 +881,6 @@ const vecEditor = {
       shape.points = [...this.penPoints];
       shape.closed = false;
       // Center the shape at the centroid
-      let cx = this.penPoints.reduce((s, p) => s + p.x, 0) / this.penPoints.length;
-      let cy = this.penPoints.reduce((s, p) => s + p.y, 0) / this.penPoints.length;
-      shape.x = cx;
-      shape.y = cy;
-      for (let p of shape.points) { p.x -= cx; p.y -= cy; }
-      this.addShape(shape);
-      this.penPoints = [];
-    } else if (this.tool === 'polygon' && this.penPoints.length >= 2) {
-      let shape = new VecShape('polygon');
-      shape.points = [...this.penPoints];
-      shape.closed = true;
       let cx = this.penPoints.reduce((s, p) => s + p.x, 0) / this.penPoints.length;
       let cy = this.penPoints.reduce((s, p) => s + p.y, 0) / this.penPoints.length;
       shape.x = cx;
@@ -881,6 +904,27 @@ const vecEditor = {
     ctx.globalAlpha = 0.15;
     if (state.tool === 'rect') {
       ctx.fillRect(x, y, w, h);
+    } else if (state.tool === 'polygon') {
+      let sides = parseInt(document.getElementById('vecPolySides').value) || 6;
+      let radius = Math.sqrt((state.w || 0) ** 2 + (state.h || 0) ** 2);
+      let cx = state.startX, cy = state.startY;
+      ctx.beginPath();
+      for (let i = 0; i < sides; i++) {
+        let angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+        let px = cx + Math.cos(angle) * radius;
+        let py = cy + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#4CAF50';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+      return;
     } else {
       ctx.beginPath(); ctx.ellipse(x + w/2, y + h/2, w/2, h/2, 0, 0, Math.PI*2); ctx.fill();
     }
