@@ -3772,8 +3772,15 @@ function setupUI(mainCanvas) {
     'bl': 'BL Quadrant',
     'br': 'BR Quadrant'
   };
+  const RADIAL_VARIANTS = ['global_radial', 'global_wedge', 'global_cascade', 'global_alternate'];
+  const isRadialScope = (s) => RADIAL_VARIANTS.includes(s);
   const getRadialDesc = () =>
-    '<strong style="color: #fff;">Radial</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit all blocks at the same radial distance from the <strong>' +
+    '<strong style="color: #fff;">' + ({
+      'global_radial': 'Radial',
+      'global_wedge': 'Wedge',
+      'global_cascade': 'Cascade',
+      'global_alternate': 'Alternate'
+    }[interactionScope] || 'Radial') + '</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit from the <strong>' +
     (RADIAL_CENTER_LABELS[radialCenterMode] || 'Grid Center') +
     '</strong>. Click again to cycle center.</span>';
 
@@ -3787,7 +3794,7 @@ function setupUI(mainCanvas) {
             let wasActive = btn.hasClass('active');
 
             // Radial center cycle: clicking again while active cycles the center
-            if (scope === 'global_radial' && wasActive) {
+            if (isRadialScope(scope) && wasActive) {
               const order = ['center', 'tl', 'tr', 'bl', 'br'];
               let idx = order.indexOf(radialCenterMode);
               radialCenterMode = order[(idx + 1) % order.length];
@@ -3806,7 +3813,7 @@ function setupUI(mainCanvas) {
             // Update description
             let descDiv = select('#scopeDesc');
             if (descDiv) {
-              if (interactionScope === 'global_radial') {
+              if (isRadialScope(interactionScope)) {
                 descDiv.html(getRadialDesc());
               } else if (SCOPE_DESCRIPTIONS[interactionScope]) {
                 descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
@@ -3822,7 +3829,7 @@ function setupUI(mainCanvas) {
              let scope = btn.attribute('data-scope');
              let descDiv = select('#scopeDesc');
              if (descDiv) {
-               if (scope === 'global_radial') {
+               if (isRadialScope(scope)) {
                  descDiv.html(getRadialDesc());
                } else if (SCOPE_DESCRIPTIONS[scope]) {
                  descDiv.html(SCOPE_DESCRIPTIONS[scope]);
@@ -3834,7 +3841,7 @@ function setupUI(mainCanvas) {
              // Revert to active scope description
              let descDiv = select('#scopeDesc');
              if (descDiv) {
-               if (interactionScope === 'global_radial') {
+               if (isRadialScope(interactionScope)) {
                  descDiv.html(getRadialDesc());
                } else if (SCOPE_DESCRIPTIONS[interactionScope]) {
                  descDiv.html(SCOPE_DESCRIPTIONS[interactionScope]);
@@ -4815,17 +4822,20 @@ function getSymmetryOrbitPreviewTargets(anchorIndex, subtileInfo) {
   return targets;
 }
 
-// Gets all supertile indices in the same radial ring from a configurable center
-// centerMode: 'center' (grid geometric center), 'tl'/'tr'/'bl'/'br' (quadrant centers)
-function getRadialRingIndices(col, row) {
-  let cx, cy;
+// Gets the current radial center coordinates based on radialCenterMode
+function getRadialCenter() {
   switch (radialCenterMode) {
-    case 'tl': cx = (cols / 2 - 1) / 2; cy = (rows / 2 - 1) / 2; break;
-    case 'tr': cx = cols - 1 - (cols / 2 - 1) / 2; cy = (rows / 2 - 1) / 2; break;
-    case 'bl': cx = (cols / 2 - 1) / 2; cy = rows - 1 - (rows / 2 - 1) / 2; break;
-    case 'br': cx = cols - 1 - (cols / 2 - 1) / 2; cy = rows - 1 - (rows / 2 - 1) / 2; break;
-    default:   cx = (cols - 1) / 2; cy = (rows - 1) / 2; break;
+    case 'tl': return { cx: (cols / 2 - 1) / 2, cy: (rows / 2 - 1) / 2 };
+    case 'tr': return { cx: cols - 1 - (cols / 2 - 1) / 2, cy: (rows / 2 - 1) / 2 };
+    case 'bl': return { cx: (cols / 2 - 1) / 2, cy: rows - 1 - (rows / 2 - 1) / 2 };
+    case 'br': return { cx: cols - 1 - (cols / 2 - 1) / 2, cy: rows - 1 - (rows / 2 - 1) / 2 };
+    default:   return { cx: (cols - 1) / 2, cy: (rows - 1) / 2 };
   }
+}
+
+// Gets all supertile indices in the same radial ring from a configurable center
+function getRadialRingIndices(col, row) {
+  let { cx, cy } = getRadialCenter();
   let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
   let refRing = round(refDist);
   let indices = [];
@@ -4833,6 +4843,61 @@ function getRadialRingIndices(col, row) {
     for (let c = 0; c < cols; c++) {
       let d = sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
       if (round(d) === refRing) {
+        indices.push(r * cols + c);
+      }
+    }
+  }
+  return indices;
+}
+
+// Wedge: selects supertiles in the same angular sector (4 sectors: NE, NW, SW, SE)
+function getWedgeIndices(col, row) {
+  let { cx, cy } = getRadialCenter();
+  let angle = atan2(row - cy, col - cx); // -PI to PI
+  // 4 sectors mapped to angle ranges
+  // NE: -PI/4 to PI/4   (0), NW: PI/4 to 3*PI/4   (1)
+  // SW: 3*PI/4 to PI or -PI to -3*PI/4  (2), SE: -3*PI/4 to -PI/4 (3)
+  let sector = floor(((angle / PI) + 1) * 2) % 4;
+  let indices = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let a = atan2(r - cy, c - cx);
+      let s = floor(((a / PI) + 1) * 2) % 4;
+      if (s === sector) {
+        indices.push(r * cols + c);
+      }
+    }
+  }
+  return indices;
+}
+
+// Cascade: selects supertiles from center ring up to the clicked ring
+function getCascadeIndices(col, row) {
+  let { cx, cy } = getRadialCenter();
+  let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
+  let refRing = round(refDist);
+  let indices = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let d = round(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
+      if (d <= refRing) {
+        indices.push(r * cols + c);
+      }
+    }
+  }
+  return indices;
+}
+
+// Alternate: selects supertiles at rings with the same parity as the clicked ring
+function getAlternateIndices(col, row) {
+  let { cx, cy } = getRadialCenter();
+  let refDist = sqrt((col - cx) * (col - cx) + (row - cy) * (row - cy));
+  let parity = round(refDist) % 2;
+  let indices = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let d = round(sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy)));
+      if (d % 2 === parity) {
         indices.push(r * cols + c);
       }
     }
@@ -4904,6 +4969,27 @@ function buildScopePreviewTargets(hitInfo) {
     }
   } else if (interactionScope === 'global_radial') {
     let indices = getRadialRingIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
+    for (let supertileIndex of indices) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
+    }
+  } else if (interactionScope === 'global_wedge') {
+    let indices = getWedgeIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
+    for (let supertileIndex of indices) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
+    }
+  } else if (interactionScope === 'global_cascade') {
+    let indices = getCascadeIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
+    for (let supertileIndex of indices) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
+    }
+  } else if (interactionScope === 'global_alternate') {
+    let indices = getAlternateIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
     for (let supertileIndex of indices) {
       for (let quadrant = 0; quadrant < 4; quadrant++) {
         pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
@@ -5629,6 +5715,9 @@ function handleTileClick(mx, my, modeOverride = null) {
         || interactionScope === 'global_pos_sym'
         || interactionScope === 'global_pos_sym8'
         || interactionScope === 'global_radial'
+        || interactionScope === 'global_wedge'
+        || interactionScope === 'global_cascade'
+        || interactionScope === 'global_alternate'
       );
       if (!isBatchMirrorScope) return;
     }
@@ -5718,6 +5807,45 @@ function handleTileClick(mx, my, modeOverride = null) {
       }
     } else if (interactionScope === 'global_radial') {
       let indices = getRadialRingIndices(index % cols, floor(index / cols));
+      for (let supertileIndex of indices) {
+        let s = tiles[supertileIndex];
+        if (!s) continue;
+        for (let t of s.tiles) {
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[baseTileSubtileIndex])
+            : newType;
+          t.types[baseTileSubtileIndex] = nextType;
+          refreshTile(t);
+        }
+      }
+    } else if (interactionScope === 'global_wedge') {
+      let indices = getWedgeIndices(index % cols, floor(index / cols));
+      for (let supertileIndex of indices) {
+        let s = tiles[supertileIndex];
+        if (!s) continue;
+        for (let t of s.tiles) {
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[baseTileSubtileIndex])
+            : newType;
+          t.types[baseTileSubtileIndex] = nextType;
+          refreshTile(t);
+        }
+      }
+    } else if (interactionScope === 'global_cascade') {
+      let indices = getCascadeIndices(index % cols, floor(index / cols));
+      for (let supertileIndex of indices) {
+        let s = tiles[supertileIndex];
+        if (!s) continue;
+        for (let t of s.tiles) {
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[baseTileSubtileIndex])
+            : newType;
+          t.types[baseTileSubtileIndex] = nextType;
+          refreshTile(t);
+        }
+      }
+    } else if (interactionScope === 'global_alternate') {
+      let indices = getAlternateIndices(index % cols, floor(index / cols));
       for (let supertileIndex of indices) {
         let s = tiles[supertileIndex];
         if (!s) continue;
