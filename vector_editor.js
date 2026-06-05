@@ -181,9 +181,17 @@ const vecEditor = {
 
   addShape(shape) {
     shape.id = this.nextId++;
+    // Apply current fill/stroke/width from UI
+    shape.fill = document.getElementById('vecFillColor').value;
+    shape.stroke = document.getElementById('vecStrokeColor').value;
+    shape.strokeWidth = parseFloat(document.getElementById('vecStrokeWidth').value) || 2;
     this.activeLayer.shapes.push(shape);
     this.render();
     this.updateLayersUI();
+  },
+
+  selectedShapes() {
+    return this.activeLayer.shapes.filter(s => s.selected);
   },
 
   // ── Hit Testing ──
@@ -317,11 +325,34 @@ const vecEditor = {
     // Export
     document.getElementById('vecExportTile').addEventListener('click', () => this.exportTile());
 
+    // Fill / Stroke / Width
+    document.getElementById('vecFillColor').addEventListener('input', () => {
+      if (this.selectedShapes().length) {
+        for (let s of this.selectedShapes()) s.fill = document.getElementById('vecFillColor').value;
+        this.render();
+      }
+    });
+    document.getElementById('vecStrokeColor').addEventListener('input', () => {
+      if (this.selectedShapes().length) {
+        for (let s of this.selectedShapes()) s.stroke = document.getElementById('vecStrokeColor').value;
+        this.render();
+      }
+    });
+    document.getElementById('vecStrokeWidth').addEventListener('change', () => {
+      let w = parseFloat(document.getElementById('vecStrokeWidth').value);
+      if (this.selectedShapes().length) {
+        for (let s of this.selectedShapes()) s.strokeWidth = w;
+        this.render();
+      }
+    });
+
     this.updateLayersUI();
   },
 
   updateLayersUI() {
     let list = document.getElementById('vecLayersList');
+    let nameEl = document.getElementById('vecActiveLayerName');
+    nameEl.textContent = this.activeLayer ? this.activeLayer.name : 'No layer';
     list.innerHTML = '';
     this.layers.forEach((layer, idx) => {
       let div = document.createElement('div');

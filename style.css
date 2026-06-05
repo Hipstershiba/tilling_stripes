@@ -2162,138 +2162,82 @@ button.locked {
    Vector Editor Tab
    ══════════════════════════════════════ */
 
-#tab-vector {
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-#tab-vector .vector-editor {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 6px;
-  padding: 8px;
-}
-
-/* Toolbar */
-#tab-vector .vector-toolbar {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  background: #252525;
-  border-radius: 6px;
-  padding: 4px 6px;
-  flex-wrap: wrap;
-}
-
-#tab-vector .vec-btn {
-  background: transparent;
-  border: 1px solid transparent;
-  color: #aaa;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.15s;
-}
-#tab-vector .vec-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-}
-#tab-vector .vec-btn.active {
-  background: #444;
-  color: #2196F3;
-  border-color: #2196F3;
-}
-#tab-vector .vec-sep {
-  display: inline-block;
-  width: 1px;
-  height: 20px;
-  background: #444;
-  margin: 0 4px;
-}
-
-/* Workspace: layers + canvas */
-#tab-vector .vec-workspace {
-  display: flex;
-  flex: 1;
+#tab-vector.tab-content.active {
+  overflow-y: hidden;
   gap: 8px;
-  min-height: 0;
 }
 
-/* Layers Panel */
-#tab-vector .vec-layers-panel {
-  width: 160px;
-  flex-shrink: 0;
-  background: #1e1e1e;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
+#tab-vector.tab-content {
+  --vec-layers-min: 180px;
+  --vec-layers-max: 220px;
+  --vec-props-min: 180px;
+  --vec-props-max: 240px;
+  padding: 2px 6px 8px 2px;
+  box-sizing: border-box;
+  scrollbar-gutter: auto;
   overflow: hidden;
 }
 
-#tab-vector .vec-layers-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 10px;
-  background: #252525;
-  font-size: 0.8rem;
-  color: #aaa;
-  border-bottom: 1px solid #333;
+#tab-vector .assets-main-grid {
+  grid-template-columns:
+    minmax(var(--vec-layers-min), var(--vec-layers-max)) 1fr minmax(var(--vec-props-min), var(--vec-props-max));
 }
 
-#tab-vector .vec-btn-sm {
-  background: transparent;
-  border: 1px solid #444;
-  color: #aaa;
-  width: 22px;
-  height: 22px;
+#tab-vector .assets-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tab-vector .assets-main-grid>.control-group,
+#tab-vector .assets-side-stack>.control-group {
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #2b2b2b;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#tab-vector .assets-main-grid>.control-group>.group-content,
+#tab-vector .assets-side-stack>.control-group>.group-content {
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+#tab-vector .assets-main-grid>.control-group:first-child>.group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+}
+
+#tab-vector .control-group {
+  padding: 8px;
+  gap: 5px;
+}
+
+#tab-vector .group-content {
+  gap: 5px;
+}
+
+/* Canvas toolbar row */
+#tab-vector .vec-canvas-toolbar {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  background: #333;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#tab-vector .vec-btn-sm:hover { background: rgba(255,255,255,0.1); color: #fff; }
-
-#tab-vector .vec-layers-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px;
+  padding: 3px 4px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
-#tab-vector .vec-layer-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  color: #bbb;
-  transition: background 0.1s;
-  margin-bottom: 2px;
-}
-#tab-vector .vec-layer-item:hover { background: rgba(255,255,255,0.05); }
-#tab-vector .vec-layer-item.active {
-  background: rgba(33, 150, 243, 0.15);
-  color: #2196F3;
-}
-
-#tab-vector .vec-layer-vis { cursor: pointer; font-size: 11px; width: 18px; text-align: center; }
-#tab-vector .vec-layer-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#tab-vector .vec-layer-del { cursor: pointer; opacity: 0.4; font-size: 10px; }
-#tab-vector .vec-layer-del:hover { opacity: 1; color: #f44336; }
-#tab-vector .vec-layer-up, #tab-vector .vec-layer-dn {
-  cursor: pointer; opacity: 0.3; font-size: 10px; padding: 0 2px;
-}
-#tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
-
-/* Canvas */
+/* Canvas wrap */
 #tab-vector .vec-canvas-wrap {
   flex: 1;
   display: flex;
@@ -2323,3 +2267,73 @@ button.locked {
   color: #555;
   pointer-events: none;
 }
+
+/* Tool buttons */
+#tab-vector .vec-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #aaa;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+#tab-vector .vec-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+#tab-vector .vec-btn.active { background: #444; color: #2196F3; border-color: #2196F3; }
+
+#tab-vector .vec-sep {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background: #444;
+  margin: 0 3px;
+}
+
+/* Layers list */
+#tab-vector .vec-layers-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 80px;
+}
+
+#tab-vector .vec-layer-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #bbb;
+  transition: background 0.1s;
+  margin-bottom: 2px;
+}
+
+#tab-vector .vec-layer-item:hover { background: rgba(255,255,255,0.05); }
+#tab-vector .vec-layer-item.active { background: rgba(33, 150, 243, 0.15); color: #2196F3; }
+#tab-vector .vec-layer-vis { cursor: pointer; font-size: 11px; width: 18px; text-align: center; }
+#tab-vector .vec-layer-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tab-vector .vec-layer-del { cursor: pointer; opacity: 0.4; font-size: 10px; }
+#tab-vector .vec-layer-del:hover { opacity: 1; color: #f44336; }
+#tab-vector .vec-layer-up, #tab-vector .vec-layer-dn {
+  cursor: pointer; opacity: 0.3; font-size: 10px; padding: 0 2px;
+}
+#tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
+
+#tab-vector .vec-btn-sm {
+  background: transparent;
+  border: 1px solid #444;
+  color: #aaa;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tab-vector .vec-btn-sm:hover { background: rgba(255,255,255,0.1); color: #fff; }
