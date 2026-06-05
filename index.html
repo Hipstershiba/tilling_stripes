@@ -11,6 +11,8 @@
 
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
+  <script src="path-collector.js"></script>
+  <script src="gcode-exporter.js"></script>
 </head>
 
 <body>
@@ -559,7 +561,82 @@
           </select>
           <button id="btnExport">Export</button>
         </div>
-        <div class="export-hint">PNG raster • SVG vector • GCode (base scaffold)</div>
+        <div class="export-hint">PNG raster • SVG vector • GCode (pen plotter paths)</div>
+      </div>
+
+      <!-- GCode Configuration Panel -->
+      <div class="control-group collapsed no-collapse" id="gcodeConfigGroup">
+        <label>
+          <span>GCode Config</span>
+          <span class="group-summary">Ender 3 V2</span>
+        </label>
+        <div class="group-content gcode-config-content">
+          <div class="gcode-section-label">Bed &amp; Offset (mm)</div>
+          <div class="gcode-row">
+            <label class="gcode-label">Bed W</label>
+            <input type="number" id="gcodeBedW" value="220" step="5" min="1" class="gcode-num">
+            <label class="gcode-label">Bed H</label>
+            <input type="number" id="gcodeBedH" value="220" step="5" min="1" class="gcode-num">
+          </div>
+          <div class="gcode-row">
+            <label class="gcode-label">Offset X</label>
+            <input type="number" id="gcodeOffsetX" value="35" step="1" class="gcode-num">
+            <label class="gcode-label">Offset Y</label>
+            <input type="number" id="gcodeOffsetY" value="23" step="1" class="gcode-num">
+          </div>
+
+          <div class="gcode-section-label">Pen Control (Z height, mm)</div>
+          <div class="gcode-row">
+            <label class="gcode-label">Draw Z</label>
+            <input type="number" id="gcodeDrawZ" value="0.3" step="0.1" min="0" class="gcode-num">
+            <label class="gcode-label">Lift Z</label>
+            <input type="number" id="gcodeLiftZ" value="2.3" step="0.1" min="0" class="gcode-num">
+          </div>
+
+          <div class="gcode-section-label">Feed Rates (mm/min)</div>
+          <div class="gcode-row">
+            <label class="gcode-label">Draw</label>
+            <input type="number" id="gcodeDrawFeed" value="2000" step="500" min="100" class="gcode-num">
+            <label class="gcode-label">Travel</label>
+            <input type="number" id="gcodeLiftFeed" value="6000" step="500" min="100" class="gcode-num">
+          </div>
+
+          <div class="gcode-section-label">Modes</div>
+          <div class="gcode-row">
+            <label class="gcode-label">Pen</label>
+            <select id="gcodePenMode" class="gcode-select">
+              <option value="z">Z‑axis lift</option>
+              <option value="servo">Servo (M3/M5)</option>
+            </select>
+            <label class="gcode-label">Fit</label>
+            <select id="gcodeFitMode" class="gcode-select">
+              <option value="fit">Fit (preserve ratio)</option>
+              <option value="stretch">Stretch to fill</option>
+              <option value="scale">Manual scale</option>
+            </select>
+          </div>
+
+          <div class="gcode-row" id="gcodeScaleRow" style="display:none">
+            <label class="gcode-label">mm/px</label>
+            <input type="number" id="gcodeManualScale" value="0.1" step="0.01" min="0.001" class="gcode-num">
+          </div>
+
+          <div class="gcode-section-label">Options</div>
+          <div class="gcode-row gcode-check-row">
+            <label class="gcode-check-label">
+              <input type="checkbox" id="gcodeEnableHome" checked>
+              G28 (auto home)
+            </label>
+            <label class="gcode-check-label">
+              <input type="checkbox" id="gcodeEnableEndPause" checked>
+              M0 (wait at end)
+            </label>
+          </div>
+
+          <div class="gcode-row" style="justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button id="gcodeResetBtn" class="setup-icon-btn" title="Reset to defaults">Reset</button>
+          </div>
+        </div>
       </div>
     </div>
 

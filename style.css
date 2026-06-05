@@ -2154,3 +2154,95 @@ button.locked {
   background-color: #2e7d32;
   color: #fff;
 }
+
+/* ── GCode Config Panel ─────────────────────────────────────────────────── */
+
+#gcodeConfigGroup {
+  border-top: 1px solid #2a2a2a;
+  margin-top: 4px;
+}
+#gcodeConfigGroup > label {
+  cursor: pointer;
+  user-select: none;
+}
+#gcodeConfigGroup > label span:first-child {
+  color: #b0bec5;
+  font-size: 0.75rem;
+}
+#gcodeConfigGroup.collapsed .group-content {
+  display: none;
+}
+#gcodeConfigGroup:not(.collapsed) .group-content {
+  display: block;
+}
+
+.gcode-config-content {
+  padding: 6px 0 4px 0;
+}
+
+.gcode-section-label {
+  font-size: 0.65rem;
+  color: #78909c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 8px 0 3px 0;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 2px;
+}
+.gcode-section-label:first-child {
+  margin-top: 0;
+}
+
+.gcode-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.gcode-label {
+  font-size: 0.65rem;
+  color: #9aa3ab;
+  min-width: 36px;
+  text-align: right;
+}
+
+.gcode-num {
+  width: 58px;
+  padding: 2px 4px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 3px;
+  color: #ddd;
+  font-size: 0.72rem;
+  text-align: center;
+}
+.gcode-num:focus {
+  border-color: #4a90d9;
+  outline: none;
+}
+
+.gcode-select {
+  width: 88px;
+  padding: 2px 3px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 3px;
+  color: #ddd;
+  font-size: 0.68rem;
+}
+
+.gcode-check-row {
+  gap: 12px;
+}
+.gcode-check-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: #9aa3ab;
+  cursor: pointer;
+}
+.gcode-check-label input[type="checkbox"] {
+  accent-color: #4a90d9;
+}

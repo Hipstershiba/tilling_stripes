@@ -147,6 +147,9 @@ function setup() {
   // Initialize UI controls
   setupUI(canvas);
 
+  // Initialize GCode config panel (load saved settings)
+  gcodeInitUI();
+
   // Populate tile selector
   generateTileThumbnails();
 
@@ -3433,29 +3436,7 @@ function setupUI(mainCanvas) {
   const exportAsGcode = () => {
     try {
       let meta = buildExportMeta();
-      let lines = [
-        '; tilling_stripes GCode export (initial scaffold)',
-        `; seed: ${seed}`,
-        `; canvas: ${width}x${height}`,
-        `; grid: ${meta.currentRows}x${meta.currentCols}`,
-        `; margin: ${margin}`,
-        `; ratio: ${meta.ratio}`,
-        '; NOTE: motion paths/conversion settings will be implemented in a future iteration.',
-        'G21',
-        'G90',
-        'M5',
-        '; No toolpaths generated yet.',
-        'M2'
-      ];
-
-      let blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-      let link = document.createElement('a');
-      link.download = `${meta.basename}.gcode`;
-      link.href = URL.createObjectURL(blob);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      gcodeExportTiles(tiles, width, height);
     } catch (err) {
       console.error('Error saving GCode:', err);
       alert('Error saving GCode. See console for details.');
@@ -3470,6 +3451,25 @@ function setupUI(mainCanvas) {
 
   let btnExport = document.getElementById('btnExport');
   let exportFormatSelect = document.getElementById('exportFormatSelect');
+
+  // Toggle GCode config panel visibility based on format selection
+  if (exportFormatSelect) {
+    const gcodeGroup = document.getElementById('gcodeConfigGroup');
+    const toggleGcodeConfig = () => {
+      if (!gcodeGroup) return;
+      if (exportFormatSelect.value === 'gcode') {
+        gcodeGroup.classList.remove('collapsed');
+        gcodeGroup.classList.add('no-collapse');
+        gcodeGroup.style.display = '';
+      } else {
+        gcodeGroup.classList.add('collapsed');
+        gcodeGroup.style.display = 'none';
+      }
+    };
+    exportFormatSelect.addEventListener('change', toggleGcodeConfig);
+    // Initial state
+    toggleGcodeConfig();
+  }
 
   if (btnExport && exportFormatSelect) {
     btnExport.addEventListener('click', (e) => {
