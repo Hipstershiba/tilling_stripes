@@ -2327,6 +2327,15 @@ button.locked {
   margin: 0 2px;
 }
 
+#tab-vector .vec-zoom-level {
+  font-size: 0.7rem;
+  color: #888;
+  min-width: 36px;
+  text-align: center;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Layers list */
 #tab-vector .vec-layers-list {
   flex: 1;

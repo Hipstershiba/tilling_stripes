@@ -257,6 +257,30 @@ const vecEditor = {
     }
   },
 
+  // ── Zoom ──
+  setZoom(z) {
+    this.zoom = Math.max(0.1, Math.min(10, z));
+    document.getElementById('vecZoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+    this.render();
+  },
+
+  zoomIn() { this.setZoom(this.zoom * 1.25); },
+  zoomOut() { this.setZoom(this.zoom / 1.25); },
+  resetZoom() { this.setZoom(1); },
+
+  // ── Screen coords → canvas coords (accounting for zoom) ──
+  canvasCoords(e) {
+    let rect = this.canvas.getBoundingClientRect();
+    let mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+    let my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+    // Un-apply zoom transform: (coord - center) / zoom + center
+    let cx = this.canvas.width / 2, cy = this.canvas.height / 2;
+    return {
+      x: (mx - cx) / this.zoom + cx,
+      y: (my - cy) / this.zoom + cy
+    };
+  },
+
   // ── Hit Testing ──
   hitTest(px, py) {
     // Check from top (last drawn = top of layer) to bottom
@@ -279,13 +303,19 @@ const vecEditor = {
     let w = this.canvas.width, h = this.canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    // Dark grid background
+    // Dark background
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, w, h);
 
+    // Apply zoom transform (centered)
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(this.zoom, this.zoom);
+    ctx.translate(-w / 2, -h / 2);
+
     // Grid lines
     ctx.strokeStyle = '#2a2a2a';
-    ctx.lineWidth = 0.5;
+    ctx.lineWidth = 0.5 / this.zoom;
     let step = w / this.gridSize;
     for (let i = 0; i <= this.gridSize; i++) {
       let p = i * step;
@@ -295,8 +325,8 @@ const vecEditor = {
 
     // Center cross
     ctx.strokeStyle = '#333';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1 / this.zoom;
+    ctx.setLineDash([4 / this.zoom, 4 / this.zoom]);
     ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
     ctx.setLineDash([]);
@@ -315,15 +345,15 @@ const vecEditor = {
     for (let layer of this.layers) {
       if (!layer.visible) continue;
       for (let shape of layer.shapes) {
-        if (shape.selected) shape.drawHandles(ctx, 1);
+        if (shape.selected) shape.drawHandles(ctx, this.zoom);
       }
     }
 
     // Pen preview
     if ((this.tool === 'pen' || this.tool === 'polygon') && this.penPoints.length > 0) {
       ctx.strokeStyle = '#4CAF50';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 2 / this.zoom;
+      ctx.setLineDash([4 / this.zoom, 4 / this.zoom]);
       ctx.beginPath();
       ctx.moveTo(this.penPoints[0].x, this.penPoints[0].y);
       for (let i = 1; i < this.penPoints.length; i++)
@@ -332,15 +362,16 @@ const vecEditor = {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Draw point dots
       for (let p of this.penPoints) {
         ctx.fillStyle = '#4CAF50';
-        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4 / this.zoom, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.5 / this.zoom;
         ctx.stroke();
       }
     }
+
+    ctx.restore();
 
     this.updateStatus();
   },
@@ -376,6 +407,9 @@ const vecEditor = {
         else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { this.undo(); e.preventDefault(); }
         else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { this.redo(); e.preventDefault(); }
         else if ((e.ctrlKey || e.metaKey) && (e.key === 'a')) { this.selectAll(); e.preventDefault(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) { this.zoomIn(); e.preventDefault(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === '-')) { this.zoomOut(); e.preventDefault(); }
+        else if ((e.ctrlKey || e.metaKey) && e.key === '0') { this.resetZoom(); e.preventDefault(); }
       }
     });
 
@@ -392,6 +426,16 @@ const vecEditor = {
     document.getElementById('vecUnion').addEventListener('click', () => this.booleanOp('union'));
     document.getElementById('vecSubtract').addEventListener('click', () => this.booleanOp('subtract'));
     document.getElementById('vecIntersect').addEventListener('click', () => this.booleanOp('intersect'));
+
+    // Zoom
+    document.getElementById('vecZoomIn').addEventListener('click', () => this.zoomIn());
+    document.getElementById('vecZoomOut').addEventListener('click', () => this.zoomOut());
+    document.getElementById('vecZoomReset').addEventListener('click', () => this.resetZoom());
+    this.canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (e.deltaY < 0) this.zoomIn();
+      else this.zoomOut();
+    });
 
     // Fill / Stroke / Width
     document.getElementById('vecFillColor').addEventListener('input', () => {
@@ -495,9 +539,7 @@ const vecEditor = {
 
   // ── Mouse Handlers ──
   onMouseDown(e) {
-    let rect = this.canvas.getBoundingClientRect();
-    let mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    let my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+    let { x: mx, y: my } = this.canvasCoords(e);
 
     if (this.tool === 'select') {
       let hit = this.hitTest(mx, my);
@@ -533,9 +575,7 @@ const vecEditor = {
   },
 
   onMouseMove(e) {
-    let rect = this.canvas.getBoundingClientRect();
-    let mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    let my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+    let { x: mx, y: my } = this.canvasCoords(e);
 
     if (this.dragState) {
       if (this.dragState.shape && !this.dragState.handle) {
@@ -612,9 +652,7 @@ const vecEditor = {
 
   onDblClick(e) {
     if (this.tool === 'pen' && this.penPoints.length >= 2) {
-      let rect = this.canvas.getBoundingClientRect();
-      let mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-      let my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+      let { x: mx, y: my } = this.canvasCoords(e);
       this.penPoints.push({ x: mx, y: my });
       // Close and create path shape
       let shape = new VecShape('path');
