@@ -559,8 +559,8 @@ const vecEditor = {
             ctx.lineWidth = 1.5 / this.zoom;
             ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, p ? 5 / this.zoom : 3.5 / this.zoom, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
-            // Bezier handles for selected point
-            if (p) {
+            // Bezier handles for selected point (only for path/polygon with points)
+            if (p && shape.points && shape.points[i]) {
               let point = shape.points[i];
               if (point.handleIn) {
                 let hx = shape.x + (point.x + point.handleIn.x);
@@ -590,15 +590,24 @@ const vecEditor = {
       }
     }
 
-    // Pen preview
+    // Pen preview — show points and current drag handle
     if (this.tool === 'pen' && this.penPoints.length > 0) {
       ctx.strokeStyle = '#4CAF50';
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(this.penPoints[0].x, this.penPoints[0].y);
-      for (let i = 1; i < this.penPoints.length; i++)
-        ctx.lineTo(this.penPoints[i].x, this.penPoints[i].y);
+      for (let i = 1; i < this.penPoints.length; i++) {
+        let p = this.penPoints[i];
+        let prev = this.penPoints[i - 1];
+        if (p.handleIn || prev.handleOut) {
+          let cpx = prev.x + (prev.handleOut ? prev.handleOut.x : 0);
+          let cpy = prev.y + (prev.handleOut ? prev.handleOut.y : 0);
+          ctx.bezierCurveTo(cpx, cpy, p.x, p.y, p.x, p.y);
+        } else {
+          ctx.lineTo(p.x, p.y);
+        }
+      }
       if (this.penPoints.length > 1) ctx.closePath();
       ctx.stroke();
       ctx.setLineDash([]);
@@ -610,6 +619,33 @@ const vecEditor = {
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
+      // Show handle preview for last point if it has handles
+      let last = this.penPoints[this.penPoints.length - 1];
+      if (last.handleOut) {
+        let hx2 = last.x + last.handleOut.x;
+        let hy2 = last.y + last.handleOut.y;
+        ctx.strokeStyle = '#4CAF50';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(hx2, hy2); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#4CAF50';
+        ctx.beginPath(); ctx.arc(hx2, hy2, 3, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // Also show pen drag preview when dragging (no points yet)
+    if (this.tool === 'pen' && this.penPoints.length === 0 && this.dragState && this.dragState.penDown && this.dragState.dragged) {
+      ctx.strokeStyle = '#4CAF50';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(this.dragState.startX, this.dragState.startY);
+      ctx.lineTo(this.dragState.dragX, this.dragState.dragY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#4CAF50';
+      ctx.beginPath(); ctx.arc(this.dragState.dragX, this.dragState.dragY, 3, 0, Math.PI * 2); ctx.fill();
     }
 
     ctx.restore();
@@ -814,6 +850,19 @@ const vecEditor = {
   onMouseDown(e) {
     let { x: mx, y: my } = this.canvasCoords(e);
 
+    // Pen tool drag preview
+    if (this.tool === 'pen' && this.dragState && this.dragState.penDown) {
+      let dx = mx - this.dragState.startX;
+      let dy = my - this.dragState.startY;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+        this.dragState.dragged = true;
+        this.dragState.dragX = mx;
+        this.dragState.dragY = my;
+      }
+      this.render();
+      return;
+    }
+
     if (this.tool === 'direct') {
       let hit = this.hitTest(mx, my);
       if (!e.shiftKey) this.deselectAll();
@@ -876,7 +925,11 @@ const vecEditor = {
         this.syncPropsToUI();
         if (hit.handle) {
           let b = hit.shape.bounds;
-          this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...b}, corner: hit.handle };
+          if (hit.handle === 'rotate') {
+            this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: 'rotate', origBounds: {...b} };
+          } else {
+            this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...b}, corner: hit.handle };
+          }
         } else {
           this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: null };
         }
@@ -887,11 +940,8 @@ const vecEditor = {
         this.render();
       }
     } else if (this.tool === 'pen') {
-      this.penPoints.push({ x: mx, y: my });
-      if (this.penPoints.length >= 2) {
-        // Preview live
-        this.render();
-      }
+      // Store initial click pos to detect click-drag for bezier handles
+      this.dragState = { penDown: true, startX: mx, startY: my };
     } else if (this.tool === 'polygon') {
       this.dragState = { tool: 'polygon', startX: mx, startY: my };
     } else if (this.tool === 'rect') {
@@ -949,22 +999,24 @@ const vecEditor = {
         let dy = my - this.dragState.startY;
         let corner = this.dragState.corner;
 
-        // Determine w/h change based on corner
+        // nw/nh change based on corner
         let dw = (corner === 'tl' || corner === 'bl') ? -dx : dx;
         let dh = (corner === 'tl' || corner === 'tr') ? -dy : dy;
         let nw = Math.max(10, b.w + dw);
         let nh = Math.max(10, b.h + dh);
 
-        // Adjust position (center) based on which edge resized
-        if (corner === 'tl' || corner === 'bl') {
-          shape.x = b.x + nw / 2;
-        } else {
-          shape.x = (b.x + b.w) - nw / 2;
-        }
+        // Corner fixes opposite edges:
+        // TL → right & bottom stay;  TR → left & bottom stay
+        // BL → right & top stay;     BR → left & top stay
         if (corner === 'tl' || corner === 'tr') {
-          shape.y = b.y + nh / 2;
+          shape.y = (b.y + b.h) - nh / 2;  // bottom fixed
         } else {
-          shape.y = (b.y + b.h) - nh / 2;
+          shape.y = b.y + nh / 2;          // top fixed
+        }
+        if (corner === 'tl' || corner === 'bl') {
+          shape.x = (b.x + b.w) - nw / 2;  // right fixed
+        } else {
+          shape.x = b.x + nw / 2;          // left fixed
         }
         shape.w = nw;
         shape.h = nh;
@@ -999,12 +1051,45 @@ const vecEditor = {
       this.render();
       return;
     }
+
+    // Pen tool: finalize point (corner or smooth with handles)
+    if (this.tool === 'pen' && this.dragState && this.dragState.penDown) {
+      let mx = this.dragState.startX, my = this.dragState.startY;
+      let hasDrag = this.dragState.dragged;
+      if (hasDrag) {
+        // Click-drag: smooth point with handles
+        let hdx = this.dragState.dragX - mx;
+        let hdy = this.dragState.dragY - my;
+        let prevPt = this.penPoints.length > 0 ? this.penPoints[this.penPoints.length - 1] : null;
+        let pt = { x: mx, y: my };
+        if (prevPt) {
+          // Handle direction is opposite to previous → smooth curve
+          pt.handleIn = { x: 0, y: 0 };  // will be set from previous point's handleOut
+        }
+        pt.handleOut = { x: hdx, y: hdy };
+        this.penPoints.push(pt);
+        // Update previous point's handleIn to create smooth curve
+        if (prevPt && !prevPt.handleIn) {
+          prevPt.handleIn = { x: -hdx, y: -hdy };
+        }
+      } else {
+        // Simple click: corner point
+        this.penPoints.push({ x: mx, y: my });
+      }
+      this.dragState = null;
+      this.render();
+      return;
+    }
+
     if (this.dragState) {
       if (this.dragState.shape && this.dragState.handle === null) {
         // Shape was moved — save state
         this.saveState();
       } else if (this.dragState.shape && (this.dragState.handle === 'tl' || this.dragState.handle === 'tr' || this.dragState.handle === 'bl' || this.dragState.handle === 'br')) {
         // Shape was resized — save state
+        this.saveState();
+      } else if (this.dragState.shape && this.dragState.handle === 'rotate') {
+        // Shape was rotated — save state
         this.saveState();
       }
       if (this.dragState.tool === 'rect') {
