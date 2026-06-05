@@ -3760,7 +3760,8 @@ function setupUI(mainCanvas) {
     'supertile': '<strong style="color: #fff;">Mirror</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile across all 4 mirrored faces of this block. Keeps the kaleidoscope symmetry.</span>',
     'global_exact': '<strong style="color: #fff;">Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
     'global_pos': '<strong style="color: #fff;">Repeat</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
-    'global_pos_sym': '<strong style="color: #fff;">Flood</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile in ALL 4 faces of EVERY block — covers the entire grid at once.</span>'
+    'global_pos_sym': '<strong style="color: #fff;">Flood</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile in ALL 4 faces of EVERY block — covers the entire grid at once.</span>',
+    'global_radial': '<strong style="color: #fff;">Radial</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit all blocks at the same radial distance from the center of the grid. Like concentric rings.</span>'
   };
 
   // Set initial tooltip
@@ -4773,6 +4774,24 @@ function getSymmetryOrbitPreviewTargets(anchorIndex, subtileInfo) {
   return targets;
 }
 
+// Gets all supertile indices in the same radial ring (Euclidean distance from grid center)
+function getRadialRingIndices(col, row) {
+  let centerCol = (cols - 1) / 2;
+  let centerRow = (rows - 1) / 2;
+  let refDist = sqrt((col - centerCol) * (col - centerCol) + (row - centerRow) * (row - centerRow));
+  let refRing = round(refDist);
+  let indices = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let d = sqrt((c - centerCol) * (c - centerCol) + (r - centerRow) * (r - centerRow));
+      if (round(d) === refRing) {
+        indices.push(r * cols + c);
+      }
+    }
+  }
+  return indices;
+}
+
 function buildScopePreviewTargets(hitInfo) {
   if (!hitInfo) return [];
 
@@ -4834,6 +4853,13 @@ function buildScopePreviewTargets(hitInfo) {
         hitInfo.visualSubtileDisplayIndex
       );
       pushTarget(supertileIndex, mapped.quadrant, mapped.subtileIndex);
+    }
+  } else if (interactionScope === 'global_radial') {
+    let indices = getRadialRingIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
+    for (let supertileIndex of indices) {
+      for (let quadrant = 0; quadrant < 4; quadrant++) {
+        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
+      }
     }
   }
 
@@ -4938,7 +4964,7 @@ function drawSubtileOverlay(supertile, quadrant, subtileIndex, isAnchor) {
 }
 
 function drawScopePreview() {
-  if (interactionMode === 'none' || (interactionMode === 'edit' && zoomToolActive) || hoverPreviewTargets.length === 0) return;
+  if (interactionMode === 'none' || (interactionMode === 'edit' && zoomToolActive) || editToolMode === 'stamp' || hoverPreviewTargets.length === 0) return;
 
   for (let marker of hoverPreviewTargets) {
     let supertile = tiles[marker.supertileIndex];
@@ -4959,111 +4985,87 @@ function drawScopePreview() {
 function drawStampFeedback() {
   if (interactionMode !== 'edit' || editToolMode !== 'stamp' || zoomToolActive) return;
 
-  // ── 1. Source marker — highlight which supertile was copied ──
+  // ── 1. Source marker — minimal green corner brackets ──
   if (stampPattern) {
     let src = tiles[stampPattern.sourceIndex];
     if (src) {
       push();
-      translate(src.x, src.y);
-
-      // Outer glow ring
       noFill();
-      for (let w = 6; w >= 2; w -= 1.5) {
-        stroke(76, 175, 80, 180 - w * 20);
-        strokeWeight(w);
-        rectMode(CENTER);
-        rect(0, 0, src.w + w * 1.5, src.h + w * 1.5, 6);
-      }
+      let d = min(src.w, src.h) * 0.08;
+      let hw = src.w / 2, hh = src.h / 2;
+      stroke(76, 175, 80, 150);
+      strokeWeight(1.8);
 
-      // Icon: clipboard label
+      // Corner brackets
+      line(src.x - hw, src.y - hh + d, src.x - hw, src.y - hh);
+      line(src.x - hw, src.y - hh, src.x - hw + d, src.y - hh);
+      line(src.x + hw - d, src.y - hh, src.x + hw, src.y - hh);
+      line(src.x + hw, src.y - hh, src.x + hw, src.y - hh + d);
+      line(src.x - hw, src.y + hh - d, src.x - hw, src.y + hh);
+      line(src.x - hw, src.y + hh, src.x - hw + d, src.y + hh);
+      line(src.x + hw - d, src.y + hh, src.x + hw, src.y + hh);
+      line(src.x + hw, src.y + hh - d, src.x + hw, src.y + hh);
+
+      // Small dot at center
+      fill(76, 175, 80, 130);
       noStroke();
-      fill(76, 175, 80, 230);
-      textSize(min(src.w, src.h) * 0.12);
-      textAlign(CENTER, TOP);
-      text('📋', 0, -src.h / 2 - min(src.w, src.h) * 0.05);
+      circle(src.x, src.y, min(src.w, src.h) * 0.05);
       pop();
     }
   }
 
-  // ── 2. Ghost preview on the hovered target supertile ──
+  // ── 2. Ghost preview — actual stamp pattern rendered with alpha ──
   if (!stampPattern || !hoverPreviewAnchor) return;
-
   let target = tiles[hoverPreviewAnchor.supertileIndex];
   if (!target) return;
-
   // Don't ghost the source itself
-  if (stampPattern && hoverPreviewAnchor.supertileIndex === stampPattern.sourceIndex) return;
+  if (hoverPreviewAnchor.supertileIndex === stampPattern.sourceIndex) return;
 
   let pattern = stampPattern.quadrants;
 
-  push();
-  rectMode(CENTER);
-  translate(target.x, target.y);
-  if (target.mirrorX) scale(-1, 1);
-  if (target.mirrorY) scale(1, -1);
+  // Render actual stamp pattern to a temp buffer
+  let gfx = createGraphics(target.w, target.h);
+  gfx.clear();
+  gfx.push();
+  gfx.translate(target.w / 2, target.h / 2);
 
-  let qw = target.w / 2; // quadrant width
-  let qh = target.h / 2; // quadrant height
-  let sw = qw / 2;       // subtile width
-  let sh = qh / 2;       // subtile height
-
+  // Quadrant rendering like Supertile.render() but with the stamp pattern's types
   for (let q = 0; q < 4; q++) {
     let types = pattern[q];
     if (!types || types.length === 0) continue;
 
-    // Quadrant position
-    let qx = (q % 2 === 0 ? -1 : 1) * qw / 2;
-    let qy = (q < 2 ? -1 : 1) * qh / 2;
+    gfx.push();
+    // Position per quadrant (like Supertile.render)
+    if (q === 0) { gfx.translate(-target.w / 4, -target.h / 4); }
+    else if (q === 1) { gfx.translate(target.w / 4, -target.h / 4); gfx.scale(-1, 1); }
+    else if (q === 2) { gfx.translate(-target.w / 4, target.h / 4); gfx.scale(1, -1); }
+    else if (q === 3) { gfx.translate(target.w / 4, target.h / 4); gfx.scale(-1, -1); }
 
-    // Draw ghost subtiles with the stamp pattern's types
-    for (let s = 0; s < types.length; s++) {
-      let sc = s % 2;
-      let sr = floor(s / 2);
-      let sx = qx + (sc - 0.5) * sw;
-      let sy = qy + (sr - 0.5) * sh;
-
-      // Colored quadrant background (semi-transparent green)
-      noStroke();
-      fill(76, 175, 80, 22);
-      rect(sx, sy, sw, sh, 2);
-
-      // Tile type number
-      fill(76, 175, 80, 190);
-      textSize(min(sw, sh) * 0.35);
-      textAlign(CENTER, CENTER);
-      text(types[s], sx, sy);
+    // Render each subtile
+    for (let i = 0; i < types.length; i++) {
+      let st = new Subtile(target.w / 4, target.h / 4, types[i]);
+      st.render(gfx, (i % 2 - 0.5) * target.w / 4, (floor(i / 2) - 0.5) * target.h / 4);
     }
-
-    // Quadrant border
-    noFill();
-    stroke(76, 175, 80, 130);
-    strokeWeight(1.2);
-    rect(qx, qy, qw, qh, 3);
+    gfx.pop();
   }
+  gfx.pop();
 
-  // Full supertile outline
+  // Composite ghost onto canvas at ~30% opacity
+  push();
+  tint(255, 80);
+  imageMode(CORNER);
+  image(gfx, target.x - target.w / 2, target.y - target.h / 2);
+  pop();
+  gfx.remove();
+
+  // Clean bright border
+  push();
   noFill();
-  stroke(76, 175, 80, 210);
-  strokeWeight(2.5);
-  rect(0, 0, target.w, target.h, 5);
-
-  // Dashed corner brackets for extra clarity
-  let d = min(target.w, target.h) * 0.08;
-  stroke(255, 255, 255, 160);
-  strokeWeight(1.5);
-  // Top-left
-  line(-target.w/2, -target.h/2 + d, -target.w/2, -target.h/2);
-  line(-target.w/2, -target.h/2, -target.w/2 + d, -target.h/2);
-  // Top-right
-  line(target.w/2, -target.h/2 + d, target.w/2, -target.h/2);
-  line(target.w/2 - d, -target.h/2, target.w/2, -target.h/2);
-  // Bottom-left
-  line(-target.w/2, target.h/2 - d, -target.w/2, target.h/2);
-  line(-target.w/2, target.h/2, -target.w/2 + d, target.h/2);
-  // Bottom-right
-  line(target.w/2, target.h/2 - d, target.w/2, target.h/2);
-  line(target.w/2 - d, target.h/2, target.w/2, target.h/2);
-
+  stroke(76, 175, 80, 200);
+  strokeWeight(2);
+  rectMode(CORNERS);
+  rect(target.x - target.w / 2, target.y - target.h / 2,
+       target.x + target.w / 2, target.y + target.h / 2, 4);
   pop();
 }
 
@@ -5578,6 +5580,7 @@ function handleTileClick(mx, my, modeOverride = null) {
         || interactionScope === 'global_pos'
         || interactionScope === 'global_pos_sym'
         || interactionScope === 'global_pos_sym8'
+        || interactionScope === 'global_radial'
       );
       if (!isBatchMirrorScope) return;
     }
@@ -5664,6 +5667,19 @@ function handleTileClick(mx, my, modeOverride = null) {
           : newType;
         t.types[mapped.subtileIndex] = nextType;
         refreshTile(t);
+      }
+    } else if (interactionScope === 'global_radial') {
+      let indices = getRadialRingIndices(index % cols, floor(index / cols));
+      for (let supertileIndex of indices) {
+        let s = tiles[supertileIndex];
+        if (!s) continue;
+        for (let t of s.tiles) {
+          let nextType = (effectiveMode === 'mirror')
+            ? resolveMirrorType(t.types[baseTileSubtileIndex])
+            : newType;
+          t.types[baseTileSubtileIndex] = nextType;
+          refreshTile(t);
+        }
       }
     }
     
