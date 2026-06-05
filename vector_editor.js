@@ -488,9 +488,14 @@ const vecEditor = {
           if (this.activeLayerIdx >= this.layers.length) this.activeLayerIdx = this.layers.length - 1;
           this.render();
           this.updateLayersUI();
-        } else {
+        } else if (idx !== this.activeLayerIdx) {
+          // Just update class + select active without full DOM rebuild
+          let items = list.querySelectorAll('.vec-layer-item');
+          items.forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
           this.activeLayerIdx = idx;
-          this.updateLayersUI();
+          nameEl.textContent = layer.name;
+          // Also update layer label
         }
       });
       // Double-click to rename
