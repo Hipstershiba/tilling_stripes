@@ -2165,7 +2165,7 @@ button.locked {
   overflow: hidden;
 }
 
-.vector-editor {
+#tab-vector .vector-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -2184,7 +2184,7 @@ button.locked {
   flex-wrap: wrap;
 }
 
-.vec-btn {
+#tab-vector .vec-btn {
   background: transparent;
   border: 1px solid transparent;
   color: #aaa;
@@ -2194,16 +2194,16 @@ button.locked {
   font-size: 14px;
   transition: all 0.15s;
 }
-.vec-btn:hover {
+#tab-vector .vec-btn:hover {
   background: rgba(255,255,255,0.08);
   color: #fff;
 }
-.vec-btn.active {
+#tab-vector .vec-btn.active {
   background: #444;
   color: #2196F3;
   border-color: #2196F3;
 }
-.vec-sep {
+#tab-vector .vec-sep {
   display: inline-block;
   width: 1px;
   height: 20px;
@@ -2212,7 +2212,7 @@ button.locked {
 }
 
 /* Workspace: layers + canvas */
-.vec-workspace {
+#tab-vector .vec-workspace {
   display: flex;
   flex: 1;
   gap: 8px;
@@ -2220,7 +2220,7 @@ button.locked {
 }
 
 /* Layers Panel */
-.vec-layers-panel {
+#tab-vector .vec-layers-panel {
   width: 160px;
   flex-shrink: 0;
   background: #1e1e1e;
@@ -2230,7 +2230,7 @@ button.locked {
   overflow: hidden;
 }
 
-.vec-layers-header {
+#tab-vector .vec-layers-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2241,7 +2241,7 @@ button.locked {
   border-bottom: 1px solid #333;
 }
 
-.vec-btn-sm {
+#tab-vector .vec-btn-sm {
   background: transparent;
   border: 1px solid #444;
   color: #aaa;
@@ -2255,15 +2255,15 @@ button.locked {
   align-items: center;
   justify-content: center;
 }
-.vec-btn-sm:hover { background: rgba(255,255,255,0.1); color: #fff; }
+#tab-vector .vec-btn-sm:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-.vec-layers-list {
+#tab-vector .vec-layers-list {
   flex: 1;
   overflow-y: auto;
   padding: 4px;
 }
 
-.vec-layer-item {
+#tab-vector .vec-layer-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2275,23 +2275,23 @@ button.locked {
   transition: background 0.1s;
   margin-bottom: 2px;
 }
-.vec-layer-item:hover { background: rgba(255,255,255,0.05); }
-.vec-layer-item.active {
+#tab-vector .vec-layer-item:hover { background: rgba(255,255,255,0.05); }
+#tab-vector .vec-layer-item.active {
   background: rgba(33, 150, 243, 0.15);
   color: #2196F3;
 }
 
-.vec-layer-vis { cursor: pointer; font-size: 11px; width: 18px; text-align: center; }
-.vec-layer-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vec-layer-del { cursor: pointer; opacity: 0.4; font-size: 10px; }
-.vec-layer-del:hover { opacity: 1; color: #f44336; }
-.vec-layer-up, .vec-layer-dn {
+#tab-vector .vec-layer-vis { cursor: pointer; font-size: 11px; width: 18px; text-align: center; }
+#tab-vector .vec-layer-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tab-vector .vec-layer-del { cursor: pointer; opacity: 0.4; font-size: 10px; }
+#tab-vector .vec-layer-del:hover { opacity: 1; color: #f44336; }
+#tab-vector .vec-layer-up, #tab-vector .vec-layer-dn {
   cursor: pointer; opacity: 0.3; font-size: 10px; padding: 0 2px;
 }
-.vec-layer-up:hover, .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
+#tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
 
 /* Canvas */
-.vec-canvas-wrap {
+#tab-vector .vec-canvas-wrap {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -2304,7 +2304,7 @@ button.locked {
   min-height: 200px;
 }
 
-#vecCanvas {
+#tab-vector #vecCanvas {
   display: block;
   max-width: 100%;
   max-height: calc(100% - 30px);
@@ -2312,7 +2312,7 @@ button.locked {
   border-radius: 4px;
 }
 
-.vec-status {
+#tab-vector .vec-status {
   position: absolute;
   bottom: 4px;
   left: 8px;
