@@ -146,6 +146,10 @@ const vecEditor = {
   dragState: null, // { shape, startX, startY, handle }
   gridSize: 80, // subtile cell size in vector space
   nextId: 1,
+  zoom: 1,
+  panX: 0, panY: 0,
+  undoStack: [],
+  redoStack: [],
 
   init() {
     this.canvas = document.getElementById('vecCanvas');
@@ -180,6 +184,7 @@ const vecEditor = {
   },
 
   addShape(shape) {
+    this.saveState();
     shape.id = this.nextId++;
     // Apply current fill/stroke/width from UI
     shape.fill = document.getElementById('vecFillColor').value;
@@ -192,6 +197,64 @@ const vecEditor = {
 
   selectedShapes() {
     return this.activeLayer.shapes.filter(s => s.selected);
+  },
+
+  // ── Undo / Redo ──
+  saveState() {
+    this.undoStack.push(JSON.parse(JSON.stringify(this.layers)));
+    this.redoStack = [];
+    if (this.undoStack.length > 50) this.undoStack.shift();
+  },
+
+  undo() {
+    if (this.undoStack.length === 0) return;
+    this.redoStack.push(JSON.parse(JSON.stringify(this.layers)));
+    this.layers = JSON.parse(JSON.stringify(this.undoStack.pop()));
+    this.activeLayerIdx = Math.min(this.activeLayerIdx, this.layers.length - 1);
+    this.render();
+    this.updateLayersUI();
+  },
+
+  redo() {
+    if (this.redoStack.length === 0) return;
+    this.undoStack.push(JSON.parse(JSON.stringify(this.layers)));
+    this.layers = JSON.parse(JSON.stringify(this.redoStack.pop()));
+    this.activeLayerIdx = Math.min(this.activeLayerIdx, this.layers.length - 1);
+    this.render();
+    this.updateLayersUI();
+  },
+
+  // ── Finish pen/polygon path ──
+  finishPath() {
+    if (this.penPoints.length < 2) return;
+    let type = this.tool === 'pen' ? 'path' : 'polygon';
+    let shape = new VecShape(type);
+    shape.points = [...this.penPoints];
+    shape.closed = type === 'polygon';
+    let cx = this.penPoints.reduce((s, p) => s + p.x, 0) / this.penPoints.length;
+    let cy = this.penPoints.reduce((s, p) => s + p.y, 0) / this.penPoints.length;
+    shape.x = cx;
+    shape.y = cy;
+    for (let p of shape.points) { p.x -= cx; p.y -= cy; }
+    this.addShape(shape);
+    this.penPoints = [];
+  },
+
+  // ── Select All ──
+  selectAll() {
+    for (let s of this.activeLayer.shapes) s.selected = true;
+    this.render();
+    this.updateLayersUI();
+  },
+
+  // ── Sync selected shape props to UI ──
+  syncPropsToUI() {
+    let sel = this.selectedShapes();
+    if (sel.length === 1) {
+      document.getElementById('vecFillColor').value = sel[0].fill;
+      document.getElementById('vecStrokeColor').value = sel[0].stroke;
+      document.getElementById('vecStrokeWidth').value = sel[0].strokeWidth;
+    }
   },
 
   // ── Hit Testing ──
@@ -306,11 +369,19 @@ const vecEditor = {
         else if (e.key === 'g' || e.key === 'G') this.setTool('polygon');
         else if (e.key === 'Delete' || e.key === 'Backspace') this.deleteSelected();
         else if (e.key === 'Escape') { this.deselectAll(); this.penPoints = []; this.render(); }
+        else if (e.key === 'Enter' && (this.tool === 'pen' || this.tool === 'polygon')) {
+          this.finishPath();
+          e.preventDefault();
+        }
+        else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { this.undo(); e.preventDefault(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { this.redo(); e.preventDefault(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'a')) { this.selectAll(); e.preventDefault(); }
       }
     });
 
     // Add layer
     document.getElementById('vecAddLayer').addEventListener('click', () => {
+      this.saveState();
       this.layers.push(new VecLayer(`Layer ${this.layers.length + 1}`));
       this.activeLayerIdx = this.layers.length - 1;
       this.updateLayersUI();
@@ -364,11 +435,13 @@ const vecEditor = {
       `;
       div.addEventListener('click', (e) => {
         if (e.target.classList.contains('vec-layer-vis')) {
+          this.saveState();
           layer.visible = !layer.visible;
           this.render();
           this.updateLayersUI();
         } else if (e.target.classList.contains('vec-layer-del')) {
           if (this.layers.length <= 1) return;
+          this.saveState();
           this.layers.splice(idx, 1);
           if (this.activeLayerIdx >= this.layers.length) this.activeLayerIdx = this.layers.length - 1;
           this.render();
@@ -382,11 +455,11 @@ const vecEditor = {
       let up = document.createElement('span');
       up.className = 'vec-layer-up';
       up.textContent = '↑';
-      up.addEventListener('click', (e) => { e.stopPropagation(); if (idx > 0) { [this.layers[idx], this.layers[idx-1]] = [this.layers[idx-1], this.layers[idx]]; this.activeLayerIdx = idx-1; this.render(); this.updateLayersUI(); } });
+      up.addEventListener('click', (e) => { e.stopPropagation(); if (idx > 0) { this.saveState(); [this.layers[idx], this.layers[idx-1]] = [this.layers[idx-1], this.layers[idx]]; this.activeLayerIdx = idx-1; this.render(); this.updateLayersUI(); } });
       let dn = document.createElement('span');
       dn.className = 'vec-layer-dn';
       dn.textContent = '↓';
-      dn.addEventListener('click', (e) => { e.stopPropagation(); if (idx < this.layers.length-1) { [this.layers[idx], this.layers[idx+1]] = [this.layers[idx+1], this.layers[idx]]; this.activeLayerIdx = idx+1; this.render(); this.updateLayersUI(); } });
+      dn.addEventListener('click', (e) => { e.stopPropagation(); if (idx < this.layers.length-1) { this.saveState(); [this.layers[idx], this.layers[idx+1]] = [this.layers[idx+1], this.layers[idx]]; this.activeLayerIdx = idx+1; this.render(); this.updateLayersUI(); } });
       div.appendChild(up);
       div.appendChild(dn);
       list.appendChild(div);
@@ -411,6 +484,7 @@ const vecEditor = {
       if (hit) {
         this.deselectAll();
         hit.shape.selected = true;
+        this.syncPropsToUI();
         if (hit.handle) {
           this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...hit.shape.bounds} };
         } else {
@@ -484,6 +558,10 @@ const vecEditor = {
 
   onMouseUp() {
     if (this.dragState) {
+      if (this.dragState.shape && this.dragState.handle === null) {
+        // Shape was moved — save state
+        this.saveState();
+      }
       if (this.dragState.tool === 'rect') {
         let w = Math.abs(this.dragState.w || 40);
         let h = Math.abs(this.dragState.h || 40);
@@ -561,6 +639,8 @@ const vecEditor = {
   },
 
   deleteSelected() {
+    if (!this.selectedShapes().length) return;
+    this.saveState();
     for (let layer of this.layers) {
       layer.shapes = layer.shapes.filter(s => !s.selected);
     }
@@ -578,6 +658,7 @@ const vecEditor = {
       this.updateStatus(`Boolean: select at least 2 shapes`);
       return;
     }
+    this.saveState();
     // For now, merge shapes that overlap (simple bounding-box union)
     // A full implementation would do proper polygon boolean
     let merged = selected[0];
