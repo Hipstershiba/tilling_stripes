@@ -163,11 +163,9 @@ const vecEditor = {
   gridSize: 80, // subtile cell size in vector space
   nextId: 1,
   zoom: 1,
-  _baseSize: 400,
+  _baseSize: 100, // tile size in logical units (100x100 = one subtile)
   undoStack: [],
   redoStack: [],
-  tileMode: false, // tile editing mode (fixed 100x100 canvas)
-  tileBaseSize: 100, // logical tile size in tile mode
 
   init() {
     this.canvas = document.getElementById('vecCanvas');
@@ -177,22 +175,12 @@ const vecEditor = {
     this.resize();
     window.addEventListener('resize', () => this.resize());
     this.render();
+    this.updateStatus('Tile Editor — draw shapes to create a tile');
   },
 
   resize() {
-    if (this.tileMode) {
-      // Fixed tile canvas size
-      this._baseSize = this.tileBaseSize;
-      this.canvas.width = Math.round(this._baseSize * this.zoom);
-      this.canvas.height = Math.round(this._baseSize * this.zoom);
-      this.render();
-      return;
-    }
-    let wrap = this.canvas.parentElement;
-    if (!wrap) return;
-    let rect = wrap.getBoundingClientRect();
-    let size = Math.min(rect.width - 8, rect.height - 8, 1200);
-    this._baseSize = Math.max(200, Math.round(size));
+    // Fixed tile canvas — always 100x100 logical units
+    this._baseSize = 100;
     this.canvas.width = Math.round(this._baseSize * this.zoom);
     this.canvas.height = Math.round(this._baseSize * this.zoom);
     this.render();
@@ -223,7 +211,6 @@ const vecEditor = {
     this.activeLayer.shapes.push(shape);
     this.render();
     this.updateLayersUI();
-    if (this.tileMode) this.render3x3Preview();
   },
 
   selectedShapes() {
@@ -300,25 +287,6 @@ const vecEditor = {
   zoomIn() { this.setZoom(this.zoom * 1.25); },
   zoomOut() { this.setZoom(this.zoom / 1.25); },
   resetZoom() { this.setZoom(1); },
-
-  // ── Tile Mode ──
-  setTileMode(active) {
-    this.tileMode = active;
-    this.setZoom(1);
-    this.resize();
-    // Toggle body class
-    document.getElementById('tab-vector').classList.toggle('tile-mode-active', active);
-    document.getElementById('vecTileModeBtn').classList.toggle('active', active);
-    document.getElementById('vec3x3Preview').style.display = active ? 'block' : 'none';
-    document.getElementById('vecPatternColorCheck').style.display = active ? 'flex' : 'none';
-    document.getElementById('vecRegisterTileBtn').style.display = active ? 'inline-flex' : 'none';
-    document.getElementById('vecTileName').style.display = active ? 'flex' : 'none';
-    document.getElementById('vecTileFamily').style.display = active ? 'flex' : 'none';
-    document.querySelector('.vec-tile-mode-indicator').style.display = active ? 'block' : 'none';
-    this.updateStatus(active ? 'Tile Mode — draw a single subtile (100×100)' : 'Vector Mode');
-    this.render();
-    if (active) this.render3x3Preview();
-  },
 
   // ── 3x3 Preview ──
   render3x3Preview() {
@@ -518,31 +486,29 @@ const vecEditor = {
     ctx.beginPath(); ctx.moveTo(0, this._baseSize / 2); ctx.lineTo(this._baseSize, this._baseSize / 2); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Tile mode overlay — tile boundary
-    if (this.tileMode) {
-      ctx.strokeStyle = '#4CAF50';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
-      ctx.strokeRect(0, 0, this.tileBaseSize, this.tileBaseSize);
-      ctx.setLineDash([]);
+    // Tile boundary — 100x100 subtile
+    ctx.strokeStyle = '#4CAF50';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(0, 0, this._baseSize, this._baseSize);
+    ctx.setLineDash([]);
 
-      // Subtile quadrants (2x2 grid inside tile)
-      ctx.strokeStyle = 'rgba(76, 175, 80, 0.2)';
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(this.tileBaseSize / 2, 0);
-      ctx.lineTo(this.tileBaseSize / 2, this.tileBaseSize);
-      ctx.moveTo(0, this.tileBaseSize / 2);
-      ctx.lineTo(this.tileBaseSize, this.tileBaseSize / 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
+    // Subtile quadrants (2x2 grid inside tile — hint for 4-subtile pattern)
+    ctx.strokeStyle = 'rgba(76, 175, 80, 0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(this._baseSize / 2, 0);
+    ctx.lineTo(this._baseSize / 2, this._baseSize);
+    ctx.moveTo(0, this._baseSize / 2);
+    ctx.lineTo(this._baseSize, this._baseSize / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-      // Tile label
-      ctx.fillStyle = 'rgba(76, 175, 80, 0.6)';
-      ctx.font = '9px sans-serif';
-      ctx.fillText('TILE BOUNDARY', 4, 10);
-    }
+    // Tile label
+    ctx.fillStyle = 'rgba(76, 175, 80, 0.6)';
+    ctx.font = '9px sans-serif';
+    ctx.fillText('SUBTILE (100×100)', 4, 10);
 
     // Render shapes per layer
     for (let layer of this.layers) {
@@ -632,7 +598,7 @@ const vecEditor = {
 
     ctx.restore();
 
-    if (this.tileMode) { this.render3x3Preview(); }
+    this.render3x3Preview();
     this.updateStatus();
   },
 
@@ -726,29 +692,17 @@ const vecEditor = {
       this.render();
     });
 
-    // Tile Mode toggle
-    document.getElementById('vecTileModeBtn').addEventListener('click', () => {
-      this.setTileMode(!this.tileMode);
-    });
-
     // Pattern color checkbox
     document.getElementById('vecPatternColorCheck').addEventListener('change', (e) => {
       let usePattern = e.target.checked;
       for (let s of this.selectedShapes()) s.usePatternColor = usePattern;
       this.render();
-      if (this.tileMode) this.render3x3Preview();
     });
 
     // Register tile
     document.getElementById('vecRegisterTileBtn').addEventListener('click', () => {
       this.registerCurrentTile();
     });
-
-    // Refresh 3x3 preview when shapes change
-    let refreshPreview = () => { if (this.tileMode) this.render3x3Preview(); };
-    document.getElementById('vecFillColor').addEventListener('input', refreshPreview);
-    document.getElementById('vecStrokeColor').addEventListener('input', refreshPreview);
-    document.getElementById('vecStrokeWidth').addEventListener('change', refreshPreview);
 
     this.updateLayersUI();
   },
@@ -1123,7 +1077,6 @@ const vecEditor = {
     }
     this.render();
     this.updateLayersUI();
-    if (this.tileMode) this.render3x3Preview();
   },
 
   // ── Boolean Operations (simplified) ──

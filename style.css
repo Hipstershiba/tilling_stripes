@@ -2367,21 +2367,9 @@ button.locked {
 }
 #tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
 
-/* ── Tile Mode ── */
-#tab-vector .vec-tile-mode-indicator {
-  display: none;
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: #4CAF50;
-  background: rgba(76, 175, 80, 0.15);
-  border: 1px solid #4CAF50;
-  border-radius: 4px;
-  padding: 2px 8px;
-  white-space: nowrap;
-  letter-spacing: 0.5px;
-}
+/* ── Tile Preview (3x3) ── */
 #tab-vector .vec-3x3-wrap {
-  display: none;
+  display: block;
   width: 180px;
   flex-shrink: 0;
   padding: 8px;
@@ -2416,8 +2404,4 @@ button.locked {
 }
 #tab-vector #vecRegisterTileBtn:hover {
   background: #66BB6A;
-}
-/* In tile mode, the root layout becomes flex row with preview on right */
-#tab-vector.tile-mode-active .vec-root {
-  gap: 8px;
 }
