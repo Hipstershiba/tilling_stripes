@@ -165,8 +165,9 @@ const vecEditor = {
     let wrap = this.canvas.parentElement;
     if (!wrap) return;
     let rect = wrap.getBoundingClientRect();
-    let size = Math.min(rect.width - 4, rect.height - 4, 600);
-    this.canvas.width = Math.max(200, size);
+    // Fill available space — max 1200 to avoid absurd sizes
+    let size = Math.min(rect.width - 8, rect.height - 8, 1200);
+    this.canvas.width = Math.max(200, Math.round(size));
     this.canvas.height = this.canvas.width;
     this.render();
   },
