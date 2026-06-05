@@ -316,7 +316,7 @@ const vecEditor = {
         ctx.rect(x, y, tileW, tileH);
         ctx.clip();
         ctx.translate(x + tileW / 2, y + tileH / 2);
-        ctx.scale(tileW / this.tileBaseSize, tileH / this.tileBaseSize);
+        ctx.scale(tileW / this._baseSize, tileH / this._baseSize);
 
         // Draw tile shapes
         let patternColor = colors[(row * 3 + col) % colors.length];
@@ -385,13 +385,25 @@ const vecEditor = {
     };
   },
 
-  // ── Get shape points in absolute canvas coords ──
+  // ── Get anchor points in absolute canvas coords ──
   getShapePoints(shape) {
-    if (!shape.points || shape.points.length === 0) return [];
-    return shape.points.map(p => ({
-      x: (shape.x + p.x),
-      y: (shape.y + p.y)
-    }));
+    if (shape.type === 'rect' || shape.type === 'ellipse') {
+      let b = shape.bounds;
+      // 4 corner/quadrant anchors
+      return [
+        { x: b.x, y: b.y },
+        { x: b.x + b.w, y: b.y },
+        { x: b.x + b.w, y: b.y + b.h },
+        { x: b.x, y: b.y + b.h }
+      ];
+    }
+    if (shape.points && shape.points.length > 0) {
+      return shape.points.map(p => ({
+        x: (shape.x + p.x),
+        y: (shape.y + p.y)
+      }));
+    }
+    return [];
   },
 
   getHandlePositions(shape, pointIdx) {
@@ -415,9 +427,9 @@ const vecEditor = {
     const HIT_RADIUS = 6 / this.zoom;
 
     if (this.tool === 'direct') {
-      // First check points on selected path/polygon shapes
+      // First check anchor points on selected shapes
       for (let shape of layer.shapes) {
-        if (!shape.selected || (shape.type !== 'path' && shape.type !== 'polygon')) continue;
+        if (!shape.selected) continue;
         let pts = this.getShapePoints(shape);
         for (let i = pts.length - 1; i >= 0; i--) {
           let dx = px - pts[i].x, dy = py - pts[i].y;
@@ -532,12 +544,12 @@ const vecEditor = {
       }
     }
 
-    // Points on selected shapes when using Direct Select
+    // Anchor points on selected shapes when using Direct Select
     if (this.tool === 'direct') {
       for (let layer of this.layers) {
         if (!layer.visible) continue;
         for (let shape of layer.shapes) {
-          if (!shape.selected || (shape.type !== 'path' && shape.type !== 'polygon')) continue;
+          if (!shape.selected) continue;
           let pts = this.getShapePoints(shape);
           for (let i = 0; i < pts.length; i++) {
             let p = this.selectedPoint && this.selectedPoint.shape === shape && this.selectedPoint.pointIdx === i;
@@ -808,8 +820,32 @@ const vecEditor = {
       this.selectedPoint = null;
       if (hit) {
         if (hit.point !== undefined) {
-          hit.shape.selected = true;
-          this.selectedPoint = { shape: hit.shape, pointIdx: hit.point };
+          // If dragging a rect/ellipse anchor, convert to polygon first
+          let shape = hit.shape;
+          if (shape.type === 'rect' || shape.type === 'ellipse') {
+            let b = shape.bounds;
+            let pts = [
+              { x: 0, y: 0 },
+              { x: b.w, y: 0 },
+              { x: b.w, y: b.h },
+              { x: 0, y: b.h }
+            ];
+            shape.type = 'polygon';
+            shape.points = pts;
+            shape.x = b.x;
+            shape.y = b.y;
+            shape.closed = true;
+            // Re-get the point index from the new polygon
+            let newPts = this.getShapePoints(shape);
+            for (let i = 0; i < newPts.length; i++) {
+              if (Math.abs(mx - newPts[i].x) < 6 / this.zoom && Math.abs(my - newPts[i].y) < 6 / this.zoom) {
+                hit.point = i;
+                break;
+              }
+            }
+          }
+          shape.selected = true;
+          this.selectedPoint = { shape: shape, pointIdx: hit.point };
         } else if (hit.handle) {
           hit.shape.selected = true;
           this.selectedPoint = { shape: hit.shape, pointIdx: hit.handlePoint };
@@ -1102,64 +1138,201 @@ const vecEditor = {
     this.updateLayersUI();
   },
 
-  // ── Boolean Operations (simplified) ──
+  // ── Boolean Operations (pixel-perfect via Canvas compositing) ──
   booleanOp(op) {
     let selected = [];
     for (let layer of this.layers) {
       for (let s of layer.shapes) if (s.selected) selected.push(s);
     }
     if (selected.length < 2) {
-      this.updateStatus(`Boolean: select at least 2 shapes`);
+      this.updateStatus('Boolean: select at least 2 shapes');
       return;
     }
     this.saveState();
-    // For now, merge shapes that overlap (simple bounding-box union)
-    // A full implementation would do proper polygon boolean
-    let merged = selected[0];
-    let b = merged.bounds;
-    for (let i = 1; i < selected.length; i++) {
-      let sb = selected[i].bounds;
-      if (op === 'union') {
-        // Expand to contain both
-        let nx = Math.min(b.x, sb.x);
-        let ny = Math.min(b.y, sb.y);
-        let nw = Math.max(b.x + b.w, sb.x + sb.w) - nx;
-        let nh = Math.max(b.y + b.h, sb.y + sb.h) - ny;
-        merged.x = nx + nw / 2;
-        merged.y = ny + nh / 2;
-        merged.w = nw;
-        merged.h = nh;
-        if (merged.type === 'polygon' || merged.type === 'path') {
-          merged.type = 'rect';
-          merged.points = [];
-        }
-      } else if (op === 'subtract') {
-        // Simple visual difference: color the first one differently
-        merged.fill = '#ff4444';
-      } else if (op === 'intersect') {
-        // For overlap, shrink to intersection
-        let ix = Math.max(b.x, sb.x);
-        let iy = Math.max(b.y, sb.y);
-        let iw = Math.min(b.x + b.w, sb.x + sb.w) - ix;
-        let ih = Math.min(b.y + b.h, sb.y + sb.h) - iy;
-        if (iw > 0 && ih > 0) {
-          merged.x = ix + iw / 2;
-          merged.y = iy + ih / 2;
-          merged.w = iw;
-          merged.h = ih;
-          merged.type = 'rect';
-          merged.points = [];
-        }
+
+    // Render all shapes to an offscreen canvas using compositing modes
+    let oc = document.createElement('canvas');
+    oc.width = this._baseSize;
+    oc.height = this._baseSize;
+    let octx = oc.getContext('2d');
+
+    let compositeMode = op === 'union' ? 'source-over' : (op === 'subtract' ? 'destination-out' : 'source-in');
+
+    // Draw first shape
+    octx.clearRect(0, 0, oc.width, oc.height);
+    this._renderShapeOnto(octx, selected[0], '#ffffff', true);
+    if (op === 'subtract') {
+      // For subtract: draw additional shapes with destination-out
+      for (let i = 1; i < selected.length; i++) {
+        octx.globalCompositeOperation = 'destination-out';
+        this._renderShapeOnto(octx, selected[i], '#ffffff', true);
       }
+      octx.globalCompositeOperation = 'source-over';
+    } else {
+      // Union / Intersect: draw all shapes with the composite mode
+      for (let i = 1; i < selected.length; i++) {
+        octx.globalCompositeOperation = compositeMode;
+        this._renderShapeOnto(octx, selected[i], '#ffffff', true);
+      }
+      octx.globalCompositeOperation('source-over');
     }
-    // Remove merged shapes, keep the result
+
+    // Detect pixels → generate polygon outline
+    let imageData = octx.getImageData(0, 0, oc.width, oc.height);
+    let data = imageData.data;
+    let outlinePoints = this._traceOutline(data, oc.width, oc.height);
+
+    // Create result shape
+    let merged = new VecShape('polygon');
+    merged.fill = selected[0].fill;
+    merged.stroke = selected[0].stroke;
+    merged.strokeWidth = selected[0].strokeWidth;
+    merged.usePatternColor = selected[0].usePatternColor;
+
+    if (outlinePoints.length >= 3) {
+      // Center the points
+      let cx = outlinePoints.reduce((s, p) => s + p.x, 0) / outlinePoints.length;
+      let cy = outlinePoints.reduce((s, p) => s + p.y, 0) / outlinePoints.length;
+      merged.x = cx;
+      merged.y = cy;
+      merged.points = outlinePoints.map(p => ({ x: p.x - cx, y: p.y - cy }));
+      merged.closed = true;
+    } else {
+      // Fallback: just use rect bounds
+      let bx = { x: Infinity, y: Infinity, x2: -Infinity, y2: -Infinity };
+      for (let s of selected) {
+        let b = s.bounds;
+        bx.x = Math.min(bx.x, b.x);
+        bx.y = Math.min(bx.y, b.y);
+        bx.x2 = Math.max(bx.x2, b.x + b.w);
+        bx.y2 = Math.max(bx.y2, b.y + b.h);
+      }
+      merged.type = 'rect';
+      merged.x = (bx.x + bx.x2) / 2;
+      merged.y = (bx.y + bx.y2) / 2;
+      merged.w = bx.x2 - bx.x;
+      merged.h = bx.y2 - bx.y;
+    }
+
+    // Remove selected shapes, add result
+    let keepId = merged.id = this.nextId++;
     for (let layer of this.layers) {
-      layer.shapes = layer.shapes.filter(s => !s.selected || s === merged);
+      layer.shapes = layer.shapes.filter(s => !s.selected);
     }
+    this.activeLayer.shapes.push(merged);
     merged.selected = true;
     this.render();
     this.updateLayersUI();
     this.updateStatus(`Boolean ${op} done`);
+  },
+
+  // Render a single shape onto an offscreen context
+  _renderShapeOnto(ctx, shape, fillColor, useFill) {
+    ctx.save();
+    ctx.translate(shape.x, shape.y);
+    ctx.rotate(shape.rotation);
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = fillColor;
+    ctx.lineWidth = 0;
+
+    if (shape.type === 'rect') {
+      ctx.beginPath();
+      ctx.rect(-shape.w / 2, -shape.h / 2, shape.w, shape.h);
+      ctx.fill();
+    } else if (shape.type === 'ellipse') {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, shape.w / 2, shape.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (shape.type === 'polygon' || shape.type === 'path') {
+      if (shape.points.length < 2) { ctx.restore(); return; }
+      ctx.beginPath();
+      ctx.moveTo(shape.points[0].x, shape.points[0].y);
+      for (let i = 1; i < shape.points.length; i++) {
+        ctx.lineTo(shape.points[i].x, shape.points[i].y);
+      }
+      if (shape.closed) ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  },
+
+  // Trace pixel outline to polygon points (Moore-Neighbor contour tracing)
+  _traceOutline(data, w, h) {
+    // Find starting pixel
+    let startX = -1, startY = -1;
+    for (let y = 0; y < h && startX < 0; y++) {
+      for (let x = 0; x < w && startX < 0; x++) {
+        if (data[(y * w + x) * 4 + 3] > 128) {
+          startX = x; startY = y;
+        }
+      }
+    }
+    if (startX < 0) return [];
+
+    // Moore-Neighbor tracing
+    let points = [];
+    let cx = startX, cy = startY;
+    let dir = 7; // start direction (NW)
+    let startDir = dir;
+    let maxPts = w * h;
+
+    // 8-direction offsets: E, SE, S, SW, W, NW, N, NE
+    let dx = [1, 1, 0, -1, -1, -1, 0, 1];
+    let dy = [0, 1, 1, 1, 0, -1, -1, -1];
+
+    let first = true;
+    while (maxPts-- > 0) {
+      // Check if we've returned to start
+      if (!first && cx === startX && cy === startY) break;
+      first = false;
+      points.push({ x: cx, y: cy });
+
+      let found = false;
+      for (let i = 0; i < 8; i++) {
+        let nd = (dir + i) % 8;
+        let nx = cx + dx[nd];
+        let ny = cy + dy[nd];
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+          if (data[(ny * w + nx) * 4 + 3] > 128) {
+            cx = nx; cy = ny;
+            dir = (nd + 6) % 8; // turn back 2 steps (clockwise-1)
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) break;
+
+      // Simplify: only keep points that change direction significantly
+      if (points.length > 2) {
+        let p0 = points[points.length - 3];
+        let p1 = points[points.length - 2];
+        let p2 = points[points.length - 1];
+        let dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
+        let dx2 = p2.x - p1.x, dy2 = p2.y - p1.y;
+        if (dx1 === dx2 && dy1 === dy2) {
+          points.pop(); // remove redundant midpoint
+        }
+      }
+    }
+
+    // Simplify further: Douglas-Peucker or minimum distance
+    if (points.length > 3) {
+      let simplified = [points[0]];
+      for (let i = 1; i < points.length - 1; i++) {
+        let p = points[i];
+        let prev = points[i - 1];
+        let next = points[i + 1];
+        // Skip if collinear (both axes same direction)
+        if (!((p.x === prev.x && p.x === next.x) || (p.y === prev.y && p.y === next.y))) {
+          simplified.push(p);
+        }
+      }
+      simplified.push(points[points.length - 1]);
+      points = simplified;
+    }
+
+    return points;
   },
 
   // ── Generate p5.js tile render code from vector shapes ──
@@ -1237,7 +1410,7 @@ const vecEditor = {
     code += `  ctx.noStroke();\n`;
     code += `  // Auto-generated from Vector Editor shapes\n`;
     code += `  ctx.translate(w/2, h/2);\n`;
-    code += `  ctx.scale(w/${this.tileBaseSize}, h/${this.tileBaseSize});\n`;
+    code += `  ctx.scale(w/${this._baseSize}, h/${this._baseSize});\n`;
     code += shapeCode;
     code += `  ctx.pop();\n`;
     code += `};`;
