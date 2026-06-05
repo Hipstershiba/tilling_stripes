@@ -2162,67 +2162,35 @@ button.locked {
    Vector Editor Tab
    ══════════════════════════════════════ */
 
-#tab-vector.tab-content.active {
-  overflow-y: hidden;
-  gap: 8px;
-}
-
 #tab-vector.tab-content {
-  --vec-layers-min: 180px;
-  --vec-layers-max: 220px;
-  --vec-props-min: 180px;
-  --vec-props-max: 240px;
-  padding: 2px 6px 8px 2px;
+  padding: 4px;
   box-sizing: border-box;
-  scrollbar-gutter: auto;
   overflow: hidden;
 }
 
-#tab-vector .assets-main-grid {
-  grid-template-columns:
-    minmax(var(--vec-layers-min), var(--vec-layers-max)) 1fr minmax(var(--vec-props-min), var(--vec-props-max));
+#tab-vector.tab-content.active {
+  overflow: hidden;
+  gap: 0;
 }
 
-#tab-vector .assets-workspace {
+/* Root: main canvas + side panels in a row */
+#tab-vector .vec-root {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
+  gap: 8px;
   min-height: 0;
   overflow: hidden;
 }
 
-#tab-vector .assets-main-grid>.control-group,
-#tab-vector .assets-side-stack>.control-group {
-  height: auto;
-  min-height: 0;
-  overflow: hidden;
-  background: #2b2b2b;
-  border: 1px solid #3a3a3a;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-#tab-vector .assets-main-grid>.control-group>.group-content,
-#tab-vector .assets-side-stack>.control-group>.group-content {
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 6px;
-}
-
-#tab-vector .assets-main-grid>.control-group:first-child>.group-content {
+/* Main area: toolbar + canvas, takes all available space */
+#tab-vector .vec-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1 1 auto;
-}
-
-#tab-vector .control-group {
-  padding: 8px;
-  gap: 5px;
-}
-
-#tab-vector .group-content {
-  gap: 5px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Canvas toolbar row */
@@ -2230,11 +2198,13 @@ button.locked {
   display: flex;
   gap: 2px;
   align-items: center;
-  background: #333;
-  border-radius: 4px;
-  padding: 3px 4px;
+  background: #2b2b2b;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 4px 6px;
   flex-wrap: wrap;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 /* Canvas wrap */
@@ -2245,27 +2215,59 @@ button.locked {
   align-items: center;
   justify-content: center;
   background: #111;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   position: relative;
   min-height: 200px;
+  border: 1px solid #2a2a2a;
 }
 
 #tab-vector #vecCanvas {
   display: block;
-  max-width: 100%;
-  max-height: calc(100% - 30px);
+  max-width: calc(100% - 8px);
+  max-height: calc(100% - 34px);
   cursor: crosshair;
   border-radius: 4px;
 }
 
 #tab-vector .vec-status {
   position: absolute;
-  bottom: 4px;
-  left: 8px;
+  bottom: 6px;
+  left: 10px;
   font-size: 0.7rem;
   color: #555;
   pointer-events: none;
+}
+
+/* Side panel stack */
+#tab-vector .vec-side {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tab-vector .vec-panel {
+  background: #2b2b2b !important;
+  border: 1px solid #3a3a3a !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  padding: 8px;
+  gap: 5px;
+}
+
+#tab-vector .vec-panel .group-content {
+  border-radius: 6px;
+  gap: 5px;
+}
+
+#tab-vector .vec-panel:first-child {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Tool buttons */
@@ -2295,7 +2297,7 @@ button.locked {
 #tab-vector .vec-layers-list {
   flex: 1;
   overflow-y: auto;
-  min-height: 80px;
+  min-height: 60px;
 }
 
 #tab-vector .vec-layer-item {
@@ -2321,19 +2323,3 @@ button.locked {
   cursor: pointer; opacity: 0.3; font-size: 10px; padding: 0 2px;
 }
 #tab-vector .vec-layer-up:hover, #tab-vector .vec-layer-dn:hover { opacity: 0.8; color: #fff; }
-
-#tab-vector .vec-btn-sm {
-  background: transparent;
-  border: 1px solid #444;
-  color: #aaa;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#tab-vector .vec-btn-sm:hover { background: rgba(255,255,255,0.1); color: #fff; }

@@ -550,61 +550,55 @@
 
       <!-- TAB CONTENT: VECTOR -->
       <div id="tab-vector" class="tab-content">
-        <div class="assets-workspace">
-          <div class="assets-main-grid">
-            <!-- Layers Panel -->
-            <div class="control-group no-collapse">
+        <div class="vec-root">
+          <!-- Main area: toolbar + canvas -->
+          <div class="vec-main">
+            <div class="vec-canvas-toolbar">
+              <button class="vec-btn active" data-vec-tool="select" title="Select (V)">⬆</button>
+              <button class="vec-btn" data-vec-tool="pen" title="Pen (P)">✎</button>
+              <button class="vec-btn" data-vec-tool="rect" title="Rectangle (R)">▬</button>
+              <button class="vec-btn" data-vec-tool="ellipse" title="Ellipse (E)">●</button>
+              <button class="vec-btn" data-vec-tool="polygon" title="Polygon (G)">⬡</button>
+              <span class="vec-sep"></span>
+              <button class="vec-btn" id="vecUnion" title="Union">∪</button>
+              <button class="vec-btn" id="vecSubtract" title="Subtract">∖</button>
+              <button class="vec-btn" id="vecIntersect" title="Intersect">∩</button>
+              <span class="vec-sep"></span>
+              <button class="vec-btn" id="vecExportTile" title="Export as tile renderer">⬇ Tile</button>
+            </div>
+            <div class="vec-canvas-wrap">
+              <canvas id="vecCanvas" width="400" height="400"></canvas>
+              <div class="vec-status" id="vecStatus">Vector Editor — Select a tool to start</div>
+            </div>
+          </div>
+
+          <!-- Side panels -->
+          <div class="vec-side">
+            <div class="control-group no-collapse vec-panel">
               <label><span>Layers</span></label>
-              <div class="group-content" id="vecLayerGroup">
+              <div class="group-content">
                 <div class="row" style="gap:6px;">
-                  <span style="flex:1;font-size:0.8rem;color:#aaa;" id="vecActiveLayerName">Layer 1</span>
+                  <span class="vec-layer-name" id="vecActiveLayerName" style="flex:1;">Layer 1</span>
                   <button id="vecAddLayer" class="btn-accent" style="padding:2px 10px;">+</button>
                 </div>
                 <div class="vec-layers-list" id="vecLayersList"></div>
               </div>
             </div>
 
-            <!-- Canvas -->
-            <div class="control-group no-collapse" style="display:flex;flex-direction:column;">
-              <label><span>Canvas</span></label>
-              <div class="group-content" style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:4px;">
-                <div class="vec-canvas-toolbar">
-                  <button class="vec-btn active" data-vec-tool="select" title="Select (V)">⬆</button>
-                  <button class="vec-btn" data-vec-tool="pen" title="Pen (P)">✎</button>
-                  <button class="vec-btn" data-vec-tool="rect" title="Rectangle (R)">▬</button>
-                  <button class="vec-btn" data-vec-tool="ellipse" title="Ellipse (E)">●</button>
-                  <button class="vec-btn" data-vec-tool="polygon" title="Polygon (G)">⬡</button>
-                  <span class="vec-sep"></span>
-                  <button class="vec-btn" id="vecUnion" title="Union">∪</button>
-                  <button class="vec-btn" id="vecSubtract" title="Subtract">∖</button>
-                  <button class="vec-btn" id="vecIntersect" title="Intersect">∩</button>
-                  <span class="vec-sep"></span>
-                  <button class="vec-btn" id="vecExportTile" title="Export as tile renderer">⬇ Tile</button>
+            <div class="control-group no-collapse vec-panel">
+              <label><span>Properties</span></label>
+              <div class="group-content" style="display:flex;flex-direction:column;gap:6px;">
+                <div class="row">
+                  <label style="flex:0 0 auto;font-size:0.75rem;">Fill</label>
+                  <input type="color" id="vecFillColor" value="#666666" style="width:100%;height:28px;">
                 </div>
-                <div class="vec-canvas-wrap">
-                  <canvas id="vecCanvas" width="400" height="400"></canvas>
-                  <div class="vec-status" id="vecStatus">Vector Editor — Select a tool to start</div>
+                <div class="row">
+                  <label style="flex:0 0 auto;font-size:0.75rem;">Stroke</label>
+                  <input type="color" id="vecStrokeColor" value="#cccccc" style="width:100%;height:28px;">
                 </div>
-              </div>
-            </div>
-
-            <!-- Properties -->
-            <div class="assets-side-stack">
-              <div class="control-group no-collapse">
-                <label><span>Properties</span></label>
-                <div class="group-content" style="display:flex;flex-direction:column;gap:6px;">
-                  <div class="row">
-                    <label style="flex:0 0 auto;font-size:0.75rem;">Fill</label>
-                    <input type="color" id="vecFillColor" value="#666666" style="width:100%;height:28px;">
-                  </div>
-                  <div class="row">
-                    <label style="flex:0 0 auto;font-size:0.75rem;">Stroke</label>
-                    <input type="color" id="vecStrokeColor" value="#cccccc" style="width:100%;height:28px;">
-                  </div>
-                  <div class="row" style="gap:4px;">
-                    <label style="flex:0 0 auto;font-size:0.75rem;">W:</label>
-                    <input type="number" id="vecStrokeWidth" value="2" min="0" max="20" step="0.5" style="width:60px;flex:1;">
-                  </div>
+                <div class="row" style="gap:4px;">
+                  <label style="flex:0 0 auto;font-size:0.75rem;">W:</label>
+                  <input type="number" id="vecStrokeWidth" value="2" min="0" max="20" step="0.5" style="flex:1;min-width:0;">
                 </div>
               </div>
             </div>
