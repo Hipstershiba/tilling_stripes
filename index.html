@@ -206,8 +206,8 @@
               <label style="font-size: 0.8rem; color: #aaa;">Target Scope</label>
             </div>
             <div class="scope-toggle-group">
-              <!-- Tile (single) -->
-              <button id="scopeSingle" class="scope-btn active" data-scope="single" title="Tile — 1 subtile in 1 supertile">
+              <!-- Dot -->
+              <button id="scopeSingle" class="scope-btn active" data-scope="single" title="Dot — 1 subtile, the pixel of your mosaic">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
@@ -217,8 +217,8 @@
                 </svg>
               </button>
 
-              <!-- Block (2x2) -->
-              <button id="scopeSupertile" class="scope-btn" data-scope="supertile" title="Block — same subtile in all 4 quadrants of 1 supertile">
+              <!-- Mirror -->
+              <button id="scopeSupertile" class="scope-btn" data-scope="supertile" title="Mirror — same subtile across the 4 mirrored faces of 1 block">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
@@ -235,8 +235,8 @@
               <!-- Divider Local / Global -->
               <div class="scope-divider"></div>
 
-              <!-- Same Type (Global Match) -->
-              <button id="scopeGlobalExact" class="scope-btn" data-scope="global_exact" title="Same Type — all subtiles matching this pattern across the grid">
+              <!-- Match -->
+              <button id="scopeGlobalExact" class="scope-btn" data-scope="global_exact" title="Match — all subtiles with this same pattern anywhere in the grid">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
@@ -246,8 +246,8 @@
                 </svg>
               </button>
 
-              <!-- Same Slot (Grid Position) -->
-              <button id="scopeGlobalPos" class="scope-btn" data-scope="global_pos" title="Same Slot — same visual position in every supertile">
+              <!-- Repeat -->
+              <button id="scopeGlobalPos" class="scope-btn" data-scope="global_pos" title="Repeat — same visual position in every block across the grid">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
@@ -260,8 +260,8 @@
                 </svg>
               </button>
 
-              <!-- All Blocks (Symmetry 4x) -->
-              <button id="scopeGlobalPosSym" class="scope-btn" data-scope="global_pos_sym" title="All Blocks — all 4 quadrants of every supertile">
+              <!-- Flood -->
+              <button id="scopeGlobalPosSym" class="scope-btn" data-scope="global_pos_sym" title="Flood — same subtile in ALL 4 faces of EVERY block (full grid)">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
@@ -276,31 +276,11 @@
                   <circle cx="15.75" cy="15.75" r="1.8" fill="currentColor" stroke="none"/>
                 </svg>
               </button>
-
-              <!-- Mirror Group (Symmetry Orbit) -->
-              <button id="scopeGlobalPosSym8" class="scope-btn" data-scope="global_pos_sym8" title="Mirror Group — same slot across all symmetry-orbit positions (respects grid mode)">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <line x1="12" y1="3" x2="12" y2="21" stroke-opacity="0.1"/>
-                  <line x1="3" y1="12" x2="21" y2="12" stroke-opacity="0.1"/>
-                  <line x1="5" y1="5" x2="19" y2="19" stroke-opacity="0.08"/>
-                  <line x1="19" y1="5" x2="5" y2="19" stroke-opacity="0.08"/>
-                  <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
             </div>
 
             <!-- Description Area (Dynamic) -->
             <div id="scopeDesc">
-              <strong style="color: #ccc;">Tile:</strong> Only changes the specific tile you click.
+              <strong style="color: #ccc;">Dot:</strong> The pixel of your mosaic — edit 1 subtile.
             </div>
 
             <div id="editModeToggle" class="edit-mode-toggle" data-active="paint" aria-label="Edit action mode">

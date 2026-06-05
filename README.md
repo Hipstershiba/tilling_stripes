@@ -9,9 +9,9 @@ Interactive generative art tool for creating mirrored tiling compositions with e
   - Undo: `Ctrl + Z`
   - Redo: `Ctrl + Shift + Z`
 - Improved edit reliability during drag interactions and fixed multiple hit-test/mirroring edge cases.
-- Refined **Target Scope** UX (icons + tooltips) and added live preview of affected tiles while hovering.
-- Fixed `Same Slot` (Grid Position) behavior across mirrored canvas halves.
-- Restored stable behavior for `All Blocks` (Symmetry 4x) scope after scope-mapping updates.
+- Refined **Target Scope** UX (icons, names, tooltips) and added live preview of affected tiles while hovering.
+- Fixed `Repeat` (Grid Position) behavior across mirrored canvas halves.
+- Restored stable behavior for `Flood` (Symmetry 4x) scope after scope-mapping updates.
 
 ## Core Features
 
@@ -23,12 +23,11 @@ Interactive generative art tool for creating mirrored tiling compositions with e
   - `Paint` (apply selected tile type with transform-aware mapping)
   - `Stamp` (copy a supertile's pattern and paste it onto another)
 - **Target Scopes**:
-  - `Tile`
-  - `Block` (2x2)
-  - `Same Type` (Global Match)
-  - `Same Slot` (Grid Position)
-  - `All Blocks` (Symmetry 4x)
-  - `Mirror Group` (Symmetry Orbit)
+  - `Dot` (1 subtile, the pixel)
+  - `Mirror` (4 mirrored faces of 1 block)
+  - `Match` (same pattern anywhere in the grid)
+  - `Repeat` (same slot in every block)
+  - `Flood` (every face of every block)
 - **History Systems**:
   - Generation history (seed/grid states)
   - Edit history (undo/redo snapshots)
@@ -57,12 +56,11 @@ For a complete technical walkthrough (architecture, maintenance routines, backup
 
 | Scope | What it edits |
 |-------|---------------|
-| **Tile** | 1 subtile in 1 supertile |
-| **Block** | Same subtile in all 4 quadrants of 1 supertile |
-| **Same Type** | All subtiles matching this pattern anywhere in the grid |
-| **Same Slot** | Same visual position (mirror-aware) in every supertile |
-| **All Blocks** | Same subtile slot in ALL 4 quadrants of EVERY supertile |
-| **Mirror Group** | Same visual position in all symmetry-orbit supertiles (depends on grid's symmetry mode) |
+| **Dot** | 1 subtile — the pixel of your mosaic |
+| **Mirror** | Same subtile across the 4 mirrored faces of 1 block — preserves kaleidoscope symmetry |
+| **Match** | All subtiles matching this pattern anywhere in the grid |
+| **Repeat** | Same visual position (mirror-aware) in every block |
+| **Flood** | Same subtile in ALL 4 faces of EVERY block — full grid coverage |
 
 ## Upload Your Own SVG Tiles
 
@@ -179,7 +177,7 @@ After adding tiles:
 - Reload browser and confirm tile appears in palette.
 - Test `Rotate` cycle behavior (family order).
 - Test `Paint` in mirrored areas (transform mapping).
-- Test `Same Slot` and `All Blocks` scopes for expected output.
+- Test `Dot` and `Flood` scopes for expected output.
 
 ## Notes
 

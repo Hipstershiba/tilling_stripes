@@ -3756,12 +3756,11 @@ function setupUI(mainCanvas) {
   
   // Scope Descriptions
   const SCOPE_DESCRIPTIONS = {
-    'single': '<strong style="color: #fff;">Tile</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit only the subtile you click. One cell, one block.</span>',
-    'supertile': '<strong style="color: #fff;">Block</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile slot across all 4 mirrored quadrants of this block.</span>',
-    'global_exact': '<strong style="color: #fff;">Same Type</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
-    'global_pos': '<strong style="color: #fff;">Same Slot</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
-    'global_pos_sym': '<strong style="color: #fff;">All Blocks</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile slot in ALL 4 quadrants of EVERY block — full grid coverage.</span>',
-    'global_pos_sym8': '<strong style="color: #fff;">Mirror Group</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same slot in all supertiles that share a symmetry orbit — respects the grid\'s symmetry mode (Bilateral Mirror or Center Orbit).</span>'
+    'single': '<strong style="color: #fff;">Dot</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit just the one subtile you click — the pixel of your mosaic.</span>',
+    'supertile': '<strong style="color: #fff;">Mirror</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile across all 4 mirrored faces of this block. Keeps the kaleidoscope symmetry.</span>',
+    'global_exact': '<strong style="color: #fff;">Match</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Find every subtile with this same pattern anywhere in the grid — all of them change together.</span>',
+    'global_pos': '<strong style="color: #fff;">Repeat</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same visual position (mirror-aware) in every block across the grid.</span>',
+    'global_pos_sym': '<strong style="color: #fff;">Flood</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Edit the same subtile in ALL 4 faces of EVERY block — covers the entire grid at once.</span>'
   };
 
   // Set initial tooltip
@@ -3825,9 +3824,9 @@ function updateEditUI() {
     let scopeDesc = document.getElementById('scopeDesc');
     if (scopeDesc && interactionMode === 'edit' && editToolMode === 'stamp') {
       if (stampPattern) {
-        scopeDesc.innerHTML = '<strong style="color: #4CAF50;">✓ Pattern Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click any supertile to stamp. Right-click or switch tool to clear.</span>';
+        scopeDesc.innerHTML = '<strong style="color: #4CAF50;">✓ Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click another block to stamp. RMB or Esc to clear source.</span>';
       } else {
-        scopeDesc.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click a supertile to copy its pattern, then click another to stamp it.</span>';
+        scopeDesc.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click a block to copy its pattern, then click another block to paste it.</span>';
       }
     }
 }
@@ -4781,16 +4780,10 @@ function buildScopePreviewTargets(hitInfo) {
     targets.push({ supertileIndex, quadrant, subtileIndex });
   };
 
-  // Stamp mode shows preview based on scope
+  // Stamp mode always shows the full supertile
   if (editToolMode === 'stamp') {
-    if (interactionScope === 'single' || interactionScope === 'global_pos') {
-      // Single quadrant preview
-      pushTarget(hitInfo.index, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
-    } else {
-      // Full supertile preview
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(hitInfo.index, quadrant, hitInfo.baseTileSubtileIndex);
-      }
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      pushTarget(hitInfo.index, quadrant, hitInfo.baseTileSubtileIndex);
     }
     return targets;
   }
@@ -5373,105 +5366,37 @@ function handleTileClick(mx, my, modeOverride = null) {
     // Tile to edit in data space (logical quadrant)
       let targetTile = supertile.tiles[activeQuadrant];
 
-      // ---- Stamp Mode ----
+      // ---- Stamp Mode ---- (always copies/pastes the full supertile)
       if (editToolMode === 'stamp') {
         let descEl = document.getElementById('scopeDesc');
-        // Right-click clears the source pattern
+        // Right-click clears
         if (mouseButton === RIGHT) {
           stampPattern = null;
-          if (descEl) {
-            descEl.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Source cleared. Click a supertile to copy its pattern.</span>';
-          }
+          if (descEl) descEl.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click a block to copy it.</span>';
           redraw();
           return;
         }
-
-        // Determine capture scope
-        const isSingleQuadrant = (interactionScope === 'single' || interactionScope === 'global_pos');
-
         if (!stampPattern) {
-          // First click: capture the pattern
-          if (isSingleQuadrant) {
-            stampPattern = {
-              quadrant: activeQuadrant,
-              subtileIndex: baseTileSubtileIndex,
-              types: [...supertile.tiles[activeQuadrant].types],
-              sourceIndex: index
-            };
-          } else {
-            stampPattern = {
-              quadrants: supertile.tiles.map(t => [...t.types]),
-              sourceIndex: index
-            };
-          }
-          if (descEl) {
-            let label = isSingleQuadrant ? 'Quadrant' : 'Block';
-            descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">' + label + ' pattern captured from #' + (index + 1) + '. Click target to stamp.</span>';
-          }
+          stampPattern = {
+            quadrants: supertile.tiles.map(t => [...t.types]),
+            sourceIndex: index
+          };
+          if (descEl) descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click another block to stamp. RMB or Esc to clear.</span>';
           redraw();
           return;
         }
-
-        // Second click: apply the pattern based on scope
-        const _refreshTile = (tileObj) => {
-          tileObj.subtiles = [];
-          if (tileObj.buffer) tileObj.buffer.remove();
-          tileObj.buffer = createGraphics(tileObj.w, tileObj.h);
-          tileObj.create_subtiles();
-          tileObj.render_to_buffer();
-        };
-
-        if (interactionScope === 'single') {
-          // Paste single quadrant to same quadrant of clicked supertile
-          if (stampPattern.types) {
-            supertile.tiles[activeQuadrant].types = [...stampPattern.types];
-            _refreshTile(supertile.tiles[activeQuadrant]);
-          }
-        } else if (interactionScope === 'supertile' || interactionScope === 'global_exact') {
-          // Paste full pattern to clicked supertile
-          if (stampPattern.quadrants) {
-            for (let q = 0; q < 4; q++) {
-              supertile.tiles[q].types = [...stampPattern.quadrants[q]];
-              _refreshTile(supertile.tiles[q]);
-            }
-          }
-        } else if (interactionScope === 'global_pos') {
-          // Paste quadrant to same mapped position in ALL supertiles
-          if (stampPattern.types) {
-            for (let s of tiles) {
-              let mapped = mapVisualTargetToLogical(s, visualQuadrant, hitInfo.visualSubtileDisplayIndex);
-              s.tiles[mapped.quadrant].types = [...stampPattern.types];
-              _refreshTile(s.tiles[mapped.quadrant]);
-            }
-          }
-        } else if (interactionScope === 'global_pos_sym') {
-          // Paste full pattern to ALL supertiles
-          if (stampPattern.quadrants) {
-            for (let s of tiles) {
-              for (let q = 0; q < 4; q++) {
-                s.tiles[q].types = [...stampPattern.quadrants[q]];
-                _refreshTile(s.tiles[q]);
-              }
-            }
-          }
-        } else if (interactionScope === 'global_pos_sym8') {
-          // Paste full pattern to symmetry orbit
-          if (stampPattern.quadrants) {
-            let orbitIndices = getSymmetryOrbitIndices(floor(index / cols), index % cols);
-            for (let idx of orbitIndices) {
-              let s = tiles[idx];
-              if (!s) continue;
-              for (let q = 0; q < 4; q++) {
-                s.tiles[q].types = [...stampPattern.quadrants[q]];
-                _refreshTile(s.tiles[q]);
-              }
-            }
-          }
+        // Paste
+        for (let q = 0; q < 4; q++) {
+          const _t = supertile.tiles[q];
+          _t.types = [...stampPattern.quadrants[q]];
+          _t.subtiles = [];
+          if (_t.buffer) _t.buffer.remove();
+          _t.buffer = createGraphics(_t.w, _t.h);
+          _t.create_subtiles();
+          _t.render_to_buffer();
         }
         pushEditState();
-        if (descEl) {
-          descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Stamped</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Pattern applied. Keep clicking or switch tool.</span>';
-        }
+        if (descEl) descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Stamped</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Keep clicking to paste, or RMB to copy a new source.</span>';
         redraw();
         return;
       }
