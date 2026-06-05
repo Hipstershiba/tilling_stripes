@@ -165,10 +165,11 @@ const vecEditor = {
     let wrap = this.canvas.parentElement;
     if (!wrap) return;
     let rect = wrap.getBoundingClientRect();
-    // Fill available space — max 1200 to avoid absurd sizes
     let size = Math.min(rect.width - 8, rect.height - 8, 1200);
-    this.canvas.width = Math.max(200, Math.round(size));
-    this.canvas.height = this.canvas.width;
+    this._baseSize = Math.max(200, Math.round(size));
+    this.canvas.width = this._baseSize;
+    this.canvas.height = this._baseSize;
+    this.applyZoom();
     this.render();
   },
 
@@ -260,8 +261,9 @@ const vecEditor = {
 
   // ── Zoom ──
   setZoom(z) {
-    this.zoom = Math.max(0.1, Math.min(10, z));
+    this.zoom = Math.max(0.25, Math.min(5, z));
     document.getElementById('vecZoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+    this.applyZoom();
     this.render();
   },
 
@@ -269,16 +271,19 @@ const vecEditor = {
   zoomOut() { this.setZoom(this.zoom / 1.25); },
   resetZoom() { this.setZoom(1); },
 
-  // ── Screen coords → canvas coords (accounting for zoom) ──
+  applyZoom() {
+    if (!this._baseSize) return;
+    let s = this._baseSize * this.zoom;
+    this.canvas.style.width = s + 'px';
+    this.canvas.style.height = s + 'px';
+  },
+
+  // ── Screen coords → canvas coords (accounting for CSS zoom display) ──
   canvasCoords(e) {
     let rect = this.canvas.getBoundingClientRect();
-    let mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    let my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-    // Un-apply zoom transform: (coord - center) / zoom + center
-    let cx = this.canvas.width / 2, cy = this.canvas.height / 2;
     return {
-      x: (mx - cx) / this.zoom + cx,
-      y: (my - cy) / this.zoom + cy
+      x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
+      y: (e.clientY - rect.top) * (this.canvas.height / rect.height)
     };
   },
 
@@ -308,15 +313,9 @@ const vecEditor = {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, w, h);
 
-    // Apply zoom transform (centered)
-    ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.scale(this.zoom, this.zoom);
-    ctx.translate(-w / 2, -h / 2);
-
     // Grid lines
     ctx.strokeStyle = '#2a2a2a';
-    ctx.lineWidth = 0.5 / this.zoom;
+    ctx.lineWidth = 0.5;
     let step = w / this.gridSize;
     for (let i = 0; i <= this.gridSize; i++) {
       let p = i * step;
@@ -326,8 +325,8 @@ const vecEditor = {
 
     // Center cross
     ctx.strokeStyle = '#333';
-    ctx.lineWidth = 1 / this.zoom;
-    ctx.setLineDash([4 / this.zoom, 4 / this.zoom]);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
     ctx.setLineDash([]);
@@ -346,15 +345,15 @@ const vecEditor = {
     for (let layer of this.layers) {
       if (!layer.visible) continue;
       for (let shape of layer.shapes) {
-        if (shape.selected) shape.drawHandles(ctx, this.zoom);
+        if (shape.selected) shape.drawHandles(ctx, 1);
       }
     }
 
     // Pen preview
     if ((this.tool === 'pen' || this.tool === 'polygon') && this.penPoints.length > 0) {
       ctx.strokeStyle = '#4CAF50';
-      ctx.lineWidth = 2 / this.zoom;
-      ctx.setLineDash([4 / this.zoom, 4 / this.zoom]);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(this.penPoints[0].x, this.penPoints[0].y);
       for (let i = 1; i < this.penPoints.length; i++)
@@ -365,14 +364,12 @@ const vecEditor = {
 
       for (let p of this.penPoints) {
         ctx.fillStyle = '#4CAF50';
-        ctx.beginPath(); ctx.arc(p.x, p.y, 4 / this.zoom, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 1.5 / this.zoom;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
     }
-
-    ctx.restore();
 
     this.updateStatus();
   },

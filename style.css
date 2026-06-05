@@ -2252,8 +2252,6 @@ button.locked {
 
 #tab-vector #vecCanvas {
   display: block;
-  max-width: calc(100% - 8px);
-  max-height: calc(100% - 34px);
   cursor: crosshair;
   border-radius: 4px;
 }
