@@ -1572,7 +1572,7 @@ body.assets-focus #exportActions {
   top: 2px;
   bottom: 2px;
   left: 2px;
-  width: calc(50% - 2px);
+  width: calc(33.333% - 3px);
   background: #252525;
   border: 1px solid #444;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -1584,7 +1584,12 @@ body.assets-focus #exportActions {
 
 .edit-mode-toggle[data-active="rotate"] .edit-mode-bg {
   transform: translateX(100%);
-  left: -2px;
+  left: -3px;
+}
+
+.edit-mode-toggle[data-active="stamp"] .edit-mode-bg {
+  transform: translateX(200%);
+  left: -6px;
 }
 
 .edit-mode-btn {

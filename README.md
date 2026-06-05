@@ -21,6 +21,7 @@ Interactive generative art tool for creating mirrored tiling compositions with e
 - **Edit Tools**:
   - `Rotate` (cycle/randomize families)
   - `Paint` (apply selected tile type with transform-aware mapping)
+  - `Stamp` (copy a supertile's pattern and paste it onto another)
 - **Target Scopes**:
   - `Tile`
   - `Block` (2x2)

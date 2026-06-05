@@ -17,7 +17,8 @@ let canvasZoomPercent = 100;
 
 // Interaction State
 let interactionMode = 'none'; // 'none' (Setup tab) or 'edit' (Edit tab). Right-click temporarily rotates.
-let editToolMode = 'edit'; // 'edit' (paint) or 'mirror' (rotate)
+let editToolMode = 'edit'; // 'edit' (paint), 'mirror' (rotate), or 'stamp'
+let stampPattern = null; // Captured supertile pattern { quadrants: [[4], [4], [4], [4]], sourceIndex: N }
 let interactionScope = 'single'; // 'single', 'global'
 let currentPaintTile = 0;
 let lastInteractedId = null; // Tracks the last tile modified during a drag operation
@@ -3505,10 +3506,12 @@ function setupUI(mainCanvas) {
   const updateEditModeUI = () => {
     let paintBtn = select('#editModePaint');
     let rotateBtn = select('#editModeRotate');
+    let stampBtn = select('#editModeStamp');
     let toggleContainer = select('#editModeToggle');
 
     if (toggleContainer) {
-      toggleContainer.attribute('data-active', editToolMode === 'mirror' ? 'rotate' : 'paint');
+      let activeLabel = editToolMode === 'edit' ? 'paint' : editToolMode === 'mirror' ? 'rotate' : 'stamp';
+      toggleContainer.attribute('data-active', activeLabel);
     }
 
     if (paintBtn) {
@@ -3520,10 +3523,19 @@ function setupUI(mainCanvas) {
       if (editToolMode === 'mirror') rotateBtn.addClass('active');
       else rotateBtn.removeClass('active');
     }
+
+    if (stampBtn) {
+      if (editToolMode === 'stamp') stampBtn.addClass('active');
+      else stampBtn.removeClass('active');
+    }
   };
 
   const toggleEditToolMode = () => {
-    editToolMode = editToolMode === 'edit' ? 'mirror' : 'edit';
+    if (editToolMode === 'edit') editToolMode = 'mirror';
+    else if (editToolMode === 'mirror') editToolMode = 'stamp';
+    else editToolMode = 'edit';
+    // Clear stamp source when switching away from stamp
+    if (editToolMode !== 'stamp') stampPattern = null;
     updateEditModeUI();
     updateEditUI();
     showCanvasStatusHintTemporarily(1800);
@@ -3544,6 +3556,16 @@ function setupUI(mainCanvas) {
   if (editRotateBtn) {
     editRotateBtn.mousePressed(() => {
       editToolMode = 'mirror';
+      updateEditModeUI();
+      updateEditUI();
+      showCanvasStatusHintTemporarily(1800);
+    });
+  }
+
+  let editStampBtn = select('#editModeStamp');
+  if (editStampBtn) {
+    editStampBtn.mousePressed(() => {
+      editToolMode = 'stamp';
       updateEditModeUI();
       updateEditUI();
       showCanvasStatusHintTemporarily(1800);
@@ -3586,8 +3608,14 @@ function setupUI(mainCanvas) {
 
     if (editToolMode === 'edit') {
       hint.html('LMB paint • RMB rotate • R toggle');
-    } else {
+    } else if (editToolMode === 'mirror') {
       hint.html('LMB rotate • RMB paint • R toggle');
+    } else if (editToolMode === 'stamp') {
+      if (stampPattern) {
+        hint.html('LMB stamp • RMB clear source • R toggle');
+      } else {
+        hint.html('Click a block to copy • RMB cancel • R toggle');
+      }
     }
   };
 
@@ -3781,12 +3809,26 @@ function updateEditUI() {
 
     // Logic-dependent visibility
     if (interactionMode === 'edit') {
-  if(previewContainer) previewContainer.style('display', 'flex'); 
+        // Hide paint palette when in stamp mode
+        if (editToolMode === 'stamp') {
+            if(previewContainer) previewContainer.style('display', 'none');
+        } else {
+            if(previewContainer) previewContainer.style('display', 'flex');
+        }
         if(scopeContainer) scopeContainer.style('display', 'block');
     } else {
-    // Setup tab / disabled
         if(previewContainer) previewContainer.style('display', 'none');
-    if(scopeContainer) scopeContainer.style('display', 'none');
+        if(scopeContainer) scopeContainer.style('display', 'none');
+    }
+
+    // Update stamp status in description area
+    let scopeDesc = document.getElementById('scopeDesc');
+    if (scopeDesc && interactionMode === 'edit' && editToolMode === 'stamp') {
+      if (stampPattern) {
+        scopeDesc.innerHTML = '<strong style="color: #4CAF50;">✓ Pattern Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click any supertile to stamp. Right-click or switch tool to clear.</span>';
+      } else {
+        scopeDesc.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Click a supertile to copy its pattern, then click another to stamp it.</span>';
+      }
     }
 }
 
@@ -4962,6 +5004,16 @@ window.addEventListener('keydown', (e) => {
         e.preventDefault();
         return;
       }
+
+      // Escape in stamp mode clears the pattern
+      if (editToolMode === 'stamp' && stampPattern) {
+        stampPattern = null;
+        updateEditUI();
+        updateCanvasStatusHintText();
+        redraw();
+        e.preventDefault();
+        return;
+      }
     }
 
     // Check if user is typing in an input field
@@ -5192,6 +5244,8 @@ function getPointerInteractionMode() {
 
   if (isEditTabActive()) {
     if (mouseButton === RIGHT) {
+      // Right-click in stamp mode just clears the pattern (handled in handleTileClick)
+      if (editToolMode === 'stamp') return 'stamp';
       return editToolMode === 'edit' ? 'mirror' : 'edit';
     }
     return editToolMode;
@@ -5303,9 +5357,46 @@ function handleTileClick(mx, my, modeOverride = null) {
     lastInteractedId = currentTileId;
 
     // Tile to edit in data space (logical quadrant)
-    let targetTile = supertile.tiles[activeQuadrant];
-    
-    let oldType = hitInfo.oldType;
+      let targetTile = supertile.tiles[activeQuadrant];
+
+      // ---- Stamp Mode ----
+      if (editToolMode === 'stamp') {
+        let descEl = document.getElementById('scopeDesc');
+        // Right-click clears the source pattern
+        if (mouseButton === RIGHT) {
+          stampPattern = null;
+          if (descEl) {
+            descEl.innerHTML = '<strong style="color: #fff;">Stamp</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Source cleared. Click a supertile to copy its pattern.</span>';
+          }
+          redraw();
+          return;
+        }
+        if (!stampPattern) {
+          // First click: capture the pattern
+          stampPattern = {
+            quadrants: supertile.tiles.map(t => [...t.types]),
+            sourceIndex: index
+          };
+          if (descEl) {
+            descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Copied</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Pattern captured from Block #' + (index + 1) + '. Click another to stamp. Right-click to clear.</span>';
+          }
+          redraw();
+          return;
+        }
+        // Second click: apply the pattern
+        for (let q = 0; q < 4; q++) {
+          supertile.tiles[q].types = [...stampPattern.quadrants[q]];
+          refreshTile(supertile.tiles[q]);
+        }
+        pushEditState();
+        if (descEl) {
+          descEl.innerHTML = '<strong style="color: #4CAF50;">✓ Stamped</strong> <br> <span style="font-size: 0.9em; opacity: 0.8">Pattern applied to Block #' + (index + 1) + '. Keep clicking to stamp more. Right-click or switch tool to clear source.</span>';
+        }
+        redraw();
+        return;
+      }
+
+      let oldType = hitInfo.oldType;
     let newType = oldType;
     
     const resolveMirrorType = (sourceType) => {
