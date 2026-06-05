@@ -662,9 +662,6 @@ const vecEditor = {
 
   onDblClick(e) {
     if (this.tool === 'pen' && this.penPoints.length >= 2) {
-      let { x: mx, y: my } = this.canvasCoords(e);
-      this.penPoints.push({ x: mx, y: my });
-      // Close and create path shape
       let shape = new VecShape('path');
       shape.points = [...this.penPoints];
       shape.closed = false;
@@ -692,12 +689,31 @@ const vecEditor = {
 
   renderPreview(state) {
     let ctx = this.ctx;
-    this.render(); // re-render base first
+    this.render(); // re-render base (ctx.restore() no final)
+    ctx.save();
+    ctx.scale(this.zoom, this.zoom);
+    // Normalize negative dimensions
+    let x = state.startX, y = state.startY, w = state.w || 0, h = state.h || 0;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+    ctx.fillStyle = document.getElementById('vecFillColor').value;
+    ctx.globalAlpha = 0.15;
+    if (state.tool === 'rect') {
+      ctx.fillRect(x, y, w, h);
+    } else {
+      ctx.beginPath(); ctx.ellipse(x + w/2, y + h/2, w/2, h/2, 0, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = '#4CAF50';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(state.startX, state.startY, state.w || 0, state.h || 0);
+    if (state.tool === 'rect') {
+      ctx.strokeRect(x, y, w, h);
+    } else {
+      ctx.beginPath(); ctx.ellipse(x + w/2, y + h/2, w/2, h/2, 0, 0, Math.PI*2); ctx.stroke();
+    }
     ctx.setLineDash([]);
+    ctx.restore();
   },
 
   deselectAll() {
