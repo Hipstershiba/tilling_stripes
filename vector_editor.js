@@ -126,8 +126,8 @@ class VecShape {
     let b = this.bounds;
     let hs = 8 / scale;
     let corners = [
-      [b.x, b.y, 'resize'], [b.x + b.w, b.y, 'resize'],
-      [b.x, b.y + b.h, 'resize'], [b.x + b.w, b.y + b.h, 'resize']
+      [b.x, b.y, 'tl'], [b.x + b.w, b.y, 'tr'],
+      [b.x, b.y + b.h, 'bl'], [b.x + b.w, b.y + b.h, 'br']
     ];
     for (let [hx, hy, action] of corners) {
       if (Math.abs(px - hx) < hs && Math.abs(py - hy) < hs) return action;
@@ -162,7 +162,7 @@ const vecEditor = {
   dragPoint: null, // { shape, pointIdx, handle } for dragging a point/handle
   gridSize: 80, // subtile cell size in vector space
   nextId: 1,
-  zoom: 1,
+  zoom: 3,
   _baseSize: 100, // tile size in logical units (100x100 = one subtile)
   undoStack: [],
   redoStack: [],
@@ -172,7 +172,7 @@ const vecEditor = {
     this.ctx = this.canvas.getContext('2d');
     this.layers = [new VecLayer('Layer 1')];
     this.setupUI();
-    this.resize();
+    this.setZoom(3);
     window.addEventListener('resize', () => this.resize());
     this.render();
     this.updateStatus('Tile Editor — draw shapes to create a tile');
@@ -267,10 +267,14 @@ const vecEditor = {
   // ── Sync selected shape props to UI ──
   syncPropsToUI() {
     let sel = this.selectedShapes();
-    if (sel.length === 1) {
-      document.getElementById('vecFillColor').value = sel[0].fill;
-      document.getElementById('vecStrokeColor').value = sel[0].stroke;
-      document.getElementById('vecStrokeWidth').value = sel[0].strokeWidth;
+    if (sel.length >= 1) {
+      // Sync from first shape
+      let s = sel[0];
+      document.getElementById('vecFillColor').value = s.fill;
+      document.getElementById('vecStrokeColor').value = s.stroke;
+      document.getElementById('vecStrokeWidth').value = s.strokeWidth;
+      let cb = document.querySelector('#vecPatternColorCheck input');
+      if (cb) cb.checked = s.usePatternColor;
     }
   },
 
@@ -835,7 +839,8 @@ const vecEditor = {
         }
         this.syncPropsToUI();
         if (hit.handle) {
-          this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...hit.shape.bounds} };
+          let b = hit.shape.bounds;
+          this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: hit.handle, origBounds: {...b}, corner: hit.handle };
         } else {
           this.dragState = { shape: hit.shape, startX: mx, startY: my, handle: null };
         }
@@ -897,21 +902,36 @@ const vecEditor = {
         let dy = my - this.dragState.startY;
         this.dragState.shape.x += dx;
         this.dragState.shape.y += dy;
-        if (this.dragState.shape.points.length > 0) {
-          // Move polygon/path points too
-          for (let p of this.dragState.shape.points) { p.x += dx; p.y += dy; }
-        }
         this.dragState.startX = mx;
         this.dragState.startY = my;
         this.render();
-      } else if (this.dragState.shape && this.dragState.handle === 'resize') {
-        // Resize from corner
+      } else if (this.dragState.shape && (this.dragState.handle === 'tl' || this.dragState.handle === 'tr' || this.dragState.handle === 'bl' || this.dragState.handle === 'br')) {
+        // Corner-aware resize
+        let shape = this.dragState.shape;
         let b = this.dragState.origBounds;
         let dx = mx - this.dragState.startX;
         let dy = my - this.dragState.startY;
-        // Simple proportional resize
-        this.dragState.shape.w = Math.max(10, b.w + dx);
-        this.dragState.shape.h = Math.max(10, b.h + dy);
+        let corner = this.dragState.corner;
+
+        // Determine w/h change based on corner
+        let dw = (corner === 'tl' || corner === 'bl') ? -dx : dx;
+        let dh = (corner === 'tl' || corner === 'tr') ? -dy : dy;
+        let nw = Math.max(10, b.w + dw);
+        let nh = Math.max(10, b.h + dh);
+
+        // Adjust position (center) based on which edge resized
+        if (corner === 'tl' || corner === 'bl') {
+          shape.x = b.x + nw / 2;
+        } else {
+          shape.x = (b.x + b.w) - nw / 2;
+        }
+        if (corner === 'tl' || corner === 'tr') {
+          shape.y = b.y + nh / 2;
+        } else {
+          shape.y = (b.y + b.h) - nh / 2;
+        }
+        shape.w = nw;
+        shape.h = nh;
         this.render();
       } else if (this.dragState.tool === 'rect') {
         this.dragState.w = mx - this.dragState.startX;
@@ -946,6 +966,9 @@ const vecEditor = {
     if (this.dragState) {
       if (this.dragState.shape && this.dragState.handle === null) {
         // Shape was moved — save state
+        this.saveState();
+      } else if (this.dragState.shape && (this.dragState.handle === 'tl' || this.dragState.handle === 'tr' || this.dragState.handle === 'bl' || this.dragState.handle === 'br')) {
+        // Shape was resized — save state
         this.saveState();
       }
       if (this.dragState.tool === 'rect') {
