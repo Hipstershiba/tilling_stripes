@@ -144,10 +144,12 @@ const vecEditor = {
   tool: 'select',
   penPoints: [], // temp while drawing pen/poly
   dragState: null, // { shape, startX, startY, handle }
+  selectedPoint: null, // { shape, pointIdx } for direct select
+  dragPoint: null, // { shape, pointIdx, handle } for dragging a point/handle
   gridSize: 80, // subtile cell size in vector space
   nextId: 1,
   zoom: 1,
-  panX: 0, panY: 0,
+  _baseSize: 400,
   undoStack: [],
   redoStack: [],
 
@@ -178,6 +180,8 @@ const vecEditor = {
 
   setTool(tool) {
     this.tool = tool;
+    this.selectedPoint = null;
+    this.dragPoint = null;
     document.querySelectorAll('[data-vec-tool]').forEach(b => b.classList.toggle('active', b.dataset.vecTool === tool));
     this.penPoints = [];
     this.dragState = null;
@@ -281,13 +285,71 @@ const vecEditor = {
     };
   },
 
+  // ── Get shape points in absolute canvas coords ──
+  getShapePoints(shape) {
+    if (!shape.points || shape.points.length === 0) return [];
+    let s = 1 / this.zoom;
+    return shape.points.map(p => ({
+      x: (shape.x + p.x),
+      y: (shape.y + p.y)
+    }));
+  },
+
+  getHandlePositions(shape, pointIdx) {
+    let p = shape.points[pointIdx];
+    if (!p) return null;
+    let absX = shape.x + p.x;
+    let absY = shape.y + p.y;
+    let result = {};
+    if (p.handleIn) {
+      result.handleIn = { x: shape.x + p.x + p.handleIn.x, y: shape.y + p.y + p.handleIn.y };
+    }
+    if (p.handleOut) {
+      result.handleOut = { x: shape.x + p.x + p.handleOut.x, y: shape.y + p.y + p.handleOut.y };
+    }
+    return result;
+  },
+
   // ── Hit Testing ──
   hitTest(px, py) {
-    // Check from top (last drawn = top of layer) to bottom
     let layer = this.activeLayer;
+    const HIT_RADIUS = 6 / this.zoom;
+
+    if (this.tool === 'direct') {
+      // First check points on selected path/polygon shapes
+      for (let shape of layer.shapes) {
+        if (!shape.selected || (shape.type !== 'path' && shape.type !== 'polygon')) continue;
+        let pts = this.getShapePoints(shape);
+        for (let i = pts.length - 1; i >= 0; i--) {
+          let dx = px - pts[i].x, dy = py - pts[i].y;
+          if (dx * dx + dy * dy < HIT_RADIUS * HIT_RADIUS) {
+            return { shape, point: i };
+          }
+        }
+        // Check bezier handles of selected point
+        if (this.selectedPoint && this.selectedPoint.shape === shape) {
+          let hp = this.getHandlePositions(shape, this.selectedPoint.pointIdx);
+          if (hp) {
+            for (let [key, pos] of Object.entries(hp)) {
+              let dx = px - pos.x, dy = py - pos.y;
+              if (dx * dx + dy * dy < HIT_RADIUS * HIT_RADIUS) {
+                return { shape, handle: key, handlePoint: this.selectedPoint.pointIdx };
+              }
+            }
+          }
+        }
+      }
+      // Then check shapes
+      for (let i = layer.shapes.length - 1; i >= 0; i--) {
+        let s = layer.shapes[i];
+        if (s.contains(px, py)) return { shape: s, handle: null };
+      }
+      return null;
+    }
+
+    // Normal select tool
     for (let i = layer.shapes.length - 1; i >= 0; i--) {
       let s = layer.shapes[i];
-      // Check handles first (if using select tool)
       if (this.tool === 'select' && s.selected) {
         let h = s.hitHandle(px, py, 1);
         if (h) return { shape: s, handle: h };
@@ -347,6 +409,52 @@ const vecEditor = {
       }
     }
 
+    // Points on selected shapes when using Direct Select
+    if (this.tool === 'direct') {
+      for (let layer of this.layers) {
+        if (!layer.visible) continue;
+        for (let shape of layer.shapes) {
+          if (!shape.selected || (shape.type !== 'path' && shape.type !== 'polygon')) continue;
+          let pts = this.getShapePoints(shape);
+          for (let i = 0; i < pts.length; i++) {
+            let p = this.selectedPoint && this.selectedPoint.shape === shape && this.selectedPoint.pointIdx === i;
+            // Point dot
+            ctx.fillStyle = p ? '#2196F3' : '#fff';
+            ctx.strokeStyle = p ? '#fff' : '#888';
+            ctx.lineWidth = 1.5 / this.zoom;
+            ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, p ? 5 / this.zoom : 3.5 / this.zoom, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            // Bezier handles for selected point
+            if (p) {
+              let point = shape.points[i];
+              if (point.handleIn) {
+                let hx = shape.x + (point.x + point.handleIn.x);
+                let hy = shape.y + (point.y + point.handleIn.y);
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 1 / this.zoom;
+                ctx.setLineDash([2 / this.zoom, 2 / this.zoom]);
+                ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(hx, hy); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#2196F3';
+                ctx.beginPath(); ctx.arc(hx, hy, 3 / this.zoom, 0, Math.PI * 2); ctx.fill();
+              }
+              if (point.handleOut) {
+                let hx = shape.x + (point.x + point.handleOut.x);
+                let hy = shape.y + (point.y + point.handleOut.y);
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 1 / this.zoom;
+                ctx.setLineDash([2 / this.zoom, 2 / this.zoom]);
+                ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(hx, hy); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#2196F3';
+                ctx.beginPath(); ctx.arc(hx, hy, 3 / this.zoom, 0, Math.PI * 2); ctx.fill();
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Pen preview
     if ((this.tool === 'pen' || this.tool === 'polygon') && this.penPoints.length > 0) {
       ctx.strokeStyle = '#4CAF50';
@@ -392,6 +500,7 @@ const vecEditor = {
     document.addEventListener('keydown', (e) => {
       if (document.getElementById('tab-vector').classList.contains('active')) {
         if (e.key === 'v' || e.key === 'V') this.setTool('select');
+        else if (e.key === 'a' || e.key === 'A') this.setTool('direct');
         else if (e.key === 'p' || e.key === 'P') this.setTool('pen');
         else if (e.key === 'r' || e.key === 'R') this.setTool('rect');
         else if (e.key === 'e' || e.key === 'E') this.setTool('ellipse');
@@ -543,6 +652,12 @@ const vecEditor = {
   updateStatus(msg) {
     let el = document.getElementById('vecStatus');
     if (msg) { el.textContent = msg; return; }
+    if (this.tool === 'direct') {
+      let selCount = this.activeLayer.shapes.filter(s => s.selected).length;
+      let ptInfo = this.selectedPoint ? ` | Point ${this.selectedPoint.pointIdx}` : '';
+      el.textContent = `Direct Select | ${selCount} selected${ptInfo}`;
+      return;
+    }
     let sel = this.activeLayer.shapes.filter(s => s.selected).length;
     el.textContent = `${this.tool.charAt(0).toUpperCase() + this.tool.slice(1)} | ${this.activeLayer.shapes.length} shapes | ${sel} selected`;
   },
@@ -550,6 +665,31 @@ const vecEditor = {
   // ── Mouse Handlers ──
   onMouseDown(e) {
     let { x: mx, y: my } = this.canvasCoords(e);
+
+    if (this.tool === 'direct') {
+      let hit = this.hitTest(mx, my);
+      this.deselectAll();
+      this.selectedPoint = null;
+      if (hit) {
+        if (hit.point !== undefined) {
+          // Clicked a point
+          hit.shape.selected = true;
+          this.selectedPoint = { shape: hit.shape, pointIdx: hit.point };
+        } else if (hit.handle) {
+          // Clicked a bezier handle
+          hit.shape.selected = true;
+          this.selectedPoint = { shape: hit.shape, pointIdx: hit.handlePoint };
+          let hp = this.getHandlePositions(hit.shape, hit.handlePoint);
+          this.dragPoint = { shape: hit.shape, pointIdx: hit.handlePoint, handle: hit.handle, startX: mx, startY: my, origHandle: { ...hit.shape.points[hit.handlePoint][hit.handle] } };
+        } else {
+          // Clicked a shape body
+          hit.shape.selected = true;
+        }
+      }
+      this.render();
+      this.updateLayersUI();
+      return;
+    }
 
     if (this.tool === 'select') {
       let hit = this.hitTest(mx, my);
@@ -587,6 +727,33 @@ const vecEditor = {
   onMouseMove(e) {
     let { x: mx, y: my } = this.canvasCoords(e);
 
+    // Direct select: drag a point or bezier handle
+    if (this.dragPoint) {
+      let { shape, pointIdx, handle, startX, startY, origHandle } = this.dragPoint;
+      if (handle) {
+        // Dragging a bezier handle → update handle offset
+        let p = shape.points[pointIdx];
+        if (p[handle]) {
+          let dx = mx - startX;
+          let dy = my - startY;
+          p[handle] = { x: origHandle.x + dx, y: origHandle.y + dy };
+        }
+      } else {
+        // Dragging a point
+        let p = shape.points[pointIdx];
+        if (p) {
+          let dx = mx - startX;
+          let dy = my - startY;
+          p.x += dx;
+          p.y += dy;
+          this.dragPoint.startX = mx;
+          this.dragPoint.startY = my;
+        }
+      }
+      this.render();
+      return;
+    }
+
     if (this.dragState) {
       if (this.dragState.shape && !this.dragState.handle) {
         // Move shape
@@ -622,11 +789,20 @@ const vecEditor = {
     } else {
       // Update cursor
       let hit = this.hitTest(mx, my);
-      this.canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+      if (this.tool === 'direct') {
+        this.canvas.style.cursor = hit ? (hit.point !== undefined ? 'move' : 'pointer') : 'default';
+      } else {
+        this.canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+      }
     }
   },
 
   onMouseUp() {
+    if (this.dragPoint) {
+      this.dragPoint = null;
+      this.render();
+      return;
+    }
     if (this.dragState) {
       if (this.dragState.shape && this.dragState.handle === null) {
         // Shape was moved — save state
@@ -717,6 +893,7 @@ const vecEditor = {
   },
 
   deselectAll() {
+    this.selectedPoint = null;
     for (let layer of this.layers) {
       for (let s of layer.shapes) s.selected = false;
     }
