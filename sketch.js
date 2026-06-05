@@ -4976,30 +4976,22 @@ function buildScopePreviewTargets(hitInfo) {
   } else if (interactionScope === 'global_radial') {
     let indices = getRadialRingIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
     for (let supertileIndex of indices) {
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
-      }
+      pushTarget(supertileIndex, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
     }
   } else if (interactionScope === 'global_wedge') {
     let indices = getWedgeIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
     for (let supertileIndex of indices) {
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
-      }
+      pushTarget(supertileIndex, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
     }
   } else if (interactionScope === 'global_cascade') {
     let indices = getCascadeIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
     for (let supertileIndex of indices) {
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
-      }
+      pushTarget(supertileIndex, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
     }
   } else if (interactionScope === 'global_alternate') {
     let indices = getAlternateIndices(hitInfo.index % cols, floor(hitInfo.index / cols));
     for (let supertileIndex of indices) {
-      for (let quadrant = 0; quadrant < 4; quadrant++) {
-        pushTarget(supertileIndex, quadrant, hitInfo.baseTileSubtileIndex);
-      }
+      pushTarget(supertileIndex, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
     }
   }
 
