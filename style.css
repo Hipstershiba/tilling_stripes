@@ -2159,7 +2159,6 @@ button.locked {
    ══════════════════════════════════════ */
 
 #tab-vector {
-  display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
@@ -2174,7 +2173,7 @@ button.locked {
 }
 
 /* Toolbar */
-.vector-toolbar {
+#tab-vector .vector-toolbar {
   display: flex;
   gap: 3px;
   align-items: center;
