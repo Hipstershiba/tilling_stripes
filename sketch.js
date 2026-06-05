@@ -4375,6 +4375,7 @@ function draw() {
     }
   }
   drawScopePreview();
+  drawStampFeedback();
   noLoop(); 
 }
 
@@ -4950,6 +4951,120 @@ function drawScopePreview() {
 
     drawSubtileOverlay(supertile, marker.quadrant, marker.subtileIndex, isAnchor);
   }
+}
+
+// -------------------------------------------------------------
+// Stamp Visual Feedback — source marker + ghost preview
+// -------------------------------------------------------------
+function drawStampFeedback() {
+  if (interactionMode !== 'edit' || editToolMode !== 'stamp' || zoomToolActive) return;
+
+  // ── 1. Source marker — highlight which supertile was copied ──
+  if (stampPattern) {
+    let src = tiles[stampPattern.sourceIndex];
+    if (src) {
+      push();
+      translate(src.x, src.y);
+
+      // Outer glow ring
+      noFill();
+      for (let w = 6; w >= 2; w -= 1.5) {
+        stroke(76, 175, 80, 180 - w * 20);
+        strokeWeight(w);
+        rectMode(CENTER);
+        rect(0, 0, src.w + w * 1.5, src.h + w * 1.5, 6);
+      }
+
+      // Icon: clipboard label
+      noStroke();
+      fill(76, 175, 80, 230);
+      textSize(min(src.w, src.h) * 0.12);
+      textAlign(CENTER, TOP);
+      text('📋', 0, -src.h / 2 - min(src.w, src.h) * 0.05);
+      pop();
+    }
+  }
+
+  // ── 2. Ghost preview on the hovered target supertile ──
+  if (!stampPattern || !hoverPreviewAnchor) return;
+
+  let target = tiles[hoverPreviewAnchor.supertileIndex];
+  if (!target) return;
+
+  // Don't ghost the source itself
+  if (stampPattern && hoverPreviewAnchor.supertileIndex === stampPattern.sourceIndex) return;
+
+  let pattern = stampPattern.quadrants;
+
+  push();
+  rectMode(CENTER);
+  translate(target.x, target.y);
+  if (target.mirrorX) scale(-1, 1);
+  if (target.mirrorY) scale(1, -1);
+
+  let qw = target.w / 2; // quadrant width
+  let qh = target.h / 2; // quadrant height
+  let sw = qw / 2;       // subtile width
+  let sh = qh / 2;       // subtile height
+
+  for (let q = 0; q < 4; q++) {
+    let types = pattern[q];
+    if (!types || types.length === 0) continue;
+
+    // Quadrant position
+    let qx = (q % 2 === 0 ? -1 : 1) * qw / 2;
+    let qy = (q < 2 ? -1 : 1) * qh / 2;
+
+    // Draw ghost subtiles with the stamp pattern's types
+    for (let s = 0; s < types.length; s++) {
+      let sc = s % 2;
+      let sr = floor(s / 2);
+      let sx = qx + (sc - 0.5) * sw;
+      let sy = qy + (sr - 0.5) * sh;
+
+      // Colored quadrant background (semi-transparent green)
+      noStroke();
+      fill(76, 175, 80, 22);
+      rect(sx, sy, sw, sh, 2);
+
+      // Tile type number
+      fill(76, 175, 80, 190);
+      textSize(min(sw, sh) * 0.35);
+      textAlign(CENTER, CENTER);
+      text(types[s], sx, sy);
+    }
+
+    // Quadrant border
+    noFill();
+    stroke(76, 175, 80, 130);
+    strokeWeight(1.2);
+    rect(qx, qy, qw, qh, 3);
+  }
+
+  // Full supertile outline
+  noFill();
+  stroke(76, 175, 80, 210);
+  strokeWeight(2.5);
+  rect(0, 0, target.w, target.h, 5);
+
+  // Dashed corner brackets for extra clarity
+  let d = min(target.w, target.h) * 0.08;
+  stroke(255, 255, 255, 160);
+  strokeWeight(1.5);
+  // Top-left
+  line(-target.w/2, -target.h/2 + d, -target.w/2, -target.h/2);
+  line(-target.w/2, -target.h/2, -target.w/2 + d, -target.h/2);
+  // Top-right
+  line(target.w/2, -target.h/2 + d, target.w/2, -target.h/2);
+  line(target.w/2 - d, -target.h/2, target.w/2, -target.h/2);
+  // Bottom-left
+  line(-target.w/2, target.h/2 - d, -target.w/2, target.h/2);
+  line(-target.w/2, target.h/2, -target.w/2 + d, target.h/2);
+  // Bottom-right
+  line(target.w/2, target.h/2 - d, target.w/2, target.h/2);
+  line(target.w/2 - d, target.h/2, target.w/2, target.h/2);
+
+  pop();
 }
 
 // -------------------------------------------------------------
