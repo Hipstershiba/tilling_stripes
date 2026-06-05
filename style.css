@@ -392,6 +392,11 @@ body.vector-focus #btnMobileToggle {
   display: none;
 }
 
+body.vector-focus #exportActions,
+body.assets-focus #exportActions {
+  display: none;
+}
+
 body.assets-focus #btnMobileToggle {
   display: none;
 }

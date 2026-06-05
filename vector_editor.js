@@ -388,13 +388,10 @@ const vecEditor = {
       this.render();
     });
 
-    // Boolean ops (placeholder for now)
+    // Boolean ops
     document.getElementById('vecUnion').addEventListener('click', () => this.booleanOp('union'));
     document.getElementById('vecSubtract').addEventListener('click', () => this.booleanOp('subtract'));
     document.getElementById('vecIntersect').addEventListener('click', () => this.booleanOp('intersect'));
-
-    // Export
-    document.getElementById('vecExportTile').addEventListener('click', () => this.exportTile());
 
     // Fill / Stroke / Width
     document.getElementById('vecFillColor').addEventListener('input', () => {
@@ -429,10 +426,10 @@ const vecEditor = {
       let div = document.createElement('div');
       div.className = `vec-layer-item${idx === this.activeLayerIdx ? ' active' : ''}`;
       div.innerHTML = `
-        <span class="vec-layer-vis" data-idx="${idx}">${layer.visible ? '👁' : '—'}</span>
-        <span class="vec-layer-name">${layer.name}</span>
-        <span class="vec-layer-del" data-idx="${idx}">✕</span>
-      `;
+              <span class="vec-layer-vis" data-idx="${idx}">${layer.visible ? '👁' : '—'}</span>
+              <span class="vec-layer-name" data-idx="${idx}">${layer.name}</span>
+              <span class="vec-layer-del" data-idx="${idx}">✕</span>
+            `;
       div.addEventListener('click', (e) => {
         if (e.target.classList.contains('vec-layer-vis')) {
           this.saveState();
@@ -450,6 +447,29 @@ const vecEditor = {
           this.activeLayerIdx = idx;
           this.updateLayersUI();
         }
+      });
+      // Double-click to rename
+      let nameSpan = div.querySelector('.vec-layer-name');
+      nameSpan.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        let input = document.createElement('input');
+        input.type = 'text';
+        input.value = layer.name;
+        input.style.cssText = 'width:100%;background:#333;border:1px solid #2196F3;color:#fff;border-radius:3px;padding:1px 4px;font-size:inherit;outline:none;';
+        nameSpan.replaceWith(input);
+        input.focus();
+        input.select();
+        let done = () => {
+          let val = input.value.trim() || layer.name;
+          this.saveState();
+          layer.name = val;
+          this.updateLayersUI();
+        };
+        input.addEventListener('blur', done);
+        input.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') { ev.preventDefault(); done(); }
+          if (ev.key === 'Escape') { ev.preventDefault(); this.updateLayersUI(); }
+        });
       });
       // Drag to reorder (simple up/down buttons)
       let up = document.createElement('span');
