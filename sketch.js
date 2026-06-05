@@ -3716,6 +3716,7 @@ function setupUI(mainCanvas) {
   // Listen for Tab Changes
   window.addEventListener('tabChanged', (e) => {
      let tab = e.detail.tab;
+     document.body.classList.remove('vector-focus');
      if (tab === 'setup') {
          setAssetsManagerMode(false);
          interactionMode = 'none';
@@ -3748,6 +3749,11 @@ function setupUI(mainCanvas) {
              setAssetsManagerMode(false);
              interactionMode = 'none';
              zoomToolActive = false;
+             if (tab === 'vector') {
+                 document.body.classList.add('vector-focus');
+             } else {
+                 document.body.classList.remove('vector-focus');
+             }
              updateEditUI();
            updateHoverPreview();
            updateCanvasStatusHint();
