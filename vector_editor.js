@@ -167,9 +167,8 @@ const vecEditor = {
     let rect = wrap.getBoundingClientRect();
     let size = Math.min(rect.width - 8, rect.height - 8, 1200);
     this._baseSize = Math.max(200, Math.round(size));
-    this.canvas.width = this._baseSize;
-    this.canvas.height = this._baseSize;
-    this.applyZoom();
+    this.canvas.width = Math.round(this._baseSize * this.zoom);
+    this.canvas.height = Math.round(this._baseSize * this.zoom);
     this.render();
   },
 
@@ -263,7 +262,9 @@ const vecEditor = {
   setZoom(z) {
     this.zoom = Math.max(0.25, Math.min(5, z));
     document.getElementById('vecZoomLevel').textContent = Math.round(this.zoom * 100) + '%';
-    this.applyZoom();
+    // Increase internal resolution so zoom stays sharp (no CSS scaling)
+    this.canvas.width = Math.round(this._baseSize * this.zoom);
+    this.canvas.height = Math.round(this._baseSize * this.zoom);
     this.render();
   },
 
@@ -271,19 +272,12 @@ const vecEditor = {
   zoomOut() { this.setZoom(this.zoom / 1.25); },
   resetZoom() { this.setZoom(1); },
 
-  applyZoom() {
-    if (!this._baseSize) return;
-    let s = this._baseSize * this.zoom;
-    this.canvas.style.width = s + 'px';
-    this.canvas.style.height = s + 'px';
-  },
-
-  // ── Screen coords → canvas coords (accounting for CSS zoom display) ──
+  // ── Screen coords → canvas coords (in _baseSize space, before zoom) ──
   canvasCoords(e) {
     let rect = this.canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (this.canvas.height / rect.height)
+      x: (e.clientX - rect.left) * (this._baseSize / rect.width),
+      y: (e.clientY - rect.top) * (this._baseSize / rect.height)
     };
   },
 
@@ -313,22 +307,26 @@ const vecEditor = {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, w, h);
 
-    // Grid lines
+    // Apply zoom to drawing (canvas is _baseSize * zoom internally)
+    ctx.save();
+    ctx.scale(this.zoom, this.zoom);
+
+    // Grid lines (in unscaled coords)
     ctx.strokeStyle = '#2a2a2a';
     ctx.lineWidth = 0.5;
-    let step = w / this.gridSize;
+    let step = this._baseSize / this.gridSize;
     for (let i = 0; i <= this.gridSize; i++) {
       let p = i * step;
-      ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, h); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(w, p); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, this._baseSize); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(this._baseSize, p); ctx.stroke();
     }
 
     // Center cross
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
-    ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(this._baseSize / 2, 0); ctx.lineTo(this._baseSize / 2, this._baseSize); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, this._baseSize / 2); ctx.lineTo(this._baseSize, this._baseSize / 2); ctx.stroke();
     ctx.setLineDash([]);
 
     // Render shapes per layer
@@ -345,7 +343,7 @@ const vecEditor = {
     for (let layer of this.layers) {
       if (!layer.visible) continue;
       for (let shape of layer.shapes) {
-        if (shape.selected) shape.drawHandles(ctx, 1);
+        if (shape.selected) shape.drawHandles(ctx, this.zoom);
       }
     }
 
@@ -370,6 +368,8 @@ const vecEditor = {
         ctx.stroke();
       }
     }
+
+    ctx.restore();
 
     this.updateStatus();
   },
@@ -454,6 +454,13 @@ const vecEditor = {
         for (let s of this.selectedShapes()) s.strokeWidth = w;
         this.render();
       }
+    });
+
+    // Grid size
+    document.getElementById('vecGridSize').addEventListener('change', () => {
+      let g = parseInt(document.getElementById('vecGridSize').value) || 80;
+      this.gridSize = Math.max(4, Math.min(200, g));
+      this.render();
     });
 
     this.updateLayersUI();
