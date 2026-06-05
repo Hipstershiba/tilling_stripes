@@ -4781,6 +4781,14 @@ function buildScopePreviewTargets(hitInfo) {
     targets.push({ supertileIndex, quadrant, subtileIndex });
   };
 
+  // Stamp mode always shows the full supertile (ignores interactionScope)
+  if (editToolMode === 'stamp') {
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+      pushTarget(hitInfo.index, quadrant, hitInfo.baseTileSubtileIndex);
+    }
+    return targets;
+  }
+
   if (interactionScope === 'single') {
     pushTarget(hitInfo.index, hitInfo.logicalQuadrant, hitInfo.baseTileSubtileIndex);
   } else if (interactionScope === 'supertile') {
