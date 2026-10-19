@@ -15,9 +15,29 @@
 
     <!-- ==================== TOP CONTROL BAR (Adobe Illustrator Control Strip) ==================== -->
     <header id="top-control-bar">
-      <div class="brand-badge" title="Tiling Stripes Studio v2 — Etapa 1: Geração de Mosaicos">
+      <div class="brand-badge" title="Tiling Stripes Studio v2">
         <span class="brand-logo">TS</span>
         <span class="brand-title">Tiling Stripes</span>
+      </div>
+
+      <!-- Workspace Mode Switcher (Gerador vs Editor) -->
+      <div class="workspace-mode-switcher" id="workspaceSwitcher" role="tablist" aria-label="Modo de Trabalho">
+        <button type="button" class="ws-mode-btn active" data-workspace="generate" title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+          <span>Gerador</span>
+        </button>
+        <button type="button" class="ws-mode-btn" data-workspace="edit" title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+          </svg>
+          <span>Editor</span>
+        </button>
       </div>
 
       <div class="bar-divider"></div>
@@ -167,16 +187,45 @@
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
-        <div class="tool-section">
+        <!-- Selection & Mosaic Editing Tools -->
+        <div class="tool-section" aria-label="Ferramentas de Inspeção e Edição">
           <button id="toolInspect" class="tool-btn active" data-tool="inspect"
-            title="Inspecionar Blocos e Órbitas (V)">
+            title="Inspecionar Mosaico — Modo Gerador (Tecla V)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
               <path d="M13 13l6 6"></path>
             </svg>
           </button>
+          <button id="toolPaint" class="tool-btn edit-tool-btn" data-tool="paint"
+            title="Pincel de Tile (Tecla B • Clique Esq: Pintar | Clique Dir: Girar | Alt+Clique: Conta-Gotas)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18.37 2.63L14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z"></path>
+              <path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"></path>
+            </svg>
+          </button>
+          <button id="toolRotate" class="tool-btn edit-tool-btn" data-tool="rotate"
+            title="Girar / Ciclar Família (Tecla R • Clique Esq: Avançar | Clique Dir: Voltar)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+              <polyline points="21 3 21 8 16 8"></polyline>
+            </svg>
+          </button>
+          <button id="toolStamp" class="tool-btn edit-tool-btn" data-tool="stamp"
+            title="Carimbo de Bloco (Tecla S • Alt+Clique: Capturar Bloco | Clique Esq: Colar | Clique Dir: Girar Carimbo 90°)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M5 22h14"></path>
+              <path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z"></path>
+              <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <!-- Viewport Navigation Tools -->
+        <div class="tool-section" aria-label="Navegação do Canvas">
           <button id="toolPan" class="tool-btn" data-tool="pan"
-            title="Mover Visualização / Pan (H ou segure Espaço)">
+            title="Mover Visualização / Pan (Tecla H ou segure Espaço)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
               <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
@@ -185,7 +234,7 @@
             </svg>
           </button>
           <button id="toolZoom" class="tool-btn" data-tool="zoom"
-            title="Ferramenta de Zoom (Z • Clique aproxima, Alt+Clique afasta)">
+            title="Ferramenta de Zoom (Tecla Z • Clique aproxima, Alt+Clique afasta)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -206,7 +255,7 @@
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button id="toggleGuideBlocks" class="tool-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos e Quadrantes (Tecla B)">
+          <button id="toggleGuideBlocks" class="tool-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos e Quadrantes">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="3" y="3" width="18" height="18" rx="2"></rect>
               <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -288,130 +337,323 @@
           </div>
 
           <div class="status-right">
+            <span class="shortcut-pill"><kbd>B</kbd> Pincel</span>
+            <span class="shortcut-pill"><kbd>R</kbd> Girar</span>
+            <span class="shortcut-pill"><kbd>S</kbd> Carimbo</span>
             <span class="shortcut-pill"><kbd>G</kbd> Gerar</span>
-            <span class="shortcut-pill"><kbd>O</kbd> Órbitas</span>
-            <span class="shortcut-pill"><kbd>A</kbd> Eixos</span>
-            <span class="shortcut-pill"><kbd>Tab</kbd> Painéis</span>
           </div>
         </footer>
       </main>
 
-      <!-- RIGHT DOCK PANELS (Adobe Illustrator Properties & Swatches Dock) -->
-      <aside id="right-dock" aria-label="Painéis de Simetria e Biblioteca de Tiles">
+      <!-- RIGHT DOCK PANELS (Contextual: Modo Gerador vs Modo Editor) -->
+      <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
 
-        <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
-        <section class="dock-panel" id="panel-symmetry">
-          <header class="panel-header" data-collapse-target="panelSymmetryBody">
-            <div class="panel-title-wrap">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 17 12 22 22 17"></polyline>
-                <polyline points="2 12 12 17 22 12"></polyline>
-              </svg>
-              <span>Simetria &amp; Estrutura</span>
-            </div>
-            <span class="panel-chevron">▾</span>
-          </header>
+        <!-- ================================================================
+             WORKSPACE 1: MODO GERADOR (Simetria & Swatches Permitidos)
+             ================================================================ -->
+        <div id="dock-workspace-generate" class="dock-workspace-pane">
 
-          <div class="panel-body" id="panelSymmetryBody">
-            <!-- STEP 1: Grid Symmetry Mode Cards -->
-            <div class="prop-section">
-              <div class="prop-label-row">
-                <label class="prop-label">1. Simetria da Grade (Mosaico)</label>
-                <span id="gridSymmetryBadge" class="prop-badge">Mandala D4</span>
+          <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
+          <section class="dock-panel" id="panel-symmetry">
+            <header class="panel-header" data-collapse-target="panelSymmetryBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                <span>Simetria &amp; Estrutura</span>
               </div>
-              <div id="gridSymmetryGrid" class="symmetry-card-grid">
+              <span class="panel-chevron">▾</span>
+            </header>
+
+            <div class="panel-body" id="panelSymmetryBody">
+              <!-- STEP 1: Grid Symmetry Mode Cards -->
+              <div class="prop-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">1. Simetria da Grade (Mosaico)</label>
+                  <span id="gridSymmetryBadge" class="prop-badge">Mandala D4</span>
+                </div>
+                <div id="gridSymmetryGrid" class="symmetry-card-grid">
+                  <!-- Populated by JS -->
+                </div>
+                <div id="gridSymmetryDesc" class="prop-help-box"></div>
+
+                <!-- Non-square grid warning for Mandala D4 / Rotational C4 -->
+                <div id="nonSquareGridNotice" class="notice-banner hidden">
+                  <span>Para rotação de 90° nas bordas, a grade precisa ter o mesmo nº de linhas e colunas.</span>
+                  <button id="btnMakeGridEqual" type="button" class="notice-btn">Igualar L×C</button>
+                </div>
+              </div>
+
+              <!-- STEP 2: Block Internal Symmetry (Direct 4-button visual selector) -->
+              <div id="blockSymmetryContainer" class="prop-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">2. Simetria Interna de Cada Bloco</label>
+                  <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
+                </div>
+                <div id="blockSymmetryGrid" class="block-sym-pill-grid">
+                  <!-- Populated by JS -->
+                </div>
+                <div id="blockSymmetryDesc" class="prop-sub-hint"></div>
+              </div>
+
+              <!-- STEP 3: Block Subdivision & Aesthetics -->
+              <div class="prop-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">3. Subdivisão por Quadrante</label>
+                  <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
+                </div>
+                <div class="segmented-control" id="subdivisionControl">
+                  <button type="button" class="seg-btn" data-sub="1" title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
+                  <button type="button" class="seg-btn active" data-sub="2" title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
+                  <button type="button" class="seg-btn" data-sub="3" title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
+                  <button type="button" class="seg-btn" data-sub="4" title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
+                </div>
+              </div>
+
+              <!-- Padding & Colors -->
+              <div class="prop-section prop-row-split">
+                <div class="prop-col">
+                  <div class="prop-label-row">
+                    <label class="prop-label" for="paddingSlider">Respiro (Padding)</label>
+                    <span id="paddingValueLabel" class="prop-mono">5%</span>
+                  </div>
+                  <input type="range" id="paddingSlider" min="0" max="25" step="1" value="5" class="panel-slider">
+                </div>
+                <div class="prop-col colors-col">
+                  <label class="prop-label">Cores (Tile / Fundo)</label>
+                  <div class="color-pickers-row">
+                    <input type="color" id="fgColorPicker" value="#e2e0dc" title="Cor dos Tiles">
+                    <button id="btnSwapColors" class="icon-btn" title="Inverter cores Tile/Fundo">⇄</button>
+                    <input type="color" id="bgColorPicker" value="#0c0c0e" title="Cor do Fundo">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
+          <section class="dock-panel dock-panel-flex" id="panel-swatches">
+            <header class="panel-header" data-collapse-target="panelSwatchesBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                  <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                  <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                  <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                </svg>
+                <span>Swatches Permitidos (Gerador)</span>
+              </div>
+              <span id="activeTilesCounter" class="panel-counter-pill">45 / 45</span>
+            </header>
+
+            <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
+              <div class="swatches-toolbar">
+                <input type="search" id="tileSearchInput" class="swatch-search" placeholder="Filtrar família ou tile...">
+                <div class="swatch-bulk-actions">
+                  <button type="button" id="btnSelectAllTiles" class="mini-btn" title="Ativar todos os 45 tiles">Todos</button>
+                  <button type="button" id="btnSelectNoTiles" class="mini-btn" title="Desativar todos os tiles">Nenhum</button>
+                  <button type="button" id="btnInvertTiles" class="mini-btn" title="Inverter seleção atual">Inverter</button>
+                  <button type="button" id="btnRandomFamilies" class="mini-btn accent" title="Sortear um subconjunto aleatório de famílias e regerar">Sortear Mix</button>
+                </div>
+              </div>
+
+              <div id="familiesSwatchContainer" class="families-swatch-scroll">
                 <!-- Populated by JS -->
               </div>
-              <div id="gridSymmetryDesc" class="prop-help-box"></div>
-
-              <!-- Non-square grid warning for Mandala D4 / Rotational C4 -->
-              <div id="nonSquareGridNotice" class="notice-banner hidden">
-                <span>Para rotação de 90° nas bordas, a grade precisa ter o mesmo nº de linhas e colunas.</span>
-                <button id="btnMakeGridEqual" type="button" class="notice-btn">Igualar L×C</button>
-              </div>
             </div>
+          </section>
+        </div>
 
-            <!-- STEP 2: Block Internal Symmetry (Direct 4-button visual selector) -->
-            <div id="blockSymmetryContainer" class="prop-section">
-              <div class="prop-label-row">
-                <label class="prop-label">2. Simetria Interna de Cada Bloco</label>
-                <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
-              </div>
-              <div id="blockSymmetryGrid" class="block-sym-pill-grid">
-                <!-- Populated by JS: [Igual à Grade] [Mandala D4] [Rotacional C4] [Bilateral XY] -->
-              </div>
-              <div id="blockSymmetryDesc" class="prop-sub-hint"></div>
-            </div>
+        <!-- ================================================================
+             WORKSPACE 2: MODO EDITOR (Escopo D4, Supertile, Giro & Clone)
+             ================================================================ -->
+        <div id="dock-workspace-edit" class="dock-workspace-pane hidden">
 
-            <!-- STEP 3: Block Subdivision & Aesthetics -->
-            <div class="prop-section">
-              <div class="prop-label-row">
-                <label class="prop-label">3. Subdivisão por Quadrante</label>
-                <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
+          <!-- EDIT PANEL 1: UNDO/REDO, ACTIVE TOOL, D4 SCOPE & ROTATE CONTROLS -->
+          <section class="dock-panel" id="panel-edit-scope">
+            <header class="panel-header">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                  <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                </svg>
+                <span>Edição &amp; Escopo de Simetria</span>
               </div>
-              <div class="segmented-control" id="subdivisionControl">
-                <button type="button" class="seg-btn" data-sub="1" title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
-                <button type="button" class="seg-btn active" data-sub="2" title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
-                <button type="button" class="seg-btn" data-sub="3" title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
-                <button type="button" class="seg-btn" data-sub="4" title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
+              <div class="edit-undo-bar" onclick="event.stopPropagation();">
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled>↶</button>
+                <span id="editHistoryStepLabel" class="edit-step-label">0 edições</span>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)" disabled>↷</button>
               </div>
-            </div>
+            </header>
 
-            <!-- Padding & Colors -->
-            <div class="prop-section prop-row-split">
-              <div class="prop-col">
+            <div class="panel-body">
+              <!-- Tool Switcher inside Edit Mode -->
+              <div class="prop-section">
                 <div class="prop-label-row">
-                  <label class="prop-label" for="paddingSlider">Respiro (Padding)</label>
-                  <span id="paddingValueLabel" class="prop-mono">5%</span>
+                  <label class="prop-label">1. Ferramenta de Edição</label>
+                  <span id="activeEditToolBadge" class="prop-badge">Pincel (B)</span>
                 </div>
-                <input type="range" id="paddingSlider" min="0" max="25" step="1" value="5" class="panel-slider">
+                <div class="segmented-control edit-tool-segmented" id="editToolSegmented">
+                  <button type="button" class="seg-btn active" data-edit-tool="paint" title="Pintar Tile ou Supertile (Tecla B)">Pincel (B)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="rotate" title="Girar Tile ou Supertile (Tecla R)">Girar (R)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="stamp" title="Clonar Área ou Supertile (Tecla S)">Clonar (S)</button>
+                </div>
+                <div id="editMouseShortcutsHint" class="prop-sub-hint">
+                  <strong>Clique/Arraste:</strong> Pintar • <strong>Clique Dir:</strong> Girar Pincel (+90°) • <strong>Alt+Arraste:</strong> Clonar Área
+                </div>
               </div>
-              <div class="prop-col colors-col">
-                <label class="prop-label">Cores (Tile / Fundo)</label>
-                <div class="color-pickers-row">
-                  <input type="color" id="fgColorPicker" value="#e2e0dc" title="Cor dos Tiles">
-                  <button id="btnSwapColors" class="icon-btn" title="Inverter cores Tile/Fundo">⇄</button>
-                  <input type="color" id="bgColorPicker" value="#0c0c0e" title="Cor do Fundo">
+
+              <!-- D4 Selection / Propagation Scope -->
+              <div class="prop-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">2. Escopo de Propagação</label>
+                  <span id="editScopeBadge" class="prop-badge secondary">Centro do Canvas</span>
+                </div>
+                <div id="editScopeGrid" class="edit-scope-grid">
+                  <!-- Populated by JS: 6 scopes including Centro do Canvas -->
+                </div>
+
+                <!-- Sub-selector for Global Canvas Center Symmetry -->
+                <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
+                  <div class="prop-label-row" style="margin-bottom: 4px;">
+                    <label class="prop-label" style="font-size: 10px;">Eixo do Centro do Canvas</label>
+                  </div>
+                  <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="canvasCenterSymControl">
+                    <button type="button" class="seg-btn active" data-center-sym="mandala_d4" title="Mandala 8× em torno do centro do canvas">Mandala 8×</button>
+                    <button type="button" class="seg-btn" data-center-sym="rotational_c4" title="Rotacional 4× (90°) em torno do centro do canvas">Giro 4×</button>
+                    <button type="button" class="seg-btn" data-center-sym="bilateral_d2" title="Espelho Duplo (Horizontal + Vertical) pelo centro do canvas">Esp. XY</button>
+                    <button type="button" class="seg-btn" data-center-sym="mirror_x" title="Espelho Horizontal (Esquerda ↔ Direita) pelo centro do canvas">Esp. X</button>
+                    <button type="button" class="seg-btn" data-center-sym="mirror_y" title="Espelho Vertical (Topo ↔ Base) pelo centro do canvas">Esp. Y</button>
+                  </div>
+                </div>
+
+                <div id="editScopeDesc" class="prop-help-box"></div>
+              </div>
+
+              <!-- Rotate Tool Controls (Shown when Rotate tool is active) -->
+              <div id="rotateToolOptionsWrap" class="prop-section hidden">
+                <div class="prop-label-row">
+                  <label class="prop-label">3. Tamanho do Pincel de Giro</label>
+                  <button type="button" id="btnRotateSnapBlock" class="snap-block-pill" title="Alinhar o giro exatamente à grade de Supertiles (Blocos)">⊞ Snap ao Bloco</button>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="rotateSizeControl">
+                  <button type="button" class="seg-btn active" data-rot-size="1" title="Girar 1 Tile (1×1)">1×1</button>
+                  <button type="button" class="seg-btn" data-rot-size="2" title="Girar área 2×2 subtiles">2×2</button>
+                  <button type="button" class="seg-btn" data-rot-size="3" title="Girar área 3×3 subtiles">3×3</button>
+                  <button type="button" class="seg-btn" data-rot-size="4" title="Girar área 4×4 subtiles">4×4</button>
+                  <button type="button" class="seg-btn" data-rot-size="block" title="Girar um Supertile (Bloco inteiro) de uma vez">Supertile</button>
+                </div>
+
+                <div id="rotateGroupModeSection" class="rotate-sub-group">
+                  <div class="prop-label-row" style="margin-top: 6px;">
+                    <label class="prop-label">Modo de Giro da Área / Supertile</label>
+                  </div>
+                  <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateGroupModeControl">
+                    <button type="button" class="seg-btn active" data-rot-group="group" title="Gira o conjunto inteiro (Supertile K×K) como um bloco rígido em 90°">Girar Conjunto (Supertile)</button>
+                    <button type="button" class="seg-btn" data-rot-group="individual" title="Gira cada tile dentro da área em torno do próprio eixo sem mudar de posição">Cada Tile no Lugar</button>
+                  </div>
+                </div>
+
+                <div class="prop-label-row" style="margin-top: 6px;">
+                  <label class="prop-label">Comportamento do Giro Individual</label>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateBehaviorControl">
+                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90" title="Aplica rotação geométrica exata de 90° horário (D4)">Giro 90° D4</button>
+                  <button type="button" class="seg-btn" data-rot-mode="family" title="Avança para a próxima variação dentro da família do tile">Ciclar Família</button>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
-        <section class="dock-panel dock-panel-flex" id="panel-swatches">
-          <header class="panel-header" data-collapse-target="panelSwatchesBody">
-            <div class="panel-title-wrap">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-              </svg>
-              <span>Swatches de Tiles</span>
-            </div>
-            <span id="activeTilesCounter" class="panel-counter-pill">45 / 45</span>
-          </header>
+          <!-- EDIT PANEL 2: UNIFIED SUPERTILE BUILDER, BRUSH & CLONE PALETTE -->
+          <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
+            <header class="panel-header">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="8" height="8" rx="1"></rect>
+                  <rect x="13" y="3" width="8" height="8" rx="1"></rect>
+                  <rect x="3" y="13" width="8" height="8" rx="1"></rect>
+                  <rect x="13" y="13" width="8" height="8" rx="1"></rect>
+                </svg>
+                <span>Pincel, Supertile &amp; Clone</span>
+              </div>
+              <span id="activeBrushBadge" class="panel-counter-pill">1×1 • Tile #2</span>
+            </header>
 
-          <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
-            <!-- Quick Filter & Bulk Selection Bar -->
-            <div class="swatches-toolbar">
-              <input type="search" id="tileSearchInput" class="swatch-search" placeholder="Filtrar família ou tile...">
-              <div class="swatch-bulk-actions">
-                <button type="button" id="btnSelectAllTiles" class="mini-btn" title="Ativar todos os 45 tiles">Todos</button>
-                <button type="button" id="btnSelectNoTiles" class="mini-btn" title="Desativar todos os tiles">Nenhum</button>
-                <button type="button" id="btnInvertTiles" class="mini-btn" title="Inverter seleção atual">Inverter</button>
-                <button type="button" id="btnRandomFamilies" class="mini-btn accent" title="Sortear um subconjunto aleatório de famílias e regerar">Sortear Mix</button>
+            <div class="panel-body swatches-panel-body">
+
+              <!-- Contextual Clone Mode Bar (Visible when Clonar (S) is active) -->
+              <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
+                <div class="prop-label-row">
+                  <label class="prop-label">Fluxo do Clone (S)</label>
+                  <span id="stampStatusBadge" class="prop-badge">Pronto</span>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="stampInteractionSegmented">
+                  <button type="button" class="seg-btn active" data-stamp-mode="select" title="Clique e arraste no mosaico (ou clique em um bloco com Snap ativo) para capturar">1. Capturar Área</button>
+                  <button type="button" class="seg-btn" data-stamp-mode="apply" title="Clique no mosaico para aplicar o Supertile/Clone">2. Aplicar no Mosaico</button>
+                </div>
+                <div id="stampModeHelpBox" class="prop-help-box">
+                  <strong>Capturar:</strong> Arraste sobre o mosaico para copiar qualquer região para o Construtor de Supertile abaixo.
+                </div>
+              </div>
+
+              <!-- Brush / Supertile Size & Block Alignment -->
+              <div class="prop-section supertile-size-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">Tamanho do Pincel / Supertile</label>
+                  <button type="button" id="btnBrushSnapBlock" class="snap-block-pill" title="Alinhar o pincel/clone exatamente à grade de Supertiles (Blocos)">⊞ Snap ao Bloco</button>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="brushSizeControl">
+                  <button type="button" class="seg-btn active" data-brush-size="1" title="Pincel de 1 Tile (1×1)">1×1</button>
+                  <button type="button" class="seg-btn" data-brush-size="2" title="Construir/Pintar Supertile 2×2">2×2</button>
+                  <button type="button" class="seg-btn" data-brush-size="3" title="Construir/Pintar Supertile 3×3">3×3</button>
+                  <button type="button" class="seg-btn" data-brush-size="4" title="Construir/Pintar Supertile 4×4">4×4</button>
+                  <button type="button" class="seg-btn" data-brush-size="block" title="Supertile do tamanho exato de 1 Bloco do mosaico">Supertile</button>
+                </div>
+              </div>
+
+              <!-- Interactive Supertile Builder & Brush Preview Card -->
+              <div class="active-brush-card supertile-builder-card">
+                <div class="supertile-canvas-box" title="Mini-Editor de Supertile: Clique Esq para pintar a célula com o Tile selecionado • Clique Dir para girar a célula +90°">
+                  <canvas id="supertileBuilderCanvas" width="116" height="116"></canvas>
+                </div>
+                <div class="active-brush-controls">
+                  <div class="active-brush-title-row">
+                    <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
+                    <span class="active-brush-d4-label" id="activeBrushD4Label">0° (↑)</span>
+                  </div>
+                  <div class="d4-mini-grid">
+                    <button type="button" id="btnBrushRot90" class="d4-mini-btn" title="Girar Pincel/Supertile inteiro em +90° (ou Clique Direito no canvas)">⟳ +90°</button>
+                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Pincel/Supertile Horizontalmente (MX)">⇄ Flip X</button>
+                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Pincel/Supertile Verticalmente (MY)">⇅ Flip Y</button>
+                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn" title="Resetar orientação para 0°">0°</button>
+                  </div>
+                  <div class="supertile-builder-actions">
+                    <button type="button" id="btnSupertileFillAll" class="mini-btn" title="Preencher todas as células do Supertile com o Tile selecionado abaixo">Preencher</button>
+                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn" title="Simetrizar o Supertile (Mandala D4 a partir do canto superior esquerdo)">✦ Simetrizar</button>
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent" title="Selecionar e capturar uma região do mosaico para o Supertile (Clonar)">✂ Capturar</button>
+                  </div>
+                </div>
+              </div>
+              <div id="supertileBuilderHint" class="supertile-builder-hint">
+                <strong>Construtor:</strong> Clique nas células da miniatura acima para montar seu Supertile (<strong>Dir:</strong> gira célula).
+              </div>
+
+              <!-- Search Filter for Brush Palette -->
+              <div class="swatches-toolbar">
+                <input type="search" id="editBrushSearchInput" class="swatch-search" placeholder="Escolher tile para o pincel / supertile...">
+              </div>
+
+              <!-- Scrollable Brush Tile Palette -->
+              <div id="editBrushPaletteContainer" class="families-swatch-scroll">
+                <!-- Populated by JS -->
               </div>
             </div>
+          </section>
 
-            <!-- Scrollable Families List -->
-            <div id="familiesSwatchContainer" class="families-swatch-scroll">
-              <!-- Populated by JS -->
-            </div>
-          </div>
-        </section>
+        </div>
 
       </aside>
     </div>

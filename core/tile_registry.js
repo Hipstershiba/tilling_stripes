@@ -643,11 +643,24 @@ function getFamilyForTile(tileId) {
   return TILE_FAMILIES_META.find((f) => f.tileIds.includes(tileId)) || null;
 }
 
+/**
+ * Returns the next (or previous) tileId within the same family.
+ */
+function getNextTileInFamily(tileId, step = 1) {
+  const fam = getFamilyForTile(tileId);
+  if (!fam || fam.tileIds.length <= 1) return tileId;
+  const idx = fam.tileIds.indexOf(tileId);
+  if (idx === -1) return tileId;
+  const len = fam.tileIds.length;
+  return fam.tileIds[(idx + step + len * 10) % len];
+}
+
 window.TileRegistry = {
   TILE_RENDERERS,
   TILE_NAMES,
   TILE_FAMILIES_META,
   TILE_D4_MAP,
   getTransformedTileId,
-  getFamilyForTile
+  getFamilyForTile,
+  getNextTileInFamily
 };

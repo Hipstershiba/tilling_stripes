@@ -60,7 +60,7 @@ function transformGridCoords(row, col, rows, cols, transformKey) {
     case 'mx':   return [row, cols - 1 - col];
     case 'my':   return [rows - 1 - row, col];
     case 'md':   return [col, row];
-    case 'mad':  return [rows - 1 - col, cols - 1 - row];
+    case 'mad':  return [cols - 1 - col, rows - 1 - row];
     default:     return [row, col];
   }
 }
@@ -167,6 +167,13 @@ function getAllowedTransformsForSymmetry(symmetryMode, rows, cols) {
       return isSquare ? D4_RESOLUTION_ORDER : D2_RESOLUTION_ORDER;
     case 'rotational_c4':
       return isSquare ? C4_RESOLUTION_ORDER : ['id', 'r180'];
+    case 'mirror_x':
+      return ['id', 'mx'];
+    case 'mirror_y':
+      return ['id', 'my'];
+    case 'none':
+    case 'free':
+      return ['id'];
     case 'bilateral_d2':
     default:
       return D2_RESOLUTION_ORDER;
