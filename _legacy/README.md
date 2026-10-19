@@ -1,0 +1,185 @@
+# Tiling Stripes Pattern Generator
+
+Interactive generative art tool for creating mirrored tiling compositions with editable subtiles, scoped transformations, and export workflows.
+
+## What’s New in This Version
+
+- Added a more intuitive **Assets** workflow for importing tile files directly in the UI.
+- Added full **Edit History** with UI buttons and keyboard shortcuts:
+  - Undo: `Ctrl + Z`
+  - Redo: `Ctrl + Shift + Z`
+- Improved edit reliability during drag interactions and fixed multiple hit-test/mirroring edge cases.
+- Refined **Target Scope** UX (icons, names, tooltips) and added live preview of affected tiles while hovering.
+- Fixed `Repeat` (Grid Position) behavior across mirrored canvas halves.
+- Restored stable behavior for `Flood` (Symmetry 4x) scope after scope-mapping updates.
+
+## Core Features
+
+- **Seed-based Generation**: Deterministic compositions using seed input + randomize.
+- **Tile Type Filtering**: Select which tile families are allowed in generation.
+- **Symmetric Grid Construction**: Supertiles mirrored across the composition.
+- **Edit Tools**:
+  - `Rotate` (cycle/randomize families)
+  - `Paint` (apply selected tile type with transform-aware mapping)
+  - `Stamp` (copy a supertile's pattern and paste it onto another)
+- **Target Scopes**:
+  - `Dot` (1 subtile, the pixel)
+  - `Mirror` (4 mirrored faces of 1 block)
+  - `Match` (same pattern anywhere in the grid)
+  - `Repeat` (same slot in every block)
+  - `Flood` (every face of every block)
+- **History Systems**:
+  - Generation history (seed/grid states)
+  - Edit history (undo/redo snapshots)
+- **Export**:
+  - PNG save
+  - SVG save
+
+## Running Locally
+
+Open [index.html](index.html) in your browser.
+
+No build step is required.
+
+## Maintenance Guide
+
+For a complete technical walkthrough (architecture, maintenance routines, backup/import internals, and extension patterns), see [MANUAL_MANUTENCAO.md](MANUAL_MANUTENCAO.md).
+
+## Main Controls
+
+- **Canvas**: width, height, fit-to-screen, fit-to-grid, fullscreen.
+- **Grid**: rows, columns, margin, ratio locks.
+- **Seed**: input + randomize + generation history navigation.
+- **Edit Panel**: tool mode, target scope, paint palette, undo/redo.
+
+## Scope Reference
+
+| Scope | What it edits |
+|-------|---------------|
+| **Dot** | 1 subtile — the pixel of your mosaic |
+| **Mirror** | Same subtile across the 4 mirrored faces of 1 block — preserves kaleidoscope symmetry |
+| **Match** | All subtiles matching this pattern anywhere in the grid |
+| **Repeat** | Same visual position (mirror-aware) in every block |
+| **Flood** | Same subtile in ALL 4 faces of EVERY block — full grid coverage |
+
+## Upload Your Own SVG Tiles
+
+Recommended path: add custom tiles directly from the UI.
+
+This is the easiest and safest workflow for most users:
+
+1. In `Assets`, open `Custom SVG Tiles`.
+2. Pick one or more `.svg` files.
+3. Set a family name (example: `flowers`) or choose an existing family.
+4. Click `Add SVG Tiles`.
+
+What happens after import:
+
+- New tiles are added to the tile selector and brush palette.
+- Uploaded tiles get generated thumbnails after import.
+- Imported tiles are automatically included in `Allowed Tiles`.
+- The family list is updated with tile counts.
+- `Rotate` mode cycles through members of the same family, including uploaded ones.
+- Uploads are persisted in browser `localStorage` and restored when reopening the page.
+- You can remove individual uploaded tiles or entire uploaded families from the `Uploaded Library` section.
+- SVG dimensions are normalized to a square tile space automatically.
+
+Backup controls (`Assets` tab):
+
+- `Export Backup`: downloads a JSON backup of uploaded SVG tiles.
+- `Import Backup`: restores uploaded SVG tiles from a backup JSON file (deduplicated import).
+
+Note: this UI-based flow is the primary way to extend the tile library.
+
+Asset manager upgrades:
+
+- `Assets` tab now focuses on asset management (canvas hidden while managing).
+- `Tiles by Family` panel previews all visible tiles grouped by family.
+- In `Uploaded Library`, each source tile can generate a full symmetry set (rotations + mirrors) in the same family.
+
+Technical note:
+
+- Upload logic is isolated in [svg_tile_manager.js](svg_tile_manager.js).
+- Family metadata is centralized in [tile_registry.js](tile_registry.js) and reused by [sketch.js](sketch.js).
+
+## Advanced Alternative: Add Tiles by Code
+
+If needed, you can still add tiles manually in code.
+
+This path is more complex and intended for contributors who are editing the source directly.
+
+The project now supports a registration API in [tile_registry.js](tile_registry.js) so you can add tiles without manually editing multiple arrays.
+
+### 1) Where to add
+
+Open [tile_registry.js](tile_registry.js) and add your tile near the `registerTile(...)` examples at the bottom of the file.
+
+### 2) Simplest case (symmetric tile)
+
+Use this when the tile looks the same after mirror/flip:
+
+```javascript
+registerTile({
+  name: "Empty Tile",
+  family: "utility", // string family label (auto-created if missing)
+  symmetric: true,
+  render: (ctx, w, h, padding, color) => {
+    // draw nothing
+  }
+});
+```
+
+### 3) Tile with custom transforms
+
+Use this when a tile changes under flip and needs explicit mapping:
+
+```javascript
+const myTileId = registerTile({
+  name: "My Tile",
+  family: "custom",
+  transforms: {
+    x: 'self', // can be 'self' or a numeric tile id
+    y: 'self',
+    xy: 'self'
+  },
+  render: (ctx, w, h, padding, color) => {
+    // draw commands
+  }
+});
+```
+
+### 4) Creating a family of variants
+
+For oriented sets (for example TL/TR/BR/BL), register each variation and map transforms to each other using their returned IDs.
+
+```javascript
+const tl = registerTile({ name: "Corner TL", family: "corner-set", render: (...) => {} });
+const tr = registerTile({ name: "Corner TR", family: "corner-set", render: (...) => {} });
+const br = registerTile({ name: "Corner BR", family: "corner-set", render: (...) => {} });
+const bl = registerTile({ name: "Corner BL", family: "corner-set", render: (...) => {} });
+
+// Optional: override transforms after ids exist
+TILE_TRANSFORM_MAP[tl] = { x: tr, y: bl, xy: br };
+TILE_TRANSFORM_MAP[tr] = { x: tl, y: br, xy: bl };
+TILE_TRANSFORM_MAP[br] = { x: bl, y: tr, xy: tl };
+TILE_TRANSFORM_MAP[bl] = { x: br, y: tl, xy: tr };
+```
+
+### 5) Family parameter notes
+
+- `family: "name"` → creates/uses a labeled family automatically.
+- `family: 3` → uses existing numeric family index.
+
+### 6) Validation checklist
+
+After adding tiles:
+
+- Reload browser and confirm tile appears in palette.
+- Test `Rotate` cycle behavior (family order).
+- Test `Paint` in mirrored areas (transform mapping).
+- Test `Dot` and `Flood` scopes for expected output.
+
+## Notes
+
+- For best results when editing, keep the `Edit` tab active and use hover preview to confirm scope impact before drag operations.
+- If you are reviewing changes between versions, see PR description for a complete change summary.

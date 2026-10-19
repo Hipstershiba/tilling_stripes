@@ -1,853 +1,428 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Sketch</title>
-
+  <title>Tiling Stripes Studio — Mosaic Generator</title>
   <link rel="stylesheet" type="text/css" href="style.css">
-
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
-  <script src="path-collector.js"></script>
-  <script src="gcode-exporter.js"></script>
 </head>
 
 <body>
+  <div id="app-shell">
 
-  <div id="main-container">
-    <!-- Backdrop for mobile menu -->
-    <div id="overlay-backdrop"></div>
-
-    <button id="btnMobileToggle" class="ui-toggle-btn" title="Open Controls">☰</button>
-
-    <div id="controls">
-      <!-- Close button for mobile -->
-      <button id="btnCloseControls"
-        style="position:absolute; right:15px; top:15px; width:40px; background:transparent; border:none; color:#aaa; font-size:1.5rem; cursor:pointer; display:none;">✕</button>
-
-      <h1>Pattern Gen</h1>
-
-      <!-- Tab Navigation -->
-      <div class="tab-nav" data-active="setup">
-        <div class="tab-nav-bg"></div>
-        <button class="tab-btn active" data-tab="setup">Setup</button>
-        <button class="tab-btn" data-tab="edit">Edit</button>
-        <button class="tab-btn" data-tab="assets">Assets</button>
+    <!-- ==================== TOP CONTROL BAR (Adobe Illustrator Control Strip) ==================== -->
+    <header id="top-control-bar">
+      <div class="brand-badge" title="Tiling Stripes Studio v2 — Etapa 1: Geração de Mosaicos">
+        <span class="brand-logo">TS</span>
+        <span class="brand-title">Tiling Stripes</span>
       </div>
 
-      <!-- TAB CONTENT: SETUP -->
-      <div id="tab-setup" class="tab-content active">
-        <div class="setup-scroll">
+      <div class="bar-divider"></div>
 
-          <div class="control-group">
-            <label>
-              <span>Canvas Size</span>
-              <span class="group-summary"></span>
-            </label>
-            <div class="group-content">
-              <div class="row">
-                <input type="number" id="canvasW" value="600" step="50">
-                <button id="btnSwapCanvasSize" class="setup-icon-btn setup-inline-swap" title="Swap Width and Height"
-                  aria-label="Swap Width and Height">⇄</button>
-                <input type="number" id="canvasH" value="600" step="50">
-                <button id="btnLockCanvasRatio" class="setup-icon-btn" title="Lock Aspect Ratio">
-                  <!-- Default Unlock Icon -->
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                  </svg>
-                </button>
-              </div>
-              <div class="setup-inline-actions">
-                <button id="btnFitScreen" style="width:100%">Fit Screen</button>
-                <button id="btnFitCanvas" style="width:100%">Fit to Grid</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>
-              <span>Grid (Rows x Cols)</span>
-              <span class="group-summary"></span>
-            </label>
-            <div class="group-content">
-              <div class="row">
-                <input type="number" id="gridRows" value="4" min="1" max="50">
-                <button id="btnSwapGridSize" class="setup-icon-btn setup-inline-swap" title="Swap Rows and Cols"
-                  aria-label="Swap Rows and Cols">⇄</button>
-                <input type="number" id="gridCols" value="4" min="1" max="50">
-                <button id="btnLockGridRatio" class="setup-icon-btn" title="Lock Aspect Ratio">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                  </svg>
-                </button>
-              </div>
-              <button id="btnSquareGrid" style="margin-top:5px; width:100%">Square Cells</button>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>
-              <span>Symmetry Mode</span>
-              <span class="group-summary"></span>
-            </label>
-            <div class="group-content">
-              <div class="row">
-                <select id="gridSymmetryMode" aria-label="Grid symmetry mode"
-                  title="Choose how supertiles repeat across the grid" style="width:100%;">
-                  <option value="axis_mirror" selected>Bilateral Mirror (X and Y)</option>
-                  <option value="rotational_orbit">Center Orbit (Grouped Repeats)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>
-              <span>Margin (px)</span>
-              <span class="group-summary"></span>
-            </label>
-            <div class="group-content">
-              <input type="number" id="gridMargin" value="0" min="0" step="10">
-            </div>
-          </div>
-
-          <div class="control-group seed-sticky">
-            <label>
-              <span>Seed</span>
-              <span class="group-summary"></span>
-            </label>
-            <div class="group-content">
-              <div class="row">
-                <input type="number" id="seedInput" value="0">
-                <button id="btnRandomize" style="display:flex; justify-content:center; align-items:center;">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 3 21 3 21 8"></polyline>
-                    <line x1="4" y1="20" x2="21" y2="3"></line>
-                    <polyline points="21 16 21 21 16 21"></polyline>
-                    <line x1="15" y1="15" x2="21" y2="21"></line>
-                    <line x1="4" y1="4" x2="9" y2="9"></line>
-                  </svg>
-                </button>
-              </div>
-
-              <!-- History Controls for Generation -->
-              <div style="margin-top: 8px; display: flex; gap: 5px; position: relative;">
-                <button id="btnPrevSeed" title="Previous Generation (←)" disabled
-                  style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-                <button id="btnNextSeed" title="Next Generation (→)" disabled
-                  style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-                <button id="btnToggleHistory" title="Full History List"
-                  style="flex: 0 0 32px; display: flex; justify-content: center; align-items: center; padding: 4px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="8" y1="6" x2="21" y2="6"></line>
-                    <line x1="8" y1="12" x2="21" y2="12"></line>
-                    <line x1="8" y1="18" x2="21" y2="18"></line>
-                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                  </svg>
-                </button>
-
-                <!-- Floating History List -->
-                <div id="seedHistoryList" style="display: none; position: absolute; top: 100%; right: 0; width: 220px; max-height: 200px;
-                       overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; 
-                       padding: 4px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-                  <!-- Populated via JS -->
-                  <div style="padding:8px; color:#888; text-align:center; font-size:0.8rem;">No history yet</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="control-group tile-selector-group">
-            <label>Allowed Tiles</label>
-            <div class="group-content"
-              style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
-              <div id="tileSelector">
-                <!-- Javascript will populate this -->
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="setup-quick-actions" aria-label="Setup quick actions">
-          <button id="btnSetupAllTiles" type="button">All Tiles</button>
-          <button id="btnSetupNoTiles" type="button">None</button>
-        </div>
-
-      </div> <!-- End Tab Setup -->
-
-      <!-- TAB CONTENT: EDIT -->
-      <div id="tab-edit" class="tab-content">
-
-        <!-- Interaction Controls -->
-        <div class="control-group no-collapse">
-          <!-- Scope Control -->
-          <div id="scopeControl" style="margin-top: 0;">
-            <div class="scope-header">
-              <label style="font-size: 0.8rem; color: #aaa;">Target Scope</label>
-            </div>
-            <div class="scope-toggle-group">
-              <!-- Dot -->
-              <button id="scopeSingle" class="scope-btn active" data-scope="single" title="Dot — 1 subtile, the pixel of your mosaic">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <line x1="12" y1="3" x2="12" y2="21" stroke-opacity="0.08"/>
-                  <line x1="3" y1="12" x2="21" y2="12" stroke-opacity="0.08"/>
-                  <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-
-              <!-- Mirror -->
-              <button id="scopeSupertile" class="scope-btn" data-scope="supertile" title="Mirror — same subtile across the 4 mirrored faces of 1 block">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <rect x="5" y="5" width="14" height="14" rx="2" stroke-opacity="0.5"/>
-                  <line x1="12" y1="5" x2="12" y2="19" stroke-opacity="0.2"/>
-                  <line x1="5" y1="12" x2="19" y2="12" stroke-opacity="0.2"/>
-                  <rect x="7" y="7" width="3.5" height="3.5" rx="0.6" fill="currentColor" stroke="none"/>
-                  <rect x="13.5" y="7" width="3.5" height="3.5" rx="0.6" fill="currentColor" stroke="none"/>
-                  <rect x="7" y="13.5" width="3.5" height="3.5" rx="0.6" fill="currentColor" stroke="none"/>
-                  <rect x="13.5" y="13.5" width="3.5" height="3.5" rx="0.6" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-
-              <!-- Divider Local / Global -->
-              <div class="scope-divider"></div>
-
-              <!-- Match -->
-              <button id="scopeGlobalExact" class="scope-btn" data-scope="global_exact" title="Match — all subtiles with this same pattern anywhere in the grid">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <rect x="6" y="5.5" width="4.5" height="4.5" rx="1" fill="currentColor" stroke="none" opacity="0.35"/>
-                  <rect x="13.5" y="9" width="4.5" height="4.5" rx="1" fill="currentColor" stroke="none"/>
-                  <rect x="9.5" y="15" width="4.5" height="4.5" rx="1" fill="currentColor" stroke="none" opacity="0.35"/>
-                </svg>
-              </button>
-
-              <!-- Repeat -->
-              <button id="scopeGlobalPos" class="scope-btn" data-scope="global_pos" title="Repeat — same visual position in every block across the grid">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <line x1="12" y1="3" x2="12" y2="21" stroke-opacity="0.1"/>
-                  <line x1="3" y1="12" x2="21" y2="12" stroke-opacity="0.1"/>
-                  <rect x="5" y="5" width="3.5" height="3.5" rx="0.7" fill="currentColor" stroke="none"/>
-                  <rect x="5" y="15.5" width="3.5" height="3.5" rx="0.7" fill="currentColor" stroke="none"/>
-                  <rect x="15.5" y="5" width="3.5" height="3.5" rx="0.7" fill="currentColor" stroke="none"/>
-                  <rect x="15.5" y="15.5" width="3.5" height="3.5" rx="0.7" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-
-              <!-- Flood -->
-              <button id="scopeGlobalPosSym" class="scope-btn" data-scope="global_pos_sym" title="Flood — same subtile in ALL 4 faces of EVERY block (full grid)">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.2"/>
-                  <rect x="4.5" y="4.5" width="15" height="15" rx="1.5" stroke-opacity="0.5"/>
-                  <line x1="12" y1="4.5" x2="12" y2="19.5" stroke-opacity="0.15"/>
-                  <line x1="4.5" y1="12" x2="19.5" y2="12" stroke-opacity="0.15"/>
-                  <line x1="4.5" y1="4.5" x2="19.5" y2="19.5" stroke-opacity="0.08"/>
-                  <line x1="19.5" y1="4.5" x2="4.5" y2="19.5" stroke-opacity="0.08"/>
-                  <circle cx="8.25" cy="8.25" r="1.8" fill="currentColor" stroke="none"/>
-                  <circle cx="15.75" cy="8.25" r="1.8" fill="currentColor" stroke="none"/>
-                  <circle cx="8.25" cy="15.75" r="1.8" fill="currentColor" stroke="none"/>
-                  <circle cx="15.75" cy="15.75" r="1.8" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-
-              <!-- Radial -->
-              <button id="scopeRadial" class="scope-btn" data-scope="global_radial" title="Radial — same radial distance from center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.15"/>
-                  <rect x="5.5" y="5.5" width="13" height="13" rx="1.5" stroke-opacity="0.3"/>
-                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" stroke-opacity="0.45"/>
-                  <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                  <circle cx="7" cy="7" r="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                  <circle cx="17" cy="7" r="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                  <circle cx="7" cy="17" r="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                  <circle cx="17" cy="17" r="1" fill="currentColor" stroke="none" opacity="0.6"/>
-                </svg>
-              </button>
-
-              <!-- Wedge -->
-              <button id="scopeWedge" class="scope-btn" data-scope="global_wedge" title="Wedge — same angular sector (pie slice) from center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.15"/>
-                  <line x1="12" y1="12" x2="12" y2="3" stroke-opacity="0.4"/>
-                  <line x1="12" y1="12" x2="21" y2="12" stroke-opacity="0.4"/>
-                  <path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" stroke="none" opacity="0.45"/>
-                </svg>
-              </button>
-
-              <!-- Cascade -->
-              <button id="scopeCascade" class="scope-btn" data-scope="global_cascade" title="Cascade — from center out to clicked ring">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.15"/>
-                  <rect x="5" y="5" width="14" height="14" rx="1.5" stroke-opacity="0.2"/>
-                  <rect x="7.5" y="7.5" width="9" height="9" rx="1" stroke-opacity="0.35"/>
-                  <rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-
-              <!-- Alternate -->
-              <button id="scopeAlternate" class="scope-btn" data-scope="global_alternate" title="Alternate — alternating ring parity">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="scope-icon"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-opacity="0.15"/>
-                  <rect x="5.5" y="5.5" width="13" height="13" rx="1.5" fill="currentColor" stroke="none" opacity="0.2"/>
-                  <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="currentColor" stroke="none" opacity="0.5"/>
-                  <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Description Area (Dynamic) -->
-            <div id="scopeDesc">
-              <strong style="color: #ccc;">Dot:</strong> The pixel of your mosaic — edit 1 subtile.
-            </div>
-
-            <div id="editModeToggle" class="edit-mode-toggle" data-active="paint" aria-label="Edit action mode">
-              <div class="edit-mode-bg" aria-hidden="true"></div>
-              <button id="editModePaint" class="edit-mode-btn active" type="button"
-                title="Paint (R toggles tool)">Paint</button>
-              <button id="editModeRotate" class="edit-mode-btn" type="button"
-                title="Rotate (R toggles tool)">Rotate</button>
-              <button id="editModeStamp" class="edit-mode-btn" type="button"
-                title="Stamp (R toggles tool)">Stamp</button>
-            </div>
-          </div>
-
-          <!-- Paint Palette (Only visible for Paint Brush) -->
-          <div id="paintTileDisplay" class="edit-paint-panel">
-            <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Active Brush:</div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <!-- Preview Icon -->
-              <div id="paintTilePreview"
-                style="width: 30px; height: 30px; background: #333; border: 1px solid #555; border-radius: 4px; overflow: hidden;">
-              </div>
-              <span id="paintTileName" style="font-size: 0.9rem; font-weight: bold; color: #fff;"> Select below </span>
-            </div>
-
-            <div class="edit-brush-section">
-              <label style="font-size: 0.8rem; color: #aaa; display:block; margin-bottom: 5px;">Brush Palette:</label>
-              <div id="brushList" class="tile-list edit-brush-list">
-                <!-- Brush tiles injected here -->
-              </div>
-            </div>
+      <!-- Artboard / Canvas Dimensions -->
+      <div class="bar-group" aria-label="Dimensões do Artboard">
+        <span class="bar-group-label">Artboard</span>
+        <div class="input-chip" title="Largura do Canvas (px)">
+          <span class="chip-prefix">W</span>
+          <input type="number" id="canvasW" value="600" min="100" max="4096" step="50">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1" title="Aumentar Largura">▴</button>
+            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1" title="Diminuir Largura">▾</button>
           </div>
         </div>
+        <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)">⇄</button>
+        <div class="input-chip" title="Altura do Canvas (px)">
+          <span class="chip-prefix">H</span>
+          <input type="number" id="canvasH" value="600" min="100" max="4096" step="50">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1" title="Aumentar Altura">▴</button>
+            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1" title="Diminuir Altura">▾</button>
+          </div>
+        </div>
+        <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção do Artboard">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+          </svg>
+        </button>
+        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade">Ajustar à Grade</button>
+      </div>
 
-        <!-- History Controls for Edit -->
-        <div class="control-group no-collapse" style="margin-bottom: 5px;">
-          <div style="display: flex; gap: 5px;">
-            <button id="btnUndo" title="Undo (Ctrl+Z)" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 14L4 9l5-5"></path>
-                <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path>
-              </svg>
-              <span style="font-size: 0.8rem; margin-left: 5px;">Undo</span>
-            </button>
-            <button id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled
-              style="flex: 1; display: flex; justify-content: center; align-items: center;">
-              <span style="font-size: 0.8rem; margin-right: 5px;">Redo</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"></path>
-                <path d="M15 14l5-5-5-5"></path>
+      <div class="bar-divider"></div>
+
+      <!-- Grid Dimensions (Rows x Cols & Margin) -->
+      <div class="bar-group" aria-label="Configuração da Grade">
+        <span class="bar-group-label">Grade</span>
+        <div class="input-chip chip-compact" title="Linhas de Blocos (Rows)">
+          <span class="chip-prefix">L</span>
+          <input type="number" id="gridRows" value="3" min="1" max="32" step="1">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1" title="Mais Linhas">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1" title="Menos Linhas">▾</button>
+          </div>
+        </div>
+        <button id="btnSwapGridSize" class="icon-btn" title="Inverter Linhas e Colunas">⇄</button>
+        <div class="input-chip chip-compact" title="Colunas de Blocos (Cols)">
+          <span class="chip-prefix">C</span>
+          <input type="number" id="gridCols" value="3" min="1" max="32" step="1">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1" title="Mais Colunas">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1" title="Menos Colunas">▾</button>
+          </div>
+        </div>
+        <button id="btnLockGridRatio" class="icon-btn" title="Travar Proporção da Grade">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+          </svg>
+        </button>
+        <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas">Células 1:1</button>
+        <div class="input-chip chip-medium" title="Margem externa do Artboard (px)">
+          <span class="chip-prefix">Margem</span>
+          <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1" title="Aumentar Margem">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1" title="Diminuir Margem">▾</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bar-divider"></div>
+
+      <!-- Seed & Generation History -->
+      <div class="bar-group seed-bar-group" aria-label="Seed e Histórico de Geração">
+        <span class="bar-group-label">Seed</span>
+        <div class="input-chip seed-chip" title="Semente determinística do gerador">
+          <span class="chip-prefix">#</span>
+          <input type="number" id="seedInput" value="1024" step="1">
+          <div class="chip-steppers">
+            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="1" tabindex="-1" title="Próxima Seed (+1)">▴</button>
+            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="-1" tabindex="-1" title="Seed Anterior (-1)">▾</button>
+          </div>
+        </div>
+        <button id="btnRandomize" class="btn-primary-accent" title="Sortear nova Seed (Tecla G)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+          <span>Gerar</span>
+        </button>
+
+        <div class="history-nav-group">
+          <button id="btnPrevSeed" class="icon-btn" title="Geração Anterior (←)" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button id="btnNextSeed" class="icon-btn" title="Próxima Geração (→)" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+          <div class="history-dropdown-wrap">
+            <button id="btnToggleHistory" class="icon-btn" title="Histórico de Seeds Geradas">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <polyline points="12 7 12 12 15 15"></polyline>
               </svg>
             </button>
           </div>
-          <div id="editHistoryState" class="edit-history-state">Step 1 / 1</div>
-        </div>
-      </div> <!-- End Tab Interact -->
-
-      <!-- TAB CONTENT: ASSETS -->
-      <div id="tab-assets" class="tab-content">
-        <div class="assets-workspace">
-          <div class="assets-main-grid">
-            <div class="control-group no-collapse">
-              <label><span>Families</span></label>
-              <div class="group-content">
-                <div id="assetFamilyList" class="family-list"></div>
-                <div class="status-text assets-helper-note">Tip: Ctrl/Cmd + click for multi-select; Shift + click for
-                  range selection.</div>
-
-                <div class="row">
-                  <input type="text" id="assetCreateFamilyInput" placeholder="New family name">
-                  <button id="btnCreateFamily" class="btn-accent">Create</button>
-                </div>
-
-                <div class="row">
-                  <button id="btnRemoveFamilyFromList" class="btn-danger">Remove Selected Family</button>
-                </div>
-
-                <div class="status-text assets-helper-note">Tip: drag families with mouse. Keyboard: Up/Down move 1
-                  step; Shift + Up sends to top; Shift + Down sends to bottom.</div>
-              </div>
-            </div>
-
-            <div class="control-group no-collapse">
-              <label><span>Tiles</span></label>
-              <div class="group-content">
-                <div id="assetUploadFamilyTarget" class="status-text assets-helper-note">Selected family: none</div>
-
-                <div class="row">
-                  <input type="text" id="assetRenameFamilyInput" placeholder="Rename selected family">
-                  <button id="btnRenameFamilyFromList" class="btn-accent">Rename Family</button>
-                </div>
-
-                <div id="assetTileGrid" class="family-tile-grid asset-tile-grid"></div>
-                <div class="status-text assets-helper-note">Tip: Ctrl/Cmd + click for multi-select; Shift + click for
-                  range selection.</div>
-
-                <input type="file" id="svgUploadInput" accept=".svg,image/svg+xml" multiple style="display:none">
-                <div class="status-text assets-helper-note">Use the + card in the grid to add one or more SVGs to the
-                  selected family.</div>
-                <div id="svgUploadStatus" class="status-text">Select one or more SVG files.</div>
-              </div>
-            </div>
-
-            <div class="assets-side-stack">
-              <div class="control-group no-collapse" id="assetInspectorCard">
-                <label><span>Inspector</span></label>
-                <div class="group-content" id="assetInspectorEmpty">
-                  <div class="status-text assets-helper-note">Select a tile to edit it.</div>
-                </div>
-                <div class="group-content" id="assetInspectorContent" style="display:none; gap:10px;">
-                  <div class="asset-inspector-head">
-                    <div class="asset-inspector-thumb"><img id="assetInspectorThumb" alt="Selected tile preview"></div>
-                    <div>
-                      <div id="assetInspectorTitle" class="library-item-name"></div>
-                      <div id="assetInspectorMeta" class="library-item-family"></div>
-                    </div>
-                  </div>
-
-                  <label>Rename Tile</label>
-                  <div class="row">
-                    <input type="text" id="assetTileNameInput" placeholder="Tile name">
-                    <button id="btnApplyTileRename" class="btn-accent">Apply</button>
-                  </div>
-
-                  <label>Move To Family</label>
-                  <div class="row">
-                    <select id="assetMoveFamilySelect"></select>
-                    <button id="btnMoveTileFamily" class="btn-accent">Move</button>
-                  </div>
-
-                  <label>Order in Family</label>
-                  <div class="status-text assets-helper-note">Tip: drag tiles with mouse. Keyboard: Left/Right move 1
-                    step; Shift + Left sends to start; Shift + Right sends to end.
-                  </div>
-
-                  <label>Tile Editor</label>
-                  <div class="asset-editor-box">
-                    <div class="asset-editor-toolbar" aria-label="Tile transform tools">
-                      <button id="btnEditorRotateCCW" class="asset-editor-btn" title="Rotate counter-clockwise"
-                        aria-label="Rotate counter-clockwise" type="button">
-                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
-                          <path d="M10 6L6 10l4 4"></path>
-                          <path d="M6.5 10H12a7 7 0 1 1-7 7"></path>
-                        </svg>
-                      </button>
-                      <button id="btnEditorRotateCW" class="asset-editor-btn" title="Rotate clockwise"
-                        aria-label="Rotate clockwise" type="button">
-                        <svg viewBox="-1 -1 26 26" aria-hidden="true">
-                          <path d="M14 6l4 4-4 4"></path>
-                          <path d="M17.5 10H12a7 7 0 1 0 7 7"></path>
-                        </svg>
-                      </button>
-                      <button id="btnEditorMirrorX" class="asset-editor-btn" title="Mirror horizontally"
-                        aria-label="Mirror horizontally" type="button">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M12 4v16"></path>
-                          <rect x="4" y="7" width="6" height="10" rx="1"></rect>
-                          <rect x="14" y="7" width="6" height="10" rx="1"></rect>
-                        </svg>
-                      </button>
-                      <button id="btnEditorMirrorY" class="asset-editor-btn" title="Mirror vertically"
-                        aria-label="Mirror vertically" type="button">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <path d="M4 12h16"></path>
-                          <rect x="7" y="4" width="10" height="6" rx="1"></rect>
-                          <rect x="7" y="14" width="10" height="6" rx="1"></rect>
-                        </svg>
-                      </button>
-                    </div>
-                    <div class="asset-editor-preview">
-                      <img id="assetEditorPreview" alt="Tile editor preview">
-                    </div>
-                    <div class="row">
-                      <button id="btnCreateEditedTile" class="btn-accent">Create Edited Tile</button>
-                    </div>
-                  </div>
-
-                  <button id="btnRemoveSelectedTile" class="btn-danger">Remove Tile</button>
-                </div>
-              </div>
-
-              <div class="control-group no-collapse assets-ops-card">
-                <label><span>Actions</span></label>
-                <div class="group-content">
-                  <div class="row assets-scope-row">
-                    <label for="assetBackupScope">Backup/Restore Scope</label>
-                    <select id="assetBackupScope">
-                      <option value="full" selected>Full (Files + Organization)</option>
-                      <option value="tiles">Files Only (Imported Tiles)</option>
-                      <option value="layout">Organization Only (Families, Names, Visibility)</option>
-                    </select>
-                  </div>
-                  <div id="assetBackupScopeHelp" class="status-text assets-helper-note">
-                    Full: saves both imported tile files and organization (families, names, visibility).
-                  </div>
-
-                  <div class="row backup-row">
-                    <button id="btnExportSvgBackup" title="Export uploaded SVG tiles backup">Export Backup</button>
-                    <button id="btnImportSvgBackup" title="Import uploaded SVG tiles backup">Import Backup</button>
-                    <button id="btnRestoreBuiltins"
-                      title="Restore built-in tile names/families/visibility to default">Restore Built-ins</button>
-                    <input type="file" id="svgBackupImportInput" accept="application/json,.json" style="display:none;">
-                  </div>
-
-                  <div class="row assets-history-row">
-                    <button id="btnAssetsUndo" title="Undo last Assets action" disabled>Undo</button>
-                    <button id="btnAssetsRedo" title="Redo last Assets action" disabled>Redo</button>
-                    <div id="assetsHistoryState" class="assets-history-state">Assets history: 1 / 1</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
+      <div class="bar-spacer"></div>
 
-
-      <div class="control-group actions no-collapse" id="exportActions">
-        <label for="exportFormatSelect"><span>Export</span></label>
-        <div class="export-controls-row">
-          <select id="exportFormatSelect" aria-label="Export format">
-            <option value="png" selected>PNG</option>
-            <option value="svg">SVG</option>
-            <option value="gcode">GCode</option>
-          </select>
-          <button id="btnExport">Export</button>
-        </div>
-        <div class="export-hint">PNG raster • SVG vector • GCode (pen plotter paths)</div>
+      <!-- Export Controls -->
+      <div class="bar-group export-bar-group" aria-label="Exportar Mosaico">
+        <select id="exportFormatSelect" class="bar-select" title="Formato de exportação">
+          <option value="png" selected>PNG (Imagem)</option>
+          <option value="svg">SVG (Vetor)</option>
+        </select>
+        <button id="btnExport" class="bar-export-btn" title="Baixar arquivo do mosaico atual">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Exportar</span>
+        </button>
       </div>
+    </header>
 
-      <!-- GCode Configuration Panel -->
-      <div class="control-group collapsed no-collapse" id="gcodeConfigGroup">
-        <label>
-          <span>GCode Config</span>
-          <span class="group-summary">Ender 3 V2</span>
-        </label>
-        <div class="group-content gcode-config-content">
-          <div class="gcode-section-label">Bed &amp; Offset (mm)</div>
-          <div class="gcode-row">
-            <label class="gcode-label">Bed W</label>
-            <input type="number" id="gcodeBedW" value="220" step="5" min="1" class="gcode-num">
-            <label class="gcode-label">Bed H</label>
-            <input type="number" id="gcodeBedH" value="220" step="5" min="1" class="gcode-num">
-          </div>
-          <div class="gcode-row">
-            <label class="gcode-label">Offset X</label>
-            <input type="number" id="gcodeOffsetX" value="35" step="1" class="gcode-num">
-            <label class="gcode-label">Offset Y</label>
-            <input type="number" id="gcodeOffsetY" value="23" step="1" class="gcode-num">
-          </div>
-
-          <div class="gcode-section-label">Pen Control (Z height, mm)</div>
-          <div class="gcode-row">
-            <label class="gcode-label">Draw Z</label>
-            <input type="number" id="gcodeDrawZ" value="0.3" step="0.1" min="0" class="gcode-num">
-            <label class="gcode-label">Lift Z</label>
-            <input type="number" id="gcodeLiftZ" value="2.3" step="0.1" min="0" class="gcode-num">
-          </div>
-
-          <div class="gcode-section-label">Feed Rates (mm/min)</div>
-          <div class="gcode-row">
-            <label class="gcode-label">Draw</label>
-            <input type="number" id="gcodeDrawFeed" value="2000" step="500" min="100" class="gcode-num">
-            <label class="gcode-label">Travel</label>
-            <input type="number" id="gcodeLiftFeed" value="6000" step="500" min="100" class="gcode-num">
-          </div>
-
-          <div class="gcode-section-label">Modes</div>
-          <div class="gcode-row">
-            <label class="gcode-label">Pen</label>
-            <select id="gcodePenMode" class="gcode-select">
-              <option value="z">Z‑axis lift</option>
-              <option value="servo">Servo (M3/M5)</option>
-            </select>
-            <label class="gcode-label">Fit</label>
-            <select id="gcodeFitMode" class="gcode-select">
-              <option value="fit">Fit (preserve ratio)</option>
-              <option value="stretch">Stretch to fill</option>
-              <option value="scale">Manual scale</option>
-            </select>
-          </div>
-
-          <div class="gcode-row" id="gcodeScaleRow" style="display:none">
-            <label class="gcode-label">mm/px</label>
-            <input type="number" id="gcodeManualScale" value="0.1" step="0.01" min="0.001" class="gcode-num">
-          </div>
-
-          <div class="gcode-section-label">Options</div>
-          <div class="gcode-row gcode-check-row">
-            <label class="gcode-check-label">
-              <input type="checkbox" id="gcodeEnableHome" checked>
-              G28 (auto home)
-            </label>
-            <label class="gcode-check-label">
-              <input type="checkbox" id="gcodeEnableEndPause" checked>
-              M0 (wait at end)
-            </label>
-          </div>
-
-          <div class="gcode-row" style="justify-content:flex-end; gap:8px; margin-top:4px;">
-            <button id="gcodeResetBtn" class="setup-icon-btn" title="Reset to defaults">Reset</button>
-          </div>
-        </div>
-      </div>
+    <!-- Floating Seed History Popover (Outside top bar so it is never clipped by overflow or canvas) -->
+    <div id="seedHistoryPopover" class="floating-popover hidden">
+      <div class="popover-header">Histórico de Gerações</div>
+      <div id="seedHistoryList" class="popover-list"></div>
     </div>
 
-    <div id="canvas-container">
-      <div id="canvasZoomOverlay" class="canvas-zoom-overlay" aria-label="Canvas zoom controls">
-        <div id="canvasZoomControls" class="canvas-zoom-controls">
-          <button id="btnZoomOut" type="button" title="Zoom out">−</button>
-          <input type="range" id="canvasZoom" min="10" max="1200" step="5" value="100">
-          <div class="canvas-zoom-value-wrap">
-            <input type="number" id="canvasZoomValue" min="1" step="1" value="100" aria-label="Zoom percent">
-            <span class="canvas-zoom-percent">%</span>
-          </div>
-          <button id="btnZoomIn" type="button" title="Zoom in">+</button>
-          <select id="zoomFitMode" aria-label="Zoom fit mode" title="Fit mode">
-            <option value="original" selected>Original Size</option>
-            <option value="best">Fit Best</option>
-            <option value="horizontal">Fit Horizontal</option>
-            <option value="vertical">Fit Vertical</option>
-            <option value="fill">Fit Fill</option>
-          </select>
-          <label class="zoom-snap-toggle" title="Snap zoom to fit points (U)">
-            <input type="checkbox" id="zoomSnapToggle" checked>
-            <span>Snap</span>
-          </label>
-          <button id="btnZoomHide" type="button" title="Hide zoom controls">✕</button>
+    <!-- ==================== MAIN WORKSPACE AREA ==================== -->
+    <div id="workspace-body">
+
+      <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
+      <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
+        <div class="tool-section">
+          <button id="toolInspect" class="tool-btn active" data-tool="inspect"
+            title="Inspecionar Blocos e Órbitas (V)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
+              <path d="M13 13l6 6"></path>
+            </svg>
+          </button>
+          <button id="toolPan" class="tool-btn" data-tool="pan"
+            title="Mover Visualização / Pan (H ou segure Espaço)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+            </svg>
+          </button>
+          <button id="toolZoom" class="tool-btn" data-tool="zoom"
+            title="Ferramenta de Zoom (Z • Clique aproxima, Alt+Clique afasta)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
         </div>
-        <button id="btnZoomShow" class="canvas-zoom-show" type="button" title="Show zoom controls">Zoom</button>
-      </div>
 
-      <button id="btnFullscreen" title="Toggle Fullscreen"
-        style="display:flex; justify-content:center; align-items:center;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
-          </path>
-        </svg>
-      </button>
-      <div id="canvasStatusHint">LMB paint • RMB rotate • Shift+RMB randomize</div>
+        <div class="tool-divider"></div>
+
+        <!-- Visual Guides Toggles -->
+        <div class="tool-section" aria-label="Guias Visuais estilo Illustrator">
+          <button id="toggleGuideAxes" class="tool-btn guide-toggle" title="Mostrar/Ocultar Eixos de Simetria (Tecla A)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+          <button id="toggleGuideBlocks" class="tool-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos e Quadrantes (Tecla B)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="3" y1="15" x2="21" y2="15"></line>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+          </button>
+          <button id="toggleGuideSubtiles" class="tool-btn guide-toggle" title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+          <button id="toggleGuideOrbits" class="tool-btn guide-toggle" title="Mostrar/Ocultar Mapa de Órbitas e Rotação [1,2,1][2,3,2][1,2,1] (Tecla O)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
+              <polyline points="12 7 15 10 12 13"></polyline>
+              <path d="M9 10h6"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="tool-spacer"></div>
+
+        <div class="tool-section">
+          <button id="btnFitArtboard" class="tool-btn" title="Centralizar e Ajustar Artboard na Janela (Tecla 0)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+          <button id="btnToggleRightDock" class="tool-btn active" title="Mostrar/Ocultar Painéis Direitos (Tecla Tab)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CENTER ARTBOARD VIEWPORT -->
+      <main id="workspace-viewport">
+        <div id="artboard-pasteboard">
+          <div id="canvas-stage">
+            <!-- p5.js canvas mounts here -->
+          </div>
+        </div>
+
+        <!-- BOTTOM ILLUSTRATOR STATUS BAR -->
+        <footer id="status-bar">
+          <div class="status-left">
+            <div class="zoom-widget">
+              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)">−</button>
+              <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom">
+                <option value="fit">Ajustar à Tela</option>
+                <option value="25">25%</option>
+                <option value="50">50%</option>
+                <option value="75">75%</option>
+                <option value="100" selected>100%</option>
+                <option value="125">125%</option>
+                <option value="150">150%</option>
+                <option value="200">200%</option>
+                <option value="300">300%</option>
+                <option value="400">400%</option>
+              </select>
+              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)">+</button>
+              <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Voltar para 100% (Tecla 1)">1:1</button>
+            </div>
+            <span class="status-sep">|</span>
+            <span id="statusArtboardInfo" class="status-item">600 × 600 px</span>
+            <span class="status-sep">|</span>
+            <span id="statusGridInfo" class="status-item">Grade 3 × 3 • 3 Órbitas</span>
+          </div>
+
+          <div id="statusHoverInspector" class="status-center">
+            Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria
+          </div>
+
+          <div class="status-right">
+            <span class="shortcut-pill"><kbd>G</kbd> Gerar</span>
+            <span class="shortcut-pill"><kbd>O</kbd> Órbitas</span>
+            <span class="shortcut-pill"><kbd>A</kbd> Eixos</span>
+            <span class="shortcut-pill"><kbd>Tab</kbd> Painéis</span>
+          </div>
+        </footer>
+      </main>
+
+      <!-- RIGHT DOCK PANELS (Adobe Illustrator Properties & Swatches Dock) -->
+      <aside id="right-dock" aria-label="Painéis de Simetria e Biblioteca de Tiles">
+
+        <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
+        <section class="dock-panel" id="panel-symmetry">
+          <header class="panel-header" data-collapse-target="panelSymmetryBody">
+            <div class="panel-title-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              <span>Simetria &amp; Estrutura</span>
+            </div>
+            <span class="panel-chevron">▾</span>
+          </header>
+
+          <div class="panel-body" id="panelSymmetryBody">
+            <!-- STEP 1: Grid Symmetry Mode Cards -->
+            <div class="prop-section">
+              <div class="prop-label-row">
+                <label class="prop-label">1. Simetria da Grade (Mosaico)</label>
+                <span id="gridSymmetryBadge" class="prop-badge">Mandala D4</span>
+              </div>
+              <div id="gridSymmetryGrid" class="symmetry-card-grid">
+                <!-- Populated by JS -->
+              </div>
+              <div id="gridSymmetryDesc" class="prop-help-box"></div>
+
+              <!-- Non-square grid warning for Mandala D4 / Rotational C4 -->
+              <div id="nonSquareGridNotice" class="notice-banner hidden">
+                <span>Para rotação de 90° nas bordas, a grade precisa ter o mesmo nº de linhas e colunas.</span>
+                <button id="btnMakeGridEqual" type="button" class="notice-btn">Igualar L×C</button>
+              </div>
+            </div>
+
+            <!-- STEP 2: Block Internal Symmetry (Direct 4-button visual selector) -->
+            <div id="blockSymmetryContainer" class="prop-section">
+              <div class="prop-label-row">
+                <label class="prop-label">2. Simetria Interna de Cada Bloco</label>
+                <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
+              </div>
+              <div id="blockSymmetryGrid" class="block-sym-pill-grid">
+                <!-- Populated by JS: [Igual à Grade] [Mandala D4] [Rotacional C4] [Bilateral XY] -->
+              </div>
+              <div id="blockSymmetryDesc" class="prop-sub-hint"></div>
+            </div>
+
+            <!-- STEP 3: Block Subdivision & Aesthetics -->
+            <div class="prop-section">
+              <div class="prop-label-row">
+                <label class="prop-label">3. Subdivisão por Quadrante</label>
+                <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
+              </div>
+              <div class="segmented-control" id="subdivisionControl">
+                <button type="button" class="seg-btn" data-sub="1" title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
+                <button type="button" class="seg-btn active" data-sub="2" title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
+                <button type="button" class="seg-btn" data-sub="3" title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
+                <button type="button" class="seg-btn" data-sub="4" title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
+              </div>
+            </div>
+
+            <!-- Padding & Colors -->
+            <div class="prop-section prop-row-split">
+              <div class="prop-col">
+                <div class="prop-label-row">
+                  <label class="prop-label" for="paddingSlider">Respiro (Padding)</label>
+                  <span id="paddingValueLabel" class="prop-mono">5%</span>
+                </div>
+                <input type="range" id="paddingSlider" min="0" max="25" step="1" value="5" class="panel-slider">
+              </div>
+              <div class="prop-col colors-col">
+                <label class="prop-label">Cores (Tile / Fundo)</label>
+                <div class="color-pickers-row">
+                  <input type="color" id="fgColorPicker" value="#e2e0dc" title="Cor dos Tiles">
+                  <button id="btnSwapColors" class="icon-btn" title="Inverter cores Tile/Fundo">⇄</button>
+                  <input type="color" id="bgColorPicker" value="#0c0c0e" title="Cor do Fundo">
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
+        <section class="dock-panel dock-panel-flex" id="panel-swatches">
+          <header class="panel-header" data-collapse-target="panelSwatchesBody">
+            <div class="panel-title-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+              </svg>
+              <span>Swatches de Tiles</span>
+            </div>
+            <span id="activeTilesCounter" class="panel-counter-pill">45 / 45</span>
+          </header>
+
+          <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
+            <!-- Quick Filter & Bulk Selection Bar -->
+            <div class="swatches-toolbar">
+              <input type="search" id="tileSearchInput" class="swatch-search" placeholder="Filtrar família ou tile...">
+              <div class="swatch-bulk-actions">
+                <button type="button" id="btnSelectAllTiles" class="mini-btn" title="Ativar todos os 45 tiles">Todos</button>
+                <button type="button" id="btnSelectNoTiles" class="mini-btn" title="Desativar todos os tiles">Nenhum</button>
+                <button type="button" id="btnInvertTiles" class="mini-btn" title="Inverter seleção atual">Inverter</button>
+                <button type="button" id="btnRandomFamilies" class="mini-btn accent" title="Sortear um subconjunto aleatório de famílias e regerar">Sortear Mix</button>
+              </div>
+            </div>
+
+            <!-- Scrollable Families List -->
+            <div id="familiesSwatchContainer" class="families-swatch-scroll">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </section>
+
+      </aside>
     </div>
-  </div> <!-- End main-container -->
+  </div>
 
-  <script src="tile_registry.js"></script>
-  <script src="svg_tile_manager.js"></script>
-  <script src="tile_transforms.js"></script>
-  <script src="subtile.js"></script>
-  <script src="tiles.js"></script>
-  <script src="supertile.js"></script>
+  <!-- Core Modules -->
+  <script src="core/d4_symmetry.js"></script>
+  <script src="core/tile_registry.js"></script>
+  <script src="core/mosaic_engine.js"></script>
+  <!-- Main Studio Controller -->
   <script src="sketch.js"></script>
-  <script>
-    // Responsive Sidebar Logic
-    document.addEventListener('DOMContentLoaded', () => {
-      const btnToggle = document.getElementById('btnMobileToggle');
-      const controls = document.getElementById('controls');
-      const backdrop = document.getElementById('overlay-backdrop');
-      const body = document.body;
-
-      function toggleSidebar() {
-        if (!controls) return;
-
-        const isMobile = window.innerWidth <= 768; // Matches CSS breakpoint
-
-        if (isMobile) {
-          // Mobile behavior: Toggle drawer open/close
-          const isOpen = controls.classList.contains('open');
-          if (isOpen) {
-            controls.classList.remove('open');
-            if (backdrop) {
-              backdrop.style.opacity = '0';
-              setTimeout(() => backdrop.style.display = 'none', 300);
-            }
-          } else {
-            controls.classList.add('open');
-            if (backdrop) {
-              backdrop.style.display = 'block';
-              setTimeout(() => backdrop.style.opacity = '1', 10);
-            }
-          }
-        } else {
-          // Desktop behavior: Toggle visibility (Zen Mode vs Normal)
-          const isClosed = controls.classList.contains('closed');
-          if (isClosed) {
-            controls.classList.remove('closed');
-            body.classList.remove('sidebar-closed');
-            btnToggle.classList.remove('closed-state');
-          } else {
-            controls.classList.add('closed');
-            body.classList.add('sidebar-closed');
-            btnToggle.classList.add('closed-state');
-          }
-        }
-      }
-
-      if (btnToggle) btnToggle.addEventListener('click', toggleSidebar);
-
-      // Close on backdrop click (for mobile)
-      if (backdrop) backdrop.addEventListener('click', toggleSidebar);
-
-      const setupTab = document.getElementById('tab-setup');
-
-      function updateSetupAdaptiveLayout() {
-        if (!setupTab) return;
-
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
-        let allowedMax = Math.round(viewportHeight * 0.27);
-
-        if (viewportHeight < 760) {
-          allowedMax = Math.round(viewportHeight * 0.24);
-        }
-
-        if (viewportHeight > 1200) {
-          allowedMax = Math.round(viewportHeight * 0.31);
-        }
-
-        allowedMax = Math.max(220, Math.min(460, allowedMax));
-        setupTab.style.setProperty('--setup-allowed-max-height', `${allowedMax}px`);
-      }
-
-      // Handle resize to reset states if needed
-      window.addEventListener('resize', () => {
-        updateSetupAdaptiveLayout();
-      });
-
-      // Tab Switching Logic
-      const tabs = document.querySelectorAll('.tab-btn');
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          // Remove active class from buttons
-          tabs.forEach(t => t.classList.remove('active'));
-          // Add active to clicked
-          tab.classList.add('active');
-          // Add attribute to parent for animation
-          tab.parentElement.setAttribute('data-active', tab.getAttribute('data-tab'));
-
-          // Hide all contents
-          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-          // Show target content
-          const targetId = 'tab-' + tab.getAttribute('data-tab');
-          document.getElementById(targetId).classList.add('active');
-
-          if (targetId === 'tab-setup') {
-            requestAnimationFrame(updateSetupAdaptiveLayout);
-          }
-
-          // Trigger custom event for Sketch.js to pick up
-          window.dispatchEvent(new CustomEvent('tabChanged', { detail: { tab: tab.getAttribute('data-tab') } }));
-        });
-      });
-
-      requestAnimationFrame(updateSetupAdaptiveLayout);
-
-      // Update summary helper - Global so Sketch.js can call it
-      window.updateSummary = function (group) {
-        if (!group) return;
-        const summary = group.querySelector('.group-summary');
-        if (!summary) return;
-
-        const inputs = group.querySelectorAll('input[type="number"]');
-
-        // Custom logic based on group context
-        if (inputs.length === 2) {
-          summary.textContent = `${inputs[0].value} x ${inputs[1].value}`;
-        } else if (inputs.length === 1) {
-          // Check for specific inputs to add units
-          if (inputs[0].id === 'gridMargin') {
-            summary.textContent = `${inputs[0].value} px`;
-          } else {
-            summary.textContent = inputs[0].value;
-          }
-        }
-      }
-
-      window.updateAllSummaries = function () {
-        document.querySelectorAll('.control-group').forEach(group => {
-          window.updateSummary(group);
-        });
-      }
-
-      // Accordion Logic
-      document.querySelectorAll('#tab-setup .control-group > label').forEach(label => {
-        window.updateSummary(label.parentElement);
-      });
-
-      document.querySelectorAll('.control-group:not(.tile-selector-group):not(.no-collapse) > label').forEach(label => {
-        if (label.closest('#tab-setup')) return;
-        // Initial summary update
-        window.updateSummary(label.parentElement);
-
-        label.addEventListener('click', (e) => {
-          e.preventDefault();
-          const group = label.parentElement;
-          group.classList.toggle('collapsed');
-        });
-      });
-
-      // Listen for input changes to update summaries
-      document.addEventListener('input', (e) => {
-        if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-          const group = e.target.closest('.control-group');
-          window.updateSummary(group);
-        }
-      });
-
-      // Listen for seed updates (programmatic changes)
-      const seedInput = document.getElementById('seedInput');
-      // Observer for value changes if JS updates it without input event
-      // Or just patch into Sketch.js render, but let's try a simple interval or custom event if needed.
-      // Actually, standard input event bubbles. Programmatic value changes don't trigger input.
-      // We can rely on Sketch.js triggering UI updates.
-
-    });
-  </script>
 </body>
 
 </html>
