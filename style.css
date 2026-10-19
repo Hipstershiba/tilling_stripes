@@ -1316,37 +1316,27 @@ body.right-dock-collapsed #right-dock {
   display: none !important;
 }
 
-/* Edit Undo / Redo Header Bar */
+/* Edit Undo / Redo Inline Header Bar */
 .edit-undo-bar {
-  height: 34px;
-  padding: 0 10px;
-  background: #1c1e23;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.edit-undo-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 .edit-undo-btn {
-  height: 23px;
-  padding: 0 8px;
+  width: 22px;
+  height: 20px;
+  padding: 0;
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.12s ease;
 }
@@ -1357,12 +1347,14 @@ body.right-dock-collapsed #right-dock {
 }
 
 .edit-undo-btn:disabled {
-  opacity: 0.38;
+  opacity: 0.35;
   cursor: default;
 }
 
 .edit-step-label {
   font-size: 10px;
+  min-width: 14px;
+  text-align: center;
   color: var(--text-secondary);
   font-family: "JetBrains Mono", Consolas, monospace;
   white-space: nowrap;
@@ -1372,69 +1364,51 @@ body.right-dock-collapsed #right-dock {
   grid-template-columns: repeat(3, 1fr);
 }
 
-/* Edit Scope Cards (6 D4 Scopes in 2x3 compact grid) */
+/* Edit Scope Pills (6 D4 Scopes in compact 3x2 grid) */
 .edit-scope-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
 
 .edit-scope-card {
+  height: 27px;
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);
-  border-radius: 5px;
-  padding: 5px 7px;
-  display: flex;
+  border-radius: 4px;
+  padding: 0 7px;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 5px;
   cursor: pointer;
-  text-align: left;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   transition: all 0.12s ease;
 }
 
 .edit-scope-card:hover {
   background: var(--bg-control-hover);
   border-color: #4b505d;
+  color: var(--text-primary);
 }
 
 .edit-scope-card.active {
   background: var(--accent-blue-soft);
   border-color: var(--accent-blue);
+  color: #fff;
   box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.25);
 }
 
 .edit-scope-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   color: var(--accent-cyan);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .edit-scope-card.active .edit-scope-icon {
-  background: rgba(59, 130, 246, 0.25);
   color: #93c5fd;
-}
-
-.edit-scope-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.edit-scope-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
 }
 
 .edit-scope-title {
@@ -1445,40 +1419,18 @@ body.right-dock-collapsed #right-dock {
   text-overflow: ellipsis;
 }
 
-.edit-scope-kbd {
-  font-size: 9px;
-  font-family: "JetBrains Mono", Consolas, monospace;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  padding: 0 3px;
-}
-
-.edit-scope-sub {
-  font-size: 9px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .canvas-center-sym-wrap {
-  margin-top: 6px;
-  padding: 6px 8px;
-  background: rgba(0, 210, 255, 0.06);
-  border: 1px solid rgba(0, 210, 255, 0.22);
-  border-radius: 5px;
+  margin-top: 5px;
 }
 
 .snap-block-pill {
-  height: 20px;
+  height: 19px;
   padding: 0 7px;
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);
   border-radius: 4px;
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.12s ease;
@@ -1500,16 +1452,16 @@ body.right-dock-collapsed #right-dock {
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  padding: 8px;
+  padding: 7px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex-shrink: 0;
 }
 
 .supertile-canvas-box {
-  width: 96px;
-  height: 96px;
+  width: 78px;
+  height: 78px;
   border-radius: 5px;
   background: #121316;
   border: 1.5px solid var(--accent-blue);
@@ -1533,21 +1485,13 @@ body.right-dock-collapsed #right-dock {
   gap: 4px;
 }
 
-.supertile-builder-hint {
-  font-size: 10px;
-  color: var(--text-secondary);
-  padding: 4px 7px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 4px;
-  line-height: 1.3;
-  flex-shrink: 0;
+.supertile-builder-actions.hidden,
+.rotate-sub-group.hidden {
+  display: none !important;
 }
 
 .stamp-mode-banner {
-  padding: 6px 8px;
-  background: rgba(52, 211, 153, 0.06);
-  border: 1px solid rgba(52, 211, 153, 0.25);
-  border-radius: 5px;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -1560,7 +1504,7 @@ body.right-dock-collapsed #right-dock {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .active-brush-title-row {
@@ -1571,8 +1515,8 @@ body.right-dock-collapsed #right-dock {
 }
 
 .active-brush-name {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -1580,7 +1524,7 @@ body.right-dock-collapsed #right-dock {
 }
 
 .active-brush-d4-label {
-  font-size: 10px;
+  font-size: 9.5px;
   font-family: "JetBrains Mono", Consolas, monospace;
   color: var(--accent-cyan);
   background: rgba(0, 210, 255, 0.1);
@@ -1597,12 +1541,12 @@ body.right-dock-collapsed #right-dock {
 }
 
 .d4-mini-btn {
-  height: 24px;
+  height: 22px;
   background: #23252b;
   border: 1px solid var(--border-subtle);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.12s ease;
@@ -1611,6 +1555,20 @@ body.right-dock-collapsed #right-dock {
 .d4-mini-btn:hover {
   background: var(--bg-control-hover);
   border-color: var(--accent-blue);
+}
+
+/* Compact 5-column Brush Swatch Library in Edit Mode */
+.edit-brush-scroll .family-swatch-card {
+  padding: 5px 6px;
+}
+
+.edit-brush-scroll .family-card-header {
+  margin-bottom: 4px;
+}
+
+.edit-brush-scroll .family-tiles-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
 }
 
 /* Brush Palette Active Tile Highlight */

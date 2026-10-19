@@ -1161,7 +1161,7 @@ function syncEditUndoUI() {
   if (stepLbl) {
     const editsCount = Math.max(0, StudioState.editHistoryIndex);
     const totalEdits = Math.max(0, StudioState.editHistory.length - 1);
-    stepLbl.textContent = totalEdits === 0 ? '0 edições' : `Edição ${editsCount}/${totalEdits}`;
+    stepLbl.textContent = totalEdits === 0 ? '0' : `${editsCount}/${totalEdits}`;
   }
 }
 
@@ -1201,6 +1201,14 @@ function buildEditWorkspaceUI() {
 
   scopeGrid.innerHTML = '';
   const scopeKeys = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
+  const shortNames = {
+    canvas_center: 'Centro',
+    orbit_sym: 'Órbita',
+    block_sym: 'Bloco',
+    all_blocks: 'Todos',
+    single: 'Livre',
+    same_tile: 'Iguais'
+  };
 
   for (const key of scopeKeys) {
     const s = scopes[key];
@@ -1209,15 +1217,10 @@ function buildEditWorkspaceUI() {
     btn.type = 'button';
     btn.className = 'edit-scope-card';
     btn.dataset.scope = s.id;
+    btn.title = `${s.name} (Tecla ${s.shortcut}) — ${s.description}`;
     btn.innerHTML = `
-      <div class="edit-scope-icon">${EDIT_SCOPE_ICONS[s.id] || '•'}</div>
-      <div class="edit-scope-text">
-        <div class="edit-scope-title-row">
-          <span class="edit-scope-title">${s.name}</span>
-          <span class="edit-scope-kbd">${s.shortcut}</span>
-        </div>
-        <span class="edit-scope-sub">${s.subtitle}</span>
-      </div>
+      <span class="edit-scope-icon">${EDIT_SCOPE_ICONS[s.id] || '•'}</span>
+      <span class="edit-scope-title">${shortNames[s.id] || s.name}</span>
     `;
     btn.addEventListener('click', () => {
       StudioState.editScope = s.id;
@@ -1253,8 +1256,8 @@ function renderEditBrushPalette() {
     const header = document.createElement('div');
     header.className = 'family-card-header';
     header.innerHTML = `
-      <span style="font-size:11px;font-weight:600;color:var(--text-primary);">${fam.name}</span>
-      <span class="family-count-tag">${matchingTiles.length} tiles</span>
+      <span style="font-size:10.5px;font-weight:600;color:var(--text-secondary);">${fam.name}</span>
+      <span class="family-count-tag">${matchingTiles.length}</span>
     `;
     card.appendChild(header);
 
@@ -1266,7 +1269,7 @@ function renderEditBrushPalette() {
       const swatch = document.createElement('button');
       swatch.type = 'button';
       swatch.className = 'tile-swatch-btn' + (isBrushActive ? ' brush-active' : ' selected');
-      swatch.title = `Selecionar no Pincel / Supertile: #${tileId} (${tileNames[tileId] || 'Tile'})`;
+      swatch.title = `#${tileId} • ${tileNames[tileId] || 'Tile'}`;
 
       const img = document.createElement('img');
       img.src = StudioState.thumbnailCache.get(tileId) || '';
@@ -1431,40 +1434,15 @@ function syncEditWorkspaceUI() {
     b.classList.toggle('active', b.dataset.tool === StudioState.activeTool);
   });
 
-  // 4. Edit Tool Segmented Control, Badge & Dynamic Mouse Hints
+  // 4. Edit Tool Segmented Control
   document.querySelectorAll('#editToolSegmented .seg-btn[data-edit-tool]').forEach((b) => {
     b.classList.toggle('active', b.dataset.editTool === StudioState.activeTool);
   });
 
-  const toolBadge = document.getElementById('activeEditToolBadge');
-  const mouseHint = document.getElementById('editMouseShortcutsHint');
-  if (StudioState.activeTool === 'rotate') {
-    if (toolBadge) toolBadge.textContent = 'Girar (R)';
-    if (mouseHint) {
-      mouseHint.innerHTML = '<strong>Clique Esq:</strong> Girar +90° • <strong>Clique Dir:</strong> Girar -90° • <strong>Alt+Arraste:</strong> Clonar Área';
-    }
-  } else if (StudioState.activeTool === 'stamp') {
-    if (toolBadge) toolBadge.textContent = 'Clonar (S)';
-    if (mouseHint) {
-      mouseHint.innerHTML = '<strong>Arrastar (ou Alt+Arraste):</strong> Capturar Clone • <strong>Clique Esq:</strong> Colar • <strong>Clique Dir:</strong> Girar Clone (+90°)';
-    }
-  } else {
-    if (toolBadge) toolBadge.textContent = 'Pincel (B)';
-    if (mouseHint) {
-      mouseHint.innerHTML = '<strong>Clique/Arraste:</strong> Pintar Tile/Supertile • <strong>Clique Dir:</strong> Girar Pincel (+90°) • <strong>Alt+Arraste:</strong> Capturar Clone';
-    }
-  }
-
-  // 5. Edit Scope Cards, Canvas Center Sub-selector & Badge
-  const scopes = window.MosaicEngine.EDIT_SCOPES;
-  const activeScope = scopes[StudioState.editScope] || scopes.canvas_center;
+  // 5. Edit Scope Pills & Canvas Center Sub-selector
   document.querySelectorAll('#editScopeGrid .edit-scope-card').forEach((card) => {
     card.classList.toggle('active', card.dataset.scope === StudioState.editScope);
   });
-  const scopeBadge = document.getElementById('editScopeBadge');
-  if (scopeBadge) scopeBadge.textContent = activeScope.name;
-  const scopeDesc = document.getElementById('editScopeDesc');
-  if (scopeDesc) scopeDesc.textContent = activeScope.description;
 
   const centerSymWrap = document.getElementById('canvasCenterSymmetryWrap');
   if (centerSymWrap) {
@@ -1474,15 +1452,28 @@ function syncEditWorkspaceUI() {
     btn.classList.toggle('active', btn.dataset.centerSym === StudioState.canvasCenterSymmetry);
   });
 
-  // 6. Contextual Rotate Tool Controls
+  // 6. Contextual Rotate Tool Controls (and hide Brush Panel when Rotate tool is active)
+  const isRotateTool = StudioState.activeTool === 'rotate';
   const rotateOpts = document.getElementById('rotateToolOptionsWrap');
   if (rotateOpts) {
-    rotateOpts.classList.toggle('hidden', StudioState.activeTool !== 'rotate');
+    rotateOpts.classList.toggle('hidden', !isRotateTool);
   }
+  const brushPanel = document.getElementById('panel-edit-brush');
+  if (brushPanel) {
+    brushPanel.classList.toggle('hidden', isRotateTool);
+  }
+
   document.querySelectorAll('#rotateSizeControl .seg-btn[data-rot-size]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.rotSize === StudioState.rotateSizeMode);
   });
-  document.getElementById('btnRotateSnapBlock')?.classList.toggle('active', Boolean(StudioState.rotateSnapToBlock || StudioState.rotateSizeMode === 'block'));
+  document.getElementById('btnRotateSnapBlock')?.classList.toggle(
+    'active',
+    Boolean(StudioState.rotateSnapToBlock || StudioState.rotateSizeMode === 'block')
+  );
+  const rotateGroupSection = document.getElementById('rotateGroupModeSection');
+  if (rotateGroupSection) {
+    rotateGroupSection.classList.toggle('hidden', StudioState.rotateSizeMode === '1');
+  }
   document.querySelectorAll('#rotateGroupModeControl .seg-btn[data-rot-group]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.rotGroup === StudioState.rotateGroupMode);
   });
@@ -1499,49 +1490,41 @@ function syncEditWorkspaceUI() {
   document.querySelectorAll('#stampInteractionSegmented .seg-btn[data-stamp-mode]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.stampMode === StudioState.stampInteractionMode);
   });
-  const stampHelpBox = document.getElementById('stampModeHelpBox');
-  const stampStatusBadge = document.getElementById('stampStatusBadge');
-  const pat = ensureSupertilePattern();
-  if (stampStatusBadge) {
-    stampStatusBadge.textContent = `${pat.cols}×${pat.rows} subtiles`;
-  }
-  if (stampHelpBox) {
-    if (StudioState.stampInteractionMode === 'select') {
-      stampHelpBox.innerHTML = StudioState.brushSnapToBlock
-        ? '<strong>Modo Capturar (Snap ao Bloco):</strong> Clique em qualquer Supertile (Bloco) do mosaico para copiá-lo.'
-        : '<strong>Modo Capturar:</strong> Clique e arraste sobre o mosaico para copiar qualquer região de subtiles.';
-    } else {
-      stampHelpBox.innerHTML = '<strong>Modo Aplicar:</strong> Clique/arraste no mosaico para colar. <strong>Botão Direito</strong> gira o clone (+90°).';
-    }
-  }
 
   document.querySelectorAll('#brushSizeControl .seg-btn[data-brush-size]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.brushSize === StudioState.brushSizeMode);
   });
   document.getElementById('btnBrushSnapBlock')?.classList.toggle('active', Boolean(StudioState.brushSnapToBlock));
 
-  // 8. Supertile Builder Metadata & Badges
+  // 8. Supertile Builder Metadata, Badges & Contextual Actions
+  const pat = ensureSupertilePattern();
+  const isSingleCell = pat.rows === 1 && pat.cols === 1;
+  const builderActions = document.getElementById('supertileBuilderActions');
+  if (builderActions) {
+    builderActions.classList.toggle('hidden', isSingleCell && StudioState.activeTool !== 'stamp');
+  }
+
   const brushNameEl = document.getElementById('activeBrushTileName');
   const brushD4El = document.getElementById('activeBrushD4Label');
   const brushBadgeEl = document.getElementById('activeBrushBadge');
 
-  const tileName = window.TileRegistry.TILE_NAMES[StudioState.editBrushTileId] || `Tile #${StudioState.editBrushTileId}`;
   const d4Meta = window.D4Symmetry.D4_METADATA[StudioState.editBrushTransform] || window.D4Symmetry.D4_METADATA.id;
 
-  if (pat.rows === 1 && pat.cols === 1) {
+  if (isSingleCell) {
     const c0 = pat.cells[0][0];
     const cMeta = window.D4Symmetry.D4_METADATA[c0.transform] || window.D4Symmetry.D4_METADATA.id;
     const cName = window.TileRegistry.TILE_NAMES[c0.baseTileId] || `Tile #${c0.baseTileId}`;
     if (brushNameEl) brushNameEl.textContent = `#${c0.baseTileId} • ${cName}`;
-    if (brushD4El) brushD4El.textContent = `${cMeta.label} (${cMeta.arrow})`;
-    if (brushBadgeEl) brushBadgeEl.textContent = `1×1 • Tile #${c0.baseTileId}`;
+    if (brushD4El) brushD4El.textContent = `${cMeta.label} ${cMeta.arrow}`;
+    if (brushBadgeEl) brushBadgeEl.textContent = `1×1 • #${c0.baseTileId}`;
   } else {
-    if (brushNameEl) brushNameEl.textContent = `Supertile ${pat.cols}×${pat.rows} (Tile #${StudioState.editBrushTileId})`;
-    if (brushD4El) brushD4El.textContent = `${d4Meta.label} (${d4Meta.arrow})`;
-    if (brushBadgeEl) brushBadgeEl.textContent = `Supertile ${pat.cols}×${pat.rows}`;
+    if (brushNameEl) brushNameEl.textContent = `Supertile ${pat.cols}×${pat.rows} (#${StudioState.editBrushTileId})`;
+    if (brushD4El) brushD4El.textContent = `${d4Meta.label} ${d4Meta.arrow}`;
+    if (brushBadgeEl) brushBadgeEl.textContent = `${pat.cols}×${pat.rows}`;
   }
 
   syncEditUndoUI();
+  updateHoverStatusText();
 }
 
 function updateHoverStatusText() {
@@ -1550,7 +1533,17 @@ function updateHoverStatusText() {
 
   const hit = StudioState.hoveredCell;
   if (!hit || !StudioState.mosaicData) {
-    el.textContent = 'Passe o cursor sobre o mosaico para inspecionar o bloco, sua órbita e rotação D4';
+    if (StudioState.workspace === 'edit') {
+      if (StudioState.activeTool === 'rotate') {
+        el.innerHTML = '<strong>Girar (R):</strong> Clique Esq gira +90° • Clique Dir gira -90° • Alt+Arraste captura área';
+      } else if (StudioState.activeTool === 'stamp') {
+        el.innerHTML = '<strong>Clonar (S):</strong> Arraste para capturar área • Clique Esq cola • Clique Dir gira o clone (+90°)';
+      } else {
+        el.innerHTML = '<strong>Pincel (B):</strong> Clique/arraste para pintar • Clique Dir gira o pincel (+90°) • Alt+Arraste captura área';
+      }
+    } else {
+      el.textContent = 'Passe o cursor sobre o mosaico para inspecionar o bloco, sua órbita e rotação D4';
+    }
     return;
   }
 

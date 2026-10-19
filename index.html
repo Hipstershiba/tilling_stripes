@@ -471,7 +471,7 @@
              ================================================================ -->
         <div id="dock-workspace-edit" class="dock-workspace-pane hidden">
 
-          <!-- EDIT PANEL 1: UNDO/REDO, ACTIVE TOOL, D4 SCOPE & ROTATE CONTROLS -->
+          <!-- EDIT PANEL 1: FERRAMENTA, ESCOPO D4 & OPÇÕES DE GIRO -->
           <section class="dock-panel" id="panel-edit-scope">
             <header class="panel-header">
               <div class="panel-title-wrap">
@@ -479,47 +479,36 @@
                   <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
                   <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
                 </svg>
-                <span>Edição &amp; Escopo de Simetria</span>
+                <span>Edição &amp; Simetria</span>
               </div>
               <div class="edit-undo-bar" onclick="event.stopPropagation();">
                 <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled>↶</button>
-                <span id="editHistoryStepLabel" class="edit-step-label">0 edições</span>
+                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
                 <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)" disabled>↷</button>
               </div>
             </header>
 
             <div class="panel-body">
-              <!-- Tool Switcher inside Edit Mode -->
+              <!-- Tool Switcher -->
               <div class="prop-section">
-                <div class="prop-label-row">
-                  <label class="prop-label">1. Ferramenta de Edição</label>
-                  <span id="activeEditToolBadge" class="prop-badge">Pincel (B)</span>
-                </div>
                 <div class="segmented-control edit-tool-segmented" id="editToolSegmented">
-                  <button type="button" class="seg-btn active" data-edit-tool="paint" title="Pintar Tile ou Supertile (Tecla B)">Pincel (B)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="rotate" title="Girar Tile ou Supertile (Tecla R)">Girar (R)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="stamp" title="Clonar Área ou Supertile (Tecla S)">Clonar (S)</button>
-                </div>
-                <div id="editMouseShortcutsHint" class="prop-sub-hint">
-                  <strong>Clique/Arraste:</strong> Pintar • <strong>Clique Dir:</strong> Girar Pincel (+90°) • <strong>Alt+Arraste:</strong> Clonar Área
+                  <button type="button" class="seg-btn active" data-edit-tool="paint" title="Pincel (B) — Clique/arraste para pintar • Botão direito gira o pincel">✎ Pincel (B)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="rotate" title="Girar (R) — Clique Esq gira +90° • Clique Dir gira -90°">↻ Girar (R)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="stamp" title="Clonar (S) — Arraste para capturar área (ou Alt+Arraste) e clique para colar">⧉ Clonar (S)</button>
                 </div>
               </div>
 
               <!-- D4 Selection / Propagation Scope -->
               <div class="prop-section">
                 <div class="prop-label-row">
-                  <label class="prop-label">2. Escopo de Propagação</label>
-                  <span id="editScopeBadge" class="prop-badge secondary">Centro do Canvas</span>
+                  <label class="prop-label">Escopo de Simetria</label>
                 </div>
                 <div id="editScopeGrid" class="edit-scope-grid">
-                  <!-- Populated by JS: 6 scopes including Centro do Canvas -->
+                  <!-- Populated by JS: 6 compact scope pills -->
                 </div>
 
                 <!-- Sub-selector for Global Canvas Center Symmetry -->
                 <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
-                  <div class="prop-label-row" style="margin-bottom: 4px;">
-                    <label class="prop-label" style="font-size: 10px;">Eixo do Centro do Canvas</label>
-                  </div>
                   <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="canvasCenterSymControl">
                     <button type="button" class="seg-btn active" data-center-sym="mandala_d4" title="Mandala 8× em torno do centro do canvas">Mandala 8×</button>
                     <button type="button" class="seg-btn" data-center-sym="rotational_c4" title="Rotacional 4× (90°) em torno do centro do canvas">Giro 4×</button>
@@ -528,46 +517,44 @@
                     <button type="button" class="seg-btn" data-center-sym="mirror_y" title="Espelho Vertical (Topo ↔ Base) pelo centro do canvas">Esp. Y</button>
                   </div>
                 </div>
-
-                <div id="editScopeDesc" class="prop-help-box"></div>
               </div>
 
-              <!-- Rotate Tool Controls (Shown when Rotate tool is active) -->
+              <!-- Rotate Tool Controls (Shown only when Rotate tool is active) -->
               <div id="rotateToolOptionsWrap" class="prop-section hidden">
                 <div class="prop-label-row">
-                  <label class="prop-label">3. Tamanho do Pincel de Giro</label>
-                  <button type="button" id="btnRotateSnapBlock" class="snap-block-pill" title="Alinhar o giro exatamente à grade de Supertiles (Blocos)">⊞ Snap ao Bloco</button>
+                  <label class="prop-label">Tamanho do Giro</label>
+                  <button type="button" id="btnRotateSnapBlock" class="snap-block-pill" title="Alinhar o giro à grade de Blocos">⊞ Snap Bloco</button>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="rotateSizeControl">
                   <button type="button" class="seg-btn active" data-rot-size="1" title="Girar 1 Tile (1×1)">1×1</button>
-                  <button type="button" class="seg-btn" data-rot-size="2" title="Girar área 2×2 subtiles">2×2</button>
-                  <button type="button" class="seg-btn" data-rot-size="3" title="Girar área 3×3 subtiles">3×3</button>
-                  <button type="button" class="seg-btn" data-rot-size="4" title="Girar área 4×4 subtiles">4×4</button>
-                  <button type="button" class="seg-btn" data-rot-size="block" title="Girar um Supertile (Bloco inteiro) de uma vez">Supertile</button>
+                  <button type="button" class="seg-btn" data-rot-size="2" title="Girar área 2×2">2×2</button>
+                  <button type="button" class="seg-btn" data-rot-size="3" title="Girar área 3×3">3×3</button>
+                  <button type="button" class="seg-btn" data-rot-size="4" title="Girar área 4×4">4×4</button>
+                  <button type="button" class="seg-btn" data-rot-size="block" title="Girar 1 Bloco inteiro">Bloco</button>
                 </div>
 
-                <div id="rotateGroupModeSection" class="rotate-sub-group">
+                <div id="rotateGroupModeSection" class="rotate-sub-group hidden">
                   <div class="prop-label-row" style="margin-top: 6px;">
-                    <label class="prop-label">Modo de Giro da Área / Supertile</label>
+                    <label class="prop-label">Modo de Giro da Área</label>
                   </div>
                   <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateGroupModeControl">
-                    <button type="button" class="seg-btn active" data-rot-group="group" title="Gira o conjunto inteiro (Supertile K×K) como um bloco rígido em 90°">Girar Conjunto (Supertile)</button>
-                    <button type="button" class="seg-btn" data-rot-group="individual" title="Gira cada tile dentro da área em torno do próprio eixo sem mudar de posição">Cada Tile no Lugar</button>
+                    <button type="button" class="seg-btn active" data-rot-group="group" title="Gira o conjunto inteiro como um Supertile rígido em 90°">Girar Conjunto</button>
+                    <button type="button" class="seg-btn" data-rot-group="individual" title="Gira cada tile no próprio lugar">Cada Tile</button>
                   </div>
                 </div>
 
                 <div class="prop-label-row" style="margin-top: 6px;">
-                  <label class="prop-label">Comportamento do Giro Individual</label>
+                  <label class="prop-label">Tipo de Rotação</label>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateBehaviorControl">
-                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90" title="Aplica rotação geométrica exata de 90° horário (D4)">Giro 90° D4</button>
-                  <button type="button" class="seg-btn" data-rot-mode="family" title="Avança para a próxima variação dentro da família do tile">Ciclar Família</button>
+                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90" title="Rotação geométrica exata de 90° (D4)">Giro 90° D4</button>
+                  <button type="button" class="seg-btn" data-rot-mode="family" title="Avança para a próxima variação da família do tile">Ciclar Família</button>
                 </div>
               </div>
             </div>
           </section>
 
-          <!-- EDIT PANEL 2: UNIFIED SUPERTILE BUILDER, BRUSH & CLONE PALETTE -->
+          <!-- EDIT PANEL 2: PINCEL, SUPERTILE & BIBLIOTECA (Hidden when Rotate tool is active) -->
           <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
             <header class="panel-header">
               <div class="panel-title-wrap">
@@ -577,77 +564,67 @@
                   <rect x="3" y="13" width="8" height="8" rx="1"></rect>
                   <rect x="13" y="13" width="8" height="8" rx="1"></rect>
                 </svg>
-                <span>Pincel, Supertile &amp; Clone</span>
+                <span>Pincel &amp; Supertile</span>
               </div>
-              <span id="activeBrushBadge" class="panel-counter-pill">1×1 • Tile #2</span>
+              <span id="activeBrushBadge" class="panel-counter-pill">1×1 • #2</span>
             </header>
 
             <div class="panel-body swatches-panel-body">
 
-              <!-- Contextual Clone Mode Bar (Visible when Clonar (S) is active) -->
+              <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
-                <div class="prop-label-row">
-                  <label class="prop-label">Fluxo do Clone (S)</label>
-                  <span id="stampStatusBadge" class="prop-badge">Pronto</span>
-                </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="stampInteractionSegmented">
-                  <button type="button" class="seg-btn active" data-stamp-mode="select" title="Clique e arraste no mosaico (ou clique em um bloco com Snap ativo) para capturar">1. Capturar Área</button>
-                  <button type="button" class="seg-btn" data-stamp-mode="apply" title="Clique no mosaico para aplicar o Supertile/Clone">2. Aplicar no Mosaico</button>
-                </div>
-                <div id="stampModeHelpBox" class="prop-help-box">
-                  <strong>Capturar:</strong> Arraste sobre o mosaico para copiar qualquer região para o Construtor de Supertile abaixo.
+                  <button type="button" class="seg-btn active" data-stamp-mode="select" title="Arraste no mosaico para copiar uma região">✂ 1. Capturar Área</button>
+                  <button type="button" class="seg-btn" data-stamp-mode="apply" title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">⧉ 2. Colar Clone</button>
                 </div>
               </div>
 
               <!-- Brush / Supertile Size & Block Alignment -->
               <div class="prop-section supertile-size-section">
                 <div class="prop-label-row">
-                  <label class="prop-label">Tamanho do Pincel / Supertile</label>
-                  <button type="button" id="btnBrushSnapBlock" class="snap-block-pill" title="Alinhar o pincel/clone exatamente à grade de Supertiles (Blocos)">⊞ Snap ao Bloco</button>
+                  <label class="prop-label">Tamanho</label>
+                  <button type="button" id="btnBrushSnapBlock" class="snap-block-pill" title="Alinhar o pincel/supertile à grade de Blocos">⊞ Snap Bloco</button>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="brushSizeControl">
                   <button type="button" class="seg-btn active" data-brush-size="1" title="Pincel de 1 Tile (1×1)">1×1</button>
-                  <button type="button" class="seg-btn" data-brush-size="2" title="Construir/Pintar Supertile 2×2">2×2</button>
-                  <button type="button" class="seg-btn" data-brush-size="3" title="Construir/Pintar Supertile 3×3">3×3</button>
-                  <button type="button" class="seg-btn" data-brush-size="4" title="Construir/Pintar Supertile 4×4">4×4</button>
-                  <button type="button" class="seg-btn" data-brush-size="block" title="Supertile do tamanho exato de 1 Bloco do mosaico">Supertile</button>
+                  <button type="button" class="seg-btn" data-brush-size="2" title="Supertile 2×2">2×2</button>
+                  <button type="button" class="seg-btn" data-brush-size="3" title="Supertile 3×3">3×3</button>
+                  <button type="button" class="seg-btn" data-brush-size="4" title="Supertile 4×4">4×4</button>
+                  <button type="button" class="seg-btn" data-brush-size="block" title="Supertile do tamanho de 1 Bloco">Bloco</button>
                 </div>
               </div>
 
               <!-- Interactive Supertile Builder & Brush Preview Card -->
               <div class="active-brush-card supertile-builder-card">
-                <div class="supertile-canvas-box" title="Mini-Editor de Supertile: Clique Esq para pintar a célula com o Tile selecionado • Clique Dir para girar a célula +90°">
-                  <canvas id="supertileBuilderCanvas" width="116" height="116"></canvas>
+                <div class="supertile-canvas-box" title="Clique Esq: pintar célula (ou girar no 1×1) • Clique Dir: girar célula +90°">
+                  <canvas id="supertileBuilderCanvas" width="104" height="104"></canvas>
                 </div>
                 <div class="active-brush-controls">
                   <div class="active-brush-title-row">
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
-                    <span class="active-brush-d4-label" id="activeBrushD4Label">0° (↑)</span>
+                    <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
                   </div>
                   <div class="d4-mini-grid">
-                    <button type="button" id="btnBrushRot90" class="d4-mini-btn" title="Girar Pincel/Supertile inteiro em +90° (ou Clique Direito no canvas)">⟳ +90°</button>
-                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Pincel/Supertile Horizontalmente (MX)">⇄ Flip X</button>
-                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Pincel/Supertile Verticalmente (MY)">⇅ Flip Y</button>
+                    <button type="button" id="btnBrushRot90" class="d4-mini-btn" title="Girar +90° (ou Clique Direito no mosaico)">⟳ +90°</button>
+                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Horizontalmente (MX)">⇄ Flip X</button>
+                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Verticalmente (MY)">⇅ Flip Y</button>
                     <button type="button" id="btnBrushResetD4" class="d4-mini-btn" title="Resetar orientação para 0°">0°</button>
                   </div>
-                  <div class="supertile-builder-actions">
-                    <button type="button" id="btnSupertileFillAll" class="mini-btn" title="Preencher todas as células do Supertile com o Tile selecionado abaixo">Preencher</button>
-                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn" title="Simetrizar o Supertile (Mandala D4 a partir do canto superior esquerdo)">✦ Simetrizar</button>
-                    <button type="button" id="btnSupertileCapture" class="mini-btn accent" title="Selecionar e capturar uma região do mosaico para o Supertile (Clonar)">✂ Capturar</button>
+                  <div id="supertileBuilderActions" class="supertile-builder-actions hidden">
+                    <button type="button" id="btnSupertileFillAll" class="mini-btn" title="Preencher todo o Supertile com o tile ativo">Preencher</button>
+                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn" title="Simetrizar o Supertile em Mandala D4">✦ Simetria</button>
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent" title="Capturar região do mosaico (Clonar)">✂ Capturar</button>
                   </div>
                 </div>
-              </div>
-              <div id="supertileBuilderHint" class="supertile-builder-hint">
-                <strong>Construtor:</strong> Clique nas células da miniatura acima para montar seu Supertile (<strong>Dir:</strong> gira célula).
               </div>
 
               <!-- Search Filter for Brush Palette -->
               <div class="swatches-toolbar">
-                <input type="search" id="editBrushSearchInput" class="swatch-search" placeholder="Escolher tile para o pincel / supertile...">
+                <input type="search" id="editBrushSearchInput" class="swatch-search" placeholder="Filtrar tiles...">
               </div>
 
               <!-- Scrollable Brush Tile Palette -->
-              <div id="editBrushPaletteContainer" class="families-swatch-scroll">
+              <div id="editBrushPaletteContainer" class="families-swatch-scroll edit-brush-scroll">
                 <!-- Populated by JS -->
               </div>
             </div>
