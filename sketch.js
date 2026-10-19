@@ -478,7 +478,18 @@ function buildTileThumbnails() {
     gfx.clear();
     gfx.push();
     gfx.translate(size / 2, size / 2);
-    renderers[id](gfx, size, size, pad, color(230, 228, 224));
+    if (id === 45) {
+      // Illustrator-style "Empty / None" swatch indicator for UI thumbnails only
+      const s = size - pad * 3.2;
+      gfx.noFill();
+      gfx.stroke(130, 138, 155, 160);
+      gfx.strokeWeight(1.5);
+      gfx.rect(-s / 2, -s / 2, s, s, 3);
+      gfx.stroke(239, 68, 68, 185);
+      gfx.line(-s / 2 + 3, s / 2 - 3, s / 2 - 3, -s / 2 + 3);
+    } else {
+      renderers[id](gfx, size, size, pad, color(230, 228, 224));
+    }
     gfx.pop();
     StudioState.thumbnailCache.set(id, gfx.canvas.toDataURL());
     gfx.remove();

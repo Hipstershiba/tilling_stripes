@@ -453,6 +453,12 @@ const TILE_RENDERERS = [
     ctx.ellipse(0, 0, r * 2, r * 2);
     ctx.ellipse(w / 3 - padding / 2, -h / 3 + padding / 2, r * 2, r * 2);
     ctx.ellipse(-w / 3 + padding / 2, h / 3 - padding / 2, r * 2, r * 2);
+  },
+
+  // --- Family 15: Empty / Blank Tile (45) ---
+  // 45: Empty (Vazio)
+  function () {
+    // Intentionally empty (blank space / negative space tile)
   }
 ];
 
@@ -501,10 +507,12 @@ const TILE_NAMES = [
   "Arc Bottom Left",
   "Grid 2x2",
   "Three Dots (TL-BR)",
-  "Three Dots (TR-BL)"
+  "Three Dots (TR-BL)",
+  "Tile Vazio (Espaço)"
 ];
 
 const TILE_FAMILIES_META = [
+  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',  tileIds: [45] },
   { id: 'half-circle',     name: 'Meio Bloco & Círculo', tileIds: [0, 1, 2, 3] },
   { id: 'corner-triangle', name: 'Triângulos de Canto',  tileIds: [4, 5, 6, 7] },
   { id: 'side-triangle',   name: 'Triângulos Laterais',  tileIds: [8, 9, 10, 11] },
@@ -523,7 +531,7 @@ const TILE_FAMILIES_META = [
 ];
 
 /**
- * Build exact D4 group action tables for all 45 built-in tiles.
+ * Build exact D4 group action tables for all 46 built-in tiles.
  * Every tileId maps under { id, r90, r180, r270, mx, my, md, mad } to its rotated/mirrored tileId.
  */
 const TILE_D4_MAP = (() => {
@@ -604,7 +612,7 @@ const TILE_D4_MAP = (() => {
     }
   }
 
-  // Populate all 15 families (tiles 0..44)
+  // Populate all 16 families (tiles 0..45)
   registerEdge4(0, 1, 2, 3);        // Family 0: Half Rect + Circle
   registerCorner4(4, 5, 7, 6);      // Family 1: Corner Triangles (note: 6 is BL, 7 is BR)
   registerEdge4(8, 9, 10, 11);      // Family 2: Side Triangles
@@ -623,6 +631,7 @@ const TILE_D4_MAP = (() => {
   registerCorner4(38, 39, 40, 41);  // Family 12: Quarter Arc
   registerSymmetric1(42);           // Family 13: Grid 2x2
   registerDiag2(43, 44);            // Family 14: Three Dots Diagonal
+  registerSymmetric1(45);           // Family 15: Empty (Vazio)
 
   return map;
 })();
