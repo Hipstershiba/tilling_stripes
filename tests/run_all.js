@@ -26,6 +26,7 @@ const testSuites = [
   'test_history_edit_preservation.js',
   'test_document_snapshot.js',
   'test_regeneration_capture.js',
+  'test_multistep_undo.js',
 
   // 4. UI Architecture & Accessibility
   'test_scope_chip.js',

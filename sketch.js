@@ -879,13 +879,37 @@ function regenerateMosaic(recordHistory = true) {
   }
   renderSupertileBuilderCanvas();
 
-  resetEditHistoryWithInitialSnapshot();
-
   if (previousDocument) {
-    // [previousDocument, freshSnapshot]; the index points at the fresh one.
-    StudioState.editHistory.unshift(previousDocument);
-    StudioState.editHistoryIndex = 1;
-    syncEditUndoUI();
+    if (!Array.isArray(StudioState.editHistory) || StudioState.editHistory.length === 0) {
+      StudioState.editHistory = [previousDocument];
+      StudioState.editHistoryIndex = 0;
+    } else {
+      if (StudioState.editHistoryIndex < StudioState.editHistory.length - 1) {
+        StudioState.editHistory = StudioState.editHistory.slice(0, StudioState.editHistoryIndex + 1);
+      }
+      const lastEntry = StudioState.editHistory[StudioState.editHistoryIndex];
+      if (lastEntry && window.DocumentSnapshot && !lastEntry.document) {
+        window.DocumentSnapshot.attachDocument(lastEntry, previousDocument.document);
+      }
+    }
+
+    const freshDocSnap = buildDocumentSnapshot();
+    if (freshDocSnap) {
+      StudioState.editHistory.push(freshDocSnap);
+      const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
+      while (StudioState.editHistory.length > maxAllowedEdits) {
+        StudioState.editHistory.shift();
+      }
+      StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
+      if (window.DocumentSnapshot) {
+        StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
+      }
+      syncEditUndoUI();
+    }
+  } else {
+    if (!Array.isArray(StudioState.editHistory) || StudioState.editHistory.length === 0) {
+      resetEditHistoryWithInitialSnapshot();
+    }
   }
 
   if (isDestructive) {
@@ -1117,13 +1141,14 @@ function renderHistoryUI() {
     row.className = 'history-item' + (i === StudioState.historyIndex ? ' active' : '');
     const modeLabel = modes[item.gridSymmetryMode]?.name || item.gridSymmetryMode;
     row.innerHTML = `
-      <span>#${item.seed} • ${item.rows}×${item.cols} (${modeLabel})</span>
-      <span style="font-size:10px;opacity:0.65;">${item.timestamp}</span>
+      <div class="history-item-seed">
+        <span>#${item.seed}</span>
+        <span class="history-item-meta">${item.timestamp || ''}</span>
+      </div>
+      <div class="history-item-meta">${item.rows}×${item.cols} • ${modeLabel}</div>
     `;
     row.addEventListener('click', () => {
       restoreGenerationHistory(i);
-      document.getElementById('seedHistoryPopover')?.classList.add('hidden');
-      document.getElementById('btnToggleHistory')?.classList.remove('active');
     });
     listEl.appendChild(row);
   }
@@ -1635,8 +1660,8 @@ function clearFrozenCells() {
   if (!confirm(`Deseja descongelar todos os ${count} subtiles travados?`)) {
     return;
   }
-  pushEditHistorySnapshot();
   StudioState.frozenCells.clear();
+  pushEditHistorySnapshot();
   syncFreezeUI();
   saveStudioStateToStorage();
   showEditorToast('Todos os subtiles foram descongelados (Ctrl+Z para desfazer).', 'info');
@@ -1851,9 +1876,13 @@ function mouseDragged() {
               transform: cell.transform,
               tileId: cell.tileId
             });
+            StudioState.pendingEditHistoryPush = true;
           }
         } else {
-          StudioState.frozenCells.delete(pKey);
+          if (StudioState.frozenCells.has(pKey)) {
+            StudioState.frozenCells.delete(pKey);
+            StudioState.pendingEditHistoryPush = true;
+          }
         }
       }
       syncFreezeUI();
@@ -1939,9 +1968,6 @@ function handleCanvasMouseDown(e) {
     const placements = resolveFreezeTargetPlacements(hit);
     if (!placements || placements.length === 0) return;
 
-    // Push edit history snapshot once per freeze gesture for Ctrl+Z undo
-    pushEditHistorySnapshot();
-
     // Right-click inverts action; Left-click uses explicit freezeMode (monotonic)
     const action = e.button === 2
       ? (StudioState.freezeMode === 'freeze' ? 'unfreeze' : 'freeze')
@@ -1951,6 +1977,7 @@ function handleCanvasMouseDown(e) {
     StudioState.freezeDragAction = action;
     StudioState.lastFrozenCellKey = `${hit.row},${hit.col},${hit.subRow},${hit.subCol}`;
 
+    let didChangeFreeze = false;
     for (const p of placements) {
       const cellKey = `${p.row},${p.col},${p.subRow},${p.subCol}`;
       if (action === 'freeze') {
@@ -1961,10 +1988,17 @@ function handleCanvasMouseDown(e) {
             transform: cell.transform,
             tileId: cell.tileId
           });
+          didChangeFreeze = true;
         }
       } else {
-        StudioState.frozenCells.delete(cellKey);
+        if (StudioState.frozenCells.has(cellKey)) {
+          StudioState.frozenCells.delete(cellKey);
+          didChangeFreeze = true;
+        }
       }
+    }
+    if (didChangeFreeze) {
+      StudioState.pendingEditHistoryPush = true;
     }
 
     syncFreezeUI();
@@ -3321,6 +3355,10 @@ function initStudioUI() {
     StudioState.isPaintingMiniBuilder = false;
     if (StudioState.isFreezingDrag) {
       StudioState.isFreezingDrag = false;
+      if (StudioState.pendingEditHistoryPush) {
+        StudioState.pendingEditHistoryPush = false;
+        pushEditHistorySnapshot();
+      }
       saveStudioStateToStorage();
     }
 
