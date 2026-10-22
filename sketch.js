@@ -53,8 +53,10 @@ const StudioState = {
   isPanning: false,
   panStartX: 0,
   panStartY: 0,
-  scrollStartLeft: 0,
-  scrollStartTop: 0,
+  panOffsetX: 0,
+  panOffsetY: 0,
+  panStartOffsetX: 0,
+  panStartOffsetY: 0,
 
   // Stage 2: D4 Mosaic Editing State
   editScope: 'canvas_center', // 'canvas_center' | 'orbit_sym' | 'block_sym' | 'all_blocks' | 'single' | 'same_tile'
@@ -1570,6 +1572,19 @@ function syncZoomUI() {
   }
 }
 
+function applyPanTransform() {
+  const stage = document.getElementById('canvas-stage');
+  const pasteboard = document.getElementById('artboard-pasteboard');
+  const x = Math.round(StudioState.panOffsetX || 0);
+  const y = Math.round(StudioState.panOffsetY || 0);
+  if (stage) {
+    stage.style.transform = `translate(${x}px, ${y}px)`;
+  }
+  if (pasteboard) {
+    pasteboard.style.backgroundPosition = `${x % 20}px ${y % 20}px`;
+  }
+}
+
 function applyZoomTransform() {
   const scale = (StudioState.zoomPercent || 100) / 100;
   const targetW = Math.max(1, Math.round(StudioState.width * scale));
@@ -1588,6 +1603,7 @@ function applyZoomTransform() {
 
   syncZoomUI();
   updateStatusBar();
+  applyPanTransform();
   if (typeof redraw === 'function') {
     redraw();
   }
@@ -1602,14 +1618,26 @@ function fitArtboardToWindow() {
   const scale = Math.min(availW / StudioState.width, availH / StudioState.height);
   StudioState.zoomPercent = Math.max(15, Math.min(400, Math.round(scale * 100)));
   StudioState.zoomMode = 'fit';
+  StudioState.panOffsetX = 0;
+  StudioState.panOffsetY = 0;
 
   applyZoomTransform();
+  applyPanTransform();
 }
 
 function setZoomPercent(nextPercent) {
-  StudioState.zoomPercent = Math.max(15, Math.min(400, Math.round(nextPercent)));
+  const oldZoom = StudioState.zoomPercent || 100;
+  const clampedZoom = Math.max(15, Math.min(400, Math.round(nextPercent)));
+  if (clampedZoom === oldZoom && StudioState.zoomMode === 'custom') return;
+
+  const ratio = clampedZoom / oldZoom;
+  StudioState.panOffsetX = Math.round((StudioState.panOffsetX || 0) * ratio);
+  StudioState.panOffsetY = Math.round((StudioState.panOffsetY || 0) * ratio);
+
+  StudioState.zoomPercent = clampedZoom;
   StudioState.zoomMode = 'custom';
   applyZoomTransform();
+  applyPanTransform();
 }
 
 // ============================================================================
@@ -3443,10 +3471,17 @@ function initStudioUI() {
       return;
     }
 
-    // Round 6: Shift+wheel cycles the active size; plain wheel keeps scrolling the pasteboard.
+    // Round 6: Shift+wheel cycles the active size; plain wheel pans in 2D.
     if (e.shiftKey && cycleActiveToolSize(e.deltaY < 0 ? 1 : -1)) {
       e.preventDefault();
+      return;
     }
+
+    // Plain wheel or trackpad: Pan the canvas in 2D
+    e.preventDefault();
+    StudioState.panOffsetX = (StudioState.panOffsetX || 0) - e.deltaX;
+    StudioState.panOffsetY = (StudioState.panOffsetY || 0) - e.deltaY;
+    applyPanTransform();
   }, { passive: false });
 
   pasteboard?.addEventListener('mousedown', (e) => {
@@ -3459,20 +3494,39 @@ function initStudioUI() {
       StudioState.isPanning = true;
       StudioState.panStartX = e.clientX;
       StudioState.panStartY = e.clientY;
-      StudioState.scrollStartLeft = pasteboard.scrollLeft;
-      StudioState.scrollStartTop = pasteboard.scrollTop;
+      StudioState.panStartOffsetX = StudioState.panOffsetX || 0;
+      StudioState.panStartOffsetY = StudioState.panOffsetY || 0;
+      document.body.classList.add('is-panning');
+      pasteboard?.classList.add('panning');
       e.preventDefault();
     }
   });
 
+  pasteboard?.addEventListener('dblclick', (e) => {
+    if (StudioState.activeTool === 'pan') {
+      StudioState.panOffsetX = 0;
+      StudioState.panOffsetY = 0;
+      applyPanTransform();
+    }
+  });
+
   window.addEventListener('mousemove', (e) => {
-    if (!StudioState.isPanning || !pasteboard) return;
-    pasteboard.scrollLeft = StudioState.scrollStartLeft - (e.clientX - StudioState.panStartX);
-    pasteboard.scrollTop = StudioState.scrollStartTop - (e.clientY - StudioState.panStartY);
+    if (!StudioState.isPanning) return;
+    const dx = e.clientX - StudioState.panStartX;
+    const dy = e.clientY - StudioState.panStartY;
+    StudioState.panOffsetX = StudioState.panStartOffsetX + dx;
+    StudioState.panOffsetY = StudioState.panStartOffsetY + dy;
+    applyPanTransform();
   });
 
   window.addEventListener('mouseup', () => {
-    StudioState.isPanning = false;
+    if (StudioState.isPanning) {
+      StudioState.isPanning = false;
+      document.body.classList.remove('is-panning');
+      if (StudioState.activeTool !== 'pan' && !StudioState.isSpaceDown) {
+        pasteboard?.classList.remove('panning');
+      }
+    }
     StudioState.isPaintingMiniBuilder = false;
     if (StudioState.isFreezingDrag) {
       StudioState.isFreezingDrag = false;
@@ -3688,5 +3742,9 @@ function initStudioUI() {
   });
 }
 
-// Expose StudioState to window for inspection and integration tests
+// Expose StudioState and viewport helpers to window for inspection and integration tests
 window.StudioState = StudioState;
+window.applyPanTransform = applyPanTransform;
+window.applyZoomTransform = applyZoomTransform;
+window.fitArtboardToWindow = fitArtboardToWindow;
+window.setZoomPercent = setZoomPercent;

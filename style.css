@@ -575,7 +575,7 @@ html, body {
 
 #artboard-pasteboard {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -583,14 +583,21 @@ html, body {
   position: relative;
   background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
   background-size: 20px 20px;
+  background-position: 0 0;
+  user-select: none;
 }
 
-#artboard-pasteboard.panning {
+#artboard-pasteboard.panning,
+body[data-active-tool="pan"] #artboard-pasteboard,
+body[data-active-tool="pan"] #canvas-stage,
+body[data-active-tool="pan"] #canvas-stage canvas {
   cursor: grab;
 }
 
-#artboard-pasteboard.panning:active {
-  cursor: grabbing;
+#artboard-pasteboard.panning:active,
+body.is-panning,
+body.is-panning * {
+  cursor: grabbing !important;
 }
 
 #canvas-stage {
@@ -601,6 +608,7 @@ html, body {
   background: #0c0c0e;
   line-height: 0;
   transform-origin: center center;
+  will-change: transform;
 }
 
 #canvas-stage canvas {
