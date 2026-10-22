@@ -510,64 +510,6 @@ const TILE_RENDERERS = [
     ctx.triangle(0, dh / 2, -dw / 2, -dh / 2, dw / 2, -dh / 2);
   },
 
-  // Family 18: Ponta de Flecha (Chevron) (52..55: L, R, T, B)
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.beginShape();
-    ctx.vertex(-dw / 2, 0);
-    ctx.vertex(dw / 2, -dh / 2);
-    ctx.vertex(dw / 2, -dh / 6);
-    ctx.vertex(-dw / 6, 0);
-    ctx.vertex(dw / 2, dh / 6);
-    ctx.vertex(dw / 2, dh / 2);
-    ctx.endShape('CLOSE');
-  },
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.beginShape();
-    ctx.vertex(dw / 2, 0);
-    ctx.vertex(-dw / 2, -dh / 2);
-    ctx.vertex(-dw / 2, -dh / 6);
-    ctx.vertex(dw / 6, 0);
-    ctx.vertex(-dw / 2, dh / 6);
-    ctx.vertex(-dw / 2, dh / 2);
-    ctx.endShape('CLOSE');
-  },
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.beginShape();
-    ctx.vertex(0, -dh / 2);
-    ctx.vertex(dw / 2, dh / 2);
-    ctx.vertex(dw / 6, dh / 2);
-    ctx.vertex(0, -dh / 6);
-    ctx.vertex(-dw / 6, dh / 2);
-    ctx.vertex(-dw / 2, dh / 2);
-    ctx.endShape('CLOSE');
-  },
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.beginShape();
-    ctx.vertex(0, dh / 2);
-    ctx.vertex(dw / 2, -dh / 2);
-    ctx.vertex(dw / 6, -dh / 2);
-    ctx.vertex(0, dh / 6);
-    ctx.vertex(-dw / 6, -dh / 2);
-    ctx.vertex(-dw / 2, -dh / 2);
-    ctx.endShape('CLOSE');
-  },
-
   // Family 19: Ampulheta & Laço (Bowtie) (56, 57: H, V)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
@@ -600,7 +542,7 @@ const TILE_RENDERERS = [
     ctx.endShape('CLOSE');
   },
 
-// --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
   // Family 21: Meio Bloco & Círculo (59..62: L, R, T, B)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
@@ -926,10 +868,6 @@ const TILE_NAMES = [
   "Triângulo Lateral Direito",
   "Triângulo Lateral Superior",
   "Triângulo Lateral Inferior",
-  "Ponta de Flecha (Esquerda)",
-  "Ponta de Flecha (Direita)",
-  "Ponta de Flecha (Cima)",
-  "Ponta de Flecha (Baixo)",
   "Ampulheta (Horizontal / Laço)",
   "Ampulheta (Vertical)",
   "Losango Sólido",
@@ -973,52 +911,51 @@ const TILE_NAMES = [
 
 const TILE_FAMILIES_META = [
   // --- GRUPO 1: FITAS, CONEXÕES & TUBOS ---
-  { id: 'center-stripe',   name: 'Faixa Central',                group: 'Fitas & Tubos',  tileIds: [0, 1] },
-  { id: 'center-tee',      name: 'Junção Central (T)',           group: 'Fitas & Tubos',  tileIds: [2, 3, 4, 5] },
-  { id: 'center-cross',    name: 'Cruz Central (+)',             group: 'Fitas & Tubos',  tileIds: [6] },
-  { id: 'elbow-ribbon',    name: 'Arco de Fita (90°)',           group: 'Fitas & Tubos',  tileIds: [7, 8, 9, 10] },
-  { id: 'truchet-ribbon',  name: 'Fita Truchet Dupla',           group: 'Fitas & Tubos',  tileIds: [11, 12] },
-  { id: 'center-elbow',    name: 'Cantoneira Central (L)',       group: 'Fitas & Tubos',  tileIds: [13, 14, 15, 16] },
-  { id: 'edge-l-shape',    name: 'Cantoneira de Borda (L)',      group: 'Fitas & Tubos',  tileIds: [17, 18, 19, 20] },
-  { id: 'edge-t-shape',    name: 'Junção de Borda (T)',          group: 'Fitas & Tubos',  tileIds: [21, 22, 23, 24] },
+  { id: 'center-stripe', name: 'Faixa Central', group: 'Fitas & Tubos', tileIds: [0, 1] },
+  { id: 'center-tee', name: 'Junção Central (T)', group: 'Fitas & Tubos', tileIds: [2, 3, 4, 5] },
+  { id: 'center-cross', name: 'Cruz Central (+)', group: 'Fitas & Tubos', tileIds: [6] },
+  { id: 'elbow-ribbon', name: 'Arco de Fita (90°)', group: 'Fitas & Tubos', tileIds: [7, 8, 9, 10] },
+  { id: 'truchet-ribbon', name: 'Fita Truchet Dupla', group: 'Fitas & Tubos', tileIds: [11, 12] },
+  { id: 'center-elbow', name: 'Cantoneira Central (L)', group: 'Fitas & Tubos', tileIds: [13, 14, 15, 16] },
+  { id: 'edge-l-shape', name: 'Cantoneira de Borda (L)', group: 'Fitas & Tubos', tileIds: [17, 18, 19, 20] },
+  { id: 'edge-t-shape', name: 'Junção de Borda (T)', group: 'Fitas & Tubos', tileIds: [21, 22, 23, 24] },
 
   // --- GRUPO 2: LISTRAS, GRADES & TRAMAS ---
-  { id: 'stripes',         name: 'Listras Paralelas',            group: 'Listras & Tramas', tileIds: [25, 26] },
-  { id: 'corner-stripes',  name: 'Curva de Listras Duplas (90°)',group: 'Listras & Tramas', tileIds: [27, 28, 29, 30] },
-  { id: 'diagonal-line',   name: 'Linha Diagonal',               group: 'Listras & Tramas', tileIds: [31, 32] },
-  { id: 'diagonal-hatch',  name: 'Listras Diagonais (Hachura)',  group: 'Listras & Tramas', tileIds: [33, 34] },
-  { id: 'zigzag',          name: 'Zigue-Zague',                  group: 'Listras & Tramas', tileIds: [35, 36] },
-  { id: 'mini-grid',       name: 'Mini Grade 2×2',               group: 'Listras & Tramas', tileIds: [37] },
-  { id: 'checkers',        name: 'Xadrez (Checkers)',            group: 'Listras & Tramas', tileIds: [38, 39] },
+  { id: 'stripes', name: 'Listras Paralelas', group: 'Listras & Tramas', tileIds: [25, 26] },
+  { id: 'corner-stripes', name: 'Curva de Listras Duplas (90°)', group: 'Listras & Tramas', tileIds: [27, 28, 29, 30] },
+  { id: 'diagonal-line', name: 'Linha Diagonal', group: 'Listras & Tramas', tileIds: [31, 32] },
+  { id: 'diagonal-hatch', name: 'Listras Diagonais (Hachura)', group: 'Listras & Tramas', tileIds: [33, 34] },
+  { id: 'zigzag', name: 'Zigue-Zague', group: 'Listras & Tramas', tileIds: [35, 36] },
+  { id: 'mini-grid', name: 'Mini Grade 2×2', group: 'Listras & Tramas', tileIds: [37] },
+  { id: 'checkers', name: 'Xadrez (Checkers)', group: 'Listras & Tramas', tileIds: [38, 39] },
 
   // --- GRUPO 3: MASSAS SÓLIDAS & FORMAS ANGULARES ---
-  { id: 'half-block',      name: 'Meio Bloco Sólido',            group: 'Massas Sólidas', tileIds: [40, 41, 42, 43] },
-  { id: 'corner-triangle', name: 'Triângulos de Canto',          group: 'Massas Sólidas', tileIds: [44, 45, 46, 47] },
-  { id: 'side-triangle',   name: 'Triângulos Laterais',          group: 'Massas Sólidas', tileIds: [48, 49, 50, 51] },
-  { id: 'chevron',         name: 'Ponta de Flecha (Chevron)',    group: 'Massas Sólidas', tileIds: [52, 53, 54, 55] },
-  { id: 'bowtie',          name: 'Ampulheta & Laço',             group: 'Massas Sólidas', tileIds: [56, 57] },
-  { id: 'diamond',         name: 'Losango Sólido',               group: 'Massas Sólidas', tileIds: [58] },
+  { id: 'half-block', name: 'Meio Bloco Sólido', group: 'Massas Sólidas', tileIds: [40, 41, 42, 43] },
+  { id: 'corner-triangle', name: 'Triângulos de Canto', group: 'Massas Sólidas', tileIds: [44, 45, 46, 47] },
+  { id: 'side-triangle', name: 'Triângulos Laterais', group: 'Massas Sólidas', tileIds: [48, 49, 50, 51] },
+  { id: 'bowtie', name: 'Ampulheta & Laço', group: 'Massas Sólidas', tileIds: [52, 53] },
+  { id: 'diamond', name: 'Losango Sólido', group: 'Massas Sólidas', tileIds: [54] },
 
-// --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
-  { id: 'half-circle',     name: 'Meio Bloco & Círculo',         group: 'Círculos & Arcos', tileIds: [59, 60, 61, 62] },
-  { id: 'edge-semicircle', name: 'Semicírculo de Borda',         group: 'Círculos & Arcos', tileIds: [63, 64, 65, 66] },
-  { id: 'quarter-arc-mid', name: 'Arco de Quarto (Médio)',       group: 'Círculos & Arcos', tileIds: [67, 68, 69, 70] },
-  { id: 'quarter-arc-full',name: 'Arco de Quarto (Total)',       group: 'Círculos & Arcos', tileIds: [71, 72, 73, 74] },
-  { id: 'corner-petal',    name: 'Pétala de Canto (Roseta)',     group: 'Círculos & Arcos', tileIds: [75, 76, 77, 78] },
-  { id: 'corner-waves',    name: 'Ondas de Canto',               group: 'Círculos & Arcos', tileIds: [79, 80, 81, 82] },
+  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  { id: 'half-circle', name: 'Meio Bloco & Círculo', group: 'Círculos & Arcos', tileIds: [55, 56, 57, 58] },
+  { id: 'edge-semicircle', name: 'Semicírculo de Borda', group: 'Círculos & Arcos', tileIds: [59, 60, 61, 62] },
+  { id: 'quarter-arc-mid', name: 'Arco de Quarto (Médio)', group: 'Círculos & Arcos', tileIds: [63, 64, 65, 66] },
+  { id: 'quarter-arc-full', name: 'Arco de Quarto (Total)', group: 'Círculos & Arcos', tileIds: [67, 68, 69, 70] },
+  { id: 'corner-petal', name: 'Pétala de Canto (Roseta)', group: 'Círculos & Arcos', tileIds: [71, 72, 73, 74] },
+  { id: 'corner-waves', name: 'Ondas de Canto', group: 'Círculos & Arcos', tileIds: [75, 76, 77, 78] },
 
   // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
-  { id: 'target-circle',   name: 'Alvo Circular (Target)',       group: 'Focos & Pontos', tileIds: [83] },
-  { id: 'target-square',   name: 'Alvo Quadrado',                group: 'Focos & Pontos', tileIds: [84] },
-  { id: 'four-dots',       name: 'Quatro Pontos',                group: 'Focos & Pontos', tileIds: [85] },
-  { id: 'diagonal-dots',   name: 'Três Pontos Diagonais',        group: 'Focos & Pontos', tileIds: [86, 87] },
+  { id: 'target-circle', name: 'Alvo Circular (Target)', group: 'Focos & Pontos', tileIds: [79] },
+  { id: 'target-square', name: 'Alvo Quadrado', group: 'Focos & Pontos', tileIds: [80] },
+  { id: 'four-dots', name: 'Quatro Pontos', group: 'Focos & Pontos', tileIds: [81] },
+  { id: 'diagonal-dots', name: 'Três Pontos Diagonais', group: 'Focos & Pontos', tileIds: [82, 83] },
 
   // --- GRUPO 6: ESPAÇO NEGATIVO ---
-  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',          group: 'Espaço Negativo', tileIds: [88] }
+  { id: 'empty-tile', name: 'Tile Vazio (Espaço)', group: 'Espaço Negativo', tileIds: [84] }
 ];
 
 /**
- * Build exact D4 group action tables for all 89 built-in tiles across 32 families.
+ * Build exact D4 group action tables for every tile in the built-in catalog.
  * Every tileId maps under { id, r90, r180, r270, mx, my, md, mad } to its rotated/mirrored tileId.
  */
 const TILE_D4_MAP = (() => {
@@ -1099,26 +1036,25 @@ const TILE_D4_MAP = (() => {
   registerEdge4(40, 41, 42, 43);    // Family 15: Meio Bloco Sólido
   registerCorner4(44, 45, 46, 47);  // Family 16: Triângulos de Canto
   registerEdge4(48, 49, 50, 51);    // Family 17: Triângulos Laterais
-  registerEdge4(52, 53, 54, 55);    // Family 18: Ponta de Flecha (Chevron)
-  registerAxis2(56, 57);            // Family 19: Ampulheta & Laço
-  registerSymmetric1(58);            // Family 20: Losango Sólido
+  registerAxis2(52, 53);            // Family 19: Ampulheta & Laço
+  registerSymmetric1(54);            // Family 20: Losango Sólido
 
   // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
-  registerEdge4(59, 60, 61, 62);    // Family 21: Meio Bloco & Círculo
-  registerEdge4(63, 64, 65, 66);    // Family 22: Semicírculo de Borda
-  registerCorner4(67, 68, 69, 70);  // Family 23: Arco de Quarto (Médio)
-  registerCorner4(71, 72, 73, 74);  // Family 24: Arco de Quarto (Total)
-  registerCorner4(75, 76, 77, 78);  // Family 25: Pétala de Canto (Roseta)
-  registerCorner4(79, 80, 81, 82);  // Family 26: Ondas de Canto
+  registerEdge4(55, 56, 57, 58);    // Family 21: Meio Bloco & Círculo
+  registerEdge4(59, 60, 61, 62);    // Family 22: Semicírculo de Borda
+  registerCorner4(63, 64, 65, 66);  // Family 23: Arco de Quarto (Médio)
+  registerCorner4(67, 68, 69, 70);  // Family 24: Arco de Quarto (Total)
+  registerCorner4(71, 72, 73, 74);  // Family 25: Pétala de Canto (Roseta)
+  registerCorner4(75, 76, 77, 78);  // Family 26: Ondas de Canto
 
   // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
-  registerSymmetric1(83);            // Family 27: Alvo Circular (Target)
-  registerSymmetric1(84);            // Family 28: Alvo Quadrado
-  registerSymmetric1(85);            // Family 29: Quatro Pontos
-  registerDiag2(86, 87);            // Family 30: Três Pontos Diagonais
+  registerSymmetric1(79);            // Family 27: Alvo Circular (Target)
+  registerSymmetric1(80);            // Family 28: Alvo Quadrado
+  registerSymmetric1(81);            // Family 29: Quatro Pontos
+  registerDiag2(82, 83);            // Family 30: Três Pontos Diagonais
 
   // --- GRUPO 6: ESPAÇO NEGATIVO ---
-  registerSymmetric1(88);            // Family 31: Tile Vazio (Espaço)
+  registerSymmetric1(84);            // Family 31: Tile Vazio (Espaço)
 
   return map;
 })();

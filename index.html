@@ -22,7 +22,8 @@
 
       <!-- Workspace Mode Switcher (Gerador vs Editor) -->
       <div class="workspace-mode-switcher" id="workspaceSwitcher" role="tablist" aria-label="Modo de Trabalho">
-        <button type="button" class="ws-mode-btn active" data-workspace="generate" title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
+        <button type="button" class="ws-mode-btn active" data-workspace="generate"
+          title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1"></rect>
             <rect x="14" y="3" width="7" height="7" rx="1"></rect>
@@ -31,7 +32,8 @@
           </svg>
           <span>Gerador</span>
         </button>
-        <button type="button" class="ws-mode-btn" data-workspace="edit" title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
+        <button type="button" class="ws-mode-btn" data-workspace="edit"
+          title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -49,8 +51,10 @@
           <span class="chip-prefix">W</span>
           <input type="number" id="canvasW" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1" title="Aumentar Largura">▴</button>
-            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1" title="Diminuir Largura">▾</button>
+            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
+              title="Aumentar Largura">▴</button>
+            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1"
+              title="Diminuir Largura">▾</button>
           </div>
         </div>
         <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)">⇄</button>
@@ -58,8 +62,10 @@
           <span class="chip-prefix">H</span>
           <input type="number" id="canvasH" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1" title="Aumentar Altura">▴</button>
-            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1" title="Diminuir Altura">▾</button>
+            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
+              title="Aumentar Altura">▴</button>
+            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1"
+              title="Diminuir Altura">▾</button>
           </div>
         </div>
         <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção do Artboard">
@@ -68,7 +74,8 @@
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
         </button>
-        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade">Ajustar à Grade</button>
+        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade">Ajustar à
+          Grade</button>
       </div>
 
       <div class="bar-divider"></div>
@@ -80,8 +87,10 @@
           <span class="chip-prefix">L</span>
           <input type="number" id="gridRows" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1" title="Mais Linhas">▴</button>
-            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1" title="Menos Linhas">▾</button>
+            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
+              title="Mais Linhas">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1"
+              title="Menos Linhas">▾</button>
           </div>
         </div>
         <button id="btnSwapGridSize" class="icon-btn" title="Inverter Linhas e Colunas">⇄</button>
@@ -89,8 +98,10 @@
           <span class="chip-prefix">C</span>
           <input type="number" id="gridCols" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1" title="Mais Colunas">▴</button>
-            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1" title="Menos Colunas">▾</button>
+            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
+              title="Mais Colunas">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1"
+              title="Menos Colunas">▾</button>
           </div>
         </div>
         <button id="btnLockGridRatio" class="icon-btn" title="Travar Proporção da Grade">
@@ -104,8 +115,10 @@
           <span class="chip-prefix">Margem</span>
           <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1" title="Aumentar Margem">▴</button>
-            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1" title="Diminuir Margem">▾</button>
+            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
+              title="Aumentar Margem">▴</button>
+            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1"
+              title="Diminuir Margem">▾</button>
           </div>
         </div>
       </div>
@@ -119,8 +132,10 @@
           <span class="chip-prefix">#</span>
           <input type="number" id="seedInput" value="1024" step="1">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="1" tabindex="-1" title="Próxima Seed (+1)">▴</button>
-            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="-1" tabindex="-1" title="Seed Anterior (-1)">▾</button>
+            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="1" tabindex="-1"
+              title="Próxima Seed (+1)">▴</button>
+            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="-1" tabindex="-1"
+              title="Seed Anterior (-1)">▾</button>
           </div>
         </div>
         <button id="btnRandomize" class="btn-primary-accent" title="Sortear nova Seed (Tecla G)">
@@ -199,7 +214,9 @@
           <button id="toolPaint" class="tool-btn edit-tool-btn" data-tool="paint"
             title="Pincel de Tile (Tecla B • Clique Esq: Pintar | Clique Dir: Girar | Alt+Clique: Conta-Gotas)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M18.37 2.63L14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z"></path>
+              <path
+                d="M18.37 2.63L14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z">
+              </path>
               <path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"></path>
             </svg>
           </button>
@@ -214,7 +231,9 @@
             title="Carimbo de Bloco (Tecla S • Alt+Clique: Capturar Bloco | Clique Esq: Colar | Clique Dir: Girar Carimbo 90°)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M5 22h14"></path>
-              <path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z"></path>
+              <path
+                d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z">
+              </path>
               <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"></path>
             </svg>
           </button>
@@ -230,7 +249,9 @@
               <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
               <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
               <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
-              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+              <path
+                d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15">
+              </path>
             </svg>
           </button>
           <button id="toolZoom" class="tool-btn" data-tool="zoom"
@@ -248,14 +269,16 @@
 
         <!-- Visual Guides Toggles -->
         <div class="tool-section" aria-label="Guias Visuais estilo Illustrator">
-          <button id="toggleGuideAxes" class="tool-btn guide-toggle" title="Mostrar/Ocultar Eixos de Simetria (Tecla A)">
+          <button id="toggleGuideAxes" class="tool-btn guide-toggle"
+            title="Mostrar/Ocultar Eixos de Simetria (Tecla A)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <line x1="12" y1="2" x2="12" y2="22"></line>
               <line x1="2" y1="12" x2="22" y2="12"></line>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button id="toggleGuideBlocks" class="tool-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos e Quadrantes">
+          <button id="toggleGuideBlocks" class="tool-btn guide-toggle"
+            title="Mostrar/Ocultar Grade de Blocos e Quadrantes">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="3" y="3" width="18" height="18" rx="2"></rect>
               <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -264,7 +287,8 @@
               <line x1="15" y1="3" x2="15" y2="21"></line>
             </svg>
           </button>
-          <button id="toggleGuideSubtiles" class="tool-btn guide-toggle" title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)">
+          <button id="toggleGuideSubtiles" class="tool-btn guide-toggle"
+            title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -272,7 +296,8 @@
               <rect x="3" y="14" width="7" height="7"></rect>
             </svg>
           </button>
-          <button id="toggleGuideOrbits" class="tool-btn guide-toggle" title="Mostrar/Ocultar Mapa de Órbitas e Rotação [1,2,1][2,3,2][1,2,1] (Tecla O)">
+          <button id="toggleGuideOrbits" class="tool-btn guide-toggle"
+            title="Mostrar/Ocultar Mapa de Órbitas e Rotação [1,2,1][2,3,2][1,2,1] (Tecla O)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
               <polyline points="12 7 15 10 12 13"></polyline>
@@ -286,7 +311,8 @@
         <div class="tool-section">
           <button id="btnFitArtboard" class="tool-btn" title="Centralizar e Ajustar Artboard na Janela (Tecla 0)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+              </path>
             </svg>
           </button>
           <button id="btnToggleRightDock" class="tool-btn active" title="Mostrar/Ocultar Painéis Direitos (Tecla Tab)">
@@ -405,10 +431,14 @@
                   <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
                 </div>
                 <div class="segmented-control" id="subdivisionControl">
-                  <button type="button" class="seg-btn" data-sub="1" title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
-                  <button type="button" class="seg-btn active" data-sub="2" title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
-                  <button type="button" class="seg-btn" data-sub="3" title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
-                  <button type="button" class="seg-btn" data-sub="4" title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
+                  <button type="button" class="seg-btn" data-sub="1"
+                    title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
+                  <button type="button" class="seg-btn active" data-sub="2"
+                    title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
+                  <button type="button" class="seg-btn" data-sub="3"
+                    title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
+                  <button type="button" class="seg-btn" data-sub="4"
+                    title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
                 </div>
               </div>
 
@@ -445,17 +475,22 @@
                 </svg>
                 <span>Swatches Permitidos (Gerador)</span>
               </div>
-              <span id="activeTilesCounter" class="panel-counter-pill">89 / 89</span>
+              <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
               <div class="swatches-toolbar">
-                <input type="search" id="tileSearchInput" class="swatch-search" placeholder="Filtrar família ou tile...">
+                <input type="search" id="tileSearchInput" class="swatch-search"
+                  placeholder="Filtrar família ou tile...">
                 <div class="swatch-bulk-actions">
-                  <button type="button" id="btnSelectAllTiles" class="mini-btn" title="Ativar todos os tiles">Todos</button>
-                  <button type="button" id="btnSelectNoTiles" class="mini-btn" title="Desativar todos os tiles">Nenhum</button>
-                  <button type="button" id="btnInvertTiles" class="mini-btn" title="Inverter seleção atual">Inverter</button>
-                  <button type="button" id="btnRandomFamilies" class="mini-btn accent" title="Sortear um subconjunto aleatório de famílias e regerar">Sortear Mix</button>
+                  <button type="button" id="btnSelectAllTiles" class="mini-btn"
+                    title="Ativar todos os tiles">Todos</button>
+                  <button type="button" id="btnSelectNoTiles" class="mini-btn"
+                    title="Desativar todos os tiles">Nenhum</button>
+                  <button type="button" id="btnInvertTiles" class="mini-btn"
+                    title="Inverter seleção atual">Inverter</button>
+                  <button type="button" id="btnRandomFamilies" class="mini-btn accent"
+                    title="Sortear um subconjunto aleatório de famílias e regerar">Sortear Mix</button>
                 </div>
               </div>
 
@@ -482,9 +517,11 @@
                 <span>Edição &amp; Simetria</span>
               </div>
               <div class="edit-undo-bar" onclick="event.stopPropagation();">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled>↶</button>
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)"
+                  disabled>↶</button>
                 <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)" disabled>↷</button>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)"
+                  disabled>↷</button>
               </div>
             </header>
 
@@ -492,9 +529,13 @@
               <!-- Tool Switcher -->
               <div class="prop-section">
                 <div class="segmented-control edit-tool-segmented" id="editToolSegmented">
-                  <button type="button" class="seg-btn active" data-edit-tool="paint" title="Pincel (B) — Clique/arraste para pintar • Botão direito gira o pincel">✎ Pincel (B)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="rotate" title="Girar (R) — Clique Esq gira +90° • Clique Dir gira -90°">↻ Girar (R)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="stamp" title="Clonar (S) — Arraste para capturar área (ou Alt+Arraste) e clique para colar">⧉ Clonar (S)</button>
+                  <button type="button" class="seg-btn active" data-edit-tool="paint"
+                    title="Pincel (B) — Clique/arraste para pintar • Botão direito gira o pincel">✎ Pincel (B)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="rotate"
+                    title="Girar (R) — Clique Esq gira +90° • Clique Dir gira -90°">↻ Girar (R)</button>
+                  <button type="button" class="seg-btn" data-edit-tool="stamp"
+                    title="Clonar (S) — Arraste para capturar área (ou Alt+Arraste) e clique para colar">⧉ Clonar
+                    (S)</button>
                 </div>
               </div>
 
@@ -509,12 +550,18 @@
 
                 <!-- Sub-selector for Global Canvas Center Symmetry -->
                 <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
-                  <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="canvasCenterSymControl">
-                    <button type="button" class="seg-btn active" data-center-sym="mandala_d4" title="Mandala 8× em torno do centro do canvas">Mandala 8×</button>
-                    <button type="button" class="seg-btn" data-center-sym="rotational_c4" title="Rotacional 4× (90°) em torno do centro do canvas">Giro 4×</button>
-                    <button type="button" class="seg-btn" data-center-sym="bilateral_d2" title="Espelho Duplo (Horizontal + Vertical) pelo centro do canvas">Esp. XY</button>
-                    <button type="button" class="seg-btn" data-center-sym="mirror_x" title="Espelho Horizontal (Esquerda ↔ Direita) pelo centro do canvas">Esp. X</button>
-                    <button type="button" class="seg-btn" data-center-sym="mirror_y" title="Espelho Vertical (Topo ↔ Base) pelo centro do canvas">Esp. Y</button>
+                  <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);"
+                    id="canvasCenterSymControl">
+                    <button type="button" class="seg-btn active" data-center-sym="mandala_d4"
+                      title="Mandala 8× em torno do centro do canvas">Mandala 8×</button>
+                    <button type="button" class="seg-btn" data-center-sym="rotational_c4"
+                      title="Rotacional 4× (90°) em torno do centro do canvas">Giro 4×</button>
+                    <button type="button" class="seg-btn" data-center-sym="bilateral_d2"
+                      title="Espelho Duplo (Horizontal + Vertical) pelo centro do canvas">Esp. XY</button>
+                    <button type="button" class="seg-btn" data-center-sym="mirror_x"
+                      title="Espelho Horizontal (Esquerda ↔ Direita) pelo centro do canvas">Esp. X</button>
+                    <button type="button" class="seg-btn" data-center-sym="mirror_y"
+                      title="Espelho Vertical (Topo ↔ Base) pelo centro do canvas">Esp. Y</button>
                   </div>
                 </div>
               </div>
@@ -523,32 +570,40 @@
               <div id="rotateToolOptionsWrap" class="prop-section hidden">
                 <div class="prop-label-row">
                   <label class="prop-label">Tamanho do Giro</label>
-                  <button type="button" id="btnRotateSnapBlock" class="snap-block-pill" title="Alinhar o giro à grade de Blocos">⊞ Snap Bloco</button>
+                  <button type="button" id="btnRotateSnapBlock" class="snap-block-pill"
+                    title="Alinhar o giro à grade de Blocos">⊞ Snap Bloco</button>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="rotateSizeControl">
                   <button type="button" class="seg-btn active" data-rot-size="1" title="Girar 1 Tile (1×1)">1×1</button>
                   <button type="button" class="seg-btn" data-rot-size="2" title="Girar área 2×2">2×2</button>
                   <button type="button" class="seg-btn" data-rot-size="3" title="Girar área 3×3">3×3</button>
                   <button type="button" class="seg-btn" data-rot-size="4" title="Girar área 4×4">4×4</button>
-                  <button type="button" class="seg-btn" data-rot-size="block" title="Girar 1 Bloco inteiro">Bloco</button>
+                  <button type="button" class="seg-btn" data-rot-size="block"
+                    title="Girar 1 Bloco inteiro">Bloco</button>
                 </div>
 
                 <div id="rotateGroupModeSection" class="rotate-sub-group hidden">
                   <div class="prop-label-row" style="margin-top: 6px;">
                     <label class="prop-label">Modo de Giro da Área</label>
                   </div>
-                  <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateGroupModeControl">
-                    <button type="button" class="seg-btn active" data-rot-group="group" title="Gira o conjunto inteiro como um Supertile rígido em 90°">Girar Conjunto</button>
-                    <button type="button" class="seg-btn" data-rot-group="individual" title="Gira cada tile no próprio lugar">Cada Tile</button>
+                  <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
+                    id="rotateGroupModeControl">
+                    <button type="button" class="seg-btn active" data-rot-group="group"
+                      title="Gira o conjunto inteiro como um Supertile rígido em 90°">Girar Conjunto</button>
+                    <button type="button" class="seg-btn" data-rot-group="individual"
+                      title="Gira cada tile no próprio lugar">Cada Tile</button>
                   </div>
                 </div>
 
                 <div class="prop-label-row" style="margin-top: 6px;">
                   <label class="prop-label">Tipo de Rotação</label>
                 </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="rotateBehaviorControl">
-                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90" title="Rotação geométrica exata de 90° (D4)">Giro 90° D4</button>
-                  <button type="button" class="seg-btn" data-rot-mode="family" title="Avança para a próxima variação da família do tile">Ciclar Família</button>
+                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
+                  id="rotateBehaviorControl">
+                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90"
+                    title="Rotação geométrica exata de 90° (D4)">Giro 90° D4</button>
+                  <button type="button" class="seg-btn" data-rot-mode="family"
+                    title="Avança para a próxima variação da família do tile">Ciclar Família</button>
                 </div>
               </div>
             </div>
@@ -573,9 +628,12 @@
 
               <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
-                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="stampInteractionSegmented">
-                  <button type="button" class="seg-btn active" data-stamp-mode="select" title="Arraste no mosaico para copiar uma região">✂ 1. Capturar Área</button>
-                  <button type="button" class="seg-btn" data-stamp-mode="apply" title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">⧉ 2. Colar Clone</button>
+                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
+                  id="stampInteractionSegmented">
+                  <button type="button" class="seg-btn active" data-stamp-mode="select"
+                    title="Arraste no mosaico para copiar uma região">✂ 1. Capturar Área</button>
+                  <button type="button" class="seg-btn" data-stamp-mode="apply"
+                    title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">⧉ 2. Colar Clone</button>
                 </div>
               </div>
 
@@ -583,20 +641,24 @@
               <div class="prop-section supertile-size-section">
                 <div class="prop-label-row">
                   <label class="prop-label">Tamanho</label>
-                  <button type="button" id="btnBrushSnapBlock" class="snap-block-pill" title="Alinhar o pincel/supertile à grade de Blocos">⊞ Snap Bloco</button>
+                  <button type="button" id="btnBrushSnapBlock" class="snap-block-pill"
+                    title="Alinhar o pincel/supertile à grade de Blocos">⊞ Snap Bloco</button>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="brushSizeControl">
-                  <button type="button" class="seg-btn active" data-brush-size="1" title="Pincel de 1 Tile (1×1)">1×1</button>
+                  <button type="button" class="seg-btn active" data-brush-size="1"
+                    title="Pincel de 1 Tile (1×1)">1×1</button>
                   <button type="button" class="seg-btn" data-brush-size="2" title="Supertile 2×2">2×2</button>
                   <button type="button" class="seg-btn" data-brush-size="3" title="Supertile 3×3">3×3</button>
                   <button type="button" class="seg-btn" data-brush-size="4" title="Supertile 4×4">4×4</button>
-                  <button type="button" class="seg-btn" data-brush-size="block" title="Supertile do tamanho de 1 Bloco">Bloco</button>
+                  <button type="button" class="seg-btn" data-brush-size="block"
+                    title="Supertile do tamanho de 1 Bloco">Bloco</button>
                 </div>
               </div>
 
               <!-- Interactive Supertile Builder & Brush Preview Card -->
               <div class="active-brush-card supertile-builder-card">
-                <div class="supertile-canvas-box" title="Clique Esq: pintar célula (ou girar no 1×1) • Clique Dir: girar célula +90°">
+                <div class="supertile-canvas-box"
+                  title="Clique Esq: pintar célula (ou girar no 1×1) • Clique Dir: girar célula +90°">
                   <canvas id="supertileBuilderCanvas" width="104" height="104"></canvas>
                 </div>
                 <div class="active-brush-controls">
@@ -605,15 +667,22 @@
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
                   </div>
                   <div class="d4-mini-grid">
-                    <button type="button" id="btnBrushRot90" class="d4-mini-btn" title="Girar +90° (ou Clique Direito no mosaico)">⟳ +90°</button>
-                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Horizontalmente (MX)">⇄ Flip X</button>
-                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Verticalmente (MY)">⇅ Flip Y</button>
-                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn" title="Resetar orientação para 0°">0°</button>
+                    <button type="button" id="btnBrushRot90" class="d4-mini-btn"
+                      title="Girar +90° (ou Clique Direito no mosaico)">⟳ +90°</button>
+                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Horizontalmente (MX)">⇄
+                      Flip X</button>
+                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Verticalmente (MY)">⇅
+                      Flip Y</button>
+                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn"
+                      title="Resetar orientação para 0°">0°</button>
                   </div>
                   <div id="supertileBuilderActions" class="supertile-builder-actions hidden">
-                    <button type="button" id="btnSupertileFillAll" class="mini-btn" title="Preencher todo o Supertile com o tile ativo">Preencher</button>
-                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn" title="Simetrizar o Supertile em Mandala D4">✦ Simetria</button>
-                    <button type="button" id="btnSupertileCapture" class="mini-btn accent" title="Capturar região do mosaico (Clonar)">✂ Capturar</button>
+                    <button type="button" id="btnSupertileFillAll" class="mini-btn"
+                      title="Preencher todo o Supertile com o tile ativo">Preencher</button>
+                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn"
+                      title="Simetrizar o Supertile em Mandala D4">✦ Simetria</button>
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent"
+                      title="Capturar região do mosaico (Clonar)">✂ Capturar</button>
                   </div>
                 </div>
               </div>

@@ -414,7 +414,11 @@ function restoreGenerationHistory(targetIndex) {
     StudioState.gridSymmetryMode = snap.gridSymmetryMode;
     StudioState.blockSymmetryMode = snap.blockSymmetryMode;
     StudioState.syncBlockSymmetry = snap.syncBlockSymmetry;
-    StudioState.allowedTiles = new Set(snap.allowedTiles);
+    const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+    StudioState.allowedTiles = new Set(
+      (Array.isArray(snap.allowedTiles) ? snap.allowedTiles : [])
+        .filter((tileId) => Number.isInteger(tileId) && tileId >= 0 && tileId < totalTiles)
+    );
 
     if (StudioState.width !== snap.width || StudioState.height !== snap.height) {
       StudioState.width = snap.width;

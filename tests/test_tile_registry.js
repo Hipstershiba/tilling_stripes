@@ -22,17 +22,13 @@ console.log('Total renderers:', TILE_RENDERERS.length);
 console.log('Total tile names:', TILE_NAMES.length);
 console.log('Total families:', TILE_FAMILIES_META.length);
 
-if (TILE_RENDERERS.length !== 89) {
-  throw new Error(`Expected 89 renderers, got ${TILE_RENDERERS.length}`);
-}
-if (TILE_NAMES.length !== 89) {
-  throw new Error(`Expected 89 names, got ${TILE_NAMES.length}`);
-}
-if (TILE_FAMILIES_META.length !== 32) {
-  throw new Error(`Expected 32 families, got ${TILE_FAMILIES_META.length}`);
+const totalTiles = TILE_RENDERERS.length;
+const totalFamilies = TILE_FAMILIES_META.length;
+if (TILE_NAMES.length !== totalTiles) {
+  throw new Error(`Expected one name per renderer, got ${TILE_NAMES.length} names for ${totalTiles} renderers`);
 }
 
-// 1. Check all tile IDs in families match 0..88 exactly and are sequential
+// 1. Check all tile IDs in families match the renderer catalog exactly and are sequential
 let expectedId = 0;
 const allIdsInFamilies = new Set();
 for (const fam of TILE_FAMILIES_META) {
@@ -44,12 +40,12 @@ for (const fam of TILE_FAMILIES_META) {
     allIdsInFamilies.add(tid);
   }
 }
-if (allIdsInFamilies.size !== 89) {
-  throw new Error(`Expected 89 distinct tileIds across families, found ${allIdsInFamilies.size}`);
+if (allIdsInFamilies.size !== totalTiles || expectedId !== totalTiles) {
+  throw new Error(`Expected ${totalTiles} distinct sequential tileIds across families, found ${allIdsInFamilies.size}`);
 }
-console.log('✓ All 89 tile IDs are sequentially and cleanly indexed across all 32 families.');
+console.log(`✓ All ${totalTiles} tile IDs are sequentially and cleanly indexed across all ${totalFamilies} families.`);
 
-// 2. Test rendering for all 89 tiles
+// 2. Test rendering for every registered tile
 const mockCtx = {
   fill: () => {},
   noFill: () => {},
@@ -73,10 +69,10 @@ TILE_RENDERERS.forEach((renderer, id) => {
     throw new Error(`Renderer failed for tileId ${id} (${TILE_NAMES[id]}): ${err.message}`);
   }
 });
-console.log('✓ All 89 renderers executed successfully without error.');
+console.log(`✓ All ${totalTiles} renderers executed successfully without error.`);
 
-// 3. Test D4 group action on all 89 tiles
-for (let id = 0; id < 89; id++) {
+// 3. Test D4 group action on every registered tile
+for (let id = 0; id < totalTiles; id++) {
   const mapEntry = TILE_D4_MAP[id];
   if (!mapEntry) {
     throw new Error(`Missing TILE_D4_MAP entry for tileId ${id}`);
@@ -116,7 +112,7 @@ for (let id = 0; id < 89; id++) {
     }
   }
 }
-console.log('✓ All 89 tiles satisfy full D4 dihedral group axioms (Identity, Inverse, Composition, Family Closure).');
+console.log(`✓ All ${totalTiles} tiles satisfy full D4 dihedral group axioms (Identity, Inverse, Composition, Family Closure).`);
 
 // 4. Test family cycling
 for (const fam of TILE_FAMILIES_META) {
@@ -134,6 +130,6 @@ for (const fam of TILE_FAMILIES_META) {
     }
   }
 }
-console.log('✓ Next/Previous tile family cycling verified across all 32 families.');
+console.log(`✓ Next/Previous tile family cycling verified across all ${totalFamilies} families.`);
 
 console.log('--- ALL CHECKS PASSED PERFECTLY! ---');
