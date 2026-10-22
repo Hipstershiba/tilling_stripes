@@ -183,6 +183,7 @@ node tests/run_all.js
 - `B`: Ferramenta Pincel
 - `R`: Ferramenta Girar
 - `S`: Ferramenta Clonar (Carimbo)
+- `F`: Ferramenta Travar / Congelar Subtiles
 - `X`: Inverter cores de Primeiro Plano e Fundo (Swatches)
 - `G`: Sortear nova semente (Gerar)
 - `?`: Abrir Central de Ajuda e Atalhos (Popover)

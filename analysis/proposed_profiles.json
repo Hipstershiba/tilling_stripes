@@ -1,0 +1,731 @@
+[
+  {
+    "id": 85,
+    "name": "Quarto de Bloco Top Left",
+    "family": "quarter-block",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            0.5
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            0.5
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 86,
+    "name": "Quarto de Bloco Top Right",
+    "family": "quarter-block",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            0.5
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0.5,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 87,
+    "name": "Quarto de Bloco Bottom Right",
+    "family": "quarter-block",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0.5,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0.5,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 88,
+    "name": "Quarto de Bloco Bottom Left",
+    "family": "quarter-block",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0.5,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            0.5
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 89,
+    "name": "Terminal de Fita Esquerdo",
+    "family": "band-cap",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0.333,
+            0.667
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 90,
+    "name": "Terminal de Fita Direito",
+    "family": "band-cap",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0.333,
+            0.667
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 91,
+    "name": "Terminal de Fita Superior",
+    "family": "band-cap",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0.333,
+            0.667
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 92,
+    "name": "Terminal de Fita Inferior",
+    "family": "band-cap",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0.333,
+            0.667
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 93,
+    "name": "Grampo de Listras (Abertura Esquerda)",
+    "family": "stripe-uturn",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            0.333
+          ],
+          [
+            0.667,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0.484,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            0.516
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 94,
+    "name": "Grampo de Listras (Abertura Direita)",
+    "family": "stripe-uturn",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0.484,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            0.333
+          ],
+          [
+            0.667,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0.484,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0.484,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 95,
+    "name": "Grampo de Listras (Abertura Superior)",
+    "family": "stripe-uturn",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            0.333
+          ],
+          [
+            0.667,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0.484,
+            0.516
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 96,
+    "name": "Grampo de Listras (Abertura Inferior)",
+    "family": "stripe-uturn",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0.484,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0.484,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0.484,
+            0.516
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            0.333
+          ],
+          [
+            0.667,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 97,
+    "name": "Moldura Fechada (Anel de Borda)",
+    "family": "frame-ring",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 98,
+    "name": "Cruz Diagonal (X)",
+    "family": "diagonal-x",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 99,
+    "name": "Hachura Cruzada",
+    "family": "diagonal-crosshatch",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.428,
+            0.572
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.428,
+            0.572
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.428,
+            0.572
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0,
+            0.072
+          ],
+          [
+            0.428,
+            0.572
+          ],
+          [
+            0.928,
+            1
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 100,
+    "name": "Ponto Central",
+    "family": "center-dot",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 101,
+    "name": "Pontos de Borda (Quatro)",
+    "family": "edge-dots",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": [
+          0.5
+        ]
+      },
+      "right": {
+        "intervals": [],
+        "points": [
+          0.5
+        ]
+      },
+      "top": {
+        "intervals": [],
+        "points": [
+          0.5
+        ]
+      },
+      "bottom": {
+        "intervals": [],
+        "points": [
+          0.5
+        ]
+      }
+    }
+  },
+  {
+    "id": 102,
+    "name": "Losango Vazado (Diamond Outline)",
+    "family": "diamond-outline",
+    "sides": {
+      "left": {
+        "intervals": [
+          [
+            0.428,
+            0.572
+          ]
+        ],
+        "points": []
+      },
+      "right": {
+        "intervals": [
+          [
+            0.428,
+            0.572
+          ]
+        ],
+        "points": []
+      },
+      "top": {
+        "intervals": [
+          [
+            0.428,
+            0.572
+          ]
+        ],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [
+          [
+            0.428,
+            0.572
+          ]
+        ],
+        "points": []
+      }
+    }
+  },
+  {
+    "id": 103,
+    "name": "Anel (Círculo Vazado)",
+    "family": "ring",
+    "sides": {
+      "left": {
+        "intervals": [],
+        "points": []
+      },
+      "right": {
+        "intervals": [],
+        "points": []
+      },
+      "top": {
+        "intervals": [],
+        "points": []
+      },
+      "bottom": {
+        "intervals": [],
+        "points": []
+      }
+    }
+  }
+]

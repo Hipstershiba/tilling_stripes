@@ -167,3 +167,66 @@ Todas as capturas foram geradas após as implementações e possuem hashes SHA25
  tests/test_ui_layout_contract.js                   | 108 +++++++++++++++++++++++
  18 files changed, 444 insertions(+), 100 deletions(-)
 ```
+
+---
+
+## 8. Extensão Pós-Rodada 4: Compactação de Simetria e Sistema de Congelamento de Subtiles (Freeze / Lock)
+
+### 8.1. Contexto e Motivação
+A pedido do usuário após a sincronização da branch `main` com `develop`, foram executadas duas melhorias fundamentais de usabilidade e capacidade criativa:
+1. **Compactação do Seletor de Simetria da Grade:** A lista vertical de 4 cards de modo de simetria (`mandala_d4`, `kaleidoscope`, `rotational_c4`, `bilateral_d2`) consumia ~190 px de altura útil no painel direito, forçando rolagem desnecessária.
+2. **Congelamento de Subtiles (Freeze / Lock):** Com o espaço vertical recuperado, implementou-se uma ferramenta de travas/congelamento de células, permitindo proteger regiões e mandalas favoritas para que apenas os subtiles livres sejam recalculados em novas gerações por seed ou randomização.
+
+### 8.2. Detalhamento Técnico das Implementações
+
+| Componente | Arquivo(s) | Detalhe da Alteração |
+|---|---|---|
+| **Grade de Simetria 2×2** | `style.css:860-928` | `.symmetry-card-grid` convertida de `grid-template-columns: 1fr` para `repeat(2, 1fr); gap: 5px;`. Padding de `.sym-card` otimizado para `5px 7px` com ícones de 20×20 px e `min-width: 0; text-overflow: ellipsis`. **Economia líquida de ~115 px no painel.** |
+| **Ferramenta Canvas (`#toolFreeze`)** | `index.html:217-223`, `sketch.js` | Botão `.tool-btn[data-tool="freeze"]` adicionado à barra de ferramentas esquerda com atalho global **Tecla `F`** e ícone SVG de cadeado. Suporta clique e arraste para travar/destravar subtiles. |
+| **Integração com Escopos D4** | `sketch.js`, `core/mosaic_engine.js` | O congelamento respeita o escopo ativo via `resolveStampRegionPlacements` (ex: com *Órbita Simétrica*, 1 clique trava simultaneamente todas as cópias da mandala simétrica correspondente). |
+| **Painel de Controle no Gerador** | `index.html:473-498`, `sketch.js` | Adicionada a seção *"4. Travar Subtiles"* (`#freezeSection`) no painel de Simetria, contendo badge de contagem em tempo real (`#freezeCountBadge`), botão de atalho para a ferramenta (`#btnToggleFreezeTool`) e botão de limpeza total (`#btnClearFrozen`). |
+| **Overlay Visual e Feedback** | `core/mosaic_engine.js:480-515` | `renderGuidesAndOverlays` renderiza um acabamento sutil translúcido ciano/gelo (`rgba(6, 182, 212, 0.15)`) com borda e micro-ícone de cadeado sobre as células travadas, além de ghost preview interativo sob o cursor ao utilizar a ferramenta Trava. O inspetor de hover exibe `❄️ TRAVADO`. |
+| **Preservação na Geração** | `sketch.js:820-845` | `regenerateMosaic()` gera o novo mosaico com o PRNG e em seguida restaura imediatamente o `baseTileId`, `transform` e `tileId` exatos de todas as células presentes em `StudioState.frozenCells`. |
+| **Persistência de Estado** | `sketch.js:271, 440` | `frozenCells` serializado como array de entradas `[key, cellData]` no payload do `localStorage`. Mantida compatibilidade estrita com `STORAGE_VERSION = 3` (campo aditivo). |
+| **Central de Ajuda & Atalhos** | `ui_info.js:75-84, 126`, `README.md` | Tópico `'freeze'` adicionado a `INFO_TOPICS` com progressive disclosure. Atalho `F` documentado na lista geral de atalhos. |
+
+### 8.3. Nova Suíte de Testes Automatizados (`tests/test_freeze_subtiles.js`)
+Foi desenvolvida e integrada ao runner central uma nova suíte de testes com 5 asserções rigorosas:
+- **Controles DOM:** Validação de integridade dos 5 novos elementos de interface (`#toolFreeze`, `#freezeSection`, `#freezeCountBadge`, `#btnToggleFreezeTool`, `#btnClearFrozen`).
+- **Documentação:** Presença do tópico `'freeze'` em `ui_info.js`.
+- **Preservação de Regeneração:** Geração de mosaicos com seeds distintas comprovando que subtiles congelados mantêm 100% de invariância em `baseTileId`, `transform` e `tileId` enquanto subtiles adjacentes rolam novos valores.
+- **Escopos de Edição:** Comprovação matemática de resolução para escopo unitário (1 célula) e escopo de órbita simétrica (>1 célula correspondente).
+- **Serialização e Deserialização:** Roundtrip completo de persistência de `StudioState.frozenCells` via `Map` e Array de tuplas.
+
+### 8.4. Execução do Runner Atualizado (`tests/run_all.js`)
+```
+====================================================
+Running all 21 test suites for Tiling Stripes Studio...
+====================================================
+
+→ Running [1/21] test_tile_registry.js... PASSED (52ms)
+→ Running [2/21] test_d4_invariance.js... PASSED (141ms)
+→ Running [3/21] test_d4_block_combinations.js... PASSED (54ms)
+→ Running [4/21] test_d4_editor.js... PASSED (54ms)
+→ Running [5/21] test_d4_badge_state.js... PASSED (60ms)
+→ Running [6/21] test_mosaic_engine.js... PASSED (56ms)
+→ Running [7/21] test_state_persistence.js... PASSED (62ms)
+→ Running [8/21] test_save_scheduler.js... PASSED (46ms)
+→ Running [9/21] test_storage_key.js... PASSED (47ms)
+→ Running [10/21] test_payload_version.js... PASSED (46ms)
+→ Running [11/21] test_history_limits.js... PASSED (47ms)
+→ Running [12/21] test_persistence_quota.js... PASSED (47ms)
+→ Running [13/21] test_scope_chip.js... PASSED (43ms)
+→ Running [14/21] test_info_scopes_source.js... PASSED (52ms)
+→ Running [15/21] test_info_aria.js... PASSED (47ms)
+→ Running [16/21] test_editor_ui_state.js... PASSED (47ms)
+→ Running [17/21] test_info_ui_state.js... PASSED (51ms)
+→ Running [18/21] test_ui_control_registry.js... PASSED (48ms)
+→ Running [19/21] test_ui_layout_contract.js... PASSED (46ms)
+→ Running [20/21] test_docs_consistency.js... PASSED (46ms)
+→ Running [21/21] test_freeze_subtiles.js... PASSED (59ms)
+
+====================================================
+ALL 21/21 TEST SUITES PASSED in 1154ms!
+====================================================
+```

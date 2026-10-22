@@ -474,6 +474,45 @@
       p.rectMode(p.CORNER);
     }
 
+    // 6. Frozen Subtiles Overlay
+    if (guideOptions.frozenCells && guideOptions.frozenCells.size > 0) {
+      p.rectMode(p.CORNER);
+      for (const [key] of guideOptions.frozenCells.entries()) {
+        const parts = key.split(',').map(Number);
+        if (parts.length !== 4) continue;
+        const [r, c, subR, subC] = parts;
+        if (r >= mosaicData.rows || c >= mosaicData.cols || subR >= N || subC >= N) continue;
+        const x = margin + c * blockW + subC * subW;
+        const y = margin + r * blockH + subR * subH;
+
+        p.fill(6, 182, 212, 40);
+        p.stroke(6, 182, 212, 190);
+        p.strokeWeight(1);
+        p.rect(x + 0.5, y + 0.5, subW - 1, subH - 1, 1);
+
+        if (subW >= 12 && subH >= 12) {
+          p.noStroke();
+          p.fill(6, 182, 212, 220);
+          p.rect(x + subW - 5.5, y + 2, 4, 3.5, 0.5);
+          p.rect(x + subW - 4.5, y + 0.8, 2, 1.5, 0.5);
+        }
+      }
+    }
+
+    // 7. Freeze Tool Hover Preview
+    if (guideOptions.isFreezeTool && Array.isArray(guideOptions.freezeHoverPlacements) && guideOptions.freezeHoverPlacements.length > 0) {
+      p.rectMode(p.CORNER);
+      for (const pCell of guideOptions.freezeHoverPlacements) {
+        if (pCell.row >= mosaicData.rows || pCell.col >= mosaicData.cols || pCell.subRow >= N || pCell.subCol >= N) continue;
+        const x = margin + pCell.col * blockW + pCell.subCol * subW;
+        const y = margin + pCell.row * blockH + pCell.subRow * subH;
+        p.fill(6, 182, 212, 75);
+        p.stroke(6, 182, 212, 240);
+        p.strokeWeight(1.5);
+        p.rect(x + 0.5, y + 0.5, subW - 1, subH - 1, 2);
+      }
+    }
+
     p.pop();
   }
 

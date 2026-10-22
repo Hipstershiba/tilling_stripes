@@ -1,0 +1,2979 @@
+{
+  "famPairs": {
+    "center-stripe→center-stripe": {
+      "a": "center-stripe",
+      "b": "center-stripe",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-stripe→center-tee": {
+      "a": "center-stripe",
+      "b": "center-tee",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-stripe→center-cross": {
+      "a": "center-stripe",
+      "b": "center-cross",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-stripe→elbow-ribbon": {
+      "a": "center-stripe",
+      "b": "elbow-ribbon",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-stripe→truchet-ribbon": {
+      "a": "center-stripe",
+      "b": "truchet-ribbon",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-stripe→center-elbow": {
+      "a": "center-stripe",
+      "b": "center-elbow",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-stripe→edge-t-shape": {
+      "a": "center-stripe",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-stripe→target-circle": {
+      "a": "center-stripe",
+      "b": "target-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-tee→center-stripe": {
+      "a": "center-tee",
+      "b": "center-stripe",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-tee→center-tee": {
+      "a": "center-tee",
+      "b": "center-tee",
+      "count": 14,
+      "h": 9,
+      "v": 9,
+      "weight": 6.01
+    },
+    "center-tee→center-cross": {
+      "a": "center-tee",
+      "b": "center-cross",
+      "count": 4,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-tee→elbow-ribbon": {
+      "a": "center-tee",
+      "b": "elbow-ribbon",
+      "count": 10,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "center-tee→truchet-ribbon": {
+      "a": "center-tee",
+      "b": "truchet-ribbon",
+      "count": 8,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "center-tee→center-elbow": {
+      "a": "center-tee",
+      "b": "center-elbow",
+      "count": 10,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "center-tee→edge-t-shape": {
+      "a": "center-tee",
+      "b": "edge-t-shape",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-tee→target-circle": {
+      "a": "center-tee",
+      "b": "target-circle",
+      "count": 4,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-cross→center-stripe": {
+      "a": "center-cross",
+      "b": "center-stripe",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-cross→center-tee": {
+      "a": "center-cross",
+      "b": "center-tee",
+      "count": 4,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "center-cross→center-cross": {
+      "a": "center-cross",
+      "b": "center-cross",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-cross→elbow-ribbon": {
+      "a": "center-cross",
+      "b": "elbow-ribbon",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-cross→truchet-ribbon": {
+      "a": "center-cross",
+      "b": "truchet-ribbon",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-cross→center-elbow": {
+      "a": "center-cross",
+      "b": "center-elbow",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-cross→edge-t-shape": {
+      "a": "center-cross",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "center-cross→target-circle": {
+      "a": "center-cross",
+      "b": "target-circle",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "elbow-ribbon→center-stripe": {
+      "a": "elbow-ribbon",
+      "b": "center-stripe",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "elbow-ribbon→center-tee": {
+      "a": "elbow-ribbon",
+      "b": "center-tee",
+      "count": 10,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "elbow-ribbon→center-cross": {
+      "a": "elbow-ribbon",
+      "b": "center-cross",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "elbow-ribbon→elbow-ribbon": {
+      "a": "elbow-ribbon",
+      "b": "elbow-ribbon",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "elbow-ribbon→truchet-ribbon": {
+      "a": "elbow-ribbon",
+      "b": "truchet-ribbon",
+      "count": 6,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "elbow-ribbon→center-elbow": {
+      "a": "elbow-ribbon",
+      "b": "center-elbow",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "elbow-ribbon→edge-t-shape": {
+      "a": "elbow-ribbon",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "elbow-ribbon→target-circle": {
+      "a": "elbow-ribbon",
+      "b": "target-circle",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "truchet-ribbon→center-stripe": {
+      "a": "truchet-ribbon",
+      "b": "center-stripe",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "truchet-ribbon→center-tee": {
+      "a": "truchet-ribbon",
+      "b": "center-tee",
+      "count": 8,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "truchet-ribbon→center-cross": {
+      "a": "truchet-ribbon",
+      "b": "center-cross",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "truchet-ribbon→elbow-ribbon": {
+      "a": "truchet-ribbon",
+      "b": "elbow-ribbon",
+      "count": 6,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "truchet-ribbon→truchet-ribbon": {
+      "a": "truchet-ribbon",
+      "b": "truchet-ribbon",
+      "count": 4,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "truchet-ribbon→center-elbow": {
+      "a": "truchet-ribbon",
+      "b": "center-elbow",
+      "count": 6,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "truchet-ribbon→edge-t-shape": {
+      "a": "truchet-ribbon",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "truchet-ribbon→target-circle": {
+      "a": "truchet-ribbon",
+      "b": "target-circle",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-elbow→center-stripe": {
+      "a": "center-elbow",
+      "b": "center-stripe",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-elbow→center-tee": {
+      "a": "center-elbow",
+      "b": "center-tee",
+      "count": 10,
+      "h": 6,
+      "v": 6,
+      "weight": 4.01
+    },
+    "center-elbow→center-cross": {
+      "a": "center-elbow",
+      "b": "center-cross",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-elbow→elbow-ribbon": {
+      "a": "center-elbow",
+      "b": "elbow-ribbon",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "center-elbow→truchet-ribbon": {
+      "a": "center-elbow",
+      "b": "truchet-ribbon",
+      "count": 6,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "center-elbow→center-elbow": {
+      "a": "center-elbow",
+      "b": "center-elbow",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 2.67
+    },
+    "center-elbow→edge-t-shape": {
+      "a": "center-elbow",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "center-elbow→target-circle": {
+      "a": "center-elbow",
+      "b": "target-circle",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "edge-l-shape→edge-l-shape": {
+      "a": "edge-l-shape",
+      "b": "edge-l-shape",
+      "count": 11,
+      "h": 6,
+      "v": 6,
+      "weight": 9.33
+    },
+    "edge-l-shape→edge-t-shape": {
+      "a": "edge-l-shape",
+      "b": "edge-t-shape",
+      "count": 8,
+      "h": 4,
+      "v": 4,
+      "weight": 5.33
+    },
+    "edge-l-shape→stripes": {
+      "a": "edge-l-shape",
+      "b": "stripes",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-l-shape→half-block": {
+      "a": "edge-l-shape",
+      "b": "half-block",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-l-shape→corner-triangle": {
+      "a": "edge-l-shape",
+      "b": "corner-triangle",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 7.99
+    },
+    "edge-l-shape→side-triangle": {
+      "a": "edge-l-shape",
+      "b": "side-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "edge-l-shape→bowtie": {
+      "a": "edge-l-shape",
+      "b": "bowtie",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "edge-l-shape→half-circle": {
+      "a": "edge-l-shape",
+      "b": "half-circle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-l-shape→edge-semicircle": {
+      "a": "edge-l-shape",
+      "b": "edge-semicircle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-l-shape→quarter-arc-full": {
+      "a": "edge-l-shape",
+      "b": "quarter-arc-full",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 8
+    },
+    "edge-l-shape→corner-waves": {
+      "a": "edge-l-shape",
+      "b": "corner-waves",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.3
+    },
+    "edge-l-shape→target-square": {
+      "a": "edge-l-shape",
+      "b": "target-square",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-t-shape→center-stripe": {
+      "a": "edge-t-shape",
+      "b": "center-stripe",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "edge-t-shape→center-tee": {
+      "a": "edge-t-shape",
+      "b": "center-tee",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "edge-t-shape→center-cross": {
+      "a": "edge-t-shape",
+      "b": "center-cross",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "edge-t-shape→elbow-ribbon": {
+      "a": "edge-t-shape",
+      "b": "elbow-ribbon",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "edge-t-shape→truchet-ribbon": {
+      "a": "edge-t-shape",
+      "b": "truchet-ribbon",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "edge-t-shape→center-elbow": {
+      "a": "edge-t-shape",
+      "b": "center-elbow",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "edge-t-shape→edge-l-shape": {
+      "a": "edge-t-shape",
+      "b": "edge-l-shape",
+      "count": 8,
+      "h": 4,
+      "v": 4,
+      "weight": 5.33
+    },
+    "edge-t-shape→edge-t-shape": {
+      "a": "edge-t-shape",
+      "b": "edge-t-shape",
+      "count": 8,
+      "h": 4,
+      "v": 4,
+      "weight": 4
+    },
+    "edge-t-shape→stripes": {
+      "a": "edge-t-shape",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→half-block": {
+      "a": "edge-t-shape",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→corner-triangle": {
+      "a": "edge-t-shape",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-t-shape→side-triangle": {
+      "a": "edge-t-shape",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→bowtie": {
+      "a": "edge-t-shape",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→half-circle": {
+      "a": "edge-t-shape",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→edge-semicircle": {
+      "a": "edge-t-shape",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-t-shape→quarter-arc-full": {
+      "a": "edge-t-shape",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-t-shape→corner-waves": {
+      "a": "edge-t-shape",
+      "b": "corner-waves",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.3
+    },
+    "edge-t-shape→target-circle": {
+      "a": "edge-t-shape",
+      "b": "target-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "edge-t-shape→target-square": {
+      "a": "edge-t-shape",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→edge-l-shape": {
+      "a": "stripes",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "stripes→edge-t-shape": {
+      "a": "stripes",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→stripes": {
+      "a": "stripes",
+      "b": "stripes",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 3.33
+    },
+    "stripes→corner-stripes": {
+      "a": "stripes",
+      "b": "corner-stripes",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2.66
+    },
+    "stripes→half-block": {
+      "a": "stripes",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→corner-triangle": {
+      "a": "stripes",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "stripes→side-triangle": {
+      "a": "stripes",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→bowtie": {
+      "a": "stripes",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→half-circle": {
+      "a": "stripes",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→edge-semicircle": {
+      "a": "stripes",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "stripes→quarter-arc-full": {
+      "a": "stripes",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "stripes→target-square": {
+      "a": "stripes",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "corner-stripes→stripes": {
+      "a": "corner-stripes",
+      "b": "stripes",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2.66
+    },
+    "corner-stripes→corner-stripes": {
+      "a": "corner-stripes",
+      "b": "corner-stripes",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 5.33
+    },
+    "diagonal-line→diagonal-line": {
+      "a": "diagonal-line",
+      "b": "diagonal-line",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 0.35
+    },
+    "diagonal-hatch→diagonal-hatch": {
+      "a": "diagonal-hatch",
+      "b": "diagonal-hatch",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 0.94
+    },
+    "mini-grid→mini-grid": {
+      "a": "mini-grid",
+      "b": "mini-grid",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 1.8
+    },
+    "checkers→checkers": {
+      "a": "checkers",
+      "b": "checkers",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "checkers→half-block": {
+      "a": "checkers",
+      "b": "half-block",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "checkers→half-circle": {
+      "a": "checkers",
+      "b": "half-circle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "checkers→quarter-arc-mid": {
+      "a": "checkers",
+      "b": "quarter-arc-mid",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "half-block→edge-l-shape": {
+      "a": "half-block",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-block→edge-t-shape": {
+      "a": "half-block",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-block→stripes": {
+      "a": "half-block",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-block→checkers": {
+      "a": "half-block",
+      "b": "checkers",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "half-block→half-block": {
+      "a": "half-block",
+      "b": "half-block",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 4
+    },
+    "half-block→corner-triangle": {
+      "a": "half-block",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-block→side-triangle": {
+      "a": "half-block",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-block→bowtie": {
+      "a": "half-block",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-block→half-circle": {
+      "a": "half-block",
+      "b": "half-circle",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 4
+    },
+    "half-block→edge-semicircle": {
+      "a": "half-block",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-block→quarter-arc-mid": {
+      "a": "half-block",
+      "b": "quarter-arc-mid",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "half-block→quarter-arc-full": {
+      "a": "half-block",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-block→target-square": {
+      "a": "half-block",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "corner-triangle→edge-l-shape": {
+      "a": "corner-triangle",
+      "b": "edge-l-shape",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 7.99
+    },
+    "corner-triangle→edge-t-shape": {
+      "a": "corner-triangle",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-triangle→stripes": {
+      "a": "corner-triangle",
+      "b": "stripes",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-triangle→half-block": {
+      "a": "corner-triangle",
+      "b": "half-block",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-triangle→corner-triangle": {
+      "a": "corner-triangle",
+      "b": "corner-triangle",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 7.99
+    },
+    "corner-triangle→side-triangle": {
+      "a": "corner-triangle",
+      "b": "side-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "corner-triangle→bowtie": {
+      "a": "corner-triangle",
+      "b": "bowtie",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "corner-triangle→half-circle": {
+      "a": "corner-triangle",
+      "b": "half-circle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-triangle→edge-semicircle": {
+      "a": "corner-triangle",
+      "b": "edge-semicircle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-triangle→quarter-arc-full": {
+      "a": "corner-triangle",
+      "b": "quarter-arc-full",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 7.99
+    },
+    "corner-triangle→target-square": {
+      "a": "corner-triangle",
+      "b": "target-square",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "side-triangle→edge-l-shape": {
+      "a": "side-triangle",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "side-triangle→edge-t-shape": {
+      "a": "side-triangle",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→stripes": {
+      "a": "side-triangle",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→half-block": {
+      "a": "side-triangle",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→corner-triangle": {
+      "a": "side-triangle",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "side-triangle→side-triangle": {
+      "a": "side-triangle",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→bowtie": {
+      "a": "side-triangle",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→half-circle": {
+      "a": "side-triangle",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→edge-semicircle": {
+      "a": "side-triangle",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "side-triangle→quarter-arc-full": {
+      "a": "side-triangle",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "side-triangle→target-square": {
+      "a": "side-triangle",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→edge-l-shape": {
+      "a": "bowtie",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "bowtie→edge-t-shape": {
+      "a": "bowtie",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→stripes": {
+      "a": "bowtie",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→half-block": {
+      "a": "bowtie",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→corner-triangle": {
+      "a": "bowtie",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "bowtie→side-triangle": {
+      "a": "bowtie",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→bowtie": {
+      "a": "bowtie",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→half-circle": {
+      "a": "bowtie",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→edge-semicircle": {
+      "a": "bowtie",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "bowtie→quarter-arc-full": {
+      "a": "bowtie",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "bowtie→target-square": {
+      "a": "bowtie",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→edge-l-shape": {
+      "a": "half-circle",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-circle→edge-t-shape": {
+      "a": "half-circle",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→stripes": {
+      "a": "half-circle",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→checkers": {
+      "a": "half-circle",
+      "b": "checkers",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "half-circle→half-block": {
+      "a": "half-circle",
+      "b": "half-block",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 4
+    },
+    "half-circle→corner-triangle": {
+      "a": "half-circle",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-circle→side-triangle": {
+      "a": "half-circle",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→bowtie": {
+      "a": "half-circle",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→half-circle": {
+      "a": "half-circle",
+      "b": "half-circle",
+      "count": 6,
+      "h": 3,
+      "v": 3,
+      "weight": 4
+    },
+    "half-circle→edge-semicircle": {
+      "a": "half-circle",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "half-circle→quarter-arc-mid": {
+      "a": "half-circle",
+      "b": "quarter-arc-mid",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "half-circle→quarter-arc-full": {
+      "a": "half-circle",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "half-circle→target-square": {
+      "a": "half-circle",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→edge-l-shape": {
+      "a": "edge-semicircle",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-semicircle→edge-t-shape": {
+      "a": "edge-semicircle",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→stripes": {
+      "a": "edge-semicircle",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→half-block": {
+      "a": "edge-semicircle",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→corner-triangle": {
+      "a": "edge-semicircle",
+      "b": "corner-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-semicircle→side-triangle": {
+      "a": "edge-semicircle",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→bowtie": {
+      "a": "edge-semicircle",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→half-circle": {
+      "a": "edge-semicircle",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→edge-semicircle": {
+      "a": "edge-semicircle",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "edge-semicircle→quarter-arc-full": {
+      "a": "edge-semicircle",
+      "b": "quarter-arc-full",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "edge-semicircle→target-square": {
+      "a": "edge-semicircle",
+      "b": "target-square",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "quarter-arc-mid→checkers": {
+      "a": "quarter-arc-mid",
+      "b": "checkers",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "quarter-arc-mid→half-block": {
+      "a": "quarter-arc-mid",
+      "b": "half-block",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "quarter-arc-mid→half-circle": {
+      "a": "quarter-arc-mid",
+      "b": "half-circle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "quarter-arc-mid→quarter-arc-mid": {
+      "a": "quarter-arc-mid",
+      "b": "quarter-arc-mid",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 2
+    },
+    "quarter-arc-full→edge-l-shape": {
+      "a": "quarter-arc-full",
+      "b": "edge-l-shape",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 8
+    },
+    "quarter-arc-full→edge-t-shape": {
+      "a": "quarter-arc-full",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "quarter-arc-full→stripes": {
+      "a": "quarter-arc-full",
+      "b": "stripes",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "quarter-arc-full→half-block": {
+      "a": "quarter-arc-full",
+      "b": "half-block",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "quarter-arc-full→corner-triangle": {
+      "a": "quarter-arc-full",
+      "b": "corner-triangle",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 7.99
+    },
+    "quarter-arc-full→side-triangle": {
+      "a": "quarter-arc-full",
+      "b": "side-triangle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "quarter-arc-full→bowtie": {
+      "a": "quarter-arc-full",
+      "b": "bowtie",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 3.99
+    },
+    "quarter-arc-full→half-circle": {
+      "a": "quarter-arc-full",
+      "b": "half-circle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "quarter-arc-full→edge-semicircle": {
+      "a": "quarter-arc-full",
+      "b": "edge-semicircle",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "quarter-arc-full→quarter-arc-full": {
+      "a": "quarter-arc-full",
+      "b": "quarter-arc-full",
+      "count": 7,
+      "h": 4,
+      "v": 4,
+      "weight": 8
+    },
+    "quarter-arc-full→target-square": {
+      "a": "quarter-arc-full",
+      "b": "target-square",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "corner-waves→edge-l-shape": {
+      "a": "corner-waves",
+      "b": "edge-l-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.3
+    },
+    "corner-waves→edge-t-shape": {
+      "a": "corner-waves",
+      "b": "edge-t-shape",
+      "count": 4,
+      "h": 2,
+      "v": 2,
+      "weight": 1.3
+    },
+    "corner-waves→corner-waves": {
+      "a": "corner-waves",
+      "b": "corner-waves",
+      "count": 8,
+      "h": 4,
+      "v": 4,
+      "weight": 2.31
+    },
+    "target-circle→center-stripe": {
+      "a": "target-circle",
+      "b": "center-stripe",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "target-circle→center-tee": {
+      "a": "target-circle",
+      "b": "center-tee",
+      "count": 4,
+      "h": 3,
+      "v": 3,
+      "weight": 2
+    },
+    "target-circle→center-cross": {
+      "a": "target-circle",
+      "b": "center-cross",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "target-circle→elbow-ribbon": {
+      "a": "target-circle",
+      "b": "elbow-ribbon",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "target-circle→truchet-ribbon": {
+      "a": "target-circle",
+      "b": "truchet-ribbon",
+      "count": 2,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "target-circle→center-elbow": {
+      "a": "target-circle",
+      "b": "center-elbow",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 1.34
+    },
+    "target-circle→edge-t-shape": {
+      "a": "target-circle",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 0.67
+    },
+    "target-circle→target-circle": {
+      "a": "target-circle",
+      "b": "target-circle",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 0.72
+    },
+    "target-square→edge-l-shape": {
+      "a": "target-square",
+      "b": "edge-l-shape",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "target-square→edge-t-shape": {
+      "a": "target-square",
+      "b": "edge-t-shape",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→stripes": {
+      "a": "target-square",
+      "b": "stripes",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→half-block": {
+      "a": "target-square",
+      "b": "half-block",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→corner-triangle": {
+      "a": "target-square",
+      "b": "corner-triangle",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "target-square→side-triangle": {
+      "a": "target-square",
+      "b": "side-triangle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→bowtie": {
+      "a": "target-square",
+      "b": "bowtie",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→half-circle": {
+      "a": "target-square",
+      "b": "half-circle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→edge-semicircle": {
+      "a": "target-square",
+      "b": "edge-semicircle",
+      "count": 2,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    },
+    "target-square→quarter-arc-full": {
+      "a": "target-square",
+      "b": "quarter-arc-full",
+      "count": 3,
+      "h": 2,
+      "v": 2,
+      "weight": 4
+    },
+    "target-square→target-square": {
+      "a": "target-square",
+      "b": "target-square",
+      "count": 1,
+      "h": 1,
+      "v": 1,
+      "weight": 2
+    }
+  },
+  "partners": {
+    "center-stripe": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "center-tee": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "center-cross": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "elbow-ribbon": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "truchet-ribbon": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "center-elbow": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "edge-l-shape": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "corner-waves",
+      "target-square"
+    ],
+    "edge-t-shape": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "corner-waves",
+      "target-circle",
+      "target-square"
+    ],
+    "stripes": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "corner-stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "corner-stripes": [
+      "stripes",
+      "corner-stripes"
+    ],
+    "diagonal-line": [
+      "diagonal-line"
+    ],
+    "diagonal-hatch": [
+      "diagonal-hatch"
+    ],
+    "zigzag": [],
+    "mini-grid": [
+      "mini-grid"
+    ],
+    "checkers": [
+      "checkers",
+      "half-block",
+      "half-circle",
+      "quarter-arc-mid"
+    ],
+    "half-block": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "checkers",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-mid",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "corner-triangle": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "side-triangle": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "bowtie": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "diamond": [],
+    "half-circle": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "checkers",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-mid",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "edge-semicircle": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "quarter-arc-mid": [
+      "checkers",
+      "half-block",
+      "half-circle",
+      "quarter-arc-mid"
+    ],
+    "quarter-arc-full": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "corner-petal": [],
+    "corner-waves": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "corner-waves"
+    ],
+    "target-circle": [
+      "center-stripe",
+      "center-tee",
+      "center-cross",
+      "elbow-ribbon",
+      "truchet-ribbon",
+      "center-elbow",
+      "edge-t-shape",
+      "target-circle"
+    ],
+    "target-square": [
+      "edge-l-shape",
+      "edge-t-shape",
+      "stripes",
+      "half-block",
+      "corner-triangle",
+      "side-triangle",
+      "bowtie",
+      "half-circle",
+      "edge-semicircle",
+      "quarter-arc-full",
+      "target-square"
+    ],
+    "four-dots": [],
+    "diagonal-dots": [],
+    "empty-tile": []
+  },
+  "comps": [
+    [
+      "center-stripe",
+      "target-circle",
+      "edge-t-shape",
+      "target-square",
+      "corner-waves",
+      "quarter-arc-full",
+      "edge-semicircle",
+      "half-circle",
+      "quarter-arc-mid",
+      "checkers",
+      "bowtie",
+      "side-triangle",
+      "corner-triangle",
+      "half-block",
+      "stripes",
+      "corner-stripes",
+      "edge-l-shape",
+      "center-elbow",
+      "truchet-ribbon",
+      "elbow-ribbon",
+      "center-cross",
+      "center-tee"
+    ],
+    [
+      "diagonal-line"
+    ],
+    [
+      "diagonal-hatch"
+    ],
+    [
+      "zigzag"
+    ],
+    [
+      "mini-grid"
+    ],
+    [
+      "diamond"
+    ],
+    [
+      "corner-petal"
+    ],
+    [
+      "four-dots"
+    ],
+    [
+      "diagonal-dots"
+    ],
+    [
+      "empty-tile"
+    ]
+  ],
+  "degree": {
+    "center-stripe": 8,
+    "center-tee": 8,
+    "center-cross": 8,
+    "elbow-ribbon": 8,
+    "truchet-ribbon": 8,
+    "center-elbow": 8,
+    "edge-l-shape": 12,
+    "edge-t-shape": 19,
+    "stripes": 12,
+    "corner-stripes": 2,
+    "diagonal-line": 1,
+    "diagonal-hatch": 1,
+    "zigzag": 0,
+    "mini-grid": 1,
+    "checkers": 4,
+    "half-block": 13,
+    "corner-triangle": 11,
+    "side-triangle": 11,
+    "bowtie": 11,
+    "diamond": 0,
+    "half-circle": 13,
+    "edge-semicircle": 11,
+    "quarter-arc-mid": 4,
+    "quarter-arc-full": 11,
+    "corner-petal": 0,
+    "corner-waves": 3,
+    "target-circle": 8,
+    "target-square": 11,
+    "four-dots": 0,
+    "diagonal-dots": 0,
+    "empty-tile": 0
+  },
+  "best": {
+    "center-stripe": [
+      {
+        "id": "center-tee",
+        "pairs": 12,
+        "weight": 4
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "center-cross",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "target-circle",
+        "pairs": 4,
+        "weight": 1.3
+      }
+    ],
+    "center-tee": [
+      {
+        "id": "center-tee",
+        "pairs": 28,
+        "weight": 12
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 20,
+        "weight": 8
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 20,
+        "weight": 8
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 16,
+        "weight": 8
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 12,
+        "weight": 4
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 12,
+        "weight": 4
+      },
+      {
+        "id": "center-cross",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "target-circle",
+        "pairs": 8,
+        "weight": 4
+      }
+    ],
+    "center-cross": [
+      {
+        "id": "center-tee",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 4,
+        "weight": 2.7
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "center-cross",
+        "pairs": 2,
+        "weight": 1.3
+      },
+      {
+        "id": "target-circle",
+        "pairs": 2,
+        "weight": 1.3
+      }
+    ],
+    "elbow-ribbon": [
+      {
+        "id": "center-tee",
+        "pairs": 20,
+        "weight": 8
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 14,
+        "weight": 5.3
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 14,
+        "weight": 5.3
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 12,
+        "weight": 5.3
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "center-cross",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "target-circle",
+        "pairs": 6,
+        "weight": 2.7
+      }
+    ],
+    "truchet-ribbon": [
+      {
+        "id": "center-tee",
+        "pairs": 16,
+        "weight": 8
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 12,
+        "weight": 5.3
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 12,
+        "weight": 5.3
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 8,
+        "weight": 5.3
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "center-cross",
+        "pairs": 4,
+        "weight": 2.7
+      },
+      {
+        "id": "target-circle",
+        "pairs": 4,
+        "weight": 2.7
+      }
+    ],
+    "center-elbow": [
+      {
+        "id": "center-tee",
+        "pairs": 20,
+        "weight": 8
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 14,
+        "weight": 5.3
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 14,
+        "weight": 5.3
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 12,
+        "weight": 5.3
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 2.7
+      },
+      {
+        "id": "center-cross",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "target-circle",
+        "pairs": 6,
+        "weight": 2.7
+      }
+    ],
+    "edge-l-shape": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 22,
+        "weight": 18.7
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 16,
+        "weight": 10.7
+      },
+      {
+        "id": "stripes",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-block",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "bowtie",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-circle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 8,
+        "weight": 8
+      }
+    ],
+    "edge-t-shape": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 16,
+        "weight": 10.7
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 16,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "center-tee",
+        "pairs": 12,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "stripes": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 6.7
+      },
+      {
+        "id": "corner-stripes",
+        "pairs": 8,
+        "weight": 5.3
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "corner-stripes": [
+      {
+        "id": "corner-stripes",
+        "pairs": 14,
+        "weight": 10.7
+      },
+      {
+        "id": "stripes",
+        "pairs": 8,
+        "weight": 5.3
+      }
+    ],
+    "diagonal-line": [
+      {
+        "id": "diagonal-line",
+        "pairs": 4,
+        "weight": 0.7
+      }
+    ],
+    "diagonal-hatch": [
+      {
+        "id": "diagonal-hatch",
+        "pairs": 4,
+        "weight": 1.9
+      }
+    ],
+    "zigzag": [],
+    "mini-grid": [
+      {
+        "id": "mini-grid",
+        "pairs": 2,
+        "weight": 3.6
+      }
+    ],
+    "checkers": [
+      {
+        "id": "half-block",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "quarter-arc-mid",
+        "pairs": 6,
+        "weight": 4
+      },
+      {
+        "id": "checkers",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "half-block": [
+      {
+        "id": "half-block",
+        "pairs": 12,
+        "weight": 8
+      },
+      {
+        "id": "half-circle",
+        "pairs": 12,
+        "weight": 8
+      },
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "checkers",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "quarter-arc-mid",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "corner-triangle": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "stripes",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-block",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "bowtie",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-circle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 8,
+        "weight": 8
+      }
+    ],
+    "side-triangle": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "bowtie": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "diamond": [],
+    "half-circle": [
+      {
+        "id": "half-block",
+        "pairs": 12,
+        "weight": 8
+      },
+      {
+        "id": "half-circle",
+        "pairs": 12,
+        "weight": 8
+      },
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "checkers",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "quarter-arc-mid",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "edge-semicircle": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "quarter-arc-mid": [
+      {
+        "id": "half-block",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "quarter-arc-mid",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "checkers",
+        "pairs": 6,
+        "weight": 4
+      }
+    ],
+    "quarter-arc-full": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 14,
+        "weight": 16
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "stripes",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-block",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "bowtie",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "half-circle",
+        "pairs": 8,
+        "weight": 8
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 8,
+        "weight": 8
+      }
+    ],
+    "corner-petal": [],
+    "corner-waves": [
+      {
+        "id": "corner-waves",
+        "pairs": 16,
+        "weight": 4.6
+      },
+      {
+        "id": "edge-l-shape",
+        "pairs": 8,
+        "weight": 2.6
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 8,
+        "weight": 2.6
+      }
+    ],
+    "target-circle": [
+      {
+        "id": "center-tee",
+        "pairs": 8,
+        "weight": 4
+      },
+      {
+        "id": "elbow-ribbon",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "center-elbow",
+        "pairs": 6,
+        "weight": 2.7
+      },
+      {
+        "id": "truchet-ribbon",
+        "pairs": 4,
+        "weight": 2.7
+      },
+      {
+        "id": "target-circle",
+        "pairs": 2,
+        "weight": 1.4
+      },
+      {
+        "id": "center-stripe",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 1.3
+      },
+      {
+        "id": "center-cross",
+        "pairs": 2,
+        "weight": 1.3
+      }
+    ],
+    "target-square": [
+      {
+        "id": "edge-l-shape",
+        "pairs": 6,
+        "weight": 8
+      },
+      {
+        "id": "corner-triangle",
+        "pairs": 6,
+        "weight": 8
+      },
+      {
+        "id": "quarter-arc-full",
+        "pairs": 6,
+        "weight": 8
+      },
+      {
+        "id": "edge-t-shape",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "stripes",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-block",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "side-triangle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "bowtie",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "half-circle",
+        "pairs": 4,
+        "weight": 4
+      },
+      {
+        "id": "edge-semicircle",
+        "pairs": 4,
+        "weight": 4
+      }
+    ],
+    "four-dots": [],
+    "diagonal-dots": [],
+    "empty-tile": []
+  }
+}

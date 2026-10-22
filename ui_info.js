@@ -72,6 +72,16 @@
         'Seleção visual: Suporta arrastar para selecionar retângulos arbitrários.'
       ]
     },
+    'freeze': {
+      title: 'Travar Subtiles (Congelar)',
+      subtitle: 'Proteja suas regiões favoritas durante novas gerações',
+      body: [
+        'Como funciona: Subtiles travados ficam imunes à geração aleatória. Ao clicar em Gerar (ou pressionar G), apenas as células livres recebem novos tiles.',
+        'Ferramenta Trava (F): Clique ou arraste no canvas para travar/destravar subtiles.',
+        'Integração com Escopos: O congelamento respeita o escopo ativo (ex: com Órbita Simétrica, um clique trava toda a mandala simétrica correspondente).',
+        'Atalho rápido: Alt + Clique ou o botão "Descongelar Tudo" removem as travas a qualquer momento.'
+      ]
+    },
     'same-tile': {
       title: 'Escopo Iguais (Substituição Global)',
       subtitle: 'Troca inteligente de um azulejo em todo o mosaico',
@@ -114,7 +124,7 @@
       title: 'Atalhos e Teclas Rápidas',
       subtitle: 'Comandos do teclado para máxima produtividade',
       body: [
-        'B: Ativa Ferramenta Pincel | R: Ferramenta Girar | S: Ferramenta Carimbo | V: Inspecionar.',
+        'B: Pincel | R: Girar | S: Carimbo | F: Travar Subtiles | V: Inspecionar.',
         'H / Espaço: Mover Visualização (Pan) | Z: Zoom (+ com clique, - com Alt).',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
         '1 a 6: Seleciona Escopo de Edição.',

@@ -21,6 +21,7 @@ docs/
 | [INSTRUCOES_GEMINI_RODADA2.md](instrucoes/INSTRUCOES_GEMINI_RODADA2.md) | 2 | Divulgação progressiva, densidade de UI, contrato D4 no editor, debounce |
 | [INSTRUCOES_GEMINI_RODADA3.md](instrucoes/INSTRUCOES_GEMINI_RODADA3.md) | 3 | Fechar o que foi declarado pronto (debounce, chip, chave de storage, ajuda) com prova que falha no baseline |
 | [INSTRUCOES_GEMINI_RODADA4.md](instrucoes/INSTRUCOES_GEMINI_RODADA4.md) | 4 | Arquitetura de informação das barras: modo no cabeçalho do dock, gaveta de 44 px, acordeão de painéis, cores no rodapé esquerdo, zoom/Ajustar/1:1 juntos |
+| [INSTRUCOES_GEMINI_RODADA4_1.md](instrucoes/INSTRUCOES_GEMINI_RODADA4_1.md) | 4.1 | Correção cirúrgica: trava sobrevivendo à geração, histórico sem perder edição, e redesenho da integração da Trava (modo, tamanho, escopo, undo) |
 | [INSTRUCOES_GEMINI_RODADA5.md](instrucoes/INSTRUCOES_GEMINI_RODADA5.md) | 5 | Gramática de conjuntos, 10 famílias novas (IDs 85–103), UI de conjuntos e ajustes de harmonia |
 
 ## Relatórios e auditorias (`relatorios/`)
@@ -33,6 +34,7 @@ docs/
 | [RELATORIO_RODADA3.md](relatorios/RELATORIO_RODADA3.md) | Antigravity | Entrega da Rodada 3 |
 | [AVALIACAO_DEEPSEEK_RODADA3.md](relatorios/AVALIACAO_DEEPSEEK_RODADA3.md) | DeepSeek | Auditoria da Rodada 3: tarefas confirmadas no código; uma captura de prova duplicada e um defeito no runner |
 | [RELATORIO_RODADA4.md](relatorios/RELATORIO_RODADA4.md) | Antigravity | Entrega da Rodada 4: reorganização das quatro superfícies, gaveta com régua de 44 px e acordeão |
+| [AVALIACAO_DEEPSEEK_RODADA4.md](relatorios/AVALIACAO_DEEPSEEK_RODADA4.md) | DeepSeek | Auditoria da Rodada 4: layout confirmado no código; duas capturas duplicadas, a extensão de freeze fora do git e dois P0 funcionais (freeze não sobrevive à geração; histórico apaga a edição) |
 | [ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md](relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md) | DeepSeek | Análise de sinergia/harmonia dos 85 subtiles, 31 famílias e 9 conjuntos; 10 famílias propostas |
 
 ## Pranchas (`analise/`)

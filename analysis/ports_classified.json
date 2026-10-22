@@ -1,0 +1,1406 @@
+{
+  "rows": [
+    {
+      "id": 0,
+      "name": "Faixa Central Horizontal",
+      "family": "center-stripe",
+      "sig": [
+        "center3",
+        "center3",
+        "∅",
+        "∅"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Faixa Central Vertical",
+      "family": "center-stripe",
+      "sig": [
+        "∅",
+        "∅",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Junção Central (T) Esquerda",
+      "family": "center-tee",
+      "sig": [
+        "center3",
+        "∅",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Junção Central (T) Direita",
+      "family": "center-tee",
+      "sig": [
+        "∅",
+        "center3",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Junção Central (T) Cima",
+      "family": "center-tee",
+      "sig": [
+        "center3",
+        "center3",
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Junção Central (T) Baixo",
+      "family": "center-tee",
+      "sig": [
+        "center3",
+        "center3",
+        "∅",
+        "center3"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Cruz Central (+)",
+      "family": "center-cross",
+      "sig": [
+        "center3",
+        "center3",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Arco de Fita Top Left",
+      "family": "elbow-ribbon",
+      "sig": [
+        "center3",
+        "∅",
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Arco de Fita Top Right",
+      "family": "elbow-ribbon",
+      "sig": [
+        "∅",
+        "center3",
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Arco de Fita Bottom Right",
+      "family": "elbow-ribbon",
+      "sig": [
+        "∅",
+        "center3",
+        "∅",
+        "center3"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Arco de Fita Bottom Left",
+      "family": "elbow-ribbon",
+      "sig": [
+        "center3",
+        "∅",
+        "∅",
+        "center3"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Fita Truchet (TL-BR)",
+      "family": "truchet-ribbon",
+      "sig": [
+        "center3",
+        "center3",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Fita Truchet (TR-BL)",
+      "family": "truchet-ribbon",
+      "sig": [
+        "center3",
+        "center3",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Cantoneira Central (L) Top Left",
+      "family": "center-elbow",
+      "sig": [
+        "center3",
+        "∅",
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Cantoneira Central (L) Top Right",
+      "family": "center-elbow",
+      "sig": [
+        "∅",
+        "center3",
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Cantoneira Central (L) Bottom Right",
+      "family": "center-elbow",
+      "sig": [
+        "∅",
+        "center3",
+        "∅",
+        "center3"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Cantoneira Central (L) Bottom Left",
+      "family": "center-elbow",
+      "sig": [
+        "center3",
+        "∅",
+        "∅",
+        "center3"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Cantoneira de Borda (L) Top Left",
+      "family": "edge-l-shape",
+      "sig": [
+        "full",
+        "third0",
+        "full",
+        "third0"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Cantoneira de Borda (L) Top Right",
+      "family": "edge-l-shape",
+      "sig": [
+        "third0",
+        "full",
+        "full",
+        "third1"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Cantoneira de Borda (L) Bottom Right",
+      "family": "edge-l-shape",
+      "sig": [
+        "third1",
+        "full",
+        "third1",
+        "full"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Cantoneira de Borda (L) Bottom Left",
+      "family": "edge-l-shape",
+      "sig": [
+        "full",
+        "third1",
+        "third0",
+        "full"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Junção de Borda (T) Esquerda",
+      "family": "edge-t-shape",
+      "sig": [
+        "full",
+        "center3",
+        "third0",
+        "third0"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Junção de Borda (T) Direita",
+      "family": "edge-t-shape",
+      "sig": [
+        "center3",
+        "full",
+        "third1",
+        "third1"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Junção de Borda (T) Cima",
+      "family": "edge-t-shape",
+      "sig": [
+        "third0",
+        "third0",
+        "full",
+        "center3"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Junção de Borda (T) Baixo",
+      "family": "edge-t-shape",
+      "sig": [
+        "third1",
+        "third1",
+        "center3",
+        "full"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Listras Paralelas Horizontal",
+      "family": "stripes",
+      "sig": [
+        "doubleThird",
+        "doubleThird",
+        "full",
+        "full"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Listras Paralelas Vertical",
+      "family": "stripes",
+      "sig": [
+        "full",
+        "full",
+        "doubleThird",
+        "doubleThird"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Curva de Listras Duplas Top Left",
+      "family": "corner-stripes",
+      "sig": [
+        "doubleThird",
+        "P(0.01)",
+        "doubleThird",
+        "P(0.01)"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Curva de Listras Duplas Top Right",
+      "family": "corner-stripes",
+      "sig": [
+        "P(0.01)",
+        "doubleThird",
+        "doubleThird",
+        "P(0.99)"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Curva de Listras Duplas Bottom Right",
+      "family": "corner-stripes",
+      "sig": [
+        "P(0.99)",
+        "doubleThird",
+        "P(0.99)",
+        "doubleThird"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Curva de Listras Duplas Bottom Left",
+      "family": "corner-stripes",
+      "sig": [
+        "doubleThird",
+        "P(0.99)",
+        "P(0.01)",
+        "doubleThird"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Linha Diagonal (TL-BR)",
+      "family": "diagonal-line",
+      "sig": [
+        "S[0.04w0.09]",
+        "S[0.96w0.09]",
+        "S[0.04w0.09]",
+        "S[0.96w0.09]"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Linha Diagonal (TR-BL)",
+      "family": "diagonal-line",
+      "sig": [
+        "S[0.96w0.09]",
+        "S[0.04w0.09]",
+        "S[0.96w0.09]",
+        "S[0.04w0.09]"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Listras Diagonais (TL-BR)",
+      "family": "diagonal-hatch",
+      "sig": [
+        "S[0.04w0.09 0.51w0.15]",
+        "S[0.49w0.15 0.96w0.09]",
+        "S[0.04w0.09 0.51w0.15]",
+        "S[0.49w0.15 0.96w0.09]"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Listras Diagonais (TR-BL)",
+      "family": "diagonal-hatch",
+      "sig": [
+        "S[0.49w0.15 0.96w0.09]",
+        "S[0.04w0.09 0.51w0.15]",
+        "S[0.49w0.15 0.96w0.09]",
+        "S[0.04w0.09 0.51w0.15]"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Zigue-Zague Horizontal",
+      "family": "zigzag",
+      "sig": [
+        "S[0.48w0.16]",
+        "S[0.52w0.16]",
+        "∅",
+        "∅"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Zigue-Zague Vertical",
+      "family": "zigzag",
+      "sig": [
+        "∅",
+        "∅",
+        "S[0.48w0.16]",
+        "S[0.52w0.16]"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Mini Grade 2×2",
+      "family": "mini-grid",
+      "sig": [
+        "?[[0,0.45],[0.55,1]]",
+        "?[[0,0.45],[0.55,1]]",
+        "?[[0,0.45],[0.55,1]]",
+        "?[[0,0.45],[0.55,1]]"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Xadrez (TL-BR)",
+      "family": "checkers",
+      "sig": [
+        "half0",
+        "half1",
+        "half0",
+        "half1"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Xadrez Inverso (TR-BL)",
+      "family": "checkers",
+      "sig": [
+        "half1",
+        "half0",
+        "half1",
+        "half0"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Meio Bloco Esquerdo",
+      "family": "half-block",
+      "sig": [
+        "full",
+        "∅",
+        "half0",
+        "half0"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Meio Bloco Direito",
+      "family": "half-block",
+      "sig": [
+        "∅",
+        "full",
+        "half1",
+        "half1"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Meio Bloco Superior",
+      "family": "half-block",
+      "sig": [
+        "half0",
+        "half0",
+        "full",
+        "∅"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Meio Bloco Inferior",
+      "family": "half-block",
+      "sig": [
+        "half1",
+        "half1",
+        "∅",
+        "full"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Triângulo de Canto Top Left",
+      "family": "corner-triangle",
+      "sig": [
+        "full",
+        "P(0)",
+        "full",
+        "P(0)"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Triângulo de Canto Top Right",
+      "family": "corner-triangle",
+      "sig": [
+        "P(0)",
+        "full",
+        "full",
+        "P(1)"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Triângulo de Canto Bottom Right",
+      "family": "corner-triangle",
+      "sig": [
+        "P(1)",
+        "full",
+        "P(1)",
+        "full"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Triângulo de Canto Bottom Left",
+      "family": "corner-triangle",
+      "sig": [
+        "full",
+        "P(1)",
+        "P(0)",
+        "full"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Triângulo Lateral Esquerdo",
+      "family": "side-triangle",
+      "sig": [
+        "P(0.5)",
+        "full",
+        "P(0.999)",
+        "P(0.999)"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Triângulo Lateral Direito",
+      "family": "side-triangle",
+      "sig": [
+        "full",
+        "P(0.5)",
+        "P(0.001)",
+        "P(0.001)"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Triângulo Lateral Superior",
+      "family": "side-triangle",
+      "sig": [
+        "P(0.999)",
+        "P(0.999)",
+        "P(0.5)",
+        "full"
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Triângulo Lateral Inferior",
+      "family": "side-triangle",
+      "sig": [
+        "P(0.001)",
+        "P(0.001)",
+        "full",
+        "P(0.5)"
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Ampulheta (Horizontal / Laço)",
+      "family": "bowtie",
+      "sig": [
+        "full",
+        "full",
+        "P(0,1)",
+        "P(0,1)"
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Ampulheta (Vertical)",
+      "family": "bowtie",
+      "sig": [
+        "P(0,1)",
+        "P(0,1)",
+        "full",
+        "full"
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Losango Sólido",
+      "family": "diamond",
+      "sig": [
+        "P(0.5)",
+        "P(0.5)",
+        "P(0.5)",
+        "P(0.5)"
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Meio Bloco & Círculo (Esquerdo)",
+      "family": "half-circle",
+      "sig": [
+        "full",
+        "S[0.50w0.04]",
+        "half0",
+        "half0"
+      ]
+    },
+    {
+      "id": 56,
+      "name": "Meio Bloco & Círculo (Direito)",
+      "family": "half-circle",
+      "sig": [
+        "S[0.50w0.04]",
+        "full",
+        "half1",
+        "half1"
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Meio Bloco & Círculo (Superior)",
+      "family": "half-circle",
+      "sig": [
+        "half0",
+        "half0",
+        "full",
+        "S[0.50w0.04]"
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Meio Bloco & Círculo (Inferior)",
+      "family": "half-circle",
+      "sig": [
+        "half1",
+        "half1",
+        "S[0.50w0.04]",
+        "full"
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Semicírculo de Borda (Esquerdo)",
+      "family": "edge-semicircle",
+      "sig": [
+        "full",
+        "∅",
+        "P(0.005)",
+        "P(0.005)"
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Semicírculo de Borda (Direito)",
+      "family": "edge-semicircle",
+      "sig": [
+        "∅",
+        "full",
+        "P(0.995)",
+        "P(0.995)"
+      ]
+    },
+    {
+      "id": 61,
+      "name": "Semicírculo de Borda (Superior)",
+      "family": "edge-semicircle",
+      "sig": [
+        "P(0.005)",
+        "P(0.005)",
+        "full",
+        "∅"
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Semicírculo de Borda (Inferior)",
+      "family": "edge-semicircle",
+      "sig": [
+        "P(0.995)",
+        "P(0.995)",
+        "∅",
+        "full"
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Arco de Quarto Médio Top Left",
+      "family": "quarter-arc-mid",
+      "sig": [
+        "half0",
+        "∅",
+        "half0",
+        "∅"
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Arco de Quarto Médio Top Right",
+      "family": "quarter-arc-mid",
+      "sig": [
+        "∅",
+        "half0",
+        "half1",
+        "∅"
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Arco de Quarto Médio Bottom Right",
+      "family": "quarter-arc-mid",
+      "sig": [
+        "∅",
+        "half1",
+        "∅",
+        "half1"
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Arco de Quarto Médio Bottom Left",
+      "family": "quarter-arc-mid",
+      "sig": [
+        "half1",
+        "∅",
+        "∅",
+        "half0"
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Arco de Quarto Total Top Left",
+      "family": "quarter-arc-full",
+      "sig": [
+        "full",
+        "P(0.01)",
+        "full",
+        "P(0.01)"
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Arco de Quarto Total Top Right",
+      "family": "quarter-arc-full",
+      "sig": [
+        "P(0.01)",
+        "full",
+        "full",
+        "P(0.99)"
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Arco de Quarto Total Bottom Right",
+      "family": "quarter-arc-full",
+      "sig": [
+        "P(0.99)",
+        "full",
+        "P(0.99)",
+        "full"
+      ]
+    },
+    {
+      "id": 70,
+      "name": "Arco de Quarto Total Bottom Left",
+      "family": "quarter-arc-full",
+      "sig": [
+        "full",
+        "P(0.99)",
+        "P(0.01)",
+        "full"
+      ]
+    },
+    {
+      "id": 71,
+      "name": "Pétala de Canto Top Left",
+      "family": "corner-petal",
+      "sig": [
+        "P(0.008)",
+        "∅",
+        "P(0.008)",
+        "∅"
+      ]
+    },
+    {
+      "id": 72,
+      "name": "Pétala de Canto Top Right",
+      "family": "corner-petal",
+      "sig": [
+        "∅",
+        "P(0.008)",
+        "P(0.992)",
+        "∅"
+      ]
+    },
+    {
+      "id": 73,
+      "name": "Pétala de Canto Bottom Right",
+      "family": "corner-petal",
+      "sig": [
+        "∅",
+        "P(0.992)",
+        "∅",
+        "P(0.992)"
+      ]
+    },
+    {
+      "id": 74,
+      "name": "Pétala de Canto Bottom Left",
+      "family": "corner-petal",
+      "sig": [
+        "P(0.992)",
+        "∅",
+        "∅",
+        "P(0.008)"
+      ]
+    },
+    {
+      "id": 75,
+      "name": "Ondas de Canto Top Left",
+      "family": "corner-waves",
+      "sig": [
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]",
+        "third0",
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]",
+        "third0"
+      ]
+    },
+    {
+      "id": 76,
+      "name": "Ondas de Canto Top Right",
+      "family": "corner-waves",
+      "sig": [
+        "third0",
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]",
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]",
+        "third1"
+      ]
+    },
+    {
+      "id": 77,
+      "name": "Ondas de Canto Bottom Right",
+      "family": "corner-waves",
+      "sig": [
+        "third1",
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]",
+        "third1",
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]"
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Ondas de Canto Bottom Left",
+      "family": "corner-waves",
+      "sig": [
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]",
+        "third1",
+        "third0",
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]"
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Alvo Circular (Target)",
+      "family": "target-circle",
+      "sig": [
+        "center3",
+        "center3",
+        "center3",
+        "center3"
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Alvo Quadrado",
+      "family": "target-square",
+      "sig": [
+        "full",
+        "full",
+        "full",
+        "full"
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Quatro Pontos",
+      "family": "four-dots",
+      "sig": [
+        "∅",
+        "∅",
+        "∅",
+        "∅"
+      ]
+    },
+    {
+      "id": 82,
+      "name": "Três Pontos (TL-BR)",
+      "family": "diagonal-dots",
+      "sig": [
+        "∅",
+        "∅",
+        "∅",
+        "∅"
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Três Pontos (TR-BL)",
+      "family": "diagonal-dots",
+      "sig": [
+        "∅",
+        "∅",
+        "∅",
+        "∅"
+      ]
+    },
+    {
+      "id": 84,
+      "name": "Tile Vazio (Espaço)",
+      "family": "empty-tile",
+      "sig": [
+        "∅",
+        "∅",
+        "∅",
+        "∅"
+      ]
+    }
+  ],
+  "fams": [
+    {
+      "id": "center-stripe",
+      "name": "Faixa Central",
+      "group": "Fitas & Tubos",
+      "size": 2,
+      "sigs": [
+        "center3|center3|∅|∅",
+        "∅|∅|center3|center3"
+      ],
+      "classes": [
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": "center-tee",
+      "name": "Junção Central (T)",
+      "group": "Fitas & Tubos",
+      "size": 4,
+      "sigs": [
+        "center3|∅|center3|center3",
+        "∅|center3|center3|center3",
+        "center3|center3|center3|∅",
+        "center3|center3|∅|center3"
+      ],
+      "classes": [
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": "center-cross",
+      "name": "Cruz Central (+)",
+      "group": "Fitas & Tubos",
+      "size": 1,
+      "sigs": [
+        "center3|center3|center3|center3"
+      ],
+      "classes": [
+        "center3"
+      ]
+    },
+    {
+      "id": "elbow-ribbon",
+      "name": "Arco de Fita (90°)",
+      "group": "Fitas & Tubos",
+      "size": 4,
+      "sigs": [
+        "center3|∅|center3|∅",
+        "∅|center3|center3|∅",
+        "∅|center3|∅|center3",
+        "center3|∅|∅|center3"
+      ],
+      "classes": [
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": "truchet-ribbon",
+      "name": "Fita Truchet Dupla",
+      "group": "Fitas & Tubos",
+      "size": 2,
+      "sigs": [
+        "center3|center3|center3|center3"
+      ],
+      "classes": [
+        "center3"
+      ]
+    },
+    {
+      "id": "center-elbow",
+      "name": "Cantoneira Central (L)",
+      "group": "Fitas & Tubos",
+      "size": 4,
+      "sigs": [
+        "center3|∅|center3|∅",
+        "∅|center3|center3|∅",
+        "∅|center3|∅|center3",
+        "center3|∅|∅|center3"
+      ],
+      "classes": [
+        "center3",
+        "∅"
+      ]
+    },
+    {
+      "id": "edge-l-shape",
+      "name": "Cantoneira de Borda (L)",
+      "group": "Fitas & Tubos",
+      "size": 4,
+      "sigs": [
+        "full|third0|full|third0",
+        "third0|full|full|third1",
+        "third1|full|third1|full",
+        "full|third1|third0|full"
+      ],
+      "classes": [
+        "full",
+        "third0",
+        "third1"
+      ]
+    },
+    {
+      "id": "edge-t-shape",
+      "name": "Junção de Borda (T)",
+      "group": "Fitas & Tubos",
+      "size": 4,
+      "sigs": [
+        "full|center3|third0|third0",
+        "center3|full|third1|third1",
+        "third0|third0|full|center3",
+        "third1|third1|center3|full"
+      ],
+      "classes": [
+        "full",
+        "center3",
+        "third0",
+        "third1"
+      ]
+    },
+    {
+      "id": "stripes",
+      "name": "Listras Paralelas",
+      "group": "Listras & Tramas",
+      "size": 2,
+      "sigs": [
+        "doubleThird|doubleThird|full|full",
+        "full|full|doubleThird|doubleThird"
+      ],
+      "classes": [
+        "doubleThird",
+        "full"
+      ]
+    },
+    {
+      "id": "corner-stripes",
+      "name": "Curva de Listras Duplas (90°)",
+      "group": "Listras & Tramas",
+      "size": 4,
+      "sigs": [
+        "doubleThird|P(0.01)|doubleThird|P(0.01)",
+        "P(0.01)|doubleThird|doubleThird|P(0.99)",
+        "P(0.99)|doubleThird|P(0.99)|doubleThird",
+        "doubleThird|P(0.99)|P(0.01)|doubleThird"
+      ],
+      "classes": [
+        "doubleThird",
+        "P(0.01)",
+        "P(0.99)"
+      ]
+    },
+    {
+      "id": "diagonal-line",
+      "name": "Linha Diagonal",
+      "group": "Listras & Tramas",
+      "size": 2,
+      "sigs": [
+        "S[0.04w0.09]|S[0.96w0.09]|S[0.04w0.09]|S[0.96w0.09]",
+        "S[0.96w0.09]|S[0.04w0.09]|S[0.96w0.09]|S[0.04w0.09]"
+      ],
+      "classes": [
+        "S[0.04w0.09]",
+        "S[0.96w0.09]"
+      ]
+    },
+    {
+      "id": "diagonal-hatch",
+      "name": "Listras Diagonais (Hachura)",
+      "group": "Listras & Tramas",
+      "size": 2,
+      "sigs": [
+        "S[0.04w0.09 0.51w0.15]|S[0.49w0.15 0.96w0.09]|S[0.04w0.09 0.51w0.15]|S[0.49w0.15 0.96w0.09]",
+        "S[0.49w0.15 0.96w0.09]|S[0.04w0.09 0.51w0.15]|S[0.49w0.15 0.96w0.09]|S[0.04w0.09 0.51w0.15]"
+      ],
+      "classes": [
+        "S[0.04w0.09 0.51w0.15]",
+        "S[0.49w0.15 0.96w0.09]"
+      ]
+    },
+    {
+      "id": "zigzag",
+      "name": "Zigue-Zague",
+      "group": "Listras & Tramas",
+      "size": 2,
+      "sigs": [
+        "S[0.48w0.16]|S[0.52w0.16]|∅|∅",
+        "∅|∅|S[0.48w0.16]|S[0.52w0.16]"
+      ],
+      "classes": [
+        "S[0.48w0.16]",
+        "S[0.52w0.16]",
+        "∅"
+      ]
+    },
+    {
+      "id": "mini-grid",
+      "name": "Mini Grade 2×2",
+      "group": "Listras & Tramas",
+      "size": 1,
+      "sigs": [
+        "?[[0,0.45],[0.55,1]]|?[[0,0.45],[0.55,1]]|?[[0,0.45],[0.55,1]]|?[[0,0.45],[0.55,1]]"
+      ],
+      "classes": [
+        "?[[0,0.45],[0.55,1]]"
+      ]
+    },
+    {
+      "id": "checkers",
+      "name": "Xadrez (Checkers)",
+      "group": "Listras & Tramas",
+      "size": 2,
+      "sigs": [
+        "half0|half1|half0|half1",
+        "half1|half0|half1|half0"
+      ],
+      "classes": [
+        "half0",
+        "half1"
+      ]
+    },
+    {
+      "id": "half-block",
+      "name": "Meio Bloco Sólido",
+      "group": "Massas Sólidas",
+      "size": 4,
+      "sigs": [
+        "full|∅|half0|half0",
+        "∅|full|half1|half1",
+        "half0|half0|full|∅",
+        "half1|half1|∅|full"
+      ],
+      "classes": [
+        "full",
+        "∅",
+        "half0",
+        "half1"
+      ]
+    },
+    {
+      "id": "corner-triangle",
+      "name": "Triângulos de Canto",
+      "group": "Massas Sólidas",
+      "size": 4,
+      "sigs": [
+        "full|P(0)|full|P(0)",
+        "P(0)|full|full|P(1)",
+        "P(1)|full|P(1)|full",
+        "full|P(1)|P(0)|full"
+      ],
+      "classes": [
+        "full",
+        "P(0)",
+        "P(1)"
+      ]
+    },
+    {
+      "id": "side-triangle",
+      "name": "Triângulos Laterais",
+      "group": "Massas Sólidas",
+      "size": 4,
+      "sigs": [
+        "P(0.5)|full|P(0.999)|P(0.999)",
+        "full|P(0.5)|P(0.001)|P(0.001)",
+        "P(0.999)|P(0.999)|P(0.5)|full",
+        "P(0.001)|P(0.001)|full|P(0.5)"
+      ],
+      "classes": [
+        "P(0.5)",
+        "full",
+        "P(0.999)",
+        "P(0.001)"
+      ]
+    },
+    {
+      "id": "bowtie",
+      "name": "Ampulheta & Laço",
+      "group": "Massas Sólidas",
+      "size": 2,
+      "sigs": [
+        "full|full|P(0,1)|P(0,1)",
+        "P(0,1)|P(0,1)|full|full"
+      ],
+      "classes": [
+        "full",
+        "P(0,1)"
+      ]
+    },
+    {
+      "id": "diamond",
+      "name": "Losango Sólido",
+      "group": "Massas Sólidas",
+      "size": 1,
+      "sigs": [
+        "P(0.5)|P(0.5)|P(0.5)|P(0.5)"
+      ],
+      "classes": [
+        "P(0.5)"
+      ]
+    },
+    {
+      "id": "half-circle",
+      "name": "Meio Bloco & Círculo",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "full|S[0.50w0.04]|half0|half0",
+        "S[0.50w0.04]|full|half1|half1",
+        "half0|half0|full|S[0.50w0.04]",
+        "half1|half1|S[0.50w0.04]|full"
+      ],
+      "classes": [
+        "full",
+        "S[0.50w0.04]",
+        "half0",
+        "half1"
+      ]
+    },
+    {
+      "id": "edge-semicircle",
+      "name": "Semicírculo de Borda",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "full|∅|P(0.005)|P(0.005)",
+        "∅|full|P(0.995)|P(0.995)",
+        "P(0.005)|P(0.005)|full|∅",
+        "P(0.995)|P(0.995)|∅|full"
+      ],
+      "classes": [
+        "full",
+        "∅",
+        "P(0.005)",
+        "P(0.995)"
+      ]
+    },
+    {
+      "id": "quarter-arc-mid",
+      "name": "Arco de Quarto (Médio)",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "half0|∅|half0|∅",
+        "∅|half0|half1|∅",
+        "∅|half1|∅|half1",
+        "half1|∅|∅|half0"
+      ],
+      "classes": [
+        "half0",
+        "∅",
+        "half1"
+      ]
+    },
+    {
+      "id": "quarter-arc-full",
+      "name": "Arco de Quarto (Total)",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "full|P(0.01)|full|P(0.01)",
+        "P(0.01)|full|full|P(0.99)",
+        "P(0.99)|full|P(0.99)|full",
+        "full|P(0.99)|P(0.01)|full"
+      ],
+      "classes": [
+        "full",
+        "P(0.01)",
+        "P(0.99)"
+      ]
+    },
+    {
+      "id": "corner-petal",
+      "name": "Pétala de Canto (Roseta)",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "P(0.008)|∅|P(0.008)|∅",
+        "∅|P(0.008)|P(0.992)|∅",
+        "∅|P(0.992)|∅|P(0.992)",
+        "P(0.992)|∅|∅|P(0.008)"
+      ],
+      "classes": [
+        "P(0.008)",
+        "∅",
+        "P(0.992)"
+      ]
+    },
+    {
+      "id": "corner-waves",
+      "name": "Ondas de Canto",
+      "group": "Círculos & Arcos",
+      "size": 4,
+      "sigs": [
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]|third0|S[0.33w0.10 0.67w0.10 0.97w0.05]|third0",
+        "third0|S[0.33w0.10 0.67w0.10 0.97w0.05]|S[0.03w0.05 0.33w0.10 0.67w0.10]|third1",
+        "third1|S[0.03w0.05 0.33w0.10 0.67w0.10]|third1|S[0.03w0.05 0.33w0.10 0.67w0.10]",
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]|third1|third0|S[0.33w0.10 0.67w0.10 0.97w0.05]"
+      ],
+      "classes": [
+        "S[0.33w0.10 0.67w0.10 0.97w0.05]",
+        "third0",
+        "S[0.03w0.05 0.33w0.10 0.67w0.10]",
+        "third1"
+      ]
+    },
+    {
+      "id": "target-circle",
+      "name": "Alvo Circular (Target)",
+      "group": "Focos & Pontos",
+      "size": 1,
+      "sigs": [
+        "center3|center3|center3|center3"
+      ],
+      "classes": [
+        "center3"
+      ]
+    },
+    {
+      "id": "target-square",
+      "name": "Alvo Quadrado",
+      "group": "Focos & Pontos",
+      "size": 1,
+      "sigs": [
+        "full|full|full|full"
+      ],
+      "classes": [
+        "full"
+      ]
+    },
+    {
+      "id": "four-dots",
+      "name": "Quatro Pontos",
+      "group": "Focos & Pontos",
+      "size": 1,
+      "sigs": [
+        "∅|∅|∅|∅"
+      ],
+      "classes": [
+        "∅"
+      ]
+    },
+    {
+      "id": "diagonal-dots",
+      "name": "Três Pontos Diagonais",
+      "group": "Focos & Pontos",
+      "size": 2,
+      "sigs": [
+        "∅|∅|∅|∅"
+      ],
+      "classes": [
+        "∅"
+      ]
+    },
+    {
+      "id": "empty-tile",
+      "name": "Tile Vazio (Espaço)",
+      "group": "Espaço Negativo",
+      "size": 1,
+      "sigs": [
+        "∅|∅|∅|∅"
+      ],
+      "classes": [
+        "∅"
+      ]
+    }
+  ]
+}

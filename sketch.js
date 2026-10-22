@@ -38,6 +38,12 @@ const StudioState = {
   allowedTiles: new Set(),
   searchQuery: '',
 
+  // Freeze / Lock Subtiles State
+  frozenCells: new Map(), // key: `${r},${c},${subR},${subC}` -> { baseTileId, transform, tileId }
+  isFreezingDrag: false,
+  freezeDragAction: 'freeze',
+  lastFrozenCellKey: null,
+
   // Active Tool & Guides ('inspect' | 'paint' | 'rotate' | 'stamp' | 'pan' | 'zoom')
   activeTool: 'inspect',
   isSpaceDown: false,
@@ -265,6 +271,7 @@ function buildStudioStatePayload(includeHistories = true) {
     rightDockCollapsed: !!StudioState.rightDockCollapsed,
     dockPanels: StudioState.dockPanels ? Object.assign({}, StudioState.dockPanels) : {},
     cellsSnapshot,
+    frozenCells: StudioState.frozenCells ? Array.from(StudioState.frozenCells.entries()) : [],
 
     history: includeHistories ? StudioState.history : [],
     historyIndex: includeHistories ? StudioState.historyIndex : -1,
@@ -431,6 +438,11 @@ function loadStudioStateFromStorage() {
     if (typeof saved.rotateBehavior === 'string') StudioState.rotateBehavior = saved.rotateBehavior;
     if (typeof saved.stampInteractionMode === 'string') StudioState.stampInteractionMode = saved.stampInteractionMode;
 
+    // Frozen Cells
+    if (Array.isArray(saved.frozenCells)) {
+      StudioState.frozenCells = new Map(saved.frozenCells);
+    }
+
     // Guides
     if (saved.guides && typeof saved.guides === 'object') {
       StudioState.guides = Object.assign({}, StudioState.guides, saved.guides);
@@ -511,6 +523,30 @@ function restoreMosaicFromSavedState() {
     },
     (arr) => arr[floor(random(arr.length))]
   );
+
+  // Restore frozen cells into newly generated mosaic
+  if (StudioState.frozenCells && StudioState.frozenCells.size > 0 && StudioState.mosaicData) {
+    const N = StudioState.mosaicData.subtilesPerSide;
+    for (const [key, cellData] of StudioState.frozenCells.entries()) {
+      const parts = key.split(',').map(Number);
+      if (parts.length === 4) {
+        const [r, c, subR, subC] = parts;
+        if (r < StudioState.rows && c < StudioState.cols && subR < N && subC < N) {
+          const targetCell = StudioState.mosaicData.grid[r]?.[c]?.cells[subR]?.[subC];
+          if (targetCell) {
+            targetCell.baseTileId = cellData.baseTileId;
+            targetCell.transform = cellData.transform;
+            targetCell.tileId = cellData.tileId;
+          }
+        } else {
+          StudioState.frozenCells.delete(key);
+        }
+      } else {
+        StudioState.frozenCells.delete(key);
+      }
+    }
+  }
+  syncFreezeUI();
 
   // 2. Restore cells from savedCellsSnapshot if dimensions match
   const snap = StudioState.savedCellsSnapshot;
@@ -739,16 +775,22 @@ function draw() {
   push();
   scale(zoomScale);
   window.MosaicEngine.renderMosaicToContext(window, StudioState.mosaicData, layoutConfig);
-  const isEditTool = StudioState.workspace === 'edit' && (
+  const isEditTool = (StudioState.workspace === 'edit' && (
     StudioState.activeTool === 'paint' ||
     StudioState.activeTool === 'rotate' ||
     StudioState.activeTool === 'stamp'
-  );
+  )) || StudioState.activeTool === 'freeze';
   window.MosaicEngine.renderGuidesAndOverlays(
     window,
     StudioState.mosaicData,
     layoutConfig,
-    { ...StudioState.guides, isEditTool },
+    {
+      ...StudioState.guides,
+      isEditTool,
+      frozenCells: StudioState.frozenCells,
+      isFreezeTool: StudioState.activeTool === 'freeze',
+      freezeHoverPlacements: StudioState.activeTool === 'freeze' ? resolveFreezeTargetPlacements(StudioState.hoveredCell) : null
+    },
     StudioState.hoveredCell
   );
   const editPreview = getEditPreviewState();
@@ -1402,6 +1444,56 @@ function getCanvasHitCell(mx, my) {
   return { row, col, subRow, subCol };
 }
 
+function resolveFreezeTargetPlacements(hit) {
+  if (!StudioState.mosaicData || !hit) return [];
+  const dummyPat = { rows: 1, cols: 1, cells: [[{ tileId: 1, baseTileId: 1, transform: 'id' }]] };
+  const resolved = window.MosaicEngine.resolveStampRegionPlacements(
+    StudioState.mosaicData,
+    dummyPat,
+    hit,
+    StudioState.editScope,
+    'id',
+    {
+      snapToBlock: StudioState.brushSnapToBlock,
+      canvasCenterSymmetry: StudioState.canvasCenterSymmetry
+    }
+  );
+  return Array.isArray(resolved) ? resolved : (resolved?.placements || []);
+}
+
+function syncFreezeUI() {
+  const badge = document.getElementById('freezeCountBadge');
+  const btnClear = document.getElementById('btnClearFrozen');
+  const btnToggle = document.getElementById('btnToggleFreezeTool');
+  const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
+
+  if (badge) {
+    if (count === 0) {
+      badge.textContent = 'Nenhum';
+      badge.className = 'prop-badge secondary';
+    } else {
+      badge.textContent = `${count} ${count === 1 ? 'subtile' : 'subtiles'}`;
+      badge.className = 'prop-badge freeze-active';
+    }
+  }
+
+  if (btnClear) {
+    btnClear.disabled = count === 0;
+  }
+
+  if (btnToggle) {
+    btnToggle.classList.toggle('active', StudioState.activeTool === 'freeze');
+  }
+}
+
+function clearFrozenCells() {
+  if (!StudioState.frozenCells || StudioState.frozenCells.size === 0) return;
+  StudioState.frozenCells.clear();
+  syncFreezeUI();
+  saveStudioStateToStorage();
+  redraw();
+}
+
 function mouseMoved() {
   const hit = getCanvasHitCell(mouseX, mouseY);
   const prev = StudioState.hoveredCell;
@@ -1413,7 +1505,8 @@ function mouseMoved() {
     updateHoverStatusText();
     const isEditTool = StudioState.activeTool === 'paint' ||
       StudioState.activeTool === 'rotate' ||
-      StudioState.activeTool === 'stamp';
+      StudioState.activeTool === 'stamp' ||
+      StudioState.activeTool === 'freeze';
     if (StudioState.guides.highlightHoverOrbit || isEditTool) {
       redraw();
     }
@@ -1436,6 +1529,14 @@ function performSubtileRotateStep(hit, step = 1) {
     }
   );
   const changed = window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
+  if (changed && StudioState.frozenCells && StudioState.frozenCells.size > 0) {
+    for (const p of placements) {
+      const key = `${p.row},${p.col},${p.subRow},${p.subCol}`;
+      if (StudioState.frozenCells.has(key)) {
+        StudioState.frozenCells.set(key, { baseTileId: p.baseTileId, transform: p.transform, tileId: p.tileId });
+      }
+    }
+  }
   if (changed) syncD4Badge();
   return changed;
 }
@@ -1556,6 +1657,33 @@ function mouseDragged() {
     return;
   }
 
+  // Drag-freezing in Freeze Tool ('freeze')
+  if (StudioState.isFreezingDrag && StudioState.activeTool === 'freeze' && hit && StudioState.mosaicData) {
+    const cellKey = `${hit.row},${hit.col},${hit.subRow},${hit.subCol}`;
+    if (cellKey !== StudioState.lastFrozenCellKey) {
+      StudioState.lastFrozenCellKey = cellKey;
+      const placements = resolveFreezeTargetPlacements(hit);
+      for (const p of placements) {
+        const pKey = `${p.row},${p.col},${p.subRow},${p.subCol}`;
+        if (StudioState.freezeDragAction === 'freeze') {
+          const cell = StudioState.mosaicData.grid[p.row]?.[p.col]?.cells[p.subRow]?.[p.subCol];
+          if (cell) {
+            StudioState.frozenCells.set(pKey, {
+              baseTileId: cell.baseTileId,
+              transform: cell.transform,
+              tileId: cell.tileId
+            });
+          }
+        } else {
+          StudioState.frozenCells.delete(pKey);
+        }
+      }
+      syncFreezeUI();
+      redraw();
+    }
+    return;
+  }
+
   // Drag-painting in Paint or Stamp ('apply') mode
   if (
     StudioState.isPaintingDrag &&
@@ -1624,6 +1752,42 @@ function handleCanvasMouseDown(e) {
       StudioState.workspace = 'edit';
     }
     startCanvasRegionCaptureDrag(hit);
+    return;
+  }
+
+  // Freeze / Lock Subtiles Tool ('freeze')
+  if (StudioState.activeTool === 'freeze') {
+    e.preventDefault();
+    const placements = resolveFreezeTargetPlacements(hit);
+    if (!placements || placements.length === 0) return;
+
+    const anchorKey = `${hit.row},${hit.col},${hit.subRow},${hit.subCol}`;
+    const isAnchorFrozen = StudioState.frozenCells.has(anchorKey);
+    const shouldUnfreeze = e.button === 2 || e.altKey || isAnchorFrozen;
+    const action = shouldUnfreeze ? 'unfreeze' : 'freeze';
+
+    StudioState.isFreezingDrag = true;
+    StudioState.freezeDragAction = action;
+    StudioState.lastFrozenCellKey = anchorKey;
+
+    for (const p of placements) {
+      const cellKey = `${p.row},${p.col},${p.subRow},${p.subCol}`;
+      if (action === 'freeze') {
+        const cell = StudioState.mosaicData.grid[p.row]?.[p.col]?.cells[p.subRow]?.[p.subCol];
+        if (cell) {
+          StudioState.frozenCells.set(cellKey, {
+            baseTileId: cell.baseTileId,
+            transform: cell.transform,
+            tileId: cell.tileId
+          });
+        }
+      } else {
+        StudioState.frozenCells.delete(cellKey);
+      }
+    }
+
+    syncFreezeUI();
+    redraw();
     return;
   }
 
@@ -2028,6 +2192,7 @@ function handleMiniBuilderCanvasMouse(e, isDrag = false) {
 }
 
 function syncEditWorkspaceUI() {
+  syncFreezeUI();
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
 
@@ -2159,6 +2324,11 @@ function updateHoverStatusText() {
 
   const hit = StudioState.hoveredCell;
   if (!hit || !StudioState.mosaicData) {
+    if (StudioState.activeTool === 'freeze') {
+      const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
+      el.innerHTML = `<strong>Travar Subtiles (F):</strong> Clique para travar/destravar • Alt+Clique destrava • Escopo: <strong>${StudioState.editScope}</strong> • Travados: <strong>${count}</strong>`;
+      return;
+    }
     if (StudioState.workspace === 'edit') {
       if (StudioState.activeTool === 'rotate') {
         el.innerHTML = '<strong>Girar (R):</strong> Clique Esq gira +90° • Clique Dir gira -90° • Alt+Arraste captura área';
@@ -2179,12 +2349,14 @@ function updateHoverStatusText() {
   const d4Meta = window.D4Symmetry.D4_METADATA[block.transformFromSource] || window.D4Symmetry.D4_METADATA.id;
   const subCell = block.cells[hit.subRow]?.[hit.subCol];
   const tileName = subCell ? (window.TileRegistry.TILE_NAMES[subCell.tileId] || `Tile #${subCell.tileId}`) : '';
+  const isCellFrozen = StudioState.frozenCells && StudioState.frozenCells.has(`${hit.row},${hit.col},${hit.subRow},${hit.subCol}`);
+  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;">❄️ TRAVADO</span>' : '';
 
   el.innerHTML =
     `Bloco <strong>[L${hit.row + 1}, C${hit.col + 1}]</strong> • ` +
     `Órbita <strong>#${block.orbitId}</strong> • ` +
     `Giro/Espelho: <strong>${d4Meta.label} (${d4Meta.arrow})</strong> • ` +
-    `Subtile [${hit.subRow + 1},${hit.subCol + 1}]: <strong>#${subCell ? subCell.tileId : '-'} ${tileName}</strong>`;
+    `Subtile [${hit.subRow + 1},${hit.subCol + 1}]: <strong>#${subCell ? subCell.tileId : '-'} ${tileName}</strong>${freezeBadge}`;
 }
 
 function updateStatusBar() {
@@ -2608,6 +2780,20 @@ function initStudioUI() {
     btn.addEventListener('click', () => setWorkspaceMode(btn.dataset.workspace));
   });
 
+  const btnToggleFreeze = document.getElementById('btnToggleFreezeTool');
+  if (btnToggleFreeze) {
+    btnToggleFreeze.addEventListener('click', () => {
+      setActiveTool(StudioState.activeTool === 'freeze' ? 'inspect' : 'freeze');
+    });
+  }
+
+  const btnClearFrozen = document.getElementById('btnClearFrozen');
+  if (btnClearFrozen) {
+    btnClearFrozen.addEventListener('click', () => {
+      clearFrozenCells();
+    });
+  }
+
   document.querySelectorAll('#left-toolbar .tool-btn[data-tool]').forEach((btn) => {
     btn.addEventListener('click', () => setActiveTool(btn.dataset.tool));
   });
@@ -2890,6 +3076,10 @@ function initStudioUI() {
   window.addEventListener('mouseup', () => {
     StudioState.isPanning = false;
     StudioState.isPaintingMiniBuilder = false;
+    if (StudioState.isFreezingDrag) {
+      StudioState.isFreezingDrag = false;
+      saveStudioStateToStorage();
+    }
 
     if (StudioState.isSelectingStampDrag) {
       StudioState.isSelectingStampDrag = false;
@@ -3015,6 +3205,8 @@ function initStudioUI() {
     if (k === 'g') {
       e.preventDefault();
       triggerRandomSeed();
+    } else if (k === 'f') {
+      setActiveTool('freeze');
     } else if (k === 'v') {
       setActiveTool('inspect');
     } else if (k === 'b') {

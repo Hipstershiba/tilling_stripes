@@ -1,0 +1,204 @@
+{
+  "sets": [
+    {
+      "id": "fita",
+      "name": "Fita 1/3",
+      "tagline": "Circuito de fitas contínuas",
+      "module": "third",
+      "material": "fill",
+      "connection": "continuidade",
+      "description": "Faixas de 1/3 que entram e saem pelo centro de cada borda. Trocam entre reta, curva, T, cruz e laço sem emenda visível.",
+      "families": {
+        "center-stripe": "core",
+        "center-tee": "core",
+        "center-cross": "core",
+        "elbow-ribbon": "core",
+        "truchet-ribbon": "core",
+        "center-elbow": "core",
+        "edge-t-shape": "bridge",
+        "band-cap": "terminal"
+      },
+      "recommendedPadding": [0, 0.02]
+    },
+    {
+      "id": "moldura",
+      "name": "Moldura",
+      "tagline": "Bordas, cantos e fechamentos",
+      "module": "third",
+      "material": "fill",
+      "connection": "continuidade + justaposição",
+      "description": "Faixas de 1/3 encostadas na borda. Cantos (L), bifurcações (T) e o anel fechado permitem desenhar quadros e molduras internas.",
+      "families": {
+        "edge-l-shape": "core",
+        "edge-t-shape": "core",
+        "frame-ring": "core",
+        "target-square": "bridge",
+        "stripes": "bridge",
+        "corner-waves": "tangent"
+      },
+      "recommendedPadding": [0, 0.02]
+    },
+    {
+      "id": "listras-duplas",
+      "name": "Listras Duplas",
+      "tagline": "Duas faixas paralelas, um circuito",
+      "module": "third",
+      "material": "fill",
+      "connection": "continuidade",
+      "description": "Duas faixas de 1/3 separadas por 1/3. A curva de 90° vira o canto; o grampo de 180° fecha o circuito.",
+      "families": {
+        "stripes": "core",
+        "corner-stripes": "core",
+        "stripe-uturn": "terminal"
+      },
+      "recommendedPadding": [0, 0.02]
+    },
+    {
+      "id": "massa-modular",
+      "name": "Massa Modular",
+      "tagline": "Meios, quartos e figura-fundo",
+      "module": "half",
+      "material": "fill",
+      "connection": "continuidade + complementaridade",
+      "description": "Blocos de 1/2 e 1/4, triângulos, arcos cheios e xadrez. Duas metades complementares fecham um bloco; quatro quartos fecham um quadrado.",
+      "families": {
+        "half-block": "core",
+        "quarter-block": "core",
+        "corner-triangle": "core",
+        "side-triangle": "core",
+        "bowtie": "core",
+        "checkers": "core",
+        "quarter-arc-mid": "core",
+        "quarter-arc-full": "core",
+        "half-circle": "core",
+        "edge-semicircle": "core",
+        "edge-l-shape": "bridge",
+        "stripe-uturn": "bridge",
+        "frame-ring": "bridge",
+        "target-square": "bridge",
+        "diamond": "accent"
+      },
+      "recommendedPadding": [0.04, 0.08]
+    },
+    {
+      "id": "arcos",
+      "name": "Arcos & Rosetas",
+      "tagline": "Curvas, pétalas e ondulações",
+      "module": "half + line",
+      "material": "misto",
+      "connection": "justaposição + ritmo",
+      "description": "O vocabulário circular: semicírculos, arcos de quarto, pétalas, ondas e o anel. Mistura massa e traço de propósito.",
+      "families": {
+        "half-circle": "core",
+        "edge-semicircle": "core",
+        "quarter-arc-mid": "core",
+        "quarter-arc-full": "core",
+        "corner-petal": "core",
+        "corner-waves": "core",
+        "ring": "core",
+        "elbow-ribbon": "accent",
+        "corner-stripes": "accent",
+        "target-circle": "accent"
+      },
+      "recommendedPadding": [0.02, 0.06]
+    },
+    {
+      "id": "linha-diagonal",
+      "name": "Linha Diagonal",
+      "tagline": "Lattice de traço fino",
+      "module": "line",
+      "material": "stroke",
+      "connection": "contato em canto / ponto",
+      "description": "Diagonais, hachuras, X e trama cruzada. A conexão é por canto e ponto médio, não por faixa; o peso do traço é a gramática.",
+      "families": {
+        "diagonal-line": "core",
+        "diagonal-hatch": "core",
+        "diagonal-x": "core",
+        "diagonal-crosshatch": "core",
+        "diamond-outline": "bridge",
+        "zigzag": "texture",
+        "corner-triangle": "accent",
+        "corner-waves": "texture"
+      },
+      "recommendedPadding": [0.03, 0.06]
+    },
+    {
+      "id": "foco",
+      "name": "Foco",
+      "tagline": "Alvos, pontos e vazios",
+      "module": "free + line",
+      "material": "misto",
+      "connection": "ritmo / contato pontual",
+      "description": "Motivos centrais e pontuais. Não precisam de continuidade de borda; precisam de ritmo, escala e eco de forma.",
+      "families": {
+        "target-circle": "core",
+        "target-square": "core",
+        "four-dots": "core",
+        "diagonal-dots": "core",
+        "center-dot": "core",
+        "edge-dots": "core",
+        "diamond-outline": "core",
+        "ring": "core",
+        "diamond": "core",
+        "corner-petal": "accent",
+        "diagonal-x": "accent",
+        "diagonal-crosshatch": "accent"
+      },
+      "recommendedPadding": [0.08, 0.14]
+    },
+    {
+      "id": "pontos",
+      "name": "Pontos",
+      "tagline": "Malha de pontos entre células",
+      "module": "free",
+      "material": "fill",
+      "connection": "contato pontual",
+      "description": "Subconjunto do Foco: pontos que se alinham de célula a célula e criam uma malha. O Ponto de Borda é o elo que faltava.",
+      "families": {
+        "center-dot": "core",
+        "edge-dots": "core",
+        "four-dots": "core",
+        "diagonal-dots": "core",
+        "diamond": "accent",
+        "diamond-outline": "accent"
+      },
+      "recommendedPadding": [0.08, 0.14]
+    },
+    {
+      "id": "respiro",
+      "name": "Respiro",
+      "tagline": "Vazio e pausa",
+      "module": "free",
+      "material": "void",
+      "connection": "nenhuma (modificador)",
+      "description": "O vazio não conecta: ele espaça. Pode entrar em qualquer conjunto como modificador, sem virar regra.",
+      "families": {
+        "empty-tile": "core",
+        "four-dots": "accent",
+        "diagonal-dots": "accent",
+        "center-dot": "accent"
+      },
+      "recommendedPadding": [0.1, 0.2]
+    }
+  ],
+  "notes": {
+    "family_multi_set": [
+      "edge-t-shape: Fita (ponte) + Moldura (núcleo)",
+      "edge-l-shape: Moldura (núcleo) + Massa (ponte)",
+      "stripes: Listras Duplas (núcleo) + Moldura (ponte)",
+      "stripe-uturn: Listras Duplas (terminal) + Massa (ponte)",
+      "frame-ring: Moldura (núcleo) + Massa (ponte)",
+      "target-square: Foco (núcleo) + Moldura (ponte)",
+      "diamond-outline: Foco (núcleo) + Linha Diagonal (ponte)",
+      "ring: Arcos (núcleo) + Foco (núcleo)",
+      "corner-petal: Arcos (núcleo) + Foco (acento)",
+      "corner-triangle: Massa (núcleo) + Linha Diagonal (acento)",
+      "empty-tile: modificador universal"
+    ],
+    "false_friends": [
+      "target-circle × Fita: o anel tangente produz uma porta C falsa; material fino contra faixa cheia.",
+      "corner-waves × Moldura: a onda externa tangencia a borda e imita uma faixa de 1/3; é traço, não massa.",
+      "target-square × Massa: a moldura fina encosta em cheio, mas o material não continua."
+    ]
+  }
+}

@@ -1,0 +1,462 @@
+{
+  "rows": [
+    {
+      "id": 0,
+      "name": "Faixa Central Horizontal",
+      "density": 0.3333
+    },
+    {
+      "id": 1,
+      "name": "Faixa Central Vertical",
+      "density": 0.3333
+    },
+    {
+      "id": 2,
+      "name": "Junção Central (T) Esquerda",
+      "density": 0.4444
+    },
+    {
+      "id": 3,
+      "name": "Junção Central (T) Direita",
+      "density": 0.4444
+    },
+    {
+      "id": 4,
+      "name": "Junção Central (T) Cima",
+      "density": 0.4444
+    },
+    {
+      "id": 5,
+      "name": "Junção Central (T) Baixo",
+      "density": 0.4444
+    },
+    {
+      "id": 6,
+      "name": "Cruz Central (+)",
+      "density": 0.5556
+    },
+    {
+      "id": 7,
+      "name": "Arco de Fita Top Left",
+      "density": 0.2618
+    },
+    {
+      "id": 8,
+      "name": "Arco de Fita Top Right",
+      "density": 0.2618
+    },
+    {
+      "id": 9,
+      "name": "Arco de Fita Bottom Right",
+      "density": 0.2618
+    },
+    {
+      "id": 10,
+      "name": "Arco de Fita Bottom Left",
+      "density": 0.2618
+    },
+    {
+      "id": 11,
+      "name": "Fita Truchet (TL-BR)",
+      "density": 0.5235
+    },
+    {
+      "id": 12,
+      "name": "Fita Truchet (TR-BL)",
+      "density": 0.5235
+    },
+    {
+      "id": 13,
+      "name": "Cantoneira Central (L) Top Left",
+      "density": 0.3333
+    },
+    {
+      "id": 14,
+      "name": "Cantoneira Central (L) Top Right",
+      "density": 0.3333
+    },
+    {
+      "id": 15,
+      "name": "Cantoneira Central (L) Bottom Right",
+      "density": 0.3333
+    },
+    {
+      "id": 16,
+      "name": "Cantoneira Central (L) Bottom Left",
+      "density": 0.3333
+    },
+    {
+      "id": 17,
+      "name": "Cantoneira de Borda (L) Top Left",
+      "density": 0.5556
+    },
+    {
+      "id": 18,
+      "name": "Cantoneira de Borda (L) Top Right",
+      "density": 0.5556
+    },
+    {
+      "id": 19,
+      "name": "Cantoneira de Borda (L) Bottom Right",
+      "density": 0.5556
+    },
+    {
+      "id": 20,
+      "name": "Cantoneira de Borda (L) Bottom Left",
+      "density": 0.5556
+    },
+    {
+      "id": 21,
+      "name": "Junção de Borda (T) Esquerda",
+      "density": 0.5556
+    },
+    {
+      "id": 22,
+      "name": "Junção de Borda (T) Direita",
+      "density": 0.5556
+    },
+    {
+      "id": 23,
+      "name": "Junção de Borda (T) Cima",
+      "density": 0.5556
+    },
+    {
+      "id": 24,
+      "name": "Junção de Borda (T) Baixo",
+      "density": 0.5556
+    },
+    {
+      "id": 25,
+      "name": "Listras Paralelas Horizontal",
+      "density": 0.6667
+    },
+    {
+      "id": 26,
+      "name": "Listras Paralelas Vertical",
+      "density": 0.6667
+    },
+    {
+      "id": 27,
+      "name": "Curva de Listras Duplas Top Left",
+      "density": 0.5235
+    },
+    {
+      "id": 28,
+      "name": "Curva de Listras Duplas Top Right",
+      "density": 0.5235
+    },
+    {
+      "id": 29,
+      "name": "Curva de Listras Duplas Bottom Right",
+      "density": 0.5235
+    },
+    {
+      "id": 30,
+      "name": "Curva de Listras Duplas Bottom Left",
+      "density": 0.5235
+    },
+    {
+      "id": 31,
+      "name": "Linha Diagonal (TL-BR)",
+      "density": 0.1725
+    },
+    {
+      "id": 32,
+      "name": "Linha Diagonal (TR-BL)",
+      "density": 0.1725
+    },
+    {
+      "id": 33,
+      "name": "Listras Diagonais (TL-BR)",
+      "density": 0.3507
+    },
+    {
+      "id": 34,
+      "name": "Listras Diagonais (TR-BL)",
+      "density": 0.3507
+    },
+    {
+      "id": 35,
+      "name": "Zigue-Zague Horizontal",
+      "density": 0.1991
+    },
+    {
+      "id": 36,
+      "name": "Zigue-Zague Vertical",
+      "density": 0.1991
+    },
+    {
+      "id": 37,
+      "name": "Mini Grade 2×2",
+      "density": 0.7901
+    },
+    {
+      "id": 38,
+      "name": "Xadrez (TL-BR)",
+      "density": 0.5
+    },
+    {
+      "id": 39,
+      "name": "Xadrez Inverso (TR-BL)",
+      "density": 0.5
+    },
+    {
+      "id": 40,
+      "name": "Meio Bloco Esquerdo",
+      "density": 0.5
+    },
+    {
+      "id": 41,
+      "name": "Meio Bloco Direito",
+      "density": 0.5
+    },
+    {
+      "id": 42,
+      "name": "Meio Bloco Superior",
+      "density": 0.5
+    },
+    {
+      "id": 43,
+      "name": "Meio Bloco Inferior",
+      "density": 0.5
+    },
+    {
+      "id": 44,
+      "name": "Triângulo de Canto Top Left",
+      "density": 0.495
+    },
+    {
+      "id": 45,
+      "name": "Triângulo de Canto Top Right",
+      "density": 0.5069
+    },
+    {
+      "id": 46,
+      "name": "Triângulo de Canto Bottom Right",
+      "density": 0.5042
+    },
+    {
+      "id": 47,
+      "name": "Triângulo de Canto Bottom Left",
+      "density": 0.4931
+    },
+    {
+      "id": 48,
+      "name": "Triângulo Lateral Esquerdo",
+      "density": 0.5
+    },
+    {
+      "id": 49,
+      "name": "Triângulo Lateral Direito",
+      "density": 0.5
+    },
+    {
+      "id": 50,
+      "name": "Triângulo Lateral Superior",
+      "density": 0.5
+    },
+    {
+      "id": 51,
+      "name": "Triângulo Lateral Inferior",
+      "density": 0.5
+    },
+    {
+      "id": 52,
+      "name": "Ampulheta (Horizontal / Laço)",
+      "density": 0.4998
+    },
+    {
+      "id": 53,
+      "name": "Ampulheta (Vertical)",
+      "density": 0.5002
+    },
+    {
+      "id": 54,
+      "name": "Losango Sólido",
+      "density": 0.4998
+    },
+    {
+      "id": 55,
+      "name": "Meio Bloco & Círculo (Esquerdo)",
+      "density": 0.6968
+    },
+    {
+      "id": 56,
+      "name": "Meio Bloco & Círculo (Direito)",
+      "density": 0.6968
+    },
+    {
+      "id": 57,
+      "name": "Meio Bloco & Círculo (Superior)",
+      "density": 0.6968
+    },
+    {
+      "id": 58,
+      "name": "Meio Bloco & Círculo (Inferior)",
+      "density": 0.6968
+    },
+    {
+      "id": 59,
+      "name": "Semicírculo de Borda (Esquerdo)",
+      "density": 0.3908
+    },
+    {
+      "id": 60,
+      "name": "Semicírculo de Borda (Direito)",
+      "density": 0.3908
+    },
+    {
+      "id": 61,
+      "name": "Semicírculo de Borda (Superior)",
+      "density": 0.3908
+    },
+    {
+      "id": 62,
+      "name": "Semicírculo de Borda (Inferior)",
+      "density": 0.3908
+    },
+    {
+      "id": 63,
+      "name": "Arco de Quarto Médio Top Left",
+      "density": 0.1958
+    },
+    {
+      "id": 64,
+      "name": "Arco de Quarto Médio Top Right",
+      "density": 0.1958
+    },
+    {
+      "id": 65,
+      "name": "Arco de Quarto Médio Bottom Right",
+      "density": 0.1958
+    },
+    {
+      "id": 66,
+      "name": "Arco de Quarto Médio Bottom Left",
+      "density": 0.1958
+    },
+    {
+      "id": 67,
+      "name": "Arco de Quarto Total Top Left",
+      "density": 0.7853
+    },
+    {
+      "id": 68,
+      "name": "Arco de Quarto Total Top Right",
+      "density": 0.7853
+    },
+    {
+      "id": 69,
+      "name": "Arco de Quarto Total Bottom Right",
+      "density": 0.7853
+    },
+    {
+      "id": 70,
+      "name": "Arco de Quarto Total Bottom Left",
+      "density": 0.7853
+    },
+    {
+      "id": 71,
+      "name": "Pétala de Canto Top Left",
+      "density": 0.1416
+    },
+    {
+      "id": 72,
+      "name": "Pétala de Canto Top Right",
+      "density": 0.1416
+    },
+    {
+      "id": 73,
+      "name": "Pétala de Canto Bottom Right",
+      "density": 0.1416
+    },
+    {
+      "id": 74,
+      "name": "Pétala de Canto Bottom Left",
+      "density": 0.1416
+    },
+    {
+      "id": 75,
+      "name": "Ondas de Canto Top Left",
+      "density": 0.294
+    },
+    {
+      "id": 76,
+      "name": "Ondas de Canto Top Right",
+      "density": 0.294
+    },
+    {
+      "id": 77,
+      "name": "Ondas de Canto Bottom Right",
+      "density": 0.294
+    },
+    {
+      "id": 78,
+      "name": "Ondas de Canto Bottom Left",
+      "density": 0.294
+    },
+    {
+      "id": 79,
+      "name": "Alvo Circular (Target)",
+      "density": 0.314
+    },
+    {
+      "id": 80,
+      "name": "Alvo Quadrado",
+      "density": 0.3164
+    },
+    {
+      "id": 81,
+      "name": "Quatro Pontos",
+      "density": 0.0957
+    },
+    {
+      "id": 82,
+      "name": "Três Pontos (TL-BR)",
+      "density": 0.0718
+    },
+    {
+      "id": 83,
+      "name": "Três Pontos (TR-BL)",
+      "density": 0.0718
+    },
+    {
+      "id": 84,
+      "name": "Tile Vazio (Espaço)",
+      "density": 0
+    }
+  ],
+  "fam": {
+    "center-stripe": 0.3333,
+    "center-tee": 0.4444,
+    "center-cross": 0.5556,
+    "elbow-ribbon": 0.2618,
+    "truchet-ribbon": 0.5235,
+    "center-elbow": 0.3333,
+    "edge-l-shape": 0.5556,
+    "edge-t-shape": 0.5556,
+    "stripes": 0.6667,
+    "corner-stripes": 0.5235,
+    "diagonal-line": 0.1725,
+    "diagonal-hatch": 0.3507,
+    "zigzag": 0.1991,
+    "mini-grid": 0.7901,
+    "checkers": 0.5,
+    "half-block": 0.5,
+    "corner-triangle": 0.4998,
+    "side-triangle": 0.5,
+    "bowtie": 0.5,
+    "diamond": 0.4998,
+    "half-circle": 0.6968,
+    "edge-semicircle": 0.3908,
+    "quarter-arc-mid": 0.1958,
+    "quarter-arc-full": 0.7853,
+    "corner-petal": 0.1416,
+    "corner-waves": 0.294,
+    "target-circle": 0.314,
+    "target-square": 0.3164,
+    "four-dots": 0.0957,
+    "diagonal-dots": 0.0718,
+    "empty-tile": 0
+  }
+}

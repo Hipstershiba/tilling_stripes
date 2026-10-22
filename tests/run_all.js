@@ -33,7 +33,10 @@ const testSuites = [
   'test_ui_layout_contract.js',
 
   // 5. Documentation & Contracts
-  'test_docs_consistency.js'
+  'test_docs_consistency.js',
+
+  // 6. Subtile Freezing / Locking
+  'test_freeze_subtiles.js'
 ];
 
 console.log('====================================================');
