@@ -1501,27 +1501,20 @@ function resolveFreezeTargetPlacements(hit) {
 }
 
 function syncFreezeUI() {
-  const badge = document.getElementById('freezeCountBadge');
-  const btnClear = document.getElementById('btnClearFrozen');
-  const btnToggle = document.getElementById('btnToggleFreezeTool');
+  const statusRow = document.getElementById('freezeStatusRow');
+  const label = document.getElementById('freezeCountLabel');
+  const editorCount = document.getElementById('freezeToolCountBadge');
   const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
 
-  if (badge) {
-    if (count === 0) {
-      badge.textContent = 'Nenhum';
-      badge.className = 'prop-badge secondary';
-    } else {
-      badge.textContent = `${count} ${count === 1 ? 'subtile' : 'subtiles'}`;
-      badge.className = 'prop-badge freeze-active';
-    }
+  if (statusRow) {
+    statusRow.classList.toggle('hidden', count === 0);
   }
-
-  if (btnClear) {
-    btnClear.disabled = count === 0;
+  if (label) {
+    label.textContent = `${count} ${count === 1 ? 'subtile' : 'subtiles'}`;
   }
-
-  if (btnToggle) {
-    btnToggle.classList.toggle('active', StudioState.activeTool === 'freeze');
+  if (editorCount) {
+    editorCount.textContent = count === 0 ? 'Nenhum' : `${count} ${count === 1 ? 'subtile' : 'subtiles'}`;
+    editorCount.className = count === 0 ? 'prop-badge secondary' : 'prop-badge freeze-active';
   }
 }
 
@@ -2820,12 +2813,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => setWorkspaceMode(btn.dataset.workspace));
   });
 
-  const btnToggleFreeze = document.getElementById('btnToggleFreezeTool');
-  if (btnToggleFreeze) {
-    btnToggleFreeze.addEventListener('click', () => {
-      setActiveTool(StudioState.activeTool === 'freeze' ? 'inspect' : 'freeze');
-    });
-  }
+
 
   const btnClearFrozen = document.getElementById('btnClearFrozen');
   if (btnClearFrozen) {

@@ -2297,3 +2297,47 @@ select:focus-visible {
     font-size: 10.5px;
   }
 }
+
+/* Freeze / Lock Subtiles Status Row (Generator Dock) */
+.freeze-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  border-radius: 5px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a5f3fc;
+}
+
+.freeze-status-row.hidden {
+  display: none !important;
+}
+
+.freeze-status-icon {
+  display: flex;
+  align-items: center;
+  color: #38bdf8;
+}
+
+.freeze-status-sep {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.freeze-status-row .link-btn {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.freeze-status-row .link-btn:hover {
+  color: #fca5a5;
+}

@@ -1,6 +1,6 @@
 // tests/test_freeze_subtiles.js
 // Tests the Subtile Freezing / Locking feature:
-// 1. DOM elements and UI triggers exist
+// 1. DOM elements and UI triggers exist (T3 contract)
 // 2. Integration with MosaicEngine & D4 symmetry scopes
 // 3. Regeneration preserves frozen cells while rolling non-frozen cells
 // 4. Clearing locks restores full regeneration
@@ -14,14 +14,15 @@ const baseDir = path.resolve(__dirname, '..');
 
 console.log('--- Testing Subtile Freezing / Locking System ---');
 
-// 1. Verify DOM elements in index.html
+// 1. Verify DOM elements in index.html (T3 contract)
 const html = fs.readFileSync(path.join(baseDir, 'index.html'), 'utf8');
 assert.ok(html.includes('id="toolFreeze"'), '#toolFreeze must exist in index.html');
-assert.ok(html.includes('id="freezeSection"'), '#freezeSection must exist in index.html');
-assert.ok(html.includes('id="freezeCountBadge"'), '#freezeCountBadge must exist in index.html');
-assert.ok(html.includes('id="btnToggleFreezeTool"'), '#btnToggleFreezeTool must exist in index.html');
+assert.ok(html.includes('id="freezeStatusRow"'), '#freezeStatusRow must exist in index.html');
+assert.ok(html.includes('id="freezeCountLabel"'), '#freezeCountLabel must exist in index.html');
 assert.ok(html.includes('id="btnClearFrozen"'), '#btnClearFrozen must exist in index.html');
-console.log('✓ All freeze DOM controls and buttons exist in index.html.');
+assert.ok(!html.includes('id="btnToggleFreezeTool"'), '#btnToggleFreezeTool must be removed from index.html (T3)');
+assert.ok(!html.includes('id="freezeHelpText"'), '#freezeHelpText must be removed from index.html (T3)');
+console.log('✓ All freeze DOM controls and updated contracts verified.');
 
 // 2. Verify ui_info.js documentation topic
 const uiInfoText = fs.readFileSync(path.join(baseDir, 'ui_info.js'), 'utf8');
@@ -72,19 +73,10 @@ const prng2 = (arr) => arr[(step2++) % arr.length];
 const mosaic2 = MosaicEngine.generateMosaic(config, prng2);
 const unfrozenCellAfter = mosaic2.grid[0][0].cells[1][1];
 
-// Generate third mosaic with PRNG 2 AND apply frozenMap
+// Generate third mosaic using generateMosaicWithFrozen
 let step3 = 17;
 const prng3 = (arr) => arr[(step3++) % arr.length];
-const mosaic3 = MosaicEngine.generateMosaic(config, prng3);
-
-// Apply frozenMap
-for (const [key, cellData] of frozenMap.entries()) {
-  const [r, c, subR, subC] = key.split(',').map(Number);
-  const target = mosaic3.grid[r][c].cells[subR][subC];
-  target.baseTileId = cellData.baseTileId;
-  target.transform = cellData.transform;
-  target.tileId = cellData.tileId;
-}
+const mosaic3 = MosaicEngine.generateMosaicWithFrozen(config, prng3, frozenMap);
 
 // Verification:
 // The frozen cell in mosaic3 must match originalCell exactly
