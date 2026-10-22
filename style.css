@@ -3023,3 +3023,67 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 #left-toolbar .illustrator-color-widget {
   width: 100%;
 }
+
+
+/* Sidebar Export Section (Below History) */
+.sidebar-export-section {
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.sidebar-export-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.sidebar-export-select {
+  width: 58px;
+  height: 27px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 4px;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+  transition: all 0.1s ease;
+}
+
+.sidebar-export-select:hover {
+  background: var(--bg-control-hover);
+  border-color: var(--border-light);
+}
+
+.sidebar-export-btn {
+  flex: 1;
+  height: 27px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: all 0.12s ease;
+}
+
+.sidebar-export-btn:hover {
+  background: var(--accent-blue-soft);
+  color: #93c5fd;
+  border-color: var(--accent-blue);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+.sidebar-export-btn:active {
+  transform: translateY(1px);
+}

@@ -81,14 +81,14 @@ if (leftToolbarBounds.content.includes('id="btnToggleRightDock"')) {
 console.log('✓ Toolbar is on the left; collapse control #btnToggleRightDock lives on the right inside #right-dock.');
 
 // 3. Status bar controls & visual guides in tool column
-const requiredStatusBarControls = ['btnFitArtboard', 'btnZoomReset100', 'btnExport'];
+const requiredStatusBarControls = ['btnFitArtboard', 'btnZoomReset100'];
 
 for (const ctrlId of requiredStatusBarControls) {
   if (!statusBarBounds.content.includes(`id="${ctrlId}"`)) {
     throw new Error(`Contract violation: #${ctrlId} must be inside #status-bar.`);
   }
 }
-console.log('✓ #btnFitArtboard, #btnZoomReset100 and #btnExport are inside #status-bar.');
+console.log('✓ #btnFitArtboard and #btnZoomReset100 are inside #status-bar.');
 
 const guideIds = ['toggleGuideAxes', 'toggleGuideBlocks', 'toggleGuideSubtiles', 'toggleGuideOrbits'];
 for (const gid of guideIds) {
@@ -174,10 +174,16 @@ const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
 const fgColorIdx = leftToolbarBounds.content.indexOf('id="fgColorPicker"');
 const randomizeIdx = leftToolbarBounds.content.indexOf('id="btnRandomize"');
 const historyListIdx = leftToolbarBounds.content.indexOf('id="seedHistoryList"');
+const exportIdx = leftToolbarBounds.content.indexOf('id="btnExport"');
+const formatIdx = leftToolbarBounds.content.indexOf('id="exportFormatSelect"');
 
-if (!(inspectIdx > -1 && fgColorIdx > inspectIdx && randomizeIdx > fgColorIdx && historyListIdx > randomizeIdx)) {
-  throw new Error('Contract violation: ordering must be tools < colors < randomize < historyList in #left-toolbar.');
+if (exportIdx === -1 || formatIdx === -1) {
+  throw new Error('Contract violation: #btnExport and #exportFormatSelect must be inside #left-toolbar.');
 }
-console.log('✓ Left toolbar sections ordered: tools → visual guides → colors → generator → history.');
+
+if (!(inspectIdx > -1 && fgColorIdx > inspectIdx && randomizeIdx > fgColorIdx && historyListIdx > randomizeIdx && exportIdx > historyListIdx)) {
+  throw new Error('Contract violation: ordering must be tools < colors < randomize < historyList < export in #left-toolbar.');
+}
+console.log('✓ Left toolbar sections ordered: tools → visual guides → colors → generator → history → export.');
 
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');

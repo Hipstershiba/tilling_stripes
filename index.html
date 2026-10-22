@@ -329,6 +329,27 @@
           </div>
           <div id="seedHistoryList" class="sidebar-history-list"></div>
         </div>
+
+        <div class="tool-divider"></div>
+
+        <!-- Exportar Mosaico (Abaixo do Histórico) -->
+        <div class="sidebar-section sidebar-export-section" aria-label="Exportar Mosaico">
+          <div class="sidebar-section-title">Exportar</div>
+          <div class="sidebar-export-row">
+            <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
+              <option value="png" selected>PNG</option>
+              <option value="svg">SVG</option>
+            </select>
+            <button type="button" id="btnExport" class="sidebar-export-btn" title="Baixar arquivo do mosaico atual" aria-label="Exportar Mosaico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Exportar</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       <!-- CENTER ARTBOARD VIEWPORT -->
@@ -375,20 +396,6 @@
           </div>
 
           <div id="status-right" class="status-right">
-            <div class="bar-group export-bar-group status-export-group" aria-label="Exportar Mosaico">
-              <select id="exportFormatSelect" class="bar-select" title="Formato de exportação">
-                <option value="png" selected>PNG</option>
-                <option value="svg">SVG</option>
-              </select>
-              <button id="btnExport" class="bar-export-btn" title="Baixar arquivo do mosaico atual">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span>Exportar</span>
-              </button>
-            </div>
             <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
           </div>
         </footer>
