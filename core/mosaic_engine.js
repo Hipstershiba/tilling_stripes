@@ -89,10 +89,6 @@
     const sourceMap = Array.from({ length: N }, () => new Array(N).fill(null));
     const cells = Array.from({ length: N }, () => new Array(N).fill(null));
 
-    const totalTiles = window.TileRegistry ? window.TileRegistry.TILE_RENDERERS.length : 85;
-    const allRegistryTiles = Array.from({ length: totalTiles }, (_, i) => i);
-    const FULLY_SYMMETRIC_FALLBACKS = [6, 37, 54, 79, 80, 81, 84];
-
     // Step 1: Resolve symmetry relations inside the N x N block and generate canonical subtiles
     for (let r = 0; r < N; r++) {
       for (let c = 0; c < N; c++) {
@@ -105,13 +101,10 @@
           if (compatible.length > 0) {
             pickedTileId = randomPick(compatible);
           } else {
-            const allCompatible = getCompatibleTiles(allRegistryTiles, stabilizer);
-            if (allCompatible.length > 0) {
-              pickedTileId = randomPick(allCompatible);
-            } else {
-              pickedTileId = FULLY_SYMMETRIC_FALLBACKS[0];
-            }
-            console.warn(`[MosaicEngine] No allowed tile is invariant under stabilizer [${stabilizer.join(', ')}] at cell (${r}, ${c}). Fallback tile #${pickedTileId} used.`);
+            // When no allowed tile is invariant under the cell's stabilizer,
+            // use the empty negative space tile #84 (Tile Vazio) to preserve the design
+            // without injecting unwanted foreign shapes from unselected families.
+            pickedTileId = 84;
           }
 
           sourceMap[r][c] = {

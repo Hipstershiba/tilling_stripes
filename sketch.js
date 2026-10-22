@@ -1350,26 +1350,7 @@ function performBrushOrStampAtHit(hit) {
     }
   );
 
-  if (StudioState.editScope !== 'single' && StudioState.editScope !== 'same_tile') {
-    const N = StudioState.mosaicData.subtilesPerSide;
-    const totalR = StudioState.mosaicData.rows * N;
-    const totalC = StudioState.mosaicData.cols * N;
 
-    for (const p of placements) {
-      let stab = [];
-      if (StudioState.editScope === 'canvas_center') {
-        stab = window.D4Symmetry.getCellStabilizer(p.gr, p.gc, totalR, totalC, StudioState.canvasCenterSymmetry);
-      } else {
-        stab = window.D4Symmetry.getCellStabilizer(p.subRow, p.subCol, N, N, StudioState.mosaicData.blockSymmetryMode);
-      }
-      for (const g of stab) {
-        if (!window.D4Symmetry.isTileInvariantUnder(p.tileId, g)) {
-          showEditorToast('Este tile não é invariante no eixo. Escolha um tile simétrico ou use o escopo Livre.', 'warn');
-          return false;
-        }
-      }
-    }
-  }
 
   return window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
 }
@@ -1394,6 +1375,7 @@ function setBrushSizeMode(sizeMode) {
     StudioState.brushSnapToBlock = true;
   } else {
     targetDim = Math.max(1, parseInt(sizeMode, 10) || 1);
+    StudioState.brushSnapToBlock = false;
   }
 
   StudioState.supertilePattern = window.MosaicEngine.resizeSupertilePattern(
@@ -1998,10 +1980,7 @@ function syncEditWorkspaceUI() {
   document.querySelectorAll('#rotateSizeControl .seg-btn[data-rot-size]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.rotSize === StudioState.rotateSizeMode);
   });
-  document.getElementById('btnRotateSnapBlock')?.classList.toggle(
-    'active',
-    Boolean(StudioState.rotateSnapToBlock || StudioState.rotateSizeMode === 'block')
-  );
+
   const rotateGroupSection = document.getElementById('rotateGroupModeSection');
   if (rotateGroupSection) {
     rotateGroupSection.classList.toggle('hidden', StudioState.rotateSizeMode === '1');
@@ -2026,7 +2005,7 @@ function syncEditWorkspaceUI() {
   document.querySelectorAll('#brushSizeControl .seg-btn[data-brush-size]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.brushSize === StudioState.brushSizeMode);
   });
-  document.getElementById('btnBrushSnapBlock')?.classList.toggle('active', Boolean(StudioState.brushSnapToBlock));
+
 
   // 8. Supertile Builder Metadata, Badges & Contextual Actions
   const pat = ensureSupertilePattern();
@@ -2534,21 +2513,14 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       const sz = btn.dataset.rotSize || '1';
       StudioState.rotateSizeMode = sz;
-      if (sz === 'block') {
-        StudioState.rotateSnapToBlock = true;
-      }
+      StudioState.rotateSnapToBlock = (sz === 'block');
       syncEditWorkspaceUI();
       saveStudioStateToStorage();
       redraw();
     });
   });
 
-  document.getElementById('btnRotateSnapBlock')?.addEventListener('click', () => {
-    StudioState.rotateSnapToBlock = !StudioState.rotateSnapToBlock;
-    syncEditWorkspaceUI();
-    saveStudioStateToStorage();
-    redraw();
-  });
+
 
   document.querySelectorAll('#rotateGroupModeControl .seg-btn[data-rot-group]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -2575,12 +2547,7 @@ function initStudioUI() {
     });
   });
 
-  document.getElementById('btnBrushSnapBlock')?.addEventListener('click', () => {
-    StudioState.brushSnapToBlock = !StudioState.brushSnapToBlock;
-    syncEditWorkspaceUI();
-    saveStudioStateToStorage();
-    redraw();
-  });
+
 
   // Stamp Interaction Mode ('select' vs 'apply')
   document.querySelectorAll('#stampInteractionSegmented .seg-btn[data-stamp-mode]').forEach((btn) => {
