@@ -8,8 +8,8 @@ const D4_TRANSFORMS = ['id', 'r90', 'r180', 'r270', 'mx', 'my', 'md', 'mad'];
 
 // Priority order when resolving a transform from canonical source to target cell in D4:
 // D2 reflections (id, mx, my, r180) first, followed by 90°/270° rotations and diagonal reflections (r90, r270, md, mad).
-// In [1,2,1][2,3,2][1,2,1], top/bottom '2' use id/my, while left/right '2' rotate 90° via r270/r90!
-const D4_RESOLUTION_ORDER = ['id', 'mx', 'my', 'r180', 'r90', 'r270', 'md', 'mad'];
+// In [1,2,1][2,3,2][1,2,1], edge blocks ('2') rotate 90° continuously (Top=id, Right=r90, Bottom=r180, Left=r270).
+const D4_RESOLUTION_ORDER = ['id', 'mx', 'r180', 'my', 'r90', 'r270', 'md', 'mad'];
 const C4_RESOLUTION_ORDER = ['id', 'r90', 'r180', 'r270'];
 const D2_RESOLUTION_ORDER = ['id', 'mx', 'my', 'r180'];
 
