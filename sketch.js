@@ -1369,26 +1369,26 @@ function buildSymmetryPanelUI() {
       },
       {
         key: 'mandala_d4',
-        title: 'Mandala (D4)',
-        sub: '8 oct. estrito',
+        title: 'Mandala',
+        sub: '8 Octantes',
         icon: SYMMETRY_ICONS_SVG.mandala_d4
       },
       {
         key: 'kaleidoscope',
         title: 'Caleidoscópio',
-        sub: '8 oct. livre',
+        sub: 'Livre',
         icon: SYMMETRY_ICONS_SVG.kaleidoscope
       },
       {
         key: 'rotational_c4',
-        title: 'Rotacional (C4)',
+        title: 'Rotacional',
         sub: 'Giro 90°',
         icon: SYMMETRY_ICONS_SVG.rotational_c4
       },
       {
         key: 'bilateral_d2',
-        title: 'Bilateral (XY)',
-        sub: 'Espelho X e Y',
+        title: 'Bilateral',
+        sub: 'Espelho X/Y',
         icon: SYMMETRY_ICONS_SVG.bilateral_d2
       }
     ];

@@ -52,7 +52,7 @@
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
         </button>
-        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade"><span class="btn-full-text">Ajustar à Grade</span><span class="btn-short-text">Ajustar</span></button>
+        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade"><span class="btn-full-text">Ajustar</span><span class="btn-short-text">Ajustar</span></button>
       </div>
 
       <div class="bar-divider"></div>
@@ -87,7 +87,7 @@
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
         </button>
-        <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas"><span class="btn-full-text">Células 1:1</span><span class="btn-short-text">1:1</span></button>
+        <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas"><span class="btn-full-text">1:1</span><span class="btn-short-text">1:1</span></button>
         <div class="input-chip chip-medium" title="Margem externa do Artboard (px)">
           <span class="chip-prefix"><span class="chip-label-full">Margem</span><span class="chip-label-short">M</span></span>
           <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
@@ -98,13 +98,13 @@
               title="Diminuir Margem">▾</button>
           </div>
         </div>
-        <div class="input-chip chip-medium" title="Respiro / Padding interno dos azulejos (%)">
-          <span class="chip-prefix"><span class="chip-label-full">Respiro</span><span class="chip-label-short">P</span></span>
+        <div class="input-chip chip-medium" title="Padding interno dos azulejos (%)">
+          <span class="chip-prefix"><span class="chip-label-full">Padding</span><span class="chip-label-short">P</span></span>
           <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
           <span class="chip-suffix">%</span>
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Respiro">▴</button>
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Respiro">▾</button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Padding">▴</button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Padding">▾</button>
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@
               <span class="tool-grid-label">Pintar</span>
             </button>
             <button id="toolRotate" class="tool-btn tool-grid-btn edit-tool-btn" data-tool="rotate"
-              title="Girar / Ciclar Família (Tecla R • Clique Esq: Avançar | Clique Dir: Voltar)">
+              title="Girar / Família (Tecla R • Clique Esq: Avançar | Clique Dir: Voltar)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
                 <polyline points="21 3 21 8 16 8"></polyline>
@@ -442,7 +442,7 @@
                     <label class="prop-label">1. Simetria da Grade</label>
                     <button type="button" class="info-btn" data-info-topic="grid-symmetry" aria-label="Saiba mais sobre simetria da grade" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="gridSymmetryBadge" class="prop-badge">Mandala D4</span>
+                  <span id="gridSymmetryBadge" class="prop-badge">Mandala</span>
                 </div>
                 <div id="gridSymmetryGrid" class="symmetry-card-grid">
                   <!-- Populated by JS -->
@@ -643,7 +643,7 @@
                   <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
                     id="rotateGroupModeControl">
                     <button type="button" class="seg-btn active" data-rot-group="group"
-                      title="Gira o conjunto inteiro como um Supertile rígido em 90°">Girar Conjunto</button>
+                      title="Gira o conjunto inteiro como um Supertile rígido em 90°">Conjunto</button>
                     <button type="button" class="seg-btn" data-rot-group="individual"
                       title="Gira cada tile no próprio lugar">Cada Tile</button>
                   </div>
@@ -655,9 +655,9 @@
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
                   id="rotateBehaviorControl">
                   <button type="button" class="seg-btn active" data-rot-mode="d4_r90"
-                    title="Rotação geométrica exata de 90° (D4)">Giro 90° D4</button>
+                    title="Rotação geométrica exata de 90° (D4)">Giro 90°</button>
                   <button type="button" class="seg-btn" data-rot-mode="family"
-                    title="Avança para a próxima variação da família do tile">Ciclar Família</button>
+                    title="Avança para a próxima variação da família do tile">Família</button>
                 </div>
               </div>
 
@@ -675,8 +675,8 @@
                   <label class="prop-label">Ação da Trava</label>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="freezeModeControl" role="group" aria-label="Modo da trava">
-                  <button type="button" data-freeze-mode="freeze" class="seg-btn active" aria-pressed="true">❄ Congelar</button>
-                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn" aria-pressed="false">☀ Descongelar</button>
+                  <button type="button" data-freeze-mode="freeze" class="seg-btn active" aria-pressed="true">Travar</button>
+                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn" aria-pressed="false">Destravar</button>
                 </div>
 
                 <div class="prop-label-row" style="margin-top: 6px;">
@@ -727,9 +727,9 @@
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
                   id="stampInteractionSegmented">
                   <button type="button" class="seg-btn active" data-stamp-mode="select"
-                    title="Arraste no mosaico para copiar uma região">✂ 1. Capturar Área</button>
+                    title="Arraste no mosaico para copiar uma região">Capturar</button>
                   <button type="button" class="seg-btn" data-stamp-mode="apply"
-                    title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">⧉ 2. Colar Clone</button>
+                    title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">Colar</button>
                 </div>
               </div>
 

@@ -2665,8 +2665,8 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 6px;
-  gap: 5px;
+  padding: 0 4px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.1s ease;
   overflow: hidden;
@@ -2677,12 +2677,12 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 }
 
 .tool-grid-label {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .tool-grid-btn:hover {

@@ -27,29 +27,29 @@ const D4_METADATA = {
 const SYMMETRY_MODES = {
   mandala_d4: {
     id: 'mandala_d4',
-    name: 'Mandala (D4 Estrito)',
-    subtitle: '8 octantes • Rigor D4 e Respiro Vazio',
+    name: 'Mandala',
+    subtitle: '8 Octantes',
     description: 'Simetria radial com rigor matemático D4. Quando um eixo não possui tiles invariantes no conjunto selecionado, preenche com o Tile Vazio (#84) como respiro.',
     requiresSquareForFull: true
   },
   kaleidoscope: {
     id: 'kaleidoscope',
-    name: 'Caleidoscópio (Livre)',
-    subtitle: '8 octantes • Radial Permissivo',
+    name: 'Caleidoscópio',
+    subtitle: '8 Octantes',
     description: 'Simetria radial estilo caleidoscópio em 8 octantes. Permite qualquer combinação de tiles sem restrições de eixo, espelhando livremente toda a composição.',
     requiresSquareForFull: true
   },
   rotational_c4: {
     id: 'rotational_c4',
-    name: 'Rotacional (C4)',
-    subtitle: '4 quadrantes • Giro contínuo 90°',
+    name: 'Rotacional',
+    subtitle: 'Giro 90°',
     description: 'Simetria de cata-vento (pinwheel): os 4 quadrantes giram 0°, 90°, 180° e 270° em sentido horário ao redor do centro.',
     requiresSquareForFull: true
   },
   bilateral_d2: {
     id: 'bilateral_d2',
-    name: 'Bilateral (XY)',
-    subtitle: '4 quadrantes • Espelho X e Y',
+    name: 'Bilateral',
+    subtitle: 'Espelho X/Y',
     description: 'Espelhamento clássico nos eixos horizontal e vertical nos 4 quadrantes.',
     requiresSquareForFull: false
   }
