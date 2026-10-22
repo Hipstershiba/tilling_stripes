@@ -56,6 +56,15 @@ for (let i = 0; i < testSuites.length; i++) {
 
   const duration = Date.now() - start;
 
+  if (res.error) {
+    console.log(`FAILED (${duration}ms)`);
+    console.error('\n' + '='.repeat(60));
+    console.error(`FAILURE in ${suite}:`);
+    console.error(`spawn falhou em ${suite}: ${res.error.code || res.error.message}`);
+    console.error('='.repeat(60) + '\n');
+    process.exit(1);
+  }
+
   if (res.status === 0) {
     passed++;
     console.log(`PASSED (${duration}ms)`);
