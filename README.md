@@ -118,43 +118,63 @@ O estado do estúdio é sincronizado automaticamente no `localStorage` do navega
 
 ---
 
-## Barra Superior Responsiva
+## Arquitetura de UI — As Quatro Superfícies
 
-Projetada para nunca cortar ou exigir rolagem horizontal nos monitores de referência 1280×800 e 1440×900:
-- O botão **Exportar** e o controle de **Seed** permanecem sempre visíveis e acessíveis.
-- Rótulos textuais secundários se condensam automaticamente em viewports menores (`.btn-short-text`, `.chip-label-short`), mantendo steppers e ícones operacionais.
+A interface adota a taxonomia de quatro superfícies estritas com responsabilidades dedicadas:
+
+1. **Barra Superior (`#top-control-bar` — O Documento)**:
+   - Artboard (W/H, ⇄, trava, Ajustar à Grade).
+   - Grade (L/C, ⇄, trava, Células 1:1, Margem).
+   - Seed (#, Gerar com atalho `G`, ◀ ▶, histórico).
+   - Exportar (formato PNG/SVG e botão de download).
+   - Zero rolagem horizontal nos monitores 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
+
+2. **Barra Lateral Esquerda (`#left-toolbar` — As Ferramentas)**:
+   - Exatamente 6 ferramentas essenciais: Inspecionar (`V`), Pincel (`B`), Girar (`R`), Clonar/Carimbo (`S`), Pan (`H`) e Zoom (`Z`).
+   - Widget de cores sobrepostas estilo Photoshop/Illustrator (`.color-tool-section`) posicionado no rodapé da barra (`margin-top: auto;`) colado ao fundo (distância ≤ 16 px). Atalho `X` inverte cores.
+
+3. **Barra Inferior de Status (`#status-bar` — A Visão)**:
+   - Zona esquerda: Grupo de zoom integrado (`.zoom-widget`) com `[−] [100% ▾] [+] [Ajustar] [1:1]` (todos a ≤ 24 px do seletor).
+   - Zona central: Dimensões em pixels, contagem de grade/órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em resoluções compactas.
+   - Zona direita: 4 toggles de guias visuais (`#toggleGuideAxes`, `#toggleGuideBlocks`, `#toggleGuideSubtiles`, `#toggleGuideOrbits`) com botões 22×22, estado `aria-pressed` e atalhos (`A`, `M`, `O`), além da Central de Ajuda (`#btnHelp` / `?`).
+
+4. **Dock Lateral Direito (`#right-dock` — Propriedades, Modos e Gaveta)**:
+   - **Cabeçalho Fixo (`#dock-header`)**: Seletor de Modo (`#workspaceSwitcher`, Gerador vs Editor, abas acessíveis `role="tablist"` com botões `role="tab"` e `aria-selected`) e botão de alternância de gaveta (`#btnToggleRightDock`, `«` expandido, `»` recolhido, `aria-expanded`).
+   - **Gaveta Recolhida (`body.right-dock-collapsed`)**: Dock recolhe para régua vertical de 44 px (`--dock-rail-w: 44px`), oculta os painéis roláveis e apresenta os dois modos como ícones verticais 32×32 acessíveis que alternam o workspace sem expandir a régua. A área útil do canvas expande ~306 px.
+   - **Acordeão de Painéis**: Cabeçalhos `.panel-header[data-collapse-target]` acessíveis (`role="button"`, `tabindex="0"`, `aria-expanded`, `aria-controls`), operáveis via mouse e teclado (Enter/Espaço), com chevron giratório e persistência de estado.
 
 ---
 
 ## Testes Automatizados
 
-O projeto conta com 10 suítes de teste automatizadas executadas diretamente via Node.js sem frameworks externos:
+O projeto conta com 20 suítes de teste automatizadas executadas diretamente via Node.js sem frameworks externos:
 
 ```powershell
-# Executar todos os testes:
-node tests/test_tile_registry.js
-node tests/test_mosaic_engine.js
-node tests/test_state_persistence.js
-node tests/test_d4_invariance.js
-node tests/test_history_limits.js
-node tests/test_persistence_quota.js
-node tests/test_editor_ui_state.js
-node tests/test_info_ui_state.js
-node tests/test_d4_block_combinations.js
-node tests/test_d4_editor.js
+# Executar todas as 20 suítes de teste:
+node tests/run_all.js
 ```
 
 ### Cobertura dos Testes:
 - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
-- `test_mosaic_engine.js`: Geração vetorial, renderização, contagem de primitivas e modos de simetria do motor.
-- `test_state_persistence.js`: Serialização de estado completo, 15 edições em 3×3 blocos e restauração de histórico undo/redo.
 - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
-- `test_history_limits.js`: Trim-on-push, orçamento dinâmico de snapshots e migração de payloads antigos.
-- `test_persistence_quota.js`: Tratamento de erro de quota, gravação de fallback mínimo e restauração limpa.
-- `test_editor_ui_state.js`: Matriz de visibilidade do editor, seletores CSS `.hidden` e cursores de ferramentas.
-- `test_info_ui_state.js`: Validação dos 13 tópicos de informação, singleton popover/tooltip, remoção de `.shortcut-pill` e widget Illustrator.
 - `test_d4_block_combinations.js`: Validação da matriz completa de 20 combinações Grade × Bloco e detecção de redução de simetria.
 - `test_d4_editor.js`: Contrato de transparência D4 no Editor, detecção de quebra em eixos e modo Caleidoscópio livre.
+- `test_d4_badge_state.js`: Comportamento do badge D4 editado com restauração precisa no histórico de desfazer (undo/redo).
+- `test_mosaic_engine.js`: Geração vetorial, renderização, contagem de primitivas e modos de simetria do motor.
+- `test_state_persistence.js`: Serialização de estado completo, 15 edições em 3×3 blocos e restauração de histórico undo/redo.
+- `test_save_scheduler.js`: Agendador com debounce de 300 ms, cancelamento em flush síncrono e preservação em unload.
+- `test_storage_key.js`: Unificação na chave canônica `tiling_stripes_studio_v3_state` e isolamento de backups de migração.
+- `test_payload_version.js`: Validação estrita do schema versão 3 e migração segura de versões legadas.
+- `test_history_limits.js`: Trim-on-push, orçamento dinâmico de snapshots e migração de payloads antigos.
+- `test_persistence_quota.js`: Tratamento de erro de quota, gravação de fallback mínimo e restauração limpa.
+- `test_scope_chip.js`: Atualização dinâmica do chip de escopo de simetria refletindo seletores e atalhos 1–6.
+- `test_info_scopes_source.js`: Fonte canônica única para os 6 escopos de simetria conectando UI, popover e motor.
+- `test_info_aria.js`: Acessibilidade ARIA (`aria-expanded`, `aria-controls`, `aria-haspopup`) e foco nos componentes informativos.
+- `test_editor_ui_state.js`: Matriz de visibilidade do editor, seletores CSS `.hidden` e cursores de ferramentas.
+- `test_info_ui_state.js`: Validação dos 13 tópicos de informação, singleton popover/tooltip e widget Illustrator.
+- `test_ui_control_registry.js`: Congelamento do inventário dos 58 controles com ID único em `index.html`.
+- `test_ui_layout_contract.js`: Contrato estrutural das superfícies (posições de dock, gaveta, zoom e ferramentas).
+- `test_docs_consistency.js`: Validação contínua da documentação contra assinaturas de funções e chaves reais do código.
 
 ---
 

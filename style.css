@@ -22,6 +22,7 @@
   --status-bar-h: 28px;
   --left-tool-w: 44px;
   --right-dock-w: 350px;
+  --dock-rail-w: 44px;
 }
 
 * {
@@ -540,12 +541,24 @@ html, body {
 
 .status-center {
   flex: 1;
-  text-align: center;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   color: var(--text-primary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.status-hover-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
 }
 
 .status-sep {
@@ -642,11 +655,98 @@ html, body {
   overflow: hidden;
   z-index: 20;
   flex-shrink: 0;
-  transition: margin-right 0.18s ease;
+  transition: width 0.18s ease;
+}
+
+/* Dock Header & Drawer Controls */
+#dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px;
+  background: var(--bg-panel-header);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+#dock-header #workspaceSwitcher {
+  flex: 1;
+}
+
+#dock-header .ws-mode-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.dock-toggle-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.dock-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-control-hover);
+  border-color: var(--border-light);
+}
+
+.dock-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
 }
 
 body.right-dock-collapsed #right-dock {
+  width: var(--dock-rail-w);
+}
+
+body.right-dock-collapsed .dock-workspace-pane,
+body.right-dock-collapsed #persistenceWarning {
+  display: none !important;
+}
+
+body.right-dock-collapsed #dock-header {
+  flex-direction: column;
+  height: auto;
+  padding: 8px 0;
+  gap: 8px;
+  align-items: center;
+}
+
+body.right-dock-collapsed #workspaceSwitcher {
+  flex-direction: column;
+  width: 32px;
+  padding: 2px;
+  gap: 4px;
+}
+
+body.right-dock-collapsed .ws-mode-btn span {
   display: none;
+}
+
+body.right-dock-collapsed #workspaceSwitcher .ws-mode-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  flex: none;
+  justify-content: center;
+}
+
+body.right-dock-collapsed .dock-toggle-btn {
+  width: 32px;
+  height: 32px;
 }
 
 .dock-panel {
@@ -678,6 +778,11 @@ body.right-dock-collapsed #right-dock {
 
 .panel-header:hover {
   background: #303339;
+}
+
+.panel-header:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
 }
 
 .panel-title-wrap {
@@ -1334,7 +1439,7 @@ body.right-dock-collapsed #right-dock {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  flex: 1;
   min-height: 0;
   overflow: hidden;
 }
@@ -1841,9 +1946,52 @@ select:focus-visible {
   border-color: var(--accent-blue);
 }
 
+.status-guides-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.status-guide-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.status-guide-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-control-hover);
+  border-color: var(--border-light);
+}
+
+.status-guide-btn.active,
+.status-guide-btn[aria-pressed="true"] {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.status-guide-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
+}
+
 /* Adobe Illustrator-style Color Scheme Swatches Widget on Left Toolbar */
 .color-tool-section {
-  margin: 4px 0;
+  margin-top: auto;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .illustrator-color-widget {
@@ -1993,16 +2141,49 @@ select:focus-visible {
   display: none;
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1600px) {
   #top-control-bar {
     gap: 6px;
     padding: 0 8px;
   }
   .bar-group {
-    gap: 5px;
+    gap: 4px;
+  }
+  .btn-full-text,
+  .chip-label-full {
+    display: none;
+  }
+  .btn-short-text,
+  .chip-label-short {
+    display: inline;
+  }
+  .input-chip {
+    padding: 0 0 0 6px;
+    gap: 3px;
+  }
+  .input-chip input[type="number"] {
+    width: 40px;
+    padding: 0 2px;
+  }
+  .input-chip.chip-compact input[type="number"] {
+    width: 26px;
+  }
+  .input-chip.chip-medium input[type="number"] {
+    width: 32px;
+  }
+  .seed-chip input[type="number"] {
+    width: 48px;
   }
   .bar-action-btn {
-    padding: 0 6px;
+    padding: 0 5px;
+    font-size: 11px;
+  }
+  .bar-select {
+    padding: 0 4px;
+    font-size: 11px;
+  }
+  .bar-export-btn {
+    padding: 0 8px;
     font-size: 11px;
   }
 }

@@ -97,7 +97,31 @@ O catálogo é a fonte de verdade para a renderização vetorial:
 
 ---
 
-## 5. Divulgação Progressiva de Informações (`ui_info.js`)
+## 5. Arquitetura de UI — As Quatro Superfícies
+
+A partir da Rodada 4, a interface é rigorosamente estruturada em quatro superfícies funcionais dedicadas:
+
+1. **Barra Superior (`#top-control-bar` — O Documento)**:
+   - Configurações do documento: Artboard (largura, altura, proporção travada, ajuste à grade), Grade (linhas, colunas, proporção, células 1:1, margem externa), Seed (semente, gerar aleatório, navegação e histórico) e Exportar (PNG/SVG).
+   - Não contém seletores de modo nem ferramentas. Totalmente responsivo e sem acionar rolagem horizontal em 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
+
+2. **Barra Lateral Esquerda (`#left-toolbar` — As Ferramentas)**:
+   - Exatamente 6 botões de ferramentas (`inspect`, `paint`, `rotate`, `stamp`, `pan`, `zoom`).
+   - Widget de cores sobrepostas estilo Photoshop/Illustrator (`.color-tool-section`) posicionado no rodapé da barra (`margin-top: auto;`) colado ao fundo (distância ≤ 16 px). Atalho `X` inverte cores.
+
+3. **Barra Inferior de Status (`#status-bar` — A Visão)**:
+   - Zona esquerda: Grupo coeso de zoom (`.zoom-widget`) contendo `[−] [100% ▾] [+] [Ajustar] [1:1]` (todos a ≤ 24 px do seletor).
+   - Zona central: Dimensões do artboard, Grade/Órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em viewports reduzidas.
+   - Zona direita: 4 toggles de guias visuais (`#toggleGuideAxes`, `#toggleGuideBlocks`, `#toggleGuideSubtiles`, `#toggleGuideOrbits`) com classe `.status-guide-btn`, estado visual `.active` sincronizado com `aria-pressed`, e o botão de Central de Ajuda (`#btnHelp` / `?`).
+
+4. **Dock Lateral Direito (`#right-dock` — Propriedades, Modos e Gaveta)**:
+   - Cabeçalho Fixo (`#dock-header`): Seletor de Modo (`#workspaceSwitcher`, Gerador vs Editor) e botão de alternância de gaveta (`#btnToggleRightDock`, `«` expandido, `»` recolhido, `aria-expanded`).
+   - Gaveta Recolhida (`body.right-dock-collapsed`): Dock reduz para régua de 44 px (`--dock-rail-w: 44px`), oculta os painéis roláveis e apresenta os dois modos como ícones verticais 32×32 acessíveis que alternam o workspace sem expandir a régua. A área útil do canvas expande ~306 px.
+   - Acordeão de Painéis: Cabeçalhos `.panel-header[data-collapse-target]` acessíveis (`role="button"`, `tabindex="0"`, `aria-expanded`, `aria-controls`), operáveis via mouse e teclado (Enter/Espaço), com chevron giratório e persistência de estado.
+
+---
+
+## 6. Divulgação Progressiva de Informações (`ui_info.js`)
 
 O sistema adota o padrão de Progressive Disclosure para manter a interface desobstruída e visualmente limpa:
 - **`INFO_TOPICS`**: Dicionário contendo os 13 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Pincel, Girar, Carimbo, Mesmo Tile, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar).
@@ -107,43 +131,38 @@ O sistema adota o padrão de Progressive Disclosure para manter a interface deso
 
 ---
 
-## 6. Persistência de Estado (`core/state_persistence.js`)
+## 7. Persistência de Estado (`core/state_persistence.js`)
 
 A lógica de serialização e persistência é isolada em módulo puro exportável para ambientes Node.js e browser:
+- `isQuotaError(err)`: Detecta falhas de cota de armazenamento no browser.
 - `saveWithQuotaFallback(storage, key, fullPayload, fallbackPayload)`: Mecanismo de persistência em duas etapas que previne perda de dados em caso de quota esgotada.
 - `trimHistoryOnPush(array, limit)`: Garante que arrays de histórico nunca ultrapassem a capacidade máxima permitida.
 - `getMaxEditHistoryForMosaic(mosaic)`: Calcula o orçamento dinâmico de snapshots conforme o tamanho da grade para permanecer em ~3,5 MB.
 - `migratePayloadHistories(payload, maxGen, maxEdit)`: Valida e corrige payloads carregados de versões antigas do storage.
+- `buildMinimalEmergencyPayload(state)`: Monta payload de contingência contendo apenas o estado visual atual do mosaico.
+- `createSaveScheduler(options)`: Agendador de salvamento com debounce para ações contínuas.
+- `validatePayloadVersion(payload)`: Validador semântico de integridade e versão do schema salvo.
 
-No `sketch.js`:
-- Ações contínuas (sliders, inputs numéricos, arrasto de canvas) utilizam salvamento com debouncing de 300 ms (`scheduleSaveStudioStateToStorage(300)`).
-- Eventos de transição crítica (troca de ferramenta, modo de trabalho, antes de descarregar a página `beforeunload`) acionam o salvamento imediato e síncrono (`flushSaveStudioStateToStorage()`).
+Campos aditivos de UI persistidos (sem incremento de schema versão 3):
+- `rightDockCollapsed`: Booleano do estado da gaveta lateral.
+- `dockPanels`: Dicionário chave-booleano de abertura dos painéis do acordeão.
 
 ---
 
-## 7. Como Rodar e Testar
+## 8. Como Rodar e Testar
 
 ### Servidor Local
 ```powershell
 python -m http.server 8765
 ```
 
-### Execução dos Testes Automatizados (10 Suítes)
+### Execução de Todas as 20 Suítes Automatizadas
 ```powershell
-node tests/test_tile_registry.js
-node tests/test_mosaic_engine.js
-node tests/test_state_persistence.js
-node tests/test_d4_invariance.js
-node tests/test_history_limits.js
-node tests/test_persistence_quota.js
-node tests/test_editor_ui_state.js
-node tests/test_info_ui_state.js
-node tests/test_d4_block_combinations.js
-node tests/test_d4_editor.js
+node tests/run_all.js
 ```
 
 ---
 
-## 8. Informações de Legado
+## 9. Informações de Legado
 
 Arquivos anteriores da versão 1 (`subtile.js`, `tiles.js`, `supertile.js`, `svg_tile_manager.js`, `tile_transforms.js`) foram arquivados na pasta `_legacy/` para fins históricos e de referência. Não devem ser alterados nem carregados no runtime do estúdio atual.

@@ -18,6 +18,27 @@ dock da direita ganha cabeçalho (modo de trabalho + retrair) e vira uma gaveta 
 
 ---
 
+## 0. Dependências: o que a Rodada 3 deixou no lugar
+
+Esta rodada assume o commit `ad6a01f` (Rodada 3 aplicada). O que já existe e **não pode ser
+quebrado** pelo rearranjo:
+
+| Item | Onde | Por que importa aqui |
+|---|---|---|
+| `core/ui_format.js` | `index.html:750` | entra **depois** de `state_persistence.js` e **antes** de `ui_info.js`; script novo respeita essa ordem |
+| `#editScopeChip` | `index.html:567` | começa **vazio** e é escrito por `syncEditWorkspaceUI()`; se a mudança de layout quebrar essa chamada, o chip fica em branco — e isso é proposital, para o erro aparecer |
+| `syncD4Badge()` | `sketch.js:757` | chamado em pintura (`1425`, `1480`) e no undo (`1725`); não remova essas chamadas ao enxugar handlers |
+| `saveScheduler` | `sketch.js:179` | `schedule()` é para ações **contínuas**; recolher o dock e abrir/fechar painel são discretos → grave com `saveStudioStateToStorage()` direto |
+| `STORAGE_VERSION = 3` + `validatePayloadVersion` | `core/state_persistence.js`, `sketch.js:324` | o estado novo da UI é **aditivo**: não suba a versão e não quebre `tests/test_payload_version.js` |
+| Inventário de 58 ids | anexo A | reconferido em `ad6a01f`: continua exatamente 58; o teste de registro não muda |
+| `tests/run_all.js` | 18 suítes hoje | a rodada 4 acrescenta 2 → 20; o CI executa o runner |
+| `test_docs_consistency.js` | `tests/` | restringe o que você pode escrever no README/manual; mantenha verde |
+
+**Regra de convivência:** se mover um controle exigir tocar em uma dessas amarras, ajuste a amarra
+no mesmo commit e diga qual foi — não deixe a regressão aparecer no fim.
+
+---
+
 ## 1. O princípio: quatro superfícies, quatro trabalhos
 
 A causa da bagunça atual não é excesso de botões; é ausência de critério. Hoje o modo de trabalho
@@ -37,6 +58,8 @@ a propriedade?”. A resposta define a barra. Sem exceção.
 ---
 
 ## 2. Estado atual medido (não confie na memória)
+
+Medido em `ad6a01f`, depois da Rodada 3.
 
 | Medida | Valor |
 |---|---|
@@ -126,6 +149,9 @@ mantenha — não deixe as duas coisas pela metade.
 5. Ajuste `.dock-workspace-pane`: troque `height:100%` por `flex:1; min-height:0`. Com o cabeçalho
    de 38 px dentro do dock (que é `flex-direction:column`), `height:100%` empurra o conteúdo para
    fora da área visível.
+6. O cabeçalho do painel “Edição & Simetria” **mantém** a barra de undo/redo
+   (`#btnEditUndo`, `#editHistoryStepLabel`, `#btnEditRedo`) onde está. Ela pertence ao painel, não
+   ao `#dock-header` — não a promova junto.
 
 **Não faça:** duplicar os botões de modo para o estado recolhido (ver T2). Um nó, dois layouts.
 
@@ -303,20 +329,31 @@ body.right-dock-collapsed #workspaceSwitcher .ws-mode-btn { width: 32px; height:
    - `#fgColorPicker` dentro de `#left-toolbar` e depois do último `.tool-btn[data-tool]`;
    - `#editToolSegmented` ausente.
    *(Conterência por substring aqui é legítima: é estrutura estática, não comportamento.)*
-3. **Prova de runtime** (navegador do Antigravity + CDP, como na rodada 2): geometria real dos
+3. **Registre as duas suítes novas** em `tests/run_all.js` (passa de 18 para **20**) e confirme que
+   o CI continua chamando apenas o runner. `node tests/run_all.js` precisa terminar com
+   `ALL 20/20 TEST SUITES PASSED`.
+4. **Prova de runtime** (navegador do Antigravity + CDP, como na rodada 2): geometria real dos
    itens acima nos estados expandido/recolhido e nas duas resoluções.
-4. **Capturas** em `tests/screenshots/`, geradas **depois** do último commit:
+5. **Capturas** em `tests/screenshots/`, geradas **depois** do último commit:
    `layout_gerador_1440x900.png`, `layout_editor_1440x900.png`, `layout_dock_recolhido_1440x900.png`,
    `layout_gerador_1280x800.png`, `layout_editor_1280x800.png`,
    `layout_dock_recolhido_1280x800.png` + um close do cabeçalho do dock e do rodapé.
-5. **Documentação:** atualize `README.md` (seção de UI) e `docs/MANUAL_MANUTENCAO.md` com a nova
+   **Cada arquivo precisa ser único e mostrar o que o nome promete.** A Rodada 3 entregou
+   `popover_scopes_1440x900.png` byte-idêntico a `editor_paint_1440x900.png`; para não repetir,
+   rode `Get-FileHash tests/screenshots/layout_*.png` e cole a tabela — se dois hashes coincidirem,
+   a captura está errada. Aproveite e substitua `tests/screenshots/tooltip_1440x900.png`, que ficou
+   parado na UI da Rodada 2.
+6. **Documentação:** atualize `README.md` (seção de UI) e `docs/MANUAL_MANUTENCAO.md` com a nova
    taxonomia das quatro superfícies e o estado `right-dock-collapsed`. Registre no relatório qual
-   alternativa foi descartada (ex.: guias como menu) e por quê.
+   alternativa foi descartada (ex.: guias como menu) e por quê. Mantenha
+   `tests/test_docs_consistency.js` verde — ele reprova `kaleidoscope_permissive`, a chave antiga e
+   qualquer função citada que não exista no módulo.
 
 **Aceite**
 
 - Os dois testes novos falham se o controle for movido para fora da superfície correta.
-- 6 capturas + 2 closes, todas posteriores ao commit final.
+- `run_all.js` roda 20 suítes e o CI segue verde.
+- 6 capturas + 2 closes, todas posteriores ao commit final, com **8 hashes distintos**.
 - README e manual descrevem a UI que existe, não a antiga.
 
 ---
@@ -379,7 +416,9 @@ inclusive com o foco dentro do dock.
 - [ ] `#editToolSegmented` removido (sem duplicar ferramenta em dois lugares).
 - [ ] Os 58 ids do anexo A intactos.
 - [ ] Sem rolagem horizontal em 1280 no topo nem no rodapé.
-- [ ] 6 capturas + 2 closes, posteriores ao commit final.
+- [ ] 6 capturas + 2 closes, posteriores ao commit final, com 8 hashes distintos.
+- [ ] `run_all.js` com 20 suítes; CI verde; `test_payload_version.js` e `test_docs_consistency.js` intactos.
+- [ ] `#editScopeChip` e o badge “D4 editado” continuam funcionando depois do rearranjo.
 - [ ] README e manual atualizados.
 - [ ] Nenhum erro no console.
 
@@ -391,7 +430,7 @@ inclusive com o foco dentro do dock.
 2. **Tabela de-para**: controle → superfície antiga → superfície nova (no mínimo os 13 que mudaram).
 3. **Medições** (px) dos itens do aceite, nas duas resoluções e nos dois estados do dock.
 4. **Testes** (comando + resultado) e as saídas das provas de runtime.
-5. **Capturas** (caminhos e resoluções).
+5. **Capturas** (caminhos, resoluções e a tabela de hashes SHA256 — oito distintos).
 6. **O que foi considerado e descartado** (ex.: guias como menu, duas colunas na barra esquerda).
 7. **`git diff --stat`**.
 
@@ -418,6 +457,24 @@ Não escreva “concluído” sem as medições. Se algo ficou pela metade, diga
 Se mover um controle exigir mudar comportamento (por exemplo, `#btnFitArtboard` depender de estar
 na barra esquerda para calcular o enquadramento), **pare e reporte**: o que tentou, o efeito
 colateral, duas opções com trade-off e uma recomendação. Layout não justifica quebrar função.
+
+---
+
+## 11. P2 — Robustez do runner (opcional, fora do layout)
+
+`tests/run_all.js` ignora `res.error`. Em ambiente restrito (política de processo no Windows),
+`spawnSync` devolve `{ status: null, error: EPERM }` e o runner imprime um bloco `FAILURE` **vazio**,
+sem a causa. Duas linhas resolvem:
+
+```js
+if (res.error) {
+  console.error(`spawn falhou em ${suite}: ${res.error.code || res.error.message}`);
+  process.exit(1);
+}
+```
+
+Opcional: quando houver `res.error`, repetir com `stdio: 'inherit'` para o diagnóstico aparecer.
+Não toca em layout nem em produto; se fizer, faça em commit separado.
 
 ---
 

@@ -20,28 +20,6 @@
         <span class="brand-title">Tiling Stripes</span>
       </div>
 
-      <!-- Workspace Mode Switcher (Gerador vs Editor) -->
-      <div class="workspace-mode-switcher" id="workspaceSwitcher" role="tablist" aria-label="Modo de Trabalho">
-        <button type="button" class="ws-mode-btn active" data-workspace="generate"
-          title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-          </svg>
-          <span>Gerador</span>
-        </button>
-        <button type="button" class="ws-mode-btn" data-workspace="edit"
-          title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-          </svg>
-          <span>Editor</span>
-        </button>
-      </div>
-
       <div class="bar-divider"></div>
 
       <!-- Artboard / Canvas Dimensions -->
@@ -264,9 +242,7 @@
           </button>
         </div>
 
-        <div class="tool-divider"></div>
-
-        <!-- Illustrator-style Color Scheme Swatches Widget -->
+        <!-- Illustrator-style Color Scheme Swatches Widget (pinned to footer of left toolbar) -->
         <div class="tool-section color-tool-section" aria-label="Esquema de Cores (Estilo Illustrator)">
           <div class="illustrator-color-widget">
             <div class="color-chip-wrap color-chip-bg" data-tooltip="Cor do Fundo">
@@ -282,64 +258,6 @@
             </button>
           </div>
         </div>
-
-        <div class="tool-divider"></div>
-
-        <!-- Visual Guides Toggles -->
-        <div class="tool-section" aria-label="Guias Visuais estilo Illustrator">
-          <button id="toggleGuideAxes" class="tool-btn guide-toggle"
-            title="Mostrar/Ocultar Eixos de Simetria (Tecla A)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <line x1="12" y1="2" x2="12" y2="22"></line>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </button>
-          <button id="toggleGuideBlocks" class="tool-btn guide-toggle"
-            title="Mostrar/Ocultar Grade de Blocos e Quadrantes">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-              <line x1="3" y1="9" x2="21" y2="9"></line>
-              <line x1="3" y1="15" x2="21" y2="15"></line>
-              <line x1="9" y1="3" x2="9" y2="21"></line>
-              <line x1="15" y1="3" x2="15" y2="21"></line>
-            </svg>
-          </button>
-          <button id="toggleGuideSubtiles" class="tool-btn guide-toggle"
-            title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-          </button>
-          <button id="toggleGuideOrbits" class="tool-btn guide-toggle"
-            title="Mostrar/Ocultar Mapa de Órbitas e Rotação [1,2,1][2,3,2][1,2,1] (Tecla O)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
-              <polyline points="12 7 15 10 12 13"></polyline>
-              <path d="M9 10h6"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="tool-spacer"></div>
-
-        <div class="tool-section">
-          <button id="btnFitArtboard" class="tool-btn" title="Centralizar e Ajustar Artboard na Janela (Tecla 0)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
-              </path>
-            </svg>
-          </button>
-          <button id="btnToggleRightDock" class="tool-btn active" title="Mostrar/Ocultar Painéis Direitos (Tecla Tab)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-              <line x1="15" y1="3" x2="15" y2="21"></line>
-            </svg>
-          </button>
-        </div>
       </aside>
 
       <!-- CENTER ARTBOARD VIEWPORT -->
@@ -350,12 +268,12 @@
           </div>
         </div>
 
-        <!-- BOTTOM ILLUSTRATOR STATUS BAR -->
+        <!-- BOTTOM STATUS BAR (A Barra da Visão) -->
         <footer id="status-bar">
           <div class="status-left">
             <div class="zoom-widget">
-              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)">−</button>
-              <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom">
+              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom">−</button>
+              <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom" aria-label="Nível de Zoom">
                 <option value="fit">Ajustar à Tela</option>
                 <option value="25">25%</option>
                 <option value="50">50%</option>
@@ -367,20 +285,58 @@
                 <option value="300">300%</option>
                 <option value="400">400%</option>
               </select>
-              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)">+</button>
-              <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Voltar para 100% (Tecla 1)">1:1</button>
+              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom">+</button>
+              <button id="btnFitArtboard" class="status-reset-zoom-btn" title="Ajustar à janela (0)" aria-label="Ajustar à Janela">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:middle;">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg><span>Ajustar</span>
+              </button>
+              <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Voltar para 100% (Tecla 1)" aria-label="Zoom 100%">1:1</button>
             </div>
-            <span class="status-sep">|</span>
+          </div>
+
+          <div class="status-center">
             <span id="statusArtboardInfo" class="status-item">600 × 600 px</span>
             <span class="status-sep">|</span>
             <span id="statusGridInfo" class="status-item">Grade 3 × 3 • 3 Órbitas</span>
-          </div>
-
-          <div id="statusHoverInspector" class="status-center">
-            Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria
+            <span class="status-sep">|</span>
+            <div id="statusHoverInspector" class="status-hover-text">Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria</div>
           </div>
 
           <div id="status-right" class="status-right">
+            <div class="status-guides-group" role="group" aria-label="Guias Visuais">
+              <button type="button" id="toggleGuideAxes" class="status-guide-btn" data-tooltip="Eixos de Simetria (A)" aria-label="Eixos de Simetria" aria-pressed="false">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="2" x2="12" y2="22"></line>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button type="button" id="toggleGuideBlocks" class="status-guide-btn" data-tooltip="Grade de Blocos" aria-label="Grade de Blocos" aria-pressed="false">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="3" y1="15" x2="21" y2="15"></line>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+              </button>
+              <button type="button" id="toggleGuideSubtiles" class="status-guide-btn" data-tooltip="Micro-Grade de Subtiles (M)" aria-label="Micro-Grade de Subtiles" aria-pressed="false">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </button>
+              <button type="button" id="toggleGuideOrbits" class="status-guide-btn" data-tooltip="Mapa de Órbitas (O)" aria-label="Mapa de Órbitas" aria-pressed="false">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
+                  <polyline points="12 7 15 10 12 13"></polyline>
+                  <path d="M9 10h6"></path>
+                </svg>
+              </button>
+            </div>
             <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
           </div>
         </footer>
@@ -388,6 +344,33 @@
 
       <!-- RIGHT DOCK PANELS (Contextual: Modo Gerador vs Modo Editor) -->
       <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
+        <!-- Dock Header: Workspace Switcher (Gerador vs Editor) + Collapse Drawer Toggle -->
+        <header id="dock-header">
+          <div class="workspace-mode-switcher" id="workspaceSwitcher" role="tablist" aria-label="Modo de Trabalho">
+            <button type="button" class="ws-mode-btn active" data-workspace="generate" role="tab" aria-selected="true"
+              title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+              </svg>
+              <span>Gerador</span>
+            </button>
+            <button type="button" class="ws-mode-btn" data-workspace="edit" role="tab" aria-selected="false"
+              title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              </svg>
+              <span>Editor</span>
+            </button>
+          </div>
+          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
+            <span class="dock-toggle-icon">«</span>
+          </button>
+        </header>
+
         <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
           Não foi possível salvar automaticamente. Exporte seu trabalho ou reduza a grade/histórico.
         </div>
@@ -399,7 +382,7 @@
 
           <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
           <section class="dock-panel" id="panel-symmetry">
-            <header class="panel-header" data-collapse-target="panelSymmetryBody">
+            <header class="panel-header" data-collapse-target="panelSymmetryBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelSymmetryBody">
               <div class="panel-title-wrap">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
@@ -483,7 +466,7 @@
 
           <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
           <section class="dock-panel dock-panel-flex" id="panel-swatches">
-            <header class="panel-header" data-collapse-target="panelSwatchesBody">
+            <header class="panel-header" data-collapse-target="panelSwatchesBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelSwatchesBody">
               <div class="panel-title-wrap">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="7" height="7" rx="1"></rect>
@@ -494,6 +477,7 @@
                 <span>Swatches Permitidos (Gerador)</span>
               </div>
               <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
+              <span class="panel-chevron">▾</span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
@@ -526,7 +510,7 @@
 
           <!-- EDIT PANEL 1: FERRAMENTA, ESCOPO D4 & OPÇÕES DE GIRO -->
           <section class="dock-panel" id="panel-edit-scope">
-            <header class="panel-header">
+            <header class="panel-header" data-collapse-target="panelEditScopeBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditScopeBody">
               <div class="panel-title-wrap">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
@@ -541,22 +525,10 @@
                 <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)"
                   disabled>↷</button>
               </div>
+              <span class="panel-chevron">▾</span>
             </header>
 
-            <div class="panel-body">
-              <!-- Tool Switcher -->
-              <div class="prop-section">
-                <div class="segmented-control edit-tool-segmented" id="editToolSegmented">
-                  <button type="button" class="seg-btn active" data-edit-tool="paint"
-                    title="Pincel (B) — Clique/arraste para pintar • Botão direito gira o pincel">✎ Pincel (B)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="rotate"
-                    title="Girar (R) — Clique Esq gira +90° • Clique Dir gira -90°">↻ Girar (R)</button>
-                  <button type="button" class="seg-btn" data-edit-tool="stamp"
-                    title="Clonar (S) — Arraste para capturar área (ou Alt+Arraste) e clique para colar">⧉ Clonar
-                    (S)</button>
-                </div>
-              </div>
-
+            <div class="panel-body" id="panelEditScopeBody">
               <!-- D4 Selection / Propagation Scope -->
               <div class="prop-section">
                 <div class="prop-label-row">
@@ -647,7 +619,7 @@
 
           <!-- EDIT PANEL 2: PINCEL, SUPERTILE & BIBLIOTECA (Hidden when Rotate tool is active) -->
           <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
-            <header class="panel-header">
+            <header class="panel-header" data-collapse-target="panelEditBrushBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditBrushBody">
               <div class="panel-title-wrap">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="8" height="8" rx="1"></rect>
@@ -658,9 +630,10 @@
                 <span>Pincel &amp; Supertile</span>
               </div>
               <span id="activeBrushBadge" class="panel-counter-pill">1×1 • #2</span>
+              <span class="panel-chevron">▾</span>
             </header>
 
-            <div class="panel-body swatches-panel-body">
+            <div class="panel-body swatches-panel-body" id="panelEditBrushBody">
 
               <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">

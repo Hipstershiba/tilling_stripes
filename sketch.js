@@ -96,7 +96,11 @@ const StudioState = {
   // Generation History
   history: [],
   historyIndex: -1,
-  isRestoringHistory: false
+  isRestoringHistory: false,
+
+  // Workspace UI Layout & Drawer/Panels State
+  rightDockCollapsed: false,
+  dockPanels: {}
 };
 
 const LOCK_ICON_SVG = `
@@ -258,6 +262,8 @@ function buildStudioStatePayload(includeHistories = true) {
     stampInteractionMode: StudioState.stampInteractionMode,
 
     guides: StudioState.guides,
+    rightDockCollapsed: !!StudioState.rightDockCollapsed,
+    dockPanels: StudioState.dockPanels ? Object.assign({}, StudioState.dockPanels) : {},
     cellsSnapshot,
 
     history: includeHistories ? StudioState.history : [],
@@ -428,6 +434,14 @@ function loadStudioStateFromStorage() {
     // Guides
     if (saved.guides && typeof saved.guides === 'object') {
       StudioState.guides = Object.assign({}, StudioState.guides, saved.guides);
+    }
+
+    // Right Dock Drawer & Accordion Panels
+    if (typeof saved.rightDockCollapsed === 'boolean') {
+      StudioState.rightDockCollapsed = saved.rightDockCollapsed;
+    }
+    if (saved.dockPanels && typeof saved.dockPanels === 'object') {
+      StudioState.dockPanels = Object.assign({}, saved.dockPanels);
     }
 
     // Cells snapshot for mosaic reconstruction
@@ -2017,9 +2031,11 @@ function syncEditWorkspaceUI() {
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
 
-  // 1. Top-bar Workspace Switcher ('generate' vs 'edit')
+  // 1. Workspace Switcher ('generate' vs 'edit')
   document.querySelectorAll('#workspaceSwitcher .ws-mode-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.workspace === StudioState.workspace);
+    const isActive = btn.dataset.workspace === StudioState.workspace;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
 
   // 2. Right Dock Workspace Panes
@@ -2463,12 +2479,6 @@ function initStudioUI() {
   });
 
   // --- Right Dock Controls (Symmetry, Subdivision, Padding, Colors) ---
-  document.querySelectorAll('.panel-header').forEach((header) => {
-    header.addEventListener('click', () => {
-      header.closest('.dock-panel')?.classList.toggle('collapsed');
-    });
-  });
-
   document.querySelectorAll('#subdivisionControl .seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       StudioState.subdivision = parseInt(btn.dataset.sub, 10) || 2;
@@ -2742,10 +2752,14 @@ function initStudioUI() {
   const bindGuideToggle = (btnId, guideKey) => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
-    btn.classList.toggle('active', !!StudioState.guides[guideKey]);
+    const isActive = !!StudioState.guides[guideKey];
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     btn.addEventListener('click', () => {
       StudioState.guides[guideKey] = !StudioState.guides[guideKey];
-      btn.classList.toggle('active', StudioState.guides[guideKey]);
+      const active = !!StudioState.guides[guideKey];
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       saveStudioStateToStorage();
       redraw();
     });
@@ -2758,12 +2772,75 @@ function initStudioUI() {
 
   document.getElementById('btnFitArtboard')?.addEventListener('click', fitArtboardToWindow);
 
+  // Right Dock Accordion Panels Toggle & Keyboard Navigation
+  function toggleDockPanel(header) {
+    const targetId = header.dataset.collapseTarget;
+    if (!targetId) return;
+    const bodyEl = document.getElementById(targetId);
+    const panelEl = header.closest('.dock-panel');
+    if (!bodyEl || !panelEl) return;
+
+    const isCollapsed = panelEl.classList.toggle('collapsed');
+    bodyEl.classList.toggle('hidden', isCollapsed);
+    header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+
+    if (!StudioState.dockPanels) StudioState.dockPanels = {};
+    StudioState.dockPanels[targetId] = !isCollapsed;
+    saveStudioStateToStorage();
+  }
+
+  document.querySelectorAll('.panel-header[data-collapse-target]').forEach((header) => {
+    header.addEventListener('click', () => toggleDockPanel(header));
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleDockPanel(header);
+      }
+    });
+  });
+
+  // Restore persisted dock panels state
+  if (StudioState.dockPanels) {
+    document.querySelectorAll('.panel-header[data-collapse-target]').forEach((header) => {
+      const targetId = header.dataset.collapseTarget;
+      if (!targetId || StudioState.dockPanels[targetId] === undefined) return;
+      const isOpen = !!StudioState.dockPanels[targetId];
+      const panelEl = header.closest('.dock-panel');
+      const bodyEl = document.getElementById(targetId);
+      if (panelEl) panelEl.classList.toggle('collapsed', !isOpen);
+      if (bodyEl) bodyEl.classList.toggle('hidden', !isOpen);
+      header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
+
+  // Right Dock Drawer Toggle (Rail 44px vs Full Width)
   const btnToggleDock = document.getElementById('btnToggleRightDock');
+  const updateDockToggleUI = () => {
+    const isCollapsed = document.body.classList.contains('right-dock-collapsed');
+    StudioState.rightDockCollapsed = isCollapsed;
+    if (btnToggleDock) {
+      btnToggleDock.classList.toggle('active', !isCollapsed);
+      btnToggleDock.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      btnToggleDock.setAttribute('title', isCollapsed ? 'Expandir Painel Lateral (Tab)' : 'Recolher Painel Lateral (Tab)');
+      btnToggleDock.setAttribute('aria-label', isCollapsed ? 'Expandir Painel Lateral' : 'Recolher Painel Lateral');
+      const iconSpan = btnToggleDock.querySelector('.dock-toggle-icon');
+      if (iconSpan) {
+        iconSpan.textContent = isCollapsed ? '»' : '«';
+      }
+    }
+  };
+
   const toggleRightDock = () => {
     document.body.classList.toggle('right-dock-collapsed');
-    btnToggleDock?.classList.toggle('active', !document.body.classList.contains('right-dock-collapsed'));
+    updateDockToggleUI();
+    saveStudioStateToStorage();
   };
   btnToggleDock?.addEventListener('click', toggleRightDock);
+
+  if (StudioState.rightDockCollapsed) {
+    document.body.classList.add('right-dock-collapsed');
+  }
+  updateDockToggleUI();
 
   // --- Zoom Status Controls & Canvas Wheel/Pan ---
   document.getElementById('btnZoomIn')?.addEventListener('click', () => setZoomPercent(StudioState.zoomPercent + 25));

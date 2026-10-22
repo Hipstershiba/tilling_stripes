@@ -7,7 +7,8 @@ docs/
 ├── README.md                  este índice
 ├── MANUAL_MANUTENCAO.md       arquitetura, álgebra D4, persistência e regras de manutenção
 ├── instrucoes/                o que foi pedido em cada rodada
-└── relatorios/                o que foi entregue e o que foi auditado
+├── relatorios/                o que foi entregue e o que foi auditado
+└── analise/                   pranchas da análise de famílias e conjuntos
 ```
 
 ---
@@ -20,6 +21,7 @@ docs/
 | [INSTRUCOES_GEMINI_RODADA2.md](instrucoes/INSTRUCOES_GEMINI_RODADA2.md) | 2 | Divulgação progressiva, densidade de UI, contrato D4 no editor, debounce |
 | [INSTRUCOES_GEMINI_RODADA3.md](instrucoes/INSTRUCOES_GEMINI_RODADA3.md) | 3 | Fechar o que foi declarado pronto (debounce, chip, chave de storage, ajuda) com prova que falha no baseline |
 | [INSTRUCOES_GEMINI_RODADA4.md](instrucoes/INSTRUCOES_GEMINI_RODADA4.md) | 4 | Arquitetura de informação das barras: modo no cabeçalho do dock, gaveta de 44 px, acordeão de painéis, cores no rodapé esquerdo, zoom/Ajustar/1:1 juntos |
+| [INSTRUCOES_GEMINI_RODADA5.md](instrucoes/INSTRUCOES_GEMINI_RODADA5.md) | 5 | Gramática de conjuntos, 10 famílias novas (IDs 85–103), UI de conjuntos e ajustes de harmonia |
 
 ## Relatórios e auditorias (`relatorios/`)
 
@@ -28,6 +30,14 @@ docs/
 | [RELATORIO_IMPLEMENTACAO_INSTRUCOES.md](relatorios/RELATORIO_IMPLEMENTACAO_INSTRUCOES.md) | Antigravity | Entrega da Rodada 1 |
 | [RELATORIO_DEEPSEEK_RODADA2.md](relatorios/RELATORIO_DEEPSEEK_RODADA2.md) | Antigravity | Entrega da Rodada 2 |
 | [AVALIACAO_DEEPSEEK_RODADA2.md](relatorios/AVALIACAO_DEEPSEEK_RODADA2.md) | DeepSeek | Auditoria da Rodada 2: 4 afirmações do relatório não se sustentam no código, com arquivo:linha |
+| [RELATORIO_RODADA3.md](relatorios/RELATORIO_RODADA3.md) | Antigravity | Entrega da Rodada 3 |
+| [AVALIACAO_DEEPSEEK_RODADA3.md](relatorios/AVALIACAO_DEEPSEEK_RODADA3.md) | DeepSeek | Auditoria da Rodada 3: tarefas confirmadas no código; uma captura de prova duplicada e um defeito no runner |
+| [RELATORIO_RODADA4.md](relatorios/RELATORIO_RODADA4.md) | Antigravity | Entrega da Rodada 4: reorganização das quatro superfícies, gaveta com régua de 44 px e acordeão |
+| [ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md](relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md) | DeepSeek | Análise de sinergia/harmonia dos 85 subtiles, 31 famílias e 9 conjuntos; 10 famílias propostas |
+
+## Pranchas (`analise/`)
+
+As imagens da análise ficam em [`analise/`](analise/): atlas das 31 famílias, prancha das 10 famílias propostas, painéis dos 9 conjuntos, matriz família × conjunto e prova de emendas.
 
 ---
 
