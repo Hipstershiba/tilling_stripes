@@ -15,8 +15,9 @@ const testSuites = [
   // 2. Mosaic Engine
   'test_mosaic_engine.js',
 
-  // 3. State Persistence & Quota
+  // 3. State Persistence & Quota (IndexedDB + localStorage)
   'test_state_persistence.js',
+  'test_indexeddb_persistence.js',
   'test_save_scheduler.js',
   'test_storage_key.js',
   'test_payload_version.js',

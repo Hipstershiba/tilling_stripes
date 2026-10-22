@@ -234,12 +234,138 @@
     }
   }
 
+  const IDB_DATABASE_NAME = 'tiling_stripes_studio_db';
+  const IDB_STORE_NAME = 'studio_state_store';
+  const IDB_VERSION = 1;
+  const IDB_KEY_CURRENT = 'current_studio_state';
+  const IDB_MAX_GENERATION_HISTORY = 100;
+  const IDB_MAX_EDIT_HISTORY = 50;
+
+  /**
+   * Opens the Tiling Stripes IndexedDB instance.
+   * Accepts an optional customFactory for Node/unit-testing environments.
+   */
+  function openIndexedDB(customFactory) {
+    const factory = customFactory || (typeof indexedDB !== 'undefined' ? indexedDB : null);
+    if (!factory) {
+      return Promise.reject(new Error('IndexedDB not supported or unavailable'));
+    }
+
+    return new Promise((resolve, reject) => {
+      let req;
+      try {
+        req = factory.open(IDB_DATABASE_NAME, IDB_VERSION);
+      } catch (err) {
+        return reject(err);
+      }
+      req.onupgradeneeded = (e) => {
+        const db = e.target ? e.target.result : req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
+          db.createObjectStore(IDB_STORE_NAME);
+        }
+      };
+      req.onsuccess = (e) => {
+        const db = e.target ? e.target.result : req.result;
+        resolve(db);
+      };
+      req.onerror = () => reject(req.error || new Error('Failed to open IndexedDB'));
+    });
+  }
+
+  /**
+   * Saves a state payload into IndexedDB asynchronously.
+   */
+  function saveToIndexedDB(key = IDB_KEY_CURRENT, payload, customFactory) {
+    if (!payload || typeof payload !== 'object') {
+      return Promise.reject(new Error('Invalid payload for IndexedDB'));
+    }
+
+    return openIndexedDB(customFactory).then((db) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const tx = db.transaction([IDB_STORE_NAME], 'readwrite');
+          const store = tx.objectStore(IDB_STORE_NAME);
+          const req = store.put(payload, key);
+          req.onsuccess = () => resolve({ success: true, mode: 'indexeddb' });
+          req.onerror = () => reject(req.error || new Error('IndexedDB put error'));
+          if (tx.oncomplete !== undefined) {
+            tx.oncomplete = () => {
+              try { db.close(); } catch (_) {}
+            };
+          }
+          if (tx.onerror !== undefined) {
+            tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction error'));
+          }
+        } catch (err) {
+          try { db.close(); } catch (_) {}
+          reject(err);
+        }
+      });
+    });
+  }
+
+  /**
+   * Loads a state payload from IndexedDB asynchronously.
+   */
+  function loadFromIndexedDB(key = IDB_KEY_CURRENT, customFactory) {
+    return openIndexedDB(customFactory).then((db) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const tx = db.transaction([IDB_STORE_NAME], 'readonly');
+          const store = tx.objectStore(IDB_STORE_NAME);
+          const req = store.get(key);
+          req.onsuccess = () => {
+            resolve(req.result || null);
+          };
+          req.onerror = () => reject(req.error || new Error('IndexedDB get error'));
+          if (tx.oncomplete !== undefined) {
+            tx.oncomplete = () => {
+              try { db.close(); } catch (_) {}
+            };
+          }
+          if (tx.onerror !== undefined) {
+            tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction error'));
+          }
+        } catch (err) {
+          try { db.close(); } catch (_) {}
+          reject(err);
+        }
+      });
+    });
+  }
+
+  /**
+   * Seamlessly migrates existing localStorage data into IndexedDB if found.
+   */
+  function migrateLocalStorageToIndexedDB(storage, storageKey = STORAGE_KEY_STUDIO_STATE, customFactory) {
+    if (!storage || typeof storage.getItem !== 'function') {
+      return Promise.resolve(false);
+    }
+    try {
+      const raw = storage.getItem(storageKey);
+      if (!raw) return Promise.resolve(false);
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return Promise.resolve(false);
+
+      return saveToIndexedDB(IDB_KEY_CURRENT, parsed, customFactory)
+        .then(() => true)
+        .catch(() => false);
+    } catch (_) {
+      return Promise.resolve(false);
+    }
+  }
+
   const StatePersistence = {
     STORAGE_KEY_STUDIO_STATE,
     STORAGE_VERSION,
     MAX_GENERATION_HISTORY,
     MAX_EDIT_HISTORY,
     STORAGE_BUDGET_BYTES,
+    IDB_DATABASE_NAME,
+    IDB_STORE_NAME,
+    IDB_KEY_CURRENT,
+    IDB_MAX_GENERATION_HISTORY,
+    IDB_MAX_EDIT_HISTORY,
     createSaveScheduler,
     validatePayloadVersion,
     isQuotaError,
@@ -247,7 +373,11 @@
     trimHistoryOnPush,
     migratePayloadHistories,
     buildMinimalEmergencyPayload,
-    saveWithQuotaFallback
+    saveWithQuotaFallback,
+    openIndexedDB,
+    saveToIndexedDB,
+    loadFromIndexedDB,
+    migrateLocalStorageToIndexedDB
   };
 
   if (typeof window !== 'undefined') {
