@@ -541,12 +541,14 @@
     // 7. Freeze Tool Hover Preview
     if (guideOptions.isFreezeTool && Array.isArray(guideOptions.freezeHoverPlacements) && guideOptions.freezeHoverPlacements.length > 0) {
       p.rectMode(p.CORNER);
+      const isUnfreeze = guideOptions.freezeHoverMode === 'unfreeze';
+      const rgb = isUnfreeze ? [245, 158, 11] : [6, 182, 212];
       for (const pCell of guideOptions.freezeHoverPlacements) {
         if (pCell.row >= mosaicData.rows || pCell.col >= mosaicData.cols || pCell.subRow >= N || pCell.subCol >= N) continue;
         const x = margin + pCell.col * blockW + pCell.subCol * subW;
         const y = margin + pCell.row * blockH + pCell.subRow * subH;
-        p.fill(6, 182, 212, 75);
-        p.stroke(6, 182, 212, 240);
+        p.fill(rgb[0], rgb[1], rgb[2], 75);
+        p.stroke(rgb[0], rgb[1], rgb[2], 240);
         p.strokeWeight(1.5);
         p.rect(x + 0.5, y + 0.5, subW - 1, subH - 1, 2);
       }

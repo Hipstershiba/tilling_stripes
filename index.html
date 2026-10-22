@@ -638,6 +638,41 @@
                     title="Avança para a próxima variação da família do tile">Ciclar Família</button>
                 </div>
               </div>
+
+              <!-- Freeze / Lock Tool Controls (Shown only when Freeze tool is active) -->
+              <div id="freezeToolOptionsWrap" class="prop-section hidden">
+                <div class="prop-label-row">
+                  <div class="prop-label-with-info">
+                    <label class="prop-label">Trava de Subtiles</label>
+                    <button type="button" class="info-btn" data-info-topic="freeze" aria-label="Saiba mais sobre a trava" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                  <span id="freezeToolCountBadge" class="prop-badge secondary">Nenhum</span>
+                </div>
+
+                <div class="prop-label-row" style="margin-top: 6px;">
+                  <label class="prop-label">Ação da Trava</label>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="freezeModeControl" role="group" aria-label="Modo da trava">
+                  <button type="button" data-freeze-mode="freeze" class="seg-btn active" aria-pressed="true">❄ Congelar</button>
+                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn" aria-pressed="false">☀ Descongelar</button>
+                </div>
+
+                <div class="prop-label-row" style="margin-top: 6px;">
+                  <label class="prop-label">Tamanho da Trava</label>
+                </div>
+                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="freezeSizeControl" role="group" aria-label="Tamanho da trava">
+                  <button type="button" data-freeze-size="1" class="seg-btn active">1×1</button>
+                  <button type="button" data-freeze-size="2" class="seg-btn">2×2</button>
+                  <button type="button" data-freeze-size="3" class="seg-btn">3×3</button>
+                  <button type="button" data-freeze-size="4" class="seg-btn">4×4</button>
+                  <button type="button" data-freeze-size="block" class="seg-btn">Bloco</button>
+                </div>
+
+                <label class="prop-checkbox" style="margin-top: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <input type="checkbox" id="freezeUseScope" checked>
+                  <span>Aplicar ao escopo (<span id="freezeScopeLabel">Centro • 8 eixos</span>)</span>
+                </label>
+              </div>
             </div>
           </section>
 

@@ -40,6 +40,9 @@ const StudioState = {
 
   // Freeze / Lock Subtiles State
   frozenCells: new Map(), // key: `${r},${c},${subR},${subC}` -> { baseTileId, transform, tileId }
+  freezeMode: 'freeze', // 'freeze' | 'unfreeze'
+  freezeSize: '1', // '1' | '2' | '3' | '4' | 'block'
+  freezeUseScope: true,
   isFreezingDrag: false,
   freezeDragAction: 'freeze',
   lastFrozenCellKey: null,
@@ -272,6 +275,9 @@ function buildStudioStatePayload(includeHistories = true) {
     dockPanels: StudioState.dockPanels ? Object.assign({}, StudioState.dockPanels) : {},
     cellsSnapshot,
     frozenCells: StudioState.frozenCells ? Array.from(StudioState.frozenCells.entries()) : [],
+    freezeMode: StudioState.freezeMode,
+    freezeSize: StudioState.freezeSize,
+    freezeUseScope: StudioState.freezeUseScope,
 
     history: includeHistories ? StudioState.history : [],
     historyIndex: includeHistories ? StudioState.historyIndex : -1,
@@ -442,6 +448,9 @@ function loadStudioStateFromStorage() {
     if (Array.isArray(saved.frozenCells)) {
       StudioState.frozenCells = new Map(saved.frozenCells);
     }
+    if (saved.freezeMode === 'freeze' || saved.freezeMode === 'unfreeze') StudioState.freezeMode = saved.freezeMode;
+    if (['1', '2', '3', '4', 'block'].includes(saved.freezeSize)) StudioState.freezeSize = saved.freezeSize;
+    if (typeof saved.freezeUseScope === 'boolean') StudioState.freezeUseScope = saved.freezeUseScope;
 
     // Guides
     if (saved.guides && typeof saved.guides === 'object') {
@@ -767,6 +776,7 @@ function draw() {
       isEditTool,
       frozenCells: StudioState.frozenCells,
       isFreezeTool: StudioState.activeTool === 'freeze',
+      freezeHoverMode: StudioState.freezeMode,
       freezeHoverPlacements: StudioState.activeTool === 'freeze' ? resolveFreezeTargetPlacements(StudioState.hoveredCell) : null
     },
     StudioState.hoveredCell
@@ -1485,15 +1495,33 @@ function getCanvasHitCell(mx, my) {
 
 function resolveFreezeTargetPlacements(hit) {
   if (!StudioState.mosaicData || !hit) return [];
-  const dummyPat = { rows: 1, cols: 1, cells: [[{ tileId: 1, baseTileId: 1, transform: 'id' }]] };
+  const N = StudioState.mosaicData.subtilesPerSide;
+  let size = 1;
+  if (StudioState.freezeSize === 'block') {
+    size = N;
+  } else {
+    size = Math.max(1, Math.min(N, parseInt(StudioState.freezeSize, 10) || 1));
+  }
+
+  const dummyPat = {
+    rows: size,
+    cols: size,
+    cells: Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => ({ tileId: 1, baseTileId: 1, transform: 'id' }))
+    )
+  };
+
+  const useScope = StudioState.freezeUseScope !== false;
+  const scopeMode = useScope ? StudioState.editScope : 'single';
+
   const resolved = window.MosaicEngine.resolveStampRegionPlacements(
     StudioState.mosaicData,
     dummyPat,
     hit,
-    StudioState.editScope,
+    scopeMode,
     'id',
     {
-      snapToBlock: StudioState.brushSnapToBlock,
+      snapToBlock: StudioState.freezeSize === 'block',
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry
     }
   );
@@ -1793,14 +1821,14 @@ function handleCanvasMouseDown(e) {
     const placements = resolveFreezeTargetPlacements(hit);
     if (!placements || placements.length === 0) return;
 
-    const anchorKey = `${hit.row},${hit.col},${hit.subRow},${hit.subCol}`;
-    const isAnchorFrozen = StudioState.frozenCells.has(anchorKey);
-    const shouldUnfreeze = e.button === 2 || e.altKey || isAnchorFrozen;
-    const action = shouldUnfreeze ? 'unfreeze' : 'freeze';
+    // Right-click inverts action; Left-click uses explicit freezeMode (monotonic)
+    const action = e.button === 2
+      ? (StudioState.freezeMode === 'freeze' ? 'unfreeze' : 'freeze')
+      : StudioState.freezeMode;
 
     StudioState.isFreezingDrag = true;
     StudioState.freezeDragAction = action;
-    StudioState.lastFrozenCellKey = anchorKey;
+    StudioState.lastFrozenCellKey = `${hit.row},${hit.col},${hit.subRow},${hit.subCol}`;
 
     for (const p of placements) {
       const cellKey = `${p.row},${p.col},${p.subRow},${p.subCol}`;
@@ -2270,6 +2298,28 @@ function syncEditWorkspaceUI() {
   const chipEl = document.getElementById('editScopeChip');
   if (chipEl && window.UiFormat && typeof window.UiFormat.formatScopeChip === 'function') {
     chipEl.textContent = window.UiFormat.formatScopeChip(StudioState.editScope, ensureSupertilePattern());
+  }
+
+  // Freeze Tool Options Wrap
+  const freezeWrap = document.getElementById('freezeToolOptionsWrap');
+  if (freezeWrap) {
+    freezeWrap.classList.toggle('hidden', StudioState.activeTool !== 'freeze');
+  }
+  document.querySelectorAll('#freezeModeControl .seg-btn').forEach((btn) => {
+    const isActive = btn.dataset.freezeMode === StudioState.freezeMode;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+  document.querySelectorAll('#freezeSizeControl .seg-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.freezeSize === StudioState.freezeSize);
+  });
+  const useScopeCb = document.getElementById('freezeUseScope');
+  if (useScopeCb) {
+    useScopeCb.checked = StudioState.freezeUseScope !== false;
+  }
+  const scopeLbl = document.getElementById('freezeScopeLabel');
+  if (scopeLbl && window.UiFormat && typeof window.UiFormat.formatScopeChip === 'function') {
+    scopeLbl.textContent = window.UiFormat.formatScopeChip(StudioState.editScope, ensureSupertilePattern());
   }
 
   const sameTileNotice = document.getElementById('sameTileNotice');
@@ -2819,6 +2869,35 @@ function initStudioUI() {
   if (btnClearFrozen) {
     btnClearFrozen.addEventListener('click', () => {
       clearFrozenCells();
+    });
+  }
+
+  // Freeze Mode & Size segmented controls
+  document.querySelectorAll('#freezeModeControl .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      StudioState.freezeMode = btn.dataset.freezeMode || 'freeze';
+      syncEditWorkspaceUI();
+      saveStudioStateToStorage();
+      redraw();
+    });
+  });
+
+  document.querySelectorAll('#freezeSizeControl .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      StudioState.freezeSize = btn.dataset.freezeSize || '1';
+      syncEditWorkspaceUI();
+      saveStudioStateToStorage();
+      redraw();
+    });
+  });
+
+  const freezeScopeCheckbox = document.getElementById('freezeUseScope');
+  if (freezeScopeCheckbox) {
+    freezeScopeCheckbox.addEventListener('change', () => {
+      StudioState.freezeUseScope = freezeScopeCheckbox.checked;
+      syncEditWorkspaceUI();
+      saveStudioStateToStorage();
+      redraw();
     });
   }
 
