@@ -2,7 +2,7 @@
 
 **Destinatário:** Gemini 3.8 Flash
 **Repositório:** raiz deste projeto (caminhos relativos)
-**Estado de referência:** commit `565be96` + as mudanças não commitadas da Rodada 4. Antes de começar, rode `node tests/run_all.js` e registre o resultado; a linha de base tem de passar.
+**Estado de referência:** commit que encerra a Rodada 4.1 (todas as 28 suítes passando, trava corrigida, 7 botões de ferramentas no rail esquerdo). Antes de começar, rode `node tests/run_all.js` e registre o resultado; a linha de base tem de passar.
 **Documentos de leitura obrigatória:**
 - [`docs/relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md`](../relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md) — a análise que justifica cada decisão.
 - [`docs/MANUAL_MANUTENCAO.md`](../MANUAL_MANUTENCAO.md) — arquitetura, D4, persistência.
@@ -41,7 +41,7 @@
 | Nomes | 85 | `TILE_NAMES` |
 | Famílias | 31 | `TILE_FAMILIES_META` |
 | Tiles D4 | 85 × 8 | `TILE_D4_MAP` |
-| Testes | 20 suítes | `tests/run_all.js` |
+| Testes | 28 suítes | `tests/run_all.js` |
 | Storage | `tiling_stripes_studio_state_v2`, versão 3 | `core/state_persistence.js` |
 | Padding padrão | 5% | `sketch.js` — `StudioState.paddingRatio` |
 
