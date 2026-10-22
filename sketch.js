@@ -173,83 +173,121 @@ function hidePersistenceWarning() {
 }
 
 
+const MAX_GENERATION_HISTORY = 30;
+const MAX_EDIT_HISTORY = 25;
+
+let debouncedSaveTimer = null;
+function scheduleSaveStudioStateToStorage(delayMs = 250) {
+  clearTimeout(debouncedSaveTimer);
+  debouncedSaveTimer = setTimeout(() => {
+    saveStudioStateToStorage();
+  }, delayMs);
+}
+
+function isQuotaError(err) {
+  return (
+    Boolean(err) &&
+    (err.name === 'QuotaExceededError' ||
+      err.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      err.code === 22 ||
+      err.code === 1014 ||
+      (typeof err.message === 'string' && err.message.toLowerCase().includes('quota')))
+  );
+}
+
+function getMaxEditHistoryForMosaic(mosaicData) {
+  if (!mosaicData) return MAX_EDIT_HISTORY;
+  const N = mosaicData.subtilesPerSide || 4;
+  const totalSubtiles = (mosaicData.rows || 1) * (mosaicData.cols || 1) * (N * N);
+  const approxBytesPerSnap = totalSubtiles * 45;
+  const maxAllowed = Math.floor((3.2 * 1024 * 1024) / approxBytesPerSnap);
+  return Math.max(2, Math.min(MAX_EDIT_HISTORY, maxAllowed));
+}
+
+function buildStudioStatePayload(includeHistories = true) {
+  if (!StudioState.mosaicData) return null;
+  const cellsSnapshot = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
+  const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+
+  return {
+    version: 2,
+    totalTiles,
+    timestamp: Date.now(),
+    width: StudioState.width,
+    height: StudioState.height,
+    lockCanvasRatio: StudioState.lockCanvasRatio,
+    canvasRatio: StudioState.canvasRatio,
+    zoomPercent: StudioState.zoomPercent,
+    zoomMode: StudioState.zoomMode,
+
+    rows: StudioState.rows,
+    cols: StudioState.cols,
+    lockGridRatio: StudioState.lockGridRatio,
+    gridRatio: StudioState.gridRatio,
+    margin: StudioState.margin,
+    subdivision: StudioState.subdivision,
+    paddingRatio: StudioState.paddingRatio,
+
+    gridSymmetryMode: StudioState.gridSymmetryMode,
+    blockSymmetryMode: StudioState.blockSymmetryMode,
+    syncBlockSymmetry: StudioState.syncBlockSymmetry,
+
+    fgColor: StudioState.fgColor,
+    bgColor: StudioState.bgColor,
+
+    seed: StudioState.seed,
+    allowedTiles: Array.from(StudioState.allowedTiles),
+
+    workspace: StudioState.workspace,
+    activeTool: StudioState.activeTool,
+    editScope: StudioState.editScope,
+    canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
+    editBrushTileId: StudioState.editBrushTileId,
+    editBrushTransform: StudioState.editBrushTransform,
+    brushSizeMode: StudioState.brushSizeMode,
+    brushSnapToBlock: StudioState.brushSnapToBlock,
+    supertilePattern: StudioState.supertilePattern,
+
+    rotateSizeMode: StudioState.rotateSizeMode,
+    rotateSnapToBlock: StudioState.rotateSnapToBlock,
+    rotateGroupMode: StudioState.rotateGroupMode,
+    rotateBehavior: StudioState.rotateBehavior,
+
+    stampInteractionMode: StudioState.stampInteractionMode,
+
+    guides: StudioState.guides,
+    cellsSnapshot,
+
+    history: includeHistories ? StudioState.history : [],
+    historyIndex: includeHistories ? StudioState.historyIndex : -1,
+    editHistory: includeHistories ? StudioState.editHistory : [],
+    editHistoryIndex: includeHistories ? StudioState.editHistoryIndex : -1
+  };
+}
+
 function saveStudioStateToStorage() {
+  clearTimeout(debouncedSaveTimer);
+  if (!StudioState.mosaicData) return;
+
+  const fullPayload = buildStudioStatePayload(true);
+  if (!fullPayload) return;
+
   try {
-    if (!StudioState.mosaicData) return;
-
-    const cellsSnapshot = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
-    const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
-
-    const payload = {
-      version: 2,
-      totalTiles,
-      timestamp: Date.now(),
-      // Artboard / Canvas
-      width: StudioState.width,
-      height: StudioState.height,
-      lockCanvasRatio: StudioState.lockCanvasRatio,
-      canvasRatio: StudioState.canvasRatio,
-      zoomPercent: StudioState.zoomPercent,
-      zoomMode: StudioState.zoomMode,
-
-      // Grid & Structure
-      rows: StudioState.rows,
-      cols: StudioState.cols,
-      lockGridRatio: StudioState.lockGridRatio,
-      gridRatio: StudioState.gridRatio,
-      margin: StudioState.margin,
-      subdivision: StudioState.subdivision,
-      paddingRatio: StudioState.paddingRatio,
-
-      // Symmetry
-      gridSymmetryMode: StudioState.gridSymmetryMode,
-      blockSymmetryMode: StudioState.blockSymmetryMode,
-      syncBlockSymmetry: StudioState.syncBlockSymmetry,
-
-      // Colors
-      fgColor: StudioState.fgColor,
-      bgColor: StudioState.bgColor,
-
-      // Seed & Allowed Tiles
-      seed: StudioState.seed,
-      allowedTiles: Array.from(StudioState.allowedTiles),
-
-      // Workspace Context & Tool State
-      workspace: StudioState.workspace,
-      activeTool: StudioState.activeTool,
-      editScope: StudioState.editScope,
-      canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
-      editBrushTileId: StudioState.editBrushTileId,
-      editBrushTransform: StudioState.editBrushTransform,
-      brushSizeMode: StudioState.brushSizeMode,
-      brushSnapToBlock: StudioState.brushSnapToBlock,
-      supertilePattern: StudioState.supertilePattern,
-
-      // Rotate Tool State
-      rotateSizeMode: StudioState.rotateSizeMode,
-      rotateSnapToBlock: StudioState.rotateSnapToBlock,
-      rotateGroupMode: StudioState.rotateGroupMode,
-      rotateBehavior: StudioState.rotateBehavior,
-
-      // Clone / Stamp State
-      stampInteractionMode: StudioState.stampInteractionMode,
-
-      // Visual Guides
-      guides: StudioState.guides,
-
-      // The Exact Mosaic Data (All Painted / Rotated / Stamped Cells)
-      cellsSnapshot,
-
-      // Histories (Capped to preserve memory and storage)
-      history: StudioState.history.slice(-30),
-      historyIndex: StudioState.historyIndex,
-      editHistory: StudioState.editHistory.slice(-25),
-      editHistoryIndex: StudioState.editHistoryIndex
-    };
-
-    localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(payload));
+    localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(fullPayload));
+    hidePersistenceWarning();
   } catch (err) {
-    console.warn('Failed to save StudioState to localStorage:', err);
+    if (isQuotaError(err)) {
+      try {
+        const minPayload = buildStudioStatePayload(false);
+        localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(minPayload));
+        showPersistenceWarning('Limite de armazenamento atingido. O histórico foi liberado, mas o desenho atual foi salvo com sucesso.');
+      } catch (errMin) {
+        showPersistenceWarning('Não foi possível salvar automaticamente no navegador. Exporte seu trabalho para evitar perda de dados.');
+      }
+    } else {
+      showPersistenceWarning('Não foi possível salvar automaticamente no navegador.');
+      console.warn('Failed to save StudioState to localStorage:', err);
+    }
   }
 }
 
@@ -359,19 +397,38 @@ function loadStudioStateFromStorage() {
       StudioState.savedCellsSnapshot = saved.cellsSnapshot;
     }
 
-    // Histories
+    // Histories (validated and clamped to bounds)
     if (Array.isArray(saved.history) && saved.history.length > 0) {
-      StudioState.history = saved.history;
-      StudioState.historyIndex = typeof saved.historyIndex === 'number' ? saved.historyIndex : saved.history.length - 1;
+      let hist = saved.history;
+      let hIdx = typeof saved.historyIndex === 'number' ? saved.historyIndex : hist.length - 1;
+      if (hist.length > MAX_GENERATION_HISTORY) {
+        const trimmed = hist.length - MAX_GENERATION_HISTORY;
+        hist = hist.slice(-MAX_GENERATION_HISTORY);
+        hIdx = Math.max(0, hIdx - trimmed);
+      }
+      StudioState.history = hist;
+      StudioState.historyIndex = Math.max(0, Math.min(StudioState.history.length - 1, hIdx));
+    } else {
+      StudioState.history = [];
+      StudioState.historyIndex = -1;
     }
 
     if (Array.isArray(saved.editHistory) && saved.editHistory.length > 0) {
-      StudioState.editHistory = saved.editHistory.filter((snap) => {
+      let eHist = saved.editHistory.filter((snap) => {
         return snap && snap.rows === StudioState.rows && snap.cols === StudioState.cols && Array.isArray(snap.gridSnap);
       });
-      StudioState.editHistoryIndex = typeof saved.editHistoryIndex === 'number'
-        ? Math.max(0, Math.min(StudioState.editHistory.length - 1, saved.editHistoryIndex))
-        : StudioState.editHistory.length - 1;
+      let eIdx = typeof saved.editHistoryIndex === 'number' ? saved.editHistoryIndex : eHist.length - 1;
+      const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
+      if (eHist.length > maxAllowedEdits) {
+        const trimmed = eHist.length - maxAllowedEdits;
+        eHist = eHist.slice(-maxAllowedEdits);
+        eIdx = Math.max(0, eIdx - trimmed);
+      }
+      StudioState.editHistory = eHist;
+      StudioState.editHistoryIndex = Math.max(0, Math.min(StudioState.editHistory.length - 1, eIdx));
+    } else {
+      StudioState.editHistory = [];
+      StudioState.editHistoryIndex = -1;
     }
 
     return true;
@@ -740,7 +797,7 @@ function pushGenerationHistory() {
   }
 
   StudioState.history.push(snapshot);
-  if (StudioState.history.length > 35) {
+  while (StudioState.history.length > MAX_GENERATION_HISTORY) {
     StudioState.history.shift();
   }
   StudioState.historyIndex = StudioState.history.length - 1;
@@ -1520,7 +1577,8 @@ function pushEditHistorySnapshot() {
   }
 
   StudioState.editHistory.push(snap);
-  if (StudioState.editHistory.length > 50) {
+  const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
+  while (StudioState.editHistory.length > maxAllowedEdits) {
     StudioState.editHistory.shift();
   }
   StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
