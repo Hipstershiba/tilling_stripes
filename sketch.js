@@ -483,7 +483,8 @@ function buildTileThumbnails() {
     gfx.clear();
     gfx.push();
     gfx.translate(size / 2, size / 2);
-    if (id === 45) {
+    const fam = window.TileRegistry.getFamilyForTile(id);
+    if (fam && fam.id === 'empty-tile') {
       // Illustrator-style "Empty / None" swatch indicator for UI thumbnails only
       const s = size - pad * 3.2;
       gfx.noFill();
@@ -517,14 +518,24 @@ function renderSwatchesPanel() {
 
   container.innerHTML = '';
 
+  let currentGroup = null;
   for (const fam of families) {
     const matchingTiles = fam.tileIds.filter((id) => {
       if (!query) return true;
       const tName = (tileNames[id] || '').toLowerCase();
-      return fam.name.toLowerCase().includes(query) || tName.includes(query) || `#${id}` === query;
+      const gName = (fam.group || '').toLowerCase();
+      return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
     });
 
     if (matchingTiles.length === 0) continue;
+
+    if (fam.group && fam.group !== currentGroup) {
+      currentGroup = fam.group;
+      const groupHeading = document.createElement('div');
+      groupHeading.className = 'swatches-group-heading';
+      groupHeading.textContent = currentGroup;
+      container.appendChild(groupHeading);
+    }
 
     const selectedInFam = fam.tileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
     const allSelected = selectedInFam === fam.tileIds.length;
@@ -1257,14 +1268,24 @@ function renderEditBrushPalette() {
 
   container.innerHTML = '';
 
+  let currentGroup = null;
   for (const fam of families) {
     const matchingTiles = fam.tileIds.filter((id) => {
       if (!query) return true;
       const tName = (tileNames[id] || '').toLowerCase();
-      return fam.name.toLowerCase().includes(query) || tName.includes(query) || `#${id}` === query;
+      const gName = (fam.group || '').toLowerCase();
+      return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
     });
 
     if (matchingTiles.length === 0) continue;
+
+    if (fam.group && fam.group !== currentGroup) {
+      currentGroup = fam.group;
+      const groupHeading = document.createElement('div');
+      groupHeading.className = 'swatches-group-heading';
+      groupHeading.textContent = currentGroup;
+      container.appendChild(groupHeading);
+    }
 
     const card = document.createElement('div');
     card.className = 'family-swatch-card family-all';

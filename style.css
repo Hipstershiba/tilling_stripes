@@ -1092,6 +1092,26 @@ body.right-dock-collapsed #right-dock {
   padding-right: 2px;
 }
 
+.swatches-group-heading {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-blue, #60a5fa);
+  margin: 10px 0 2px 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.swatches-group-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
 .family-swatch-card {
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);

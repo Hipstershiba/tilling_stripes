@@ -1,6 +1,7 @@
 /**
  * core/tile_registry.js
  * Central catalog of vector tile renderers, named families, and D4 orientation maps.
+ * Fully harmonized to 1/3 and 1/2 modules with sub-pixel alignment and grouped clusters.
  */
 
 /**
@@ -48,487 +49,70 @@ function drawPetal(ctx, rx, ry, c1x, c1y, a1Start, a1End, c2x, c2y, a2Start, a2E
   ctx.endShape('CLOSE');
 }
 
+
 const TILE_RENDERERS = [
-  // --- Family 0: Half Rect + Circle (0..3) ---
-  // 0: Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w / 2 - padding, h - padding * 2);
-    ctx.ellipse(w / 4, 0, w / 2 - padding * 2, h / 2 - padding * 2);
-  },
-  // 1: Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.rect(0, -h / 2 + padding, w / 2 - padding, h - padding * 2);
-    ctx.ellipse(-w / 4, 0, w / 2 - padding * 2, h / 2 - padding * 2);
-  },
-  // 2: Top
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w - padding * 2, h / 2 - padding);
-    ctx.ellipse(0, h / 4, w / 2 - padding * 2, h / 2 - padding * 2);
-  },
-  // 3: Bottom
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.rect(-w / 2 + padding, 0, w - padding * 2, h / 2 - padding);
-    ctx.ellipse(0, -h / 4, w / 2 - padding * 2, h / 2 - padding * 2);
-  },
-
-  // --- Family 1: Corner Triangles (4..7) ---
-  // 4: Top Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      -w / 2 + padding, -h / 2 + padding,
-      w / 2 - padding, -h / 2 + padding,
-      -w / 2 + padding, h / 2 - padding
-    );
-  },
-  // 5: Top Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      -w / 2 + padding, -h / 2 + padding,
-      w / 2 - padding, -h / 2 + padding,
-      w / 2 - padding, h / 2 - padding
-    );
-  },
-  // 6: Bottom Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      -w / 2 + padding, -h / 2 + padding,
-      -w / 2 + padding, h / 2 - padding,
-      w / 2 - padding, h / 2 - padding
-    );
-  },
-  // 7: Bottom Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      w / 2 - padding, -h / 2 + padding,
-      w / 2 - padding, h / 2 - padding,
-      -w / 2 + padding, h / 2 - padding
-    );
-  },
-
-  // --- Family 2: Side Triangles (8..11) ---
-  // 8: Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      -w / 2 + padding, 0,
-      w / 2 - padding, -h / 2 + padding,
-      w / 2 - padding, h / 2 - padding
-    );
-  },
-  // 9: Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      w / 2 - padding, 0,
-      -w / 2 + padding, -h / 2 + padding,
-      -w / 2 + padding, h / 2 - padding
-    );
-  },
-  // 10: Top
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      0, -h / 2 + padding,
-      w / 2 - padding, h / 2 - padding,
-      -w / 2 + padding, h / 2 - padding
-    );
-  },
-  // 11: Bottom
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.triangle(
-      0, h / 2 - padding,
-      -w / 2 + padding, -h / 2 + padding,
-      w / 2 - padding, -h / 2 + padding
-    );
-  },
-
-  // --- Family 3: Symmetric / Centered (12..15) ---
-  // 12: Diamond
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = (w - padding * 2) / 2;
-    const dh = (h - padding * 2) / 2;
-    ctx.beginShape();
-    ctx.vertex(0, -dh);
-    ctx.vertex(dw, 0);
-    ctx.vertex(0, dh);
-    ctx.vertex(-dw, 0);
-    ctx.endShape('CLOSE');
-  },
-  // 13: Cross
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thicknessX = (w - padding * 2) / 3;
-    const thicknessY = (h - padding * 2) / 3;
-    ctx.rect(-thicknessX / 2, -h / 2 + padding, thicknessX, h - padding * 2);
-    ctx.rect(-w / 2 + padding, -thicknessY / 2, w - padding * 2, thicknessY);
-  },
-  // 14: Target
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const weight = Math.min(w, h) / 20;
-    ctx.strokeWeight(weight);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.ellipse(0, 0, dw, dh);
-    ctx.ellipse(0, 0, dw * 0.6, dh * 0.6);
-    ctx.ellipse(0, 0, dw * 0.2, dh * 0.2);
-  },
-  // 15: Four Dots
+  // --- GRUPO 1: FITAS, CONEXÕES & TUBOS (Módulo 1/3) ---
+  // Family 0: Faixa Central (0, 1)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    const d = Math.min(dw, dh) * 0.2;
-    const ox = dw / 4;
-    const oy = dh / 4;
-    ctx.ellipse(-ox, -oy, d, d);
-    ctx.ellipse(ox, -oy, d, d);
-    ctx.ellipse(-ox, oy, d, d);
-    ctx.ellipse(ox, oy, d, d);
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
   },
-
-  // --- Family 4: Checkers (16..17) ---
-  // 16: Checkers (TL/BR)
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = (w - padding * 2) / 2;
-    const dh = (h - padding * 2) / 2;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, dw, dh);
-    ctx.rect(0, 0, dw, dh);
-  },
-  // 17: Checkers Inverse (TR/BL)
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = (w - padding * 2) / 2;
-    const dh = (h - padding * 2) / 2;
-    ctx.rect(0, -h / 2 + padding, dw, dh);
-    ctx.rect(-w / 2 + padding, 0, dw, dh);
-  },
-
-  // --- Family 5: Stripes (18..19) ---
-  // 18: Stripes Horizontal
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const stripeH = (h - padding * 2) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w - padding * 2, stripeH);
-    ctx.rect(-w / 2 + padding, -h / 2 + padding + stripeH * 2, w - padding * 2, stripeH);
-  },
-  // 19: Stripes Vertical
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const stripeW = (w - padding * 2) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, stripeW, h - padding * 2);
-    ctx.rect(-w / 2 + padding + stripeW * 2, -h / 2 + padding, stripeW, h - padding * 2);
-  },
-
-  // --- Family 6: Waves (20..23) ---
-  // 20: Waves Top Left
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    const size = Math.min(dw, dh);
-    ctx.strokeWeight(size * 0.1);
-    for (let i = 1; i <= 3; i++) {
-      const r = (size * i) / 3;
-      ctx.arc(-dw / 2, -dh / 2, r * 2, r * 2, 0, Math.PI / 2);
-    }
-  },
-  // 21: Waves Top Right
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    const size = Math.min(dw, dh);
-    ctx.strokeWeight(size * 0.1);
-    for (let i = 1; i <= 3; i++) {
-      const r = (size * i) / 3;
-      ctx.arc(dw / 2, -dh / 2, r * 2, r * 2, Math.PI / 2, Math.PI);
-    }
-  },
-  // 22: Waves Bottom Right
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    const size = Math.min(dw, dh);
-    ctx.strokeWeight(size * 0.1);
-    for (let i = 1; i <= 3; i++) {
-      const r = (size * i) / 3;
-      ctx.arc(dw / 2, dh / 2, r * 2, r * 2, Math.PI, Math.PI * 1.5);
-    }
-  },
-  // 23: Waves Bottom Left
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    const size = Math.min(dw, dh);
-    ctx.strokeWeight(size * 0.1);
-    for (let i = 1; i <= 3; i++) {
-      const r = (size * i) / 3;
-      ctx.arc(-dw / 2, dh / 2, r * 2, r * 2, Math.PI * 1.5, Math.PI * 2);
-    }
-  },
-
-  // --- Family 7: Zigzag (24..25) ---
-  // 24: Zigzag Horizontal
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
-    ctx.beginShape();
-    ctx.vertex(-dw / 2, 0);
-    ctx.vertex(-dw / 4, -dh / 3);
-    ctx.vertex(0, 0);
-    ctx.vertex(dw / 4, dh / 3);
-    ctx.vertex(dw / 2, 0);
-    ctx.endShape();
-  },
-  // 25: Zigzag Vertical
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
-    ctx.beginShape();
-    ctx.vertex(0, -dh / 2);
-    ctx.vertex(-dw / 3, -dh / 4);
-    ctx.vertex(0, 0);
-    ctx.vertex(dw / 3, dh / 4);
-    ctx.vertex(0, dh / 2);
-    ctx.endShape();
-  },
-
-  // --- Family 8: Bowtie / Hourglass (26..27) ---
-  // 26: Bowtie (Horizontal)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    ctx.triangle(-dw / 2, -dh / 2, -dw / 2, dh / 2, 0, 0);
-    ctx.triangle(dw / 2, -dh / 2, dw / 2, dh / 2, 0, 0);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
   },
-  // 27: Hourglass (Vertical)
+
+  // Family 1: Junção Central (T) (2..5: L, R, T, B)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    ctx.triangle(-dw / 2, -dh / 2, dw / 2, -dh / 2, 0, 0);
-    ctx.triangle(-dw / 2, dh / 2, dw / 2, dh / 2, 0, 0);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 6, dw / 2, dh / 3);
   },
-
-  // --- Family 9: L-Shape (28..31) ---
-  // 28: L-Shape Top Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w - padding * 2, thickness);
-  },
-  // 29: L-Shape Top Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(w / 2 - padding - thickness, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w - padding * 2, thickness);
-  },
-  // 30: L-Shape Bottom Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(w / 2 - padding - thickness, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, h / 2 - padding - thickness, w - padding * 2, thickness);
-  },
-  // 31: L-Shape Bottom Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, h / 2 - padding - thickness, w - padding * 2, thickness);
-  },
-
-  // --- Family 10: T-Shape (32..35) ---
-  // 32: T-Shape Top
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, w - padding * 2, thickness);
-    ctx.rect(-thickness / 2, -h / 2 + padding, thickness, h - padding * 2);
-  },
-  // 33: T-Shape Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(w / 2 - padding - thickness, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, -thickness / 2, w - padding * 2, thickness);
-  },
-  // 34: T-Shape Bottom
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(-w / 2 + padding, h / 2 - padding - thickness, w - padding * 2, thickness);
-    ctx.rect(-thickness / 2, -h / 2 + padding, thickness, h - padding * 2);
-  },
-  // 35: T-Shape Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const thickness = Math.min(w, h) / 3;
-    ctx.rect(-w / 2 + padding, -h / 2 + padding, thickness, h - padding * 2);
-    ctx.rect(-w / 2 + padding, -thickness / 2, w - padding * 2, thickness);
-  },
-
-  // --- Family 11: Diagonal Line (36..37) ---
-  // 36: Diagonal (TL-BR)
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    ctx.strokeWeight(Math.min(w, h) * 0.15);
-    ctx.line(-w / 2 + padding, -h / 2 + padding, w / 2 - padding, h / 2 - padding);
-  },
-  // 37: Diagonal (TR-BL)
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    ctx.strokeWeight(Math.min(w, h) * 0.15);
-    ctx.line(w / 2 - padding, -h / 2 + padding, -w / 2 + padding, h / 2 - padding);
-  },
-
-  // --- Family 12: Quarter Arc (38..41) ---
-  // 38: Arc Top Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.arc(-w / 2 + padding, -h / 2 + padding, w * 1.5, h * 1.5, 0, Math.PI / 2);
-  },
-  // 39: Arc Top Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.arc(w / 2 - padding, -h / 2 + padding, w * 1.5, h * 1.5, Math.PI / 2, Math.PI);
-  },
-  // 40: Arc Bottom Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.arc(w / 2 - padding, h / 2 - padding, w * 1.5, h * 1.5, Math.PI, Math.PI * 1.5);
-  },
-  // 41: Arc Bottom Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    ctx.arc(-w / 2 + padding, h / 2 - padding, w * 1.5, h * 1.5, Math.PI * 1.5, Math.PI * 2);
-  },
-
-  // --- Family 13: Grid 2x2 (42) ---
-  // 42: Grid 2x2
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const gap = Math.min(w, h) * 0.1;
-    const blockSize = (Math.min(w, h) - padding * 2 - gap) / 2;
-    ctx.rect(-blockSize - gap / 2, -blockSize - gap / 2, blockSize, blockSize);
-    ctx.rect(gap / 2, -blockSize - gap / 2, blockSize, blockSize);
-    ctx.rect(-blockSize - gap / 2, gap / 2, blockSize, blockSize);
-    ctx.rect(gap / 2, gap / 2, blockSize, blockSize);
-  },
-
-  // --- Family 14: Three Dots Diagonal (43..44) ---
-  // 43: Three Dots (TL-BR)
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const r = Math.min(w, h) * 0.15;
-    ctx.ellipse(0, 0, r * 2, r * 2);
-    ctx.ellipse(-w / 3 + padding / 2, -h / 3 + padding / 2, r * 2, r * 2);
-    ctx.ellipse(w / 3 - padding / 2, h / 3 - padding / 2, r * 2, r * 2);
-  },
-  // 44: Three Dots (TR-BL)
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const r = Math.min(w, h) * 0.15;
-    ctx.ellipse(0, 0, r * 2, r * 2);
-    ctx.ellipse(w / 3 - padding / 2, -h / 3 + padding / 2, r * 2, r * 2);
-    ctx.ellipse(-w / 3 + padding / 2, h / 3 - padding / 2, r * 2, r * 2);
-  },
-
-  // --- Family 15: Empty / Blank Tile (45) ---
-  // 45: Empty (Vazio)
-  function () {
-    // Intentionally empty (blank space / negative space tile)
-  }
-,
-
-  // --- Family 16: Faixa Central / Center Stripe (46..47) ---
-  // 46: Center Stripe Horizontal
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    const barH = dh / 3;
-    ctx.rect(-dw / 2, -barH / 2, dw, barH);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(0, -dh / 6, dw / 2, dh / 3);
   },
-  // 47: Center Stripe Vertical
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    const barW = dw / 3;
-    ctx.rect(-barW / 2, -dh / 2, barW, dh);
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
+    ctx.rect(-dw / 6, 0, dw / 3, dh / 2);
   },
 
-  // --- Family 17: Arco de Fita (90°) / Elbow Ribbon (48..51) ---
-  // 48: Elbow Ribbon Top Left
+  // Family 2: Cruz Central (+) (6)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
+  },
+
+  // Family 3: Arco de Fita (90°) (7..10: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -536,7 +120,6 @@ const TILE_RENDERERS = [
     const dh = h - padding * 2;
     drawAnnularSector(ctx, -dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, 0, Math.PI / 2);
   },
-  // 49: Elbow Ribbon Top Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -544,7 +127,6 @@ const TILE_RENDERERS = [
     const dh = h - padding * 2;
     drawAnnularSector(ctx, dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI / 2, Math.PI);
   },
-  // 50: Elbow Ribbon Bottom Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -552,7 +134,6 @@ const TILE_RENDERERS = [
     const dh = h - padding * 2;
     drawAnnularSector(ctx, dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI, (3 * Math.PI) / 2);
   },
-  // 51: Elbow Ribbon Bottom Left
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -561,8 +142,7 @@ const TILE_RENDERERS = [
     drawAnnularSector(ctx, -dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
   },
 
-  // --- Family 18: Fita Truchet Dupla / Dual Ribbon Truchet (52..53) ---
-  // 52: Dual Ribbon Truchet (TL-BR)
+  // Family 4: Fita Truchet Dupla (11, 12: TL-BR, TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -571,7 +151,6 @@ const TILE_RENDERERS = [
     drawAnnularSector(ctx, -dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, 0, Math.PI / 2);
     drawAnnularSector(ctx, dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI, (3 * Math.PI) / 2);
   },
-  // 53: Dual Ribbon Truchet (TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -581,141 +160,180 @@ const TILE_RENDERERS = [
     drawAnnularSector(ctx, -dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
   },
 
-  // --- Family 19: Semicírculo de Borda / Edge Semicircles (54..57) ---
-  // 54: Semicircle Left
+  // Family 5: Cantoneira Central (L) (13..16: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawSemicircle(ctx, -dw / 2, 0, dw / 2, dh / 2, -Math.PI / 2, Math.PI / 2);
+    ctx.rect(-dw / 2, -dh / 6, dw / 2 + dw / 6, dh / 3);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh / 2 + dh / 6);
   },
-  // 55: Semicircle Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawSemicircle(ctx, dw / 2, 0, dw / 2, dh / 2, Math.PI / 2, (3 * Math.PI) / 2);
+    ctx.rect(-dw / 6, -dh / 6, dw / 2 + dw / 6, dh / 3);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh / 2 + dh / 6);
   },
-  // 56: Semicircle Top
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawSemicircle(ctx, 0, -dh / 2, dw / 2, dh / 2, 0, Math.PI);
+    ctx.rect(-dw / 6, -dh / 6, dw / 2 + dw / 6, dh / 3);
+    ctx.rect(-dw / 6, -dh / 6, dw / 3, dh / 2 + dh / 6);
   },
-  // 57: Semicircle Bottom
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawSemicircle(ctx, 0, dh / 2, dw / 2, dh / 2, Math.PI, 2 * Math.PI);
-  },
-
-  // --- Family 20: Meio Bloco Sólido / Solid Half-Block (58..61) ---
-  // 58: Solid Half Left
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.rect(-dw / 2, -dh / 2, dw / 2, dh);
-  },
-  // 59: Solid Half Right
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.rect(0, -dh / 2, dw / 2, dh);
-  },
-  // 60: Solid Half Top
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.rect(-dw / 2, -dh / 2, dw, dh / 2);
-  },
-  // 61: Solid Half Bottom
-  function (ctx, w, h, padding, color) {
-    ctx.fill(color);
-    ctx.noStroke();
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    ctx.rect(-dw / 2, 0, dw, dh / 2);
+    ctx.rect(-dw / 2, -dh / 6, dw / 2 + dw / 6, dh / 3);
+    ctx.rect(-dw / 6, -dh / 6, dw / 3, dh / 2 + dh / 6);
   },
 
-  // --- Family 21: Pétala de Canto / Corner Petal (62..65) ---
-  // 62: Corner Petal Top Left
+  // Family 6: Cantoneira de Borda (L) (17..20: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, -Math.PI / 2, 0, -dh / 2, Math.PI, Math.PI / 2);
+    ctx.rect(-dw / 2, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 3);
   },
-  // 63: Corner Petal Top Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, (3 * Math.PI) / 2, 0, -dh / 2, 0, Math.PI / 2);
+    ctx.rect(dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 3);
   },
-  // 64: Corner Petal Bottom Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, Math.PI / 2, 0, dh / 2, 0, -Math.PI / 2);
+    ctx.rect(dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, dh / 6, dw, dh / 3);
   },
-  // 65: Corner Petal Bottom Left
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, Math.PI / 2, 0, dh / 2, Math.PI, (3 * Math.PI) / 2);
+    ctx.rect(-dw / 2, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, dh / 6, dw, dh / 3);
   },
 
-  // --- Family 22: Alvo Quadrado / Concentric Squares (66) ---
-  // 66: Concentric Squares
+  // Family 7: Junção de Borda (T) (21..24: L, R, T, B)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(dw / 6, -dh / 2, dw / 3, dh);
+    ctx.rect(-dw / 2, -dh / 6, dw, dh / 3);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 3);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, dh / 6, dw, dh / 3);
+    ctx.rect(-dw / 6, -dh / 2, dw / 3, dh);
+  },
+
+  // --- GRUPO 2: LISTRAS, GRADES & TRAMAS ---
+  // Family 8: Listras Paralelas (25, 26: H, V)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 3);
+    ctx.rect(-dw / 2, dh / 6, dw, dh / 3);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 3, dh);
+    ctx.rect(dw / 6, -dh / 2, dw / 3, dh);
+  },
+
+  // Family 9: Curva de Listras Duplas (90°) (27..30: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, 0, 0, dw / 3, dh / 3, 0, Math.PI / 2);
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, (2 * dw) / 3, (2 * dh) / 3, dw, dh, 0, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, -dh / 2, 0, 0, dw / 3, dh / 3, Math.PI / 2, Math.PI);
+    drawAnnularSector(ctx, dw / 2, -dh / 2, (2 * dw) / 3, (2 * dh) / 3, dw, dh, Math.PI / 2, Math.PI);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, dh / 2, 0, 0, dw / 3, dh / 3, Math.PI, (3 * Math.PI) / 2);
+    drawAnnularSector(ctx, dw / 2, dh / 2, (2 * dw) / 3, (2 * dh) / 3, dw, dh, Math.PI, (3 * Math.PI) / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, dh / 2, 0, 0, dw / 3, dh / 3, (3 * Math.PI) / 2, 2 * Math.PI);
+    drawAnnularSector(ctx, -dw / 2, dh / 2, (2 * dw) / 3, (2 * dh) / 3, dw, dh, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // Family 10: Linha Diagonal (31, 32: TL-BR, TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
-    const weight = Math.min(w, h) / 20;
-    ctx.strokeWeight(weight);
     const dw = w - padding * 2;
     const dh = h - padding * 2;
-    ctx.rect(-dw / 2, -dh / 2, dw, dh);
-    ctx.rect(-dw * 0.3, -dh * 0.3, dw * 0.6, dh * 0.6);
-    ctx.rect(-dw * 0.1, -dh * 0.1, dw * 0.2, dh * 0.2);
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.line(-dw / 2, -dh / 2, dw / 2, dh / 2);
   },
-
-  // --- Family 23: Losango Vazado / Diamond Frame (67) ---
-  // 67: Diamond Frame
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
-    const weight = Math.min(w, h) * 0.14;
-    ctx.strokeWeight(weight);
-    const dw = (w - padding * 2 - weight) / 2;
-    const dh = (h - padding * 2 - weight) / 2;
-    ctx.beginShape();
-    ctx.vertex(0, -dh);
-    ctx.vertex(dw, 0);
-    ctx.vertex(0, dh);
-    ctx.vertex(-dw, 0);
-    ctx.endShape('CLOSE');
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.line(dw / 2, -dh / 2, -dw / 2, dh / 2);
   },
 
-  // --- Family 24: Listras Diagonais / Diagonal Hatching (68..69) ---
-  // 68: Diagonal Hatching (TL-BR)
+  // Family 11: Listras Diagonais (Hachura) (33, 34: TL-BR, TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
@@ -726,7 +344,6 @@ const TILE_RENDERERS = [
     ctx.line(0, -dh / 2, dw / 2, 0);
     ctx.line(-dw / 2, 0, 0, dh / 2);
   },
-  // 69: Diagonal Hatching (TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
@@ -738,8 +355,162 @@ const TILE_RENDERERS = [
     ctx.line(0, dh / 2, dw / 2, 0);
   },
 
-  // --- Family 25: Ponta de Flecha / Chevron (70..73) ---
-  // 70: Chevron Left
+  // Family 12: Zigue-Zague (35, 36: H, V)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.beginShape();
+    ctx.vertex(-dw / 2, 0);
+    ctx.vertex(-dw / 4, -dh / 3);
+    ctx.vertex(0, 0);
+    ctx.vertex(dw / 4, dh / 3);
+    ctx.vertex(dw / 2, 0);
+    ctx.endShape();
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.beginShape();
+    ctx.vertex(0, -dh / 2);
+    ctx.vertex(-dw / 3, -dh / 4);
+    ctx.vertex(0, 0);
+    ctx.vertex(dw / 3, dh / 4);
+    ctx.vertex(0, dh / 2);
+    ctx.endShape();
+  },
+
+  // Family 13: Mini Grade 2×2 (37)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const gapX = dw * 0.1;
+    const gapY = dh * 0.1;
+    const bw = (dw - gapX) / 2;
+    const bh = (dh - gapY) / 2;
+    ctx.rect(-dw / 2, -dh / 2, bw, bh);
+    ctx.rect(gapX / 2, -dh / 2, bw, bh);
+    ctx.rect(-dw / 2, gapY / 2, bw, bh);
+    ctx.rect(gapX / 2, gapY / 2, bw, bh);
+  },
+
+  // Family 14: Xadrez (Checkers) (38, 39: TL-BR, TR-BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 2, dh / 2);
+    ctx.rect(0, 0, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(0, -dh / 2, dw / 2, dh / 2);
+    ctx.rect(-dw / 2, 0, dw / 2, dh / 2);
+  },
+
+  // --- GRUPO 3: MASSAS SÓLIDAS & FORMAS ANGULARES ---
+  // Family 15: Meio Bloco Sólido (40..43: L, R, T, B)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 2, dh);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(0, -dh / 2, dw / 2, dh);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, 0, dw, dh / 2);
+  },
+
+  // Family 16: Triângulos de Canto (44..47: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, -dh / 2, dw / 2, -dh / 2, -dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, -dh / 2, dw / 2, -dh / 2, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(dw / 2, -dh / 2, dw / 2, dh / 2, -dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, -dh / 2, -dw / 2, dh / 2, dw / 2, dh / 2);
+  },
+
+  // Family 17: Triângulos Laterais (48..51: L, R, T, B)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, 0, dw / 2, -dh / 2, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(dw / 2, 0, -dw / 2, -dh / 2, -dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(0, -dh / 2, dw / 2, dh / 2, -dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(0, dh / 2, -dw / 2, -dh / 2, dw / 2, -dh / 2);
+  },
+
+  // Family 18: Ponta de Flecha (Chevron) (52..55: L, R, T, B)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -754,7 +525,6 @@ const TILE_RENDERERS = [
     ctx.vertex(dw / 2, dh / 2);
     ctx.endShape('CLOSE');
   },
-  // 71: Chevron Right
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -769,7 +539,6 @@ const TILE_RENDERERS = [
     ctx.vertex(-dw / 2, dh / 2);
     ctx.endShape('CLOSE');
   },
-  // 72: Chevron Top
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -784,7 +553,6 @@ const TILE_RENDERERS = [
     ctx.vertex(-dw / 2, dh / 2);
     ctx.endShape('CLOSE');
   },
-  // 73: Chevron Bottom
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -798,147 +566,487 @@ const TILE_RENDERERS = [
     ctx.vertex(-dw / 6, -dh / 2);
     ctx.vertex(-dw / 2, -dh / 2);
     ctx.endShape('CLOSE');
+  },
+
+  // Family 19: Ampulheta & Laço (Bowtie) (56, 57: H, V)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, -dh / 2, -dw / 2, dh / 2, 0, 0);
+    ctx.triangle(dw / 2, -dh / 2, dw / 2, dh / 2, 0, 0);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.triangle(-dw / 2, -dh / 2, dw / 2, -dh / 2, 0, 0);
+    ctx.triangle(-dw / 2, dh / 2, dw / 2, dh / 2, 0, 0);
+  },
+
+  // Family 20: Losango Sólido (Diamond) (58)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.beginShape();
+    ctx.vertex(0, -dh / 2);
+    ctx.vertex(dw / 2, 0);
+    ctx.vertex(0, dh / 2);
+    ctx.vertex(-dw / 2, 0);
+    ctx.endShape('CLOSE');
+  },
+
+  // Family 21: Losango Vazado (Diamond Frame) (59)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const weight = Math.min(dw, dh) * 0.12;
+    ctx.strokeWeight(weight);
+    const halfW = (dw - weight) / 2;
+    const halfH = (dh - weight) / 2;
+    ctx.beginShape();
+    ctx.vertex(0, -halfH);
+    ctx.vertex(halfW, 0);
+    ctx.vertex(0, halfH);
+    ctx.vertex(-halfW, 0);
+    ctx.endShape('CLOSE');
+  },
+
+  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  // Family 22: Meio Bloco & Círculo (60..63: L, R, T, B)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 2, dh);
+    ctx.ellipse(dw / 4, 0, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(0, -dh / 2, dw / 2, dh);
+    ctx.ellipse(-dw / 4, 0, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 2);
+    ctx.ellipse(0, dh / 4, dw / 2, dh / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, 0, dw, dh / 2);
+    ctx.ellipse(0, -dh / 4, dw / 2, dh / 2);
+  },
+
+  // Family 23: Semicírculo de Borda (64..67: L, R, T, B)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, -dw / 2, 0, dw / 2, dh / 2, -Math.PI / 2, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, dw / 2, 0, dw / 2, dh / 2, Math.PI / 2, (3 * Math.PI) / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, 0, -dh / 2, dw / 2, dh / 2, 0, Math.PI);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, 0, dh / 2, dw / 2, dh / 2, Math.PI, 2 * Math.PI);
+  },
+
+  // Family 24: Arco de Quarto (Médio) (68..71: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, 0, 0, dw / 2, dh / 2, 0, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, -dh / 2, 0, 0, dw / 2, dh / 2, Math.PI / 2, Math.PI);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, dh / 2, 0, 0, dw / 2, dh / 2, Math.PI, (3 * Math.PI) / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, dh / 2, 0, 0, dw / 2, dh / 2, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // Family 25: Arco de Quarto (Total) (72..75: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, 0, 0, dw, dh, 0, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, -dh / 2, 0, 0, dw, dh, Math.PI / 2, Math.PI);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, dh / 2, 0, 0, dw, dh, Math.PI, (3 * Math.PI) / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, dh / 2, 0, 0, dw, dh, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // Family 26: Pétala de Canto (Roseta) (76..79: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, -Math.PI / 2, 0, -dh / 2, Math.PI, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, (3 * Math.PI) / 2, 0, -dh / 2, 0, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, Math.PI / 2, 0, dh / 2, 0, -Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, Math.PI / 2, 0, dh / 2, Math.PI, (3 * Math.PI) / 2);
+  },
+
+  // Family 27: Ondas de Canto (80..83: TL, TR, BR, BL)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
+    ctx.arc(-dw / 2, -dh / 2, (dw * 2) / 3, (dh * 2) / 3, 0, Math.PI / 2);
+    ctx.arc(-dw / 2, -dh / 2, (dw * 4) / 3, (dh * 4) / 3, 0, Math.PI / 2);
+    ctx.arc(-dw / 2, -dh / 2, dw * 2, dh * 2, 0, Math.PI / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
+    ctx.arc(dw / 2, -dh / 2, (dw * 2) / 3, (dh * 2) / 3, Math.PI / 2, Math.PI);
+    ctx.arc(dw / 2, -dh / 2, (dw * 4) / 3, (dh * 4) / 3, Math.PI / 2, Math.PI);
+    ctx.arc(dw / 2, -dh / 2, dw * 2, dh * 2, Math.PI / 2, Math.PI);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
+    ctx.arc(dw / 2, dh / 2, (dw * 2) / 3, (dh * 2) / 3, Math.PI, (3 * Math.PI) / 2);
+    ctx.arc(dw / 2, dh / 2, (dw * 4) / 3, (dh * 4) / 3, Math.PI, (3 * Math.PI) / 2);
+    ctx.arc(dw / 2, dh / 2, dw * 2, dh * 2, Math.PI, (3 * Math.PI) / 2);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.1);
+    ctx.arc(-dw / 2, dh / 2, (dw * 2) / 3, (dh * 2) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
+    ctx.arc(-dw / 2, dh / 2, (dw * 4) / 3, (dh * 4) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
+    ctx.arc(-dw / 2, dh / 2, dw * 2, dh * 2, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
+  // Family 28: Alvo Circular (Target) (84)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const weight = Math.min(dw, dh) * 0.06;
+    ctx.strokeWeight(weight);
+    ctx.ellipse(0, 0, dw, dh);
+    ctx.ellipse(0, 0, dw * 0.6, dh * 0.6);
+    ctx.ellipse(0, 0, dw * 0.2, dh * 0.2);
+  },
+
+  // Family 29: Alvo Quadrado (85)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const weight = Math.min(dw, dh) * 0.06;
+    ctx.strokeWeight(weight);
+    ctx.rect(-dw / 2, -dh / 2, dw, dh);
+    ctx.rect(-dw * 0.3, -dh * 0.3, dw * 0.6, dh * 0.6);
+    ctx.rect(-dw * 0.1, -dh * 0.1, dw * 0.2, dh * 0.2);
+  },
+
+  // Family 30: Quatro Pontos (86)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const d = Math.min(dw, dh) * 0.18;
+    const ox = dw / 4;
+    const oy = dh / 4;
+    ctx.ellipse(-ox, -oy, d, d);
+    ctx.ellipse(ox, -oy, d, d);
+    ctx.ellipse(-ox, oy, d, d);
+    ctx.ellipse(ox, oy, d, d);
+  },
+
+  // Family 31: Três Pontos Diagonais (87, 88: TL-BR, TR-BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const d = Math.min(dw, dh) * 0.18;
+    ctx.ellipse(0, 0, d, d);
+    ctx.ellipse(-dw / 3, -dh / 3, d, d);
+    ctx.ellipse(dw / 3, dh / 3, d, d);
+  },
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const d = Math.min(dw, dh) * 0.18;
+    ctx.ellipse(0, 0, d, d);
+    ctx.ellipse(dw / 3, -dh / 3, d, d);
+    ctx.ellipse(-dw / 3, dh / 3, d, d);
+  },
+
+  // --- GRUPO 6: ESPAÇO NEGATIVO ---
+  // Family 32: Tile Vazio (Espaço) (89)
+  function () {
+    // Intentionally empty
   }
 ];
 
 const TILE_NAMES = [
-  "Half Rect + Circle (Left)",
-  "Half Rect + Circle (Right)",
-  "Half Rect + Circle (Top)",
-  "Half Rect + Circle (Bottom)",
-  "Triangle Top Left",
-  "Triangle Top Right",
-  "Triangle Bottom Left",
-  "Triangle Bottom Right",
-  "Triangle Half Left",
-  "Triangle Half Right",
-  "Triangle Half Top",
-  "Triangle Half Bottom",
-  "Diamond",
-  "Cross",
-  "Target",
-  "Four Dots",
-  "Checkers (TL/BR)",
-  "Checkers Inverse (TR/BL)",
-  "Stripes Horizontal",
-  "Stripes Vertical",
-  "Waves Top Left",
-  "Waves Top Right",
-  "Waves Bottom Right",
-  "Waves Bottom Left",
-  "Zigzag Horizontal",
-  "Zigzag Vertical",
-  "Bowtie (Horizontal)",
-  "Hourglass (Vertical)",
-  "L-Shape Top Left",
-  "L-Shape Top Right",
-  "L-Shape Bottom Right",
-  "L-Shape Bottom Left",
-  "T-Shape Top",
-  "T-Shape Right",
-  "T-Shape Bottom",
-  "T-Shape Left",
-  "Diagonal (TL-BR)",
-  "Diagonal (TR-BL)",
-  "Arc Top Left",
-  "Arc Top Right",
-  "Arc Bottom Right",
-  "Arc Bottom Left",
-  "Grid 2x2",
-  "Three Dots (TL-BR)",
-  "Three Dots (TR-BL)",
-  "Tile Vazio (Espaço)"
-,
-  // Family 16: Faixa Central (46..47)
+  // Grupo 1: Fitas, Conexões & Tubos
   "Faixa Central Horizontal",
   "Faixa Central Vertical",
-  // Family 17: Arco de Fita 90° (48..51)
+  "Junção Central (T) Esquerda",
+  "Junção Central (T) Direita",
+  "Junção Central (T) Cima",
+  "Junção Central (T) Baixo",
+  "Cruz Central (+)",
   "Arco de Fita Top Left",
   "Arco de Fita Top Right",
   "Arco de Fita Bottom Right",
   "Arco de Fita Bottom Left",
-  // Family 18: Fita Truchet Dupla (52..53)
   "Fita Truchet (TL-BR)",
   "Fita Truchet (TR-BL)",
-  // Family 19: Semicírculo de Borda (54..57)
-  "Semicírculo Esquerdo",
-  "Semicírculo Direito",
-  "Semicírculo Superior",
-  "Semicírculo Inferior",
-  // Family 20: Meio Bloco Sólido (58..61)
+  "Cantoneira Central (L) Top Left",
+  "Cantoneira Central (L) Top Right",
+  "Cantoneira Central (L) Bottom Right",
+  "Cantoneira Central (L) Bottom Left",
+  "Cantoneira de Borda (L) Top Left",
+  "Cantoneira de Borda (L) Top Right",
+  "Cantoneira de Borda (L) Bottom Right",
+  "Cantoneira de Borda (L) Bottom Left",
+  "Junção de Borda (T) Esquerda",
+  "Junção de Borda (T) Direita",
+  "Junção de Borda (T) Cima",
+  "Junção de Borda (T) Baixo",
+
+  // Grupo 2: Listras, Grades & Tramas
+  "Listras Paralelas Horizontal",
+  "Listras Paralelas Vertical",
+  "Curva de Listras Duplas Top Left",
+  "Curva de Listras Duplas Top Right",
+  "Curva de Listras Duplas Bottom Right",
+  "Curva de Listras Duplas Bottom Left",
+  "Linha Diagonal (TL-BR)",
+  "Linha Diagonal (TR-BL)",
+  "Listras Diagonais (TL-BR)",
+  "Listras Diagonais (TR-BL)",
+  "Zigue-Zague Horizontal",
+  "Zigue-Zague Vertical",
+  "Mini Grade 2×2",
+  "Xadrez (TL-BR)",
+  "Xadrez Inverso (TR-BL)",
+
+  // Grupo 3: Massas Sólidas & Formas Angulares
   "Meio Bloco Esquerdo",
   "Meio Bloco Direito",
   "Meio Bloco Superior",
   "Meio Bloco Inferior",
-  // Family 21: Pétala de Canto (62..65)
-  "Pétala Top Left",
-  "Pétala Top Right",
-  "Pétala Bottom Right",
-  "Pétala Bottom Left",
-  // Family 22: Alvo Quadrado (66)
-  "Alvo Quadrado",
-  // Family 23: Losango Vazado (67)
-  "Losango Vazado",
-  // Family 24: Listras Diagonais (68..69)
-  "Listras Diagonais (TL-BR)",
-  "Listras Diagonais (TR-BL)",
-  // Family 25: Ponta de Flecha V (70..73)
+  "Triângulo de Canto Top Left",
+  "Triângulo de Canto Top Right",
+  "Triângulo de Canto Bottom Right",
+  "Triângulo de Canto Bottom Left",
+  "Triângulo Lateral Esquerdo",
+  "Triângulo Lateral Direito",
+  "Triângulo Lateral Superior",
+  "Triângulo Lateral Inferior",
   "Ponta de Flecha (Esquerda)",
   "Ponta de Flecha (Direita)",
   "Ponta de Flecha (Cima)",
-  "Ponta de Flecha (Baixo)"
+  "Ponta de Flecha (Baixo)",
+  "Ampulheta (Horizontal / Laço)",
+  "Ampulheta (Vertical)",
+  "Losango Sólido",
+  "Losango Vazado",
+
+  // Grupo 4: Círculos, Arcos & Rosetas
+  "Meio Bloco & Círculo (Esquerdo)",
+  "Meio Bloco & Círculo (Direito)",
+  "Meio Bloco & Círculo (Superior)",
+  "Meio Bloco & Círculo (Inferior)",
+  "Semicírculo de Borda (Esquerdo)",
+  "Semicírculo de Borda (Direito)",
+  "Semicírculo de Borda (Superior)",
+  "Semicírculo de Borda (Inferior)",
+  "Arco de Quarto Médio Top Left",
+  "Arco de Quarto Médio Top Right",
+  "Arco de Quarto Médio Bottom Right",
+  "Arco de Quarto Médio Bottom Left",
+  "Arco de Quarto Total Top Left",
+  "Arco de Quarto Total Top Right",
+  "Arco de Quarto Total Bottom Right",
+  "Arco de Quarto Total Bottom Left",
+  "Pétala de Canto Top Left",
+  "Pétala de Canto Top Right",
+  "Pétala de Canto Bottom Right",
+  "Pétala de Canto Bottom Left",
+  "Ondas de Canto Top Left",
+  "Ondas de Canto Top Right",
+  "Ondas de Canto Bottom Right",
+  "Ondas de Canto Bottom Left",
+
+  // Grupo 5: Focos Centrais & Pontos
+  "Alvo Circular (Target)",
+  "Alvo Quadrado",
+  "Quatro Pontos",
+  "Três Pontos (TL-BR)",
+  "Três Pontos (TR-BL)",
+
+  // Grupo 6: Espaço Negativo
+  "Tile Vazio (Espaço)"
 ];
 
 const TILE_FAMILIES_META = [
-  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',  tileIds: [45] },
-  { id: 'half-circle',     name: 'Meio Bloco & Círculo', tileIds: [0, 1, 2, 3] },
-  { id: 'corner-triangle', name: 'Triângulos de Canto',  tileIds: [4, 5, 6, 7] },
-  { id: 'side-triangle',   name: 'Triângulos Laterais',  tileIds: [8, 9, 10, 11] },
-  { id: 'centered-geom',   name: 'Geometria Central',    tileIds: [12, 13, 14, 15] },
-  { id: 'checkers',        name: 'Xadrez (Checkers)',    tileIds: [16, 17] },
-  { id: 'stripes',         name: 'Listras (Stripes)',    tileIds: [18, 19] },
-  { id: 'corner-waves',    name: 'Ondas de Canto',       tileIds: [20, 21, 22, 23] },
-  { id: 'zigzag',          name: 'Zigue-Zague',          tileIds: [24, 25] },
-  { id: 'bowtie',          name: 'Ampulheta & Laço',     tileIds: [26, 27] },
-  { id: 'l-shape',         name: 'Cantoneira (L)',       tileIds: [28, 29, 30, 31] },
-  { id: 't-shape',         name: 'Junção (T)',           tileIds: [32, 33, 34, 35] },
-  { id: 'diagonal-line',   name: 'Linha Diagonal',       tileIds: [36, 37] },
-  { id: 'quarter-arc',     name: 'Arco de Quarto',       tileIds: [38, 39, 40, 41] },
-  { id: 'mini-grid',       name: 'Mini Grade 2×2',       tileIds: [42] },
-  { id: 'diagonal-dots',   name: 'Três Pontos',          tileIds: [43, 44] }
-,
-  { id: 'center-stripe',   name: 'Faixa Central',        tileIds: [46, 47] },
-  { id: 'elbow-ribbon',    name: 'Arco de Fita (90°)',   tileIds: [48, 49, 50, 51] },
-  { id: 'truchet-ribbon',  name: 'Fita Truchet Dupla',   tileIds: [52, 53] },
-  { id: 'edge-semicircle', name: 'Semicírculo de Borda', tileIds: [54, 55, 56, 57] },
-  { id: 'half-block',      name: 'Meio Bloco Sólido',    tileIds: [58, 59, 60, 61] },
-  { id: 'corner-petal',    name: 'Pétala de Canto',      tileIds: [62, 63, 64, 65] },
-  { id: 'target-square',   name: 'Alvo Quadrado',        tileIds: [66] },
-  { id: 'diamond-frame',   name: 'Losango Vazado',       tileIds: [67] },
-  { id: 'diagonal-hatch',  name: 'Listras Diagonais',    tileIds: [68, 69] },
-  { id: 'chevron',         name: 'Ponta de Flecha (V)',  tileIds: [70, 71, 72, 73] }
+  // --- GRUPO 1: FITAS, CONEXÕES & TUBOS ---
+  { id: 'center-stripe',   name: 'Faixa Central',                group: 'Fitas & Tubos',  tileIds: [0, 1] },
+  { id: 'center-tee',      name: 'Junção Central (T)',           group: 'Fitas & Tubos',  tileIds: [2, 3, 4, 5] },
+  { id: 'center-cross',    name: 'Cruz Central (+)',             group: 'Fitas & Tubos',  tileIds: [6] },
+  { id: 'elbow-ribbon',    name: 'Arco de Fita (90°)',           group: 'Fitas & Tubos',  tileIds: [7, 8, 9, 10] },
+  { id: 'truchet-ribbon',  name: 'Fita Truchet Dupla',           group: 'Fitas & Tubos',  tileIds: [11, 12] },
+  { id: 'center-elbow',    name: 'Cantoneira Central (L)',       group: 'Fitas & Tubos',  tileIds: [13, 14, 15, 16] },
+  { id: 'edge-l-shape',    name: 'Cantoneira de Borda (L)',      group: 'Fitas & Tubos',  tileIds: [17, 18, 19, 20] },
+  { id: 'edge-t-shape',    name: 'Junção de Borda (T)',          group: 'Fitas & Tubos',  tileIds: [21, 22, 23, 24] },
+
+  // --- GRUPO 2: LISTRAS, GRADES & TRAMAS ---
+  { id: 'stripes',         name: 'Listras Paralelas',            group: 'Listras & Tramas', tileIds: [25, 26] },
+  { id: 'corner-stripes',  name: 'Curva de Listras Duplas (90°)',group: 'Listras & Tramas', tileIds: [27, 28, 29, 30] },
+  { id: 'diagonal-line',   name: 'Linha Diagonal',               group: 'Listras & Tramas', tileIds: [31, 32] },
+  { id: 'diagonal-hatch',  name: 'Listras Diagonais (Hachura)',  group: 'Listras & Tramas', tileIds: [33, 34] },
+  { id: 'zigzag',          name: 'Zigue-Zague',                  group: 'Listras & Tramas', tileIds: [35, 36] },
+  { id: 'mini-grid',       name: 'Mini Grade 2×2',               group: 'Listras & Tramas', tileIds: [37] },
+  { id: 'checkers',        name: 'Xadrez (Checkers)',            group: 'Listras & Tramas', tileIds: [38, 39] },
+
+  // --- GRUPO 3: MASSAS SÓLIDAS & FORMAS ANGULARES ---
+  { id: 'half-block',      name: 'Meio Bloco Sólido',            group: 'Massas Sólidas', tileIds: [40, 41, 42, 43] },
+  { id: 'corner-triangle', name: 'Triângulos de Canto',          group: 'Massas Sólidas', tileIds: [44, 45, 46, 47] },
+  { id: 'side-triangle',   name: 'Triângulos Laterais',          group: 'Massas Sólidas', tileIds: [48, 49, 50, 51] },
+  { id: 'chevron',         name: 'Ponta de Flecha (Chevron)',    group: 'Massas Sólidas', tileIds: [52, 53, 54, 55] },
+  { id: 'bowtie',          name: 'Ampulheta & Laço',             group: 'Massas Sólidas', tileIds: [56, 57] },
+  { id: 'diamond',         name: 'Losango Sólido',               group: 'Massas Sólidas', tileIds: [58] },
+  { id: 'diamond-frame',   name: 'Losango Vazado',               group: 'Massas Sólidas', tileIds: [59] },
+
+  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  { id: 'half-circle',     name: 'Meio Bloco & Círculo',         group: 'Círculos & Arcos', tileIds: [60, 61, 62, 63] },
+  { id: 'edge-semicircle', name: 'Semicírculo de Borda',         group: 'Círculos & Arcos', tileIds: [64, 65, 66, 67] },
+  { id: 'quarter-arc-mid', name: 'Arco de Quarto (Médio)',       group: 'Círculos & Arcos', tileIds: [68, 69, 70, 71] },
+  { id: 'quarter-arc-full',name: 'Arco de Quarto (Total)',       group: 'Círculos & Arcos', tileIds: [72, 73, 74, 75] },
+  { id: 'corner-petal',    name: 'Pétala de Canto (Roseta)',     group: 'Círculos & Arcos', tileIds: [76, 77, 78, 79] },
+  { id: 'corner-waves',    name: 'Ondas de Canto',               group: 'Círculos & Arcos', tileIds: [80, 81, 82, 83] },
+
+  // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
+  { id: 'target-circle',   name: 'Alvo Circular (Target)',       group: 'Focos & Pontos', tileIds: [84] },
+  { id: 'target-square',   name: 'Alvo Quadrado',                group: 'Focos & Pontos', tileIds: [85] },
+  { id: 'four-dots',       name: 'Quatro Pontos',                group: 'Focos & Pontos', tileIds: [86] },
+  { id: 'diagonal-dots',   name: 'Três Pontos Diagonais',        group: 'Focos & Pontos', tileIds: [87, 88] },
+
+  // --- GRUPO 6: ESPAÇO NEGATIVO ---
+  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',          group: 'Espaço Negativo', tileIds: [89] }
 ];
 
 /**
- * Build exact D4 group action tables for all 46 built-in tiles.
+ * Build exact D4 group action tables for all 90 built-in tiles across 33 families.
  * Every tileId maps under { id, r90, r180, r270, mx, my, md, mad } to its rotated/mirrored tileId.
  */
 const TILE_D4_MAP = (() => {
   const map = {};
   const { D4_TRANSFORMS, composeD4 } = window.D4Symmetry;
 
-  // 1) Register a 4-edge family given (L, R, T, B)
   function registerEdge4(L, R, T, B) {
-    const baseFromL = {
-      id: L,
-      r90: T,
-      r180: R,
-      r270: B,
-      mx: R,
-      my: L,
-      md: T,
-      mad: B
-    };
+    const baseFromL = { id: L, r90: T, r180: R, r270: B, mx: R, my: L, md: T, mad: B };
     const genTransforms = [
       { tile: L, fromL: 'id' },
       { tile: T, fromL: 'r90' },
@@ -954,18 +1062,8 @@ const TILE_D4_MAP = (() => {
     }
   }
 
-  // 2) Register a 4-corner family given clockwise (TL, TR, BR, BL)
   function registerCorner4(TL, TR, BR, BL) {
-    const baseFromTL = {
-      id: TL,
-      r90: TR,
-      r180: BR,
-      r270: BL,
-      mx: TR,
-      my: BL,
-      md: TL,
-      mad: BR
-    };
+    const baseFromTL = { id: TL, r90: TR, r180: BR, r270: BL, mx: TR, my: BL, md: TL, mad: BR };
     const genTransforms = [
       { tile: TL, fromTL: 'id' },
       { tile: TR, fromTL: 'r90' },
@@ -981,19 +1079,16 @@ const TILE_D4_MAP = (() => {
     }
   }
 
-  // 3) Register a 2-state axis-aligned family (Horizontal, Vertical)
   function registerAxis2(H, V) {
     map[H] = { id: H, r90: V, r180: H, r270: V, mx: H, my: H, md: V, mad: V };
     map[V] = { id: V, r90: H, r180: V, r270: H, mx: V, my: V, md: H, mad: H };
   }
 
-  // 4) Register a 2-state diagonal family (TL_BR, TR_BL)
   function registerDiag2(D1, D2) {
     map[D1] = { id: D1, r90: D2, r180: D1, r270: D2, mx: D2, my: D2, md: D1, mad: D1 };
     map[D2] = { id: D2, r90: D1, r180: D2, r270: D1, mx: D1, my: D1, md: D2, mad: D2 };
   }
 
-  // 5) Register a 1-state fully symmetric tile
   function registerSymmetric1(T) {
     map[T] = {};
     for (const g of D4_TRANSFORMS) {
@@ -1001,36 +1096,50 @@ const TILE_D4_MAP = (() => {
     }
   }
 
-  // Populate all 16 families (tiles 0..45)
-  registerEdge4(0, 1, 2, 3);        // Family 0: Half Rect + Circle
-  registerCorner4(4, 5, 7, 6);      // Family 1: Corner Triangles (note: 6 is BL, 7 is BR)
-  registerEdge4(8, 9, 10, 11);      // Family 2: Side Triangles
-  registerSymmetric1(12);           // Family 3: Diamond
-  registerSymmetric1(13);           // Family 3: Cross
-  registerSymmetric1(14);           // Family 3: Target
-  registerSymmetric1(15);           // Family 3: Four Dots
-  registerDiag2(16, 17);            // Family 4: Checkers
-  registerAxis2(18, 19);            // Family 5: Stripes
-  registerCorner4(20, 21, 22, 23);  // Family 6: Corner Waves
-  registerAxis2(24, 25);            // Family 7: Zigzag
-  registerAxis2(26, 27);            // Family 8: Bowtie / Hourglass
-  registerCorner4(28, 29, 30, 31);  // Family 9: L-Shape
-  registerEdge4(35, 33, 32, 34);    // Family 10: T-Shape (32=T, 33=R, 34=B, 35=L)
-  registerDiag2(36, 37);            // Family 11: Diagonal Line
-  registerCorner4(38, 39, 40, 41);  // Family 12: Quarter Arc
-  registerSymmetric1(42);           // Family 13: Grid 2x2
-  registerDiag2(43, 44);            // Family 14: Three Dots Diagonal
-  registerSymmetric1(45);           // Family 15: Empty (Vazio)
-  registerAxis2(46, 47);            // Family 16: Faixa Central
-  registerCorner4(48, 49, 50, 51);  // Family 17: Arco de Fita (90°)
-  registerDiag2(52, 53);            // Family 18: Fita Truchet Dupla
-  registerEdge4(54, 55, 56, 57);    // Family 19: Semicírculo de Borda
-  registerEdge4(58, 59, 60, 61);    // Family 20: Meio Bloco Sólido
-  registerCorner4(62, 63, 64, 65);  // Family 21: Pétala de Canto
-  registerSymmetric1(66);           // Family 22: Alvo Quadrado
-  registerSymmetric1(67);           // Family 23: Losango Vazado
-  registerDiag2(68, 69);            // Family 24: Listras Diagonais
-  registerEdge4(70, 71, 72, 73);    // Family 25: Ponta de Flecha (V)
+  // --- GRUPO 1: FITAS, CONEXÕES & TUBOS ---
+  registerAxis2(0, 1);              // Family 0: Faixa Central
+  registerEdge4(2, 3, 4, 5);        // Family 1: Junção Central (T)
+  registerSymmetric1(6);             // Family 2: Cruz Central (+)
+  registerCorner4(7, 8, 9, 10);      // Family 3: Arco de Fita (90°)
+  registerDiag2(11, 12);             // Family 4: Fita Truchet Dupla
+  registerCorner4(13, 14, 15, 16);  // Family 5: Cantoneira Central (L)
+  registerCorner4(17, 18, 19, 20);  // Family 6: Cantoneira de Borda (L)
+  registerEdge4(21, 22, 23, 24);    // Family 7: Junção de Borda (T)
+
+  // --- GRUPO 2: LISTRAS, GRADES & TRAMAS ---
+  registerAxis2(25, 26);            // Family 8: Listras Paralelas
+  registerCorner4(27, 28, 29, 30);  // Family 9: Curva de Listras Duplas (90°)
+  registerDiag2(31, 32);            // Family 10: Linha Diagonal
+  registerDiag2(33, 34);            // Family 11: Listras Diagonais (Hachura)
+  registerAxis2(35, 36);            // Family 12: Zigue-Zague
+  registerSymmetric1(37);            // Family 13: Mini Grade 2×2
+  registerDiag2(38, 39);            // Family 14: Xadrez (Checkers)
+
+  // --- GRUPO 3: MASSAS SÓLIDAS & FORMAS ANGULARES ---
+  registerEdge4(40, 41, 42, 43);    // Family 15: Meio Bloco Sólido
+  registerCorner4(44, 45, 46, 47);  // Family 16: Triângulos de Canto
+  registerEdge4(48, 49, 50, 51);    // Family 17: Triângulos Laterais
+  registerEdge4(52, 53, 54, 55);    // Family 18: Ponta de Flecha (Chevron)
+  registerAxis2(56, 57);            // Family 19: Ampulheta & Laço
+  registerSymmetric1(58);            // Family 20: Losango Sólido
+  registerSymmetric1(59);            // Family 21: Losango Vazado
+
+  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  registerEdge4(60, 61, 62, 63);    // Family 22: Meio Bloco & Círculo
+  registerEdge4(64, 65, 66, 67);    // Family 23: Semicírculo de Borda
+  registerCorner4(68, 69, 70, 71);  // Family 24: Arco de Quarto (Médio)
+  registerCorner4(72, 73, 74, 75);  // Family 25: Arco de Quarto (Total)
+  registerCorner4(76, 77, 78, 79);  // Family 26: Pétala de Canto (Roseta)
+  registerCorner4(80, 81, 82, 83);  // Family 27: Ondas de Canto
+
+  // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
+  registerSymmetric1(84);            // Family 28: Alvo Circular (Target)
+  registerSymmetric1(85);            // Family 29: Alvo Quadrado
+  registerSymmetric1(86);            // Family 30: Quatro Pontos
+  registerDiag2(87, 88);            // Family 31: Três Pontos Diagonais
+
+  // --- GRUPO 6: ESPAÇO NEGATIVO ---
+  registerSymmetric1(89);            // Family 32: Tile Vazio (Espaço)
 
   return map;
 })();
