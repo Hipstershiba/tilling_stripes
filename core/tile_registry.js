@@ -3,6 +3,51 @@
  * Central catalog of vector tile renderers, named families, and D4 orientation maps.
  */
 
+/**
+ * Vector drawing helper for annular sectors (curved bands / ribbons)
+ */
+function drawAnnularSector(ctx, cx, cy, rxIn, ryIn, rxOut, ryOut, aStart, aEnd, steps = 16) {
+  ctx.beginShape();
+  for (let i = 0; i <= steps; i++) {
+    const a = aStart + (aEnd - aStart) * (i / steps);
+    ctx.vertex(cx + Math.cos(a) * rxOut, cy + Math.sin(a) * ryOut);
+  }
+  for (let i = steps; i >= 0; i--) {
+    const a = aStart + (aEnd - aStart) * (i / steps);
+    ctx.vertex(cx + Math.cos(a) * rxIn, cy + Math.sin(a) * ryIn);
+  }
+  ctx.endShape('CLOSE');
+}
+
+/**
+ * Vector drawing helper for smooth edge semicircles
+ */
+function drawSemicircle(ctx, cx, cy, rx, ry, aStart, aEnd, steps = 16) {
+  ctx.beginShape();
+  ctx.vertex(cx, cy);
+  for (let i = 0; i <= steps; i++) {
+    const a = aStart + (aEnd - aStart) * (i / steps);
+    ctx.vertex(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry);
+  }
+  ctx.endShape('CLOSE');
+}
+
+/**
+ * Vector drawing helper for Gothic corner petals / lens
+ */
+function drawPetal(ctx, rx, ry, c1x, c1y, a1Start, a1End, c2x, c2y, a2Start, a2End, steps = 12) {
+  ctx.beginShape();
+  for (let i = 0; i <= steps; i++) {
+    const a = a1Start + (a1End - a1Start) * (i / steps);
+    ctx.vertex(c1x + Math.cos(a) * rx, c1y + Math.sin(a) * ry);
+  }
+  for (let i = 0; i <= steps; i++) {
+    const a = a2Start + (a2End - a2Start) * (i / steps);
+    ctx.vertex(c2x + Math.cos(a) * rx, c2y + Math.sin(a) * ry);
+  }
+  ctx.endShape('CLOSE');
+}
+
 const TILE_RENDERERS = [
   // --- Family 0: Half Rect + Circle (0..3) ---
   // 0: Left
@@ -460,6 +505,300 @@ const TILE_RENDERERS = [
   function () {
     // Intentionally empty (blank space / negative space tile)
   }
+,
+
+  // --- Family 16: Faixa Central / Center Stripe (46..47) ---
+  // 46: Center Stripe Horizontal
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const barH = dh / 3;
+    ctx.rect(-dw / 2, -barH / 2, dw, barH);
+  },
+  // 47: Center Stripe Vertical
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    const barW = dw / 3;
+    ctx.rect(-barW / 2, -dh / 2, barW, dh);
+  },
+
+  // --- Family 17: Arco de Fita (90°) / Elbow Ribbon (48..51) ---
+  // 48: Elbow Ribbon Top Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, 0, Math.PI / 2);
+  },
+  // 49: Elbow Ribbon Top Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI / 2, Math.PI);
+  },
+  // 50: Elbow Ribbon Bottom Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI, (3 * Math.PI) / 2);
+  },
+  // 51: Elbow Ribbon Bottom Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // --- Family 18: Fita Truchet Dupla / Dual Ribbon Truchet (52..53) ---
+  // 52: Dual Ribbon Truchet (TL-BR)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, -dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, 0, Math.PI / 2);
+    drawAnnularSector(ctx, dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI, (3 * Math.PI) / 2);
+  },
+  // 53: Dual Ribbon Truchet (TR-BL)
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawAnnularSector(ctx, dw / 2, -dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, Math.PI / 2, Math.PI);
+    drawAnnularSector(ctx, -dw / 2, dh / 2, dw / 3, dh / 3, (2 * dw) / 3, (2 * dh) / 3, (3 * Math.PI) / 2, 2 * Math.PI);
+  },
+
+  // --- Family 19: Semicírculo de Borda / Edge Semicircles (54..57) ---
+  // 54: Semicircle Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, -dw / 2, 0, dw / 2, dh / 2, -Math.PI / 2, Math.PI / 2);
+  },
+  // 55: Semicircle Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, dw / 2, 0, dw / 2, dh / 2, Math.PI / 2, (3 * Math.PI) / 2);
+  },
+  // 56: Semicircle Top
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, 0, -dh / 2, dw / 2, dh / 2, 0, Math.PI);
+  },
+  // 57: Semicircle Bottom
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawSemicircle(ctx, 0, dh / 2, dw / 2, dh / 2, Math.PI, 2 * Math.PI);
+  },
+
+  // --- Family 20: Meio Bloco Sólido / Solid Half-Block (58..61) ---
+  // 58: Solid Half Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw / 2, dh);
+  },
+  // 59: Solid Half Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(0, -dh / 2, dw / 2, dh);
+  },
+  // 60: Solid Half Top
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh / 2);
+  },
+  // 61: Solid Half Bottom
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, 0, dw, dh / 2);
+  },
+
+  // --- Family 21: Pétala de Canto / Corner Petal (62..65) ---
+  // 62: Corner Petal Top Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, -Math.PI / 2, 0, -dh / 2, Math.PI, Math.PI / 2);
+  },
+  // 63: Corner Petal Top Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, (3 * Math.PI) / 2, 0, -dh / 2, 0, Math.PI / 2);
+  },
+  // 64: Corner Petal Bottom Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, dw / 2, 0, Math.PI, Math.PI / 2, 0, dh / 2, 0, -Math.PI / 2);
+  },
+  // 65: Corner Petal Bottom Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, Math.PI / 2, 0, dh / 2, Math.PI, (3 * Math.PI) / 2);
+  },
+
+  // --- Family 22: Alvo Quadrado / Concentric Squares (66) ---
+  // 66: Concentric Squares
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const weight = Math.min(w, h) / 20;
+    ctx.strokeWeight(weight);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.rect(-dw / 2, -dh / 2, dw, dh);
+    ctx.rect(-dw * 0.3, -dh * 0.3, dw * 0.6, dh * 0.6);
+    ctx.rect(-dw * 0.1, -dh * 0.1, dw * 0.2, dh * 0.2);
+  },
+
+  // --- Family 23: Losango Vazado / Diamond Frame (67) ---
+  // 67: Diamond Frame
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const weight = Math.min(w, h) * 0.14;
+    ctx.strokeWeight(weight);
+    const dw = (w - padding * 2 - weight) / 2;
+    const dh = (h - padding * 2 - weight) / 2;
+    ctx.beginShape();
+    ctx.vertex(0, -dh);
+    ctx.vertex(dw, 0);
+    ctx.vertex(0, dh);
+    ctx.vertex(-dw, 0);
+    ctx.endShape('CLOSE');
+  },
+
+  // --- Family 24: Listras Diagonais / Diagonal Hatching (68..69) ---
+  // 68: Diagonal Hatching (TL-BR)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.line(-dw / 2, -dh / 2, dw / 2, dh / 2);
+    ctx.line(0, -dh / 2, dw / 2, 0);
+    ctx.line(-dw / 2, 0, 0, dh / 2);
+  },
+  // 69: Diagonal Hatching (TR-BL)
+  function (ctx, w, h, padding, color) {
+    ctx.noFill();
+    ctx.stroke(color);
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.strokeWeight(Math.min(dw, dh) * 0.12);
+    ctx.line(dw / 2, -dh / 2, -dw / 2, dh / 2);
+    ctx.line(-dw / 2, 0, 0, -dh / 2);
+    ctx.line(0, dh / 2, dw / 2, 0);
+  },
+
+  // --- Family 25: Ponta de Flecha / Chevron (70..73) ---
+  // 70: Chevron Left
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.beginShape();
+    ctx.vertex(-dw / 2, 0);
+    ctx.vertex(dw / 2, -dh / 2);
+    ctx.vertex(dw / 2, -dh / 6);
+    ctx.vertex(-dw / 6, 0);
+    ctx.vertex(dw / 2, dh / 6);
+    ctx.vertex(dw / 2, dh / 2);
+    ctx.endShape('CLOSE');
+  },
+  // 71: Chevron Right
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.beginShape();
+    ctx.vertex(dw / 2, 0);
+    ctx.vertex(-dw / 2, -dh / 2);
+    ctx.vertex(-dw / 2, -dh / 6);
+    ctx.vertex(dw / 6, 0);
+    ctx.vertex(-dw / 2, dh / 6);
+    ctx.vertex(-dw / 2, dh / 2);
+    ctx.endShape('CLOSE');
+  },
+  // 72: Chevron Top
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.beginShape();
+    ctx.vertex(0, -dh / 2);
+    ctx.vertex(dw / 2, dh / 2);
+    ctx.vertex(dw / 6, dh / 2);
+    ctx.vertex(0, -dh / 6);
+    ctx.vertex(-dw / 6, dh / 2);
+    ctx.vertex(-dw / 2, dh / 2);
+    ctx.endShape('CLOSE');
+  },
+  // 73: Chevron Bottom
+  function (ctx, w, h, padding, color) {
+    ctx.fill(color);
+    ctx.noStroke();
+    const dw = w - padding * 2;
+    const dh = h - padding * 2;
+    ctx.beginShape();
+    ctx.vertex(0, dh / 2);
+    ctx.vertex(dw / 2, -dh / 2);
+    ctx.vertex(dw / 6, -dh / 2);
+    ctx.vertex(0, dh / 6);
+    ctx.vertex(-dw / 6, -dh / 2);
+    ctx.vertex(-dw / 2, -dh / 2);
+    ctx.endShape('CLOSE');
+  }
 ];
 
 const TILE_NAMES = [
@@ -509,6 +848,45 @@ const TILE_NAMES = [
   "Three Dots (TL-BR)",
   "Three Dots (TR-BL)",
   "Tile Vazio (Espaço)"
+,
+  // Family 16: Faixa Central (46..47)
+  "Faixa Central Horizontal",
+  "Faixa Central Vertical",
+  // Family 17: Arco de Fita 90° (48..51)
+  "Arco de Fita Top Left",
+  "Arco de Fita Top Right",
+  "Arco de Fita Bottom Right",
+  "Arco de Fita Bottom Left",
+  // Family 18: Fita Truchet Dupla (52..53)
+  "Fita Truchet (TL-BR)",
+  "Fita Truchet (TR-BL)",
+  // Family 19: Semicírculo de Borda (54..57)
+  "Semicírculo Esquerdo",
+  "Semicírculo Direito",
+  "Semicírculo Superior",
+  "Semicírculo Inferior",
+  // Family 20: Meio Bloco Sólido (58..61)
+  "Meio Bloco Esquerdo",
+  "Meio Bloco Direito",
+  "Meio Bloco Superior",
+  "Meio Bloco Inferior",
+  // Family 21: Pétala de Canto (62..65)
+  "Pétala Top Left",
+  "Pétala Top Right",
+  "Pétala Bottom Right",
+  "Pétala Bottom Left",
+  // Family 22: Alvo Quadrado (66)
+  "Alvo Quadrado",
+  // Family 23: Losango Vazado (67)
+  "Losango Vazado",
+  // Family 24: Listras Diagonais (68..69)
+  "Listras Diagonais (TL-BR)",
+  "Listras Diagonais (TR-BL)",
+  // Family 25: Ponta de Flecha V (70..73)
+  "Ponta de Flecha (Esquerda)",
+  "Ponta de Flecha (Direita)",
+  "Ponta de Flecha (Cima)",
+  "Ponta de Flecha (Baixo)"
 ];
 
 const TILE_FAMILIES_META = [
@@ -528,6 +906,17 @@ const TILE_FAMILIES_META = [
   { id: 'quarter-arc',     name: 'Arco de Quarto',       tileIds: [38, 39, 40, 41] },
   { id: 'mini-grid',       name: 'Mini Grade 2×2',       tileIds: [42] },
   { id: 'diagonal-dots',   name: 'Três Pontos',          tileIds: [43, 44] }
+,
+  { id: 'center-stripe',   name: 'Faixa Central',        tileIds: [46, 47] },
+  { id: 'elbow-ribbon',    name: 'Arco de Fita (90°)',   tileIds: [48, 49, 50, 51] },
+  { id: 'truchet-ribbon',  name: 'Fita Truchet Dupla',   tileIds: [52, 53] },
+  { id: 'edge-semicircle', name: 'Semicírculo de Borda', tileIds: [54, 55, 56, 57] },
+  { id: 'half-block',      name: 'Meio Bloco Sólido',    tileIds: [58, 59, 60, 61] },
+  { id: 'corner-petal',    name: 'Pétala de Canto',      tileIds: [62, 63, 64, 65] },
+  { id: 'target-square',   name: 'Alvo Quadrado',        tileIds: [66] },
+  { id: 'diamond-frame',   name: 'Losango Vazado',       tileIds: [67] },
+  { id: 'diagonal-hatch',  name: 'Listras Diagonais',    tileIds: [68, 69] },
+  { id: 'chevron',         name: 'Ponta de Flecha (V)',  tileIds: [70, 71, 72, 73] }
 ];
 
 /**
@@ -632,6 +1021,16 @@ const TILE_D4_MAP = (() => {
   registerSymmetric1(42);           // Family 13: Grid 2x2
   registerDiag2(43, 44);            // Family 14: Three Dots Diagonal
   registerSymmetric1(45);           // Family 15: Empty (Vazio)
+  registerAxis2(46, 47);            // Family 16: Faixa Central
+  registerCorner4(48, 49, 50, 51);  // Family 17: Arco de Fita (90°)
+  registerDiag2(52, 53);            // Family 18: Fita Truchet Dupla
+  registerEdge4(54, 55, 56, 57);    // Family 19: Semicírculo de Borda
+  registerEdge4(58, 59, 60, 61);    // Family 20: Meio Bloco Sólido
+  registerCorner4(62, 63, 64, 65);  // Family 21: Pétala de Canto
+  registerSymmetric1(66);           // Family 22: Alvo Quadrado
+  registerSymmetric1(67);           // Family 23: Losango Vazado
+  registerDiag2(68, 69);            // Family 24: Listras Diagonais
+  registerEdge4(70, 71, 72, 73);    // Family 25: Ponta de Flecha (V)
 
   return map;
 })();

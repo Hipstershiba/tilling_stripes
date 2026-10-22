@@ -152,7 +152,7 @@ function setup() {
   cnv.elt.addEventListener('contextmenu', (e) => e.preventDefault());
   cnv.elt.addEventListener('mousedown', handleCanvasMouseDown);
 
-  // Enable all 45 built-in tiles initially
+  // Enable all built-in tiles initially
   const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
   for (let i = 0; i < totalTiles; i++) {
     StudioState.allowedTiles.add(i);
