@@ -84,59 +84,34 @@
    * Generates a single canonical source Block (Supertile) of size N x N subtiles
    * where N = 2 * subdivision.
    */
-  function generateSourceBlock(subdivision, blockSymmetryMode, allowedTiles, randomPick, options = {}) {
+  function generateSourceBlock(subdivision, blockSymmetryMode, allowedTiles, randomPick) {
     const N = Math.max(1, subdivision * 2);
     const sourceMap = Array.from({ length: N }, () => new Array(N).fill(null));
     const cells = Array.from({ length: N }, () => new Array(N).fill(null));
-    const axisConflictMode = options.axisConflictMode || 'blend'; // 'blend' | 'kaleidoscope' | 'empty'
 
     // Step 1: Resolve symmetry relations inside the N x N block and generate canonical subtiles
     for (let r = 0; r < N; r++) {
       for (let c = 0; c < N; c++) {
         const rel = resolveCellSymmetry(r, c, N, N, blockSymmetryMode);
         if (rel.isSource) {
-          const stabilizer = getCellStabilizer(r, c, N, N, blockSymmetryMode);
-          const compatible = getCompatibleTiles(allowedTiles, stabilizer);
           let pickedTileId;
 
-          if (compatible.length > 0) {
-            // When invariant tiles exist in the user's allowed set
-            if (axisConflictMode === 'blend' && stabilizer.length > 1 && !allowedTiles.includes(84)) {
-              // Blend: even when invariant tiles exist, occasionally allow empty tile #84 as an organic breath
-              const isCenter = (r >= Math.floor(N / 2) - 1 && c >= Math.floor(N / 2) - 1);
-              const breathWeight = isCenter ? 0.35 : 0.2;
-              const candidates = [...compatible];
-              const breathCopies = Math.max(1, Math.round(candidates.length * breathWeight));
-              for (let b = 0; b < breathCopies; b++) {
-                candidates.push(84);
-              }
-              pickedTileId = randomPick(candidates);
-            } else {
-              pickedTileId = randomPick(compatible);
-            }
+          if (blockSymmetryMode === 'kaleidoscope') {
+            // Modo Caleidoscópio (Livre / Permissivo):
+            // Espelha e rotaciona livremente os tiles selecionados pelo usuário em 8 octantes
+            // sem travar nem forçar invariância nos eixos.
+            pickedTileId = allowedTiles.length > 0 ? randomPick(allowedTiles) : 84;
           } else {
-            // When no allowed tile is invariant under the cell's stabilizer (strict D4 is impossible with chosen families):
-            if (axisConflictMode === 'empty') {
-              // Approach A: Strict empty negative space fallback
-              pickedTileId = 84;
-            } else if (axisConflictMode === 'kaleidoscope') {
-              // Approach B: Pure kaleidoscope using user's allowed tiles
-              pickedTileId = allowedTiles.length > 0 ? randomPick(allowedTiles) : 84;
+            // Modos Estritos (mandala_d4, rotational_c4, bilateral_d2):
+            // Exige invariância sob o estabilizador da célula.
+            const stabilizer = getCellStabilizer(r, c, N, N, blockSymmetryMode);
+            const compatible = getCompatibleTiles(allowedTiles, stabilizer);
+
+            if (compatible.length > 0) {
+              pickedTileId = randomPick(compatible);
             } else {
-              // Approach Mixture (A + B): Mandala Livre / Caleidoscópio com Tile Vazio como respiro
-              if (allowedTiles.length === 0) {
-                pickedTileId = 84;
-              } else {
-                const isCenter = (r >= Math.floor(N / 2) - 1 && c >= Math.floor(N / 2) - 1);
-                // Center gets ~45% chance of breath; diagonals get ~30% chance of breath
-                const breathWeight = isCenter ? 0.45 : 0.3;
-                const pool = [...allowedTiles];
-                const breathCopies = Math.max(1, Math.round(pool.length * breathWeight));
-                for (let b = 0; b < breathCopies; b++) {
-                  pool.push(84);
-                }
-                pickedTileId = randomPick(pool);
-              }
+              // O tile vazio (#84) é o comportamento garantido quando o D4 for impossível
+              pickedTileId = 84;
             }
           }
 
@@ -220,7 +195,6 @@
       ? gridSymmetryMode
       : (config.blockSymmetryMode || 'mandala_d4');
     const allowedTiles = Array.isArray(config.allowedTiles) ? config.allowedTiles : [];
-    const axisConflictMode = config.axisConflictMode || 'blend';
 
     const sourceBlocks = new Map();
     const orbitIds = new Map();
@@ -239,7 +213,7 @@
           orbitIds.set(key, nextOrbitId++);
         }
         if (rel.isSource && !sourceBlocks.has(key)) {
-          const block = generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick, { axisConflictMode });
+          const block = generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick);
           sourceBlocks.set(key, block);
         }
       }
@@ -253,7 +227,7 @@
         if (!sourceBlocks.has(key)) {
           sourceBlocks.set(
             key,
-            generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick, { axisConflictMode })
+            generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick)
           );
         }
       }
@@ -438,7 +412,7 @@
       p.line(margin, cy, margin + drawW, cy);
 
       // Diagonal axes for Mandala D4 (when square grid)
-      if (sym === 'mandala_d4' && mosaicData.rows === mosaicData.cols) {
+      if ((sym === 'mandala_d4' || sym === 'kaleidoscope') && mosaicData.rows === mosaicData.cols) {
         p.stroke(255, 180, 0, 175);
         p.strokeWeight(1.25);
         p.line(margin, margin, margin + drawW, margin + drawH);
@@ -1390,13 +1364,13 @@
       p.noFill();
       p.stroke(0, 210, 255, 85);
       p.strokeWeight(1.1);
-      if (sym === 'mandala_d4' || sym === 'bilateral_d2' || sym === 'mirror_x' || sym === 'rotational_c4') {
+      if (sym === 'mandala_d4' || sym === 'kaleidoscope' || sym === 'bilateral_d2' || sym === 'mirror_x' || sym === 'rotational_c4') {
         p.line(cx, margin, cx, margin + drawH);
       }
-      if (sym === 'mandala_d4' || sym === 'bilateral_d2' || sym === 'mirror_y' || sym === 'rotational_c4') {
+      if (sym === 'mandala_d4' || sym === 'kaleidoscope' || sym === 'bilateral_d2' || sym === 'mirror_y' || sym === 'rotational_c4') {
         p.line(margin, cy, margin + drawW, cy);
       }
-      if (sym === 'mandala_d4' && mosaicData.rows === mosaicData.cols) {
+      if ((sym === 'mandala_d4' || sym === 'kaleidoscope') && mosaicData.rows === mosaicData.cols) {
         p.stroke(0, 210, 255, 55);
         p.line(margin, margin, margin + drawW, margin + drawH);
         p.line(margin + drawW, margin, margin, margin + drawH);

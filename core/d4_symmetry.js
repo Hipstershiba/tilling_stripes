@@ -27,9 +27,16 @@ const D4_METADATA = {
 const SYMMETRY_MODES = {
   mandala_d4: {
     id: 'mandala_d4',
-    name: 'Mandala / Caleidoscópio',
-    subtitle: '8 octantes • Radial Livre & Respiro',
-    description: 'Simetria radial estilo caleidoscópio em 8 octantes. Espelha e rotaciona livremente os tiles selecionados, integrando o tile vazio (#84) como respiro elegante nos eixos.',
+    name: 'Mandala (D4 Estrito)',
+    subtitle: '8 octantes • Rigor D4 e Respiro Vazio',
+    description: 'Simetria radial com rigor matemático D4. Quando um eixo não possui tiles invariantes no conjunto selecionado, preenche com o Tile Vazio (#84) como respiro.',
+    requiresSquareForFull: true
+  },
+  kaleidoscope: {
+    id: 'kaleidoscope',
+    name: 'Caleidoscópio (Livre)',
+    subtitle: '8 octantes • Radial Permissivo',
+    description: 'Simetria radial estilo caleidoscópio em 8 octantes. Permite qualquer combinação de tiles sem restrições de eixo, espelhando livremente toda a composição.',
     requiresSquareForFull: true
   },
   rotational_c4: {
@@ -47,6 +54,7 @@ const SYMMETRY_MODES = {
     requiresSquareForFull: false
   }
 };
+
 
 /**
  * Transforms coordinates (row, col) inside a (rows x cols) grid using a D4 transform key.
@@ -164,6 +172,7 @@ function getAllowedTransformsForSymmetry(symmetryMode, rows, cols) {
   const isSquare = rows === cols;
   switch (symmetryMode) {
     case 'mandala_d4':
+    case 'kaleidoscope':
       return isSquare ? D4_RESOLUTION_ORDER : D2_RESOLUTION_ORDER;
     case 'rotational_c4':
       return isSquare ? C4_RESOLUTION_ORDER : ['id', 'r180'];
@@ -198,7 +207,7 @@ function resolveCellSymmetry(row, col, rows, cols, symmetryMode) {
     const [sr, sc] = transformGridCoords(row, col, rows, cols, inv);
     if (sr >= 0 && sr < rows && sc >= 0 && sc < cols) {
       const inTopLeftQuad = (sr < halfRows && sc < halfCols) ? 0 : 1;
-      const inUpperOctant = (symmetryMode === 'mandala_d4' && sr > sc) ? 1 : 0;
+      const inUpperOctant = ((symmetryMode === 'mandala_d4' || symmetryMode === 'kaleidoscope') && sr > sc) ? 1 : 0;
       candidates.push({
         sr,
         sc,
@@ -256,6 +265,9 @@ function resolveCellSymmetry(row, col, rows, cols, symmetryMode) {
  * under the specified symmetryMode.
  */
 function getCellStabilizer(row, col, rows, cols, symmetryMode) {
+  if (symmetryMode === 'kaleidoscope') {
+    return ['id'];
+  }
   const transforms = getAllowedTransformsForSymmetry(symmetryMode, rows, cols);
   return transforms.filter((g) => {
     const [r, c] = transformGridCoords(row, col, rows, cols, g);

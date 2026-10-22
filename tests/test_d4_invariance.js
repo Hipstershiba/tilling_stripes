@@ -8,7 +8,7 @@ require(path.join(__dirname, '../core/tile_registry.js'));
 require(path.join(__dirname, '../core/mosaic_engine.js'));
 
 const { generateMosaic } = window.MosaicEngine;
-const { getAllowedTransformsForSymmetry, transformGridCoords } = window.D4Symmetry;
+const { getAllowedTransformsForSymmetry, transformGridCoords, resolveCellSymmetry } = window.D4Symmetry;
 const { getTransformedTileId, TILE_RENDERERS } = window.TileRegistry;
 
 const allTiles = Array.from({ length: TILE_RENDERERS.length }, (_, i) => i);
@@ -16,11 +16,13 @@ const tileSets = [[2], [2, 7, 13, 44, 75], allTiles];
 const cellAt = (mosaic, r, c, N) =>
   mosaic.grid[Math.floor(r / N)][Math.floor(c / N)].cells[r % N][c % N];
 
+// Part 1: Verify strict D4 / C4 / D2 mathematical invariance
+// When D4 is impossible with user's selected tiles (e.g. tile [2] on diagonals),
+// empty tile #84 is automatically and reliably used on the axes.
 let totalChecks = 0;
 for (const mode of ['mandala_d4', 'rotational_c4', 'bilateral_d2']) {
   for (const n of [1, 2, 3, 4, 5]) {
-    const tileSetToTest = tileSets;
-    for (const allowedTiles of tileSetToTest) {
+    for (const allowedTiles of tileSets) {
       for (const seed of [1, 7, 42, 9999]) {
         const mosaic = generateMosaic(
           {
@@ -31,8 +33,7 @@ for (const mode of ['mandala_d4', 'rotational_c4', 'bilateral_d2']) {
             blockSymmetryMode: mode,
             syncBlockSymmetry: true,
             allowedTiles,
-            seed,
-            axisConflictMode: 'empty'
+            seed
           },
           (arr) => arr[(seed + arr.length) % arr.length]
         );
@@ -61,60 +62,76 @@ for (const mode of ['mandala_d4', 'rotational_c4', 'bilateral_d2']) {
 }
 console.log(`✓ All D4/C4/D2 strict invariance checks passed! Total checks: ${totalChecks}`);
 
-// --- Verification of Mixture (A + B): Mandala Livre / Caleidoscópio com Respiro ---
-console.log('--- Testing Mandala Livre / Caleidoscópio Blend & Kaleidoscope Modes ---');
+// Part 2: Verify the new more permissive symmetry mode ('kaleidoscope')
+console.log('--- Testing New Permissive Symmetry Mode: Caleidoscópio (Livre) ---');
 
-// 1. Verify default blend mode with asymmetric tiles [2] (only diagonal stripes)
-let blendTilesFound = new Set();
-for (let seed = 1; seed <= 20; seed++) {
-  const mosaicBlend = generateMosaic({
+// When user selects asymmetric tiles [2] (only diagonal stripes),
+// kaleidoscope mode allows them freely across all 8 octants without forcing empty tile #84!
+for (const seed of [1, 7, 42, 100, 777]) {
+  const mosaicKal = generateMosaic({
     rows: 3,
     cols: 3,
     subdivision: 2,
-    gridSymmetryMode: 'mandala_d4',
-    blockSymmetryMode: 'mandala_d4',
+    gridSymmetryMode: 'kaleidoscope',
+    blockSymmetryMode: 'kaleidoscope',
     syncBlockSymmetry: true,
     allowedTiles: [2],
-    seed,
-    axisConflictMode: 'blend'
+    seed
   }, (arr) => arr[seed % arr.length]);
 
-  const N = mosaicBlend.subtilesPerSide;
+  const N = mosaicKal.subtilesPerSide;
   for (let r = 0; r < 3 * N; r++) {
     for (let c = 0; c < 3 * N; c++) {
-      const cell = cellAt(mosaicBlend, r, c, N);
-      blendTilesFound.add(cell.tileId);
-      // Valid tiles must be either in the D4 orbit of tile 2 [2, 3, 4, 5] or empty tile 84
-      assert.ok([2, 3, 4, 5, 84].includes(cell.tileId), `Tile ${cell.tileId} unexpected in blend mode`);
+      const cell = cellAt(mosaicKal, r, c, N);
+      // In permissive kaleidoscope mode, only the user's tiles in their D4 orbit [2, 3, 4, 5] appear
+      assert.ok([2, 3, 4, 5].includes(cell.tileId), `Cell (${r},${c}) has unexpected tile ${cell.tileId}`);
+      assert.notStrictEqual(cell.tileId, 84, 'Permissive kaleidoscope mode must NOT force empty tile #84');
+    }
+  }
+
+  // Verify internal block propagation: every cell is transformed from its canonical source subtile
+  for (let br = 0; br < 3; br++) {
+    for (let bc = 0; bc < 3; bc++) {
+      const block = mosaicKal.grid[br][bc];
+      for (let sr = 0; sr < N; sr++) {
+        for (let sc = 0; sc < N; sc++) {
+          const rel = resolveCellSymmetry(sr, sc, N, N, 'kaleidoscope');
+          const srcCell = block.cells[rel.sourceRow][rel.sourceCol];
+          const curCell = block.cells[sr][sc];
+          assert.strictEqual(
+            curCell.tileId,
+            getTransformedTileId(srcCell.tileId, rel.transformFromSource),
+            `Block (${br},${bc}) subtile (${sr},${sc}) should transform from (${rel.sourceRow},${rel.sourceCol})`
+          );
+        }
+      }
     }
   }
 }
+console.log('✓ Permissive Kaleidoscope mode verified successfully across all octants and blocks.');
 
-// In blend mode across 20 seeds, we expect BOTH kaleidoscope tiles and empty respiro tile 84 to appear
-assert.ok(blendTilesFound.has(84), 'Blend mode must include empty tile #84 as an organic breath');
-assert.ok(blendTilesFound.has(2) || blendTilesFound.has(4), 'Blend mode must include kaleidoscope transformed tiles');
-console.log('✓ Blend mode (Mandala Livre + Respiro Vazio #84) verified successfully.');
-
-// 2. Verify pure kaleidoscope mode (never injects #84 unless in allowedTiles)
-const mosaicKal = generateMosaic({
+// Part 3: Verify that in Mandala D4, empty tile #84 is reliably used on axes when D4 is impossible
+console.log('--- Testing Mandala D4 fallback to Tile Vazio #84 when D4 is impossible ---');
+const mosaicD4 = generateMosaic({
   rows: 2,
   cols: 2,
   subdivision: 2,
   gridSymmetryMode: 'mandala_d4',
   blockSymmetryMode: 'mandala_d4',
   syncBlockSymmetry: true,
-  allowedTiles: [2],
-  seed: 42,
-  axisConflictMode: 'kaleidoscope'
+  allowedTiles: [2], // Tile 2 is not invariant under diagonal reflection (md)
+  seed: 42
 }, (arr) => arr[0]);
 
-const NKal = mosaicKal.subtilesPerSide;
-for (let r = 0; r < 2 * NKal; r++) {
-  for (let c = 0; c < 2 * NKal; c++) {
-    const cell = cellAt(mosaicKal, r, c, NKal);
-    assert.ok([2, 3, 4, 5].includes(cell.tileId), 'Pure kaleidoscope mode must only use user tiles');
-    assert.notStrictEqual(cell.tileId, 84, 'Pure kaleidoscope mode must not inject #84');
+const ND4 = mosaicD4.subtilesPerSide;
+let emptyTilesFound = 0;
+for (let r = 0; r < 2 * ND4; r++) {
+  for (let c = 0; c < 2 * ND4; c++) {
+    const cell = cellAt(mosaicD4, r, c, ND4);
+    if (cell.tileId === 84) {
+      emptyTilesFound++;
+    }
   }
 }
-console.log('✓ Pure Kaleidoscope mode verified successfully.');
-
+assert.ok(emptyTilesFound > 0, 'Mandala D4 must use tile #84 on diagonal cells when tile 2 is not invariant');
+console.log(`✓ Mandala D4 correctly used Tile Vazio #84 on ${emptyTilesFound} axis cells where D4 was impossible.`);

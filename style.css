@@ -868,6 +868,10 @@ body.right-dock-collapsed #right-dock {
   gap: 5px;
 }
 
+.block-sym-pill[data-block-mode="sync"] {
+  grid-column: span 2;
+}
+
 .block-sym-pill {
   background: var(--bg-control);
   border: 1px solid var(--border-subtle);

@@ -28,7 +28,6 @@ const StudioState = {
   gridSymmetryMode: 'mandala_d4',
   blockSymmetryMode: 'mandala_d4',
   syncBlockSymmetry: true,
-  axisConflictMode: 'blend', // 'blend' | 'kaleidoscope' | 'empty'
 
   // Colors
   fgColor: '#e2e0dc',
@@ -116,6 +115,7 @@ const UNLOCK_ICON_SVG = `
 const SYMMETRY_ICONS_SVG = {
   sync: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
   mandala_d4: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"/></svg>`,
+  kaleidoscope: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
   rotational_c4: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-9-9"/><polyline points="16 3 21 3 21 8"/></svg>`,
   bilateral_d2: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>`
 };
@@ -232,7 +232,6 @@ function buildStudioStatePayload(includeHistories = true) {
     gridSymmetryMode: StudioState.gridSymmetryMode,
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
-    axisConflictMode: StudioState.axisConflictMode || 'blend',
 
     fgColor: StudioState.fgColor,
     bgColor: StudioState.bgColor,
@@ -328,7 +327,6 @@ function loadStudioStateFromStorage() {
       StudioState.blockSymmetryMode = saved.blockSymmetryMode;
     }
     if (typeof saved.syncBlockSymmetry === 'boolean') StudioState.syncBlockSymmetry = saved.syncBlockSymmetry;
-    if (typeof saved.axisConflictMode === 'string') StudioState.axisConflictMode = saved.axisConflictMode;
 
     // Colors
     if (typeof saved.fgColor === 'string') StudioState.fgColor = saved.fgColor;
@@ -458,8 +456,7 @@ function restoreMosaicFromSavedState() {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
-      allowedTiles: allowedArray,
-      axisConflictMode: StudioState.axisConflictMode || 'blend'
+      allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))]
   );
@@ -732,8 +729,7 @@ function regenerateMosaic(recordHistory = true) {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
-      allowedTiles: allowedArray,
-      axisConflictMode: StudioState.axisConflictMode || 'blend'
+      allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))]
   );
@@ -1093,9 +1089,15 @@ function buildSymmetryPanelUI() {
       },
       {
         key: 'mandala_d4',
-        title: 'Mandala / Caleidoscópio',
-        sub: '8 octantes',
+        title: 'Mandala (D4)',
+        sub: '8 oct. estrito',
         icon: SYMMETRY_ICONS_SVG.mandala_d4
+      },
+      {
+        key: 'kaleidoscope',
+        title: 'Caleidoscópio',
+        sub: '8 oct. livre',
+        icon: SYMMETRY_ICONS_SVG.kaleidoscope
       },
       {
         key: 'rotational_c4',
@@ -1181,33 +1183,6 @@ function syncSymmetryPanelUI() {
     blockDesc.textContent = StudioState.syncBlockSymmetry
       ? `Cada bloco usa automaticamente a mesma simetria da grade (${activeBlockMode.name}).`
       : `Os 4 quadrantes internos de cada bloco usam ${activeBlockMode.name} (${activeBlockMode.subtitle}).`;
-  }
-
-  // Step 2b: Axis Conflict Mode in Mandala
-  const axisContainer = document.getElementById('axisConflictContainer');
-  const isMandalaActive = (StudioState.gridSymmetryMode === 'mandala_d4' || effectiveBlockModeKey === 'mandala_d4');
-  if (axisContainer) {
-    axisContainer.classList.toggle('hidden', !isMandalaActive);
-  }
-  document.querySelectorAll('#axisConflictControl .seg-btn[data-axis-mode]').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.axisMode === (StudioState.axisConflictMode || 'blend'));
-  });
-  const axisBadge = document.getElementById('axisConflictBadge');
-  const axisDesc = document.getElementById('axisConflictDesc');
-  const curAxisMode = StudioState.axisConflictMode || 'blend';
-  if (axisBadge) {
-    if (curAxisMode === 'blend') axisBadge.textContent = 'Misto + Vazio (Padrão)';
-    else if (curAxisMode === 'kaleidoscope') axisBadge.textContent = 'Caleidoscópio';
-    else if (curAxisMode === 'empty') axisBadge.textContent = 'Respiro Total';
-  }
-  if (axisDesc) {
-    if (curAxisMode === 'blend') {
-      axisDesc.textContent = 'Modo mandala livre / caleidoscópio com tile vazio (#84) como respiro elegante nos eixos.';
-    } else if (curAxisMode === 'kaleidoscope') {
-      axisDesc.textContent = 'Caleidoscópio livre 100% com os tiles selecionados.';
-    } else if (curAxisMode === 'empty') {
-      axisDesc.textContent = 'Respiro vazio total (#84) nos eixos onde falta simetria estrita.';
-    }
   }
 
   // Step 3: Subdivision buttons
@@ -2389,15 +2364,6 @@ function initStudioUI() {
   document.querySelectorAll('.panel-header').forEach((header) => {
     header.addEventListener('click', () => {
       header.closest('.dock-panel')?.classList.toggle('collapsed');
-    });
-  });
-
-  document.querySelectorAll('#axisConflictControl .seg-btn[data-axis-mode]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      StudioState.axisConflictMode = btn.dataset.axisMode || 'blend';
-      syncSymmetryPanelUI();
-      regenerateMosaic(true);
-      saveStudioStateToStorage();
     });
   });
 
