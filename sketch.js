@@ -283,11 +283,16 @@ function draw() {
   push();
   scale(zoomScale);
   window.MosaicEngine.renderMosaicToContext(window, StudioState.mosaicData, layoutConfig);
+  const isEditTool = StudioState.workspace === 'edit' && (
+    StudioState.activeTool === 'paint' ||
+    StudioState.activeTool === 'rotate' ||
+    StudioState.activeTool === 'stamp'
+  );
   window.MosaicEngine.renderGuidesAndOverlays(
     window,
     StudioState.mosaicData,
     layoutConfig,
-    StudioState.guides,
+    { ...StudioState.guides, isEditTool },
     StudioState.hoveredCell
   );
   const editPreview = getEditPreviewState();

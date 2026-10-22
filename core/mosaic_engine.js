@@ -407,7 +407,7 @@
     }
 
     // 4. Hover Orbit Highlight (highlights hovered block + its symmetry orbit siblings)
-    if (hoveredCell && guideOptions.highlightHoverOrbit) {
+    if (hoveredCell && guideOptions.highlightHoverOrbit && !guideOptions.isEditTool) {
       const hoveredBlock = mosaicData.grid[hoveredCell.row]?.[hoveredCell.col];
       if (hoveredBlock) {
         for (const block of mosaicData.blocks) {
@@ -907,7 +907,15 @@
       if (gr < 0 || gr >= totalR || gc < 0 || gc >= totalC) return;
       const key = `${gr},${gc}`;
       const existing = cellMap.get(key);
-      if (existing && existing.isAnchor && !isAnchor) return;
+      if (existing) {
+        if (isAnchor && !existing.isAnchor) {
+          existing.isAnchor = true;
+          existing.baseTileId = baseTileId;
+          existing.transform = transform;
+          existing.tileId = getTransformedTileId(baseTileId, transform);
+        }
+        return;
+      }
       cellMap.set(key, {
         gr,
         gc,
@@ -918,7 +926,7 @@
         baseTileId,
         transform,
         tileId: getTransformedTileId(baseTileId, transform),
-        isAnchor: Boolean(isAnchor || (existing && existing.isAnchor))
+        isAnchor: Boolean(isAnchor)
       });
     };
 
@@ -1443,25 +1451,29 @@
       const ghostFg = p.color(fgColor);
       ghostFg.setAlpha(220);
 
+      const isRotateTool = editPreview.tool === 'rotate';
+
       for (const pl of placements) {
         const sx = margin + pl.gc * subW;
         const sy = margin + pl.gr * subH;
 
-        p.noStroke();
-        p.fill(bgCol);
-        p.rect(sx, sy, subW, subH);
+        if (!isRotateTool) {
+          p.noStroke();
+          p.fill(bgCol);
+          p.rect(sx, sy, subW, subH);
 
-        const renderer = TILE_RENDERERS[pl.baseTileId] || TILE_RENDERERS[pl.tileId];
-        if (renderer) {
-          const meta = D4_METADATA[pl.transform] || D4_METADATA.id;
-          const dw = meta.swapsAxes ? subH : subW;
-          const dh = meta.swapsAxes ? subW : subH;
+          const renderer = TILE_RENDERERS[pl.baseTileId] || TILE_RENDERERS[pl.tileId];
+          if (renderer) {
+            const meta = D4_METADATA[pl.transform] || D4_METADATA.id;
+            const dw = meta.swapsAxes ? subH : subW;
+            const dh = meta.swapsAxes ? subW : subH;
 
-          p.push();
-          p.translate(sx + subW / 2, sy + subH / 2);
-          applyD4ToContext(p, pl.transform);
-          renderer(p, dw, dh, subPadding, ghostFg);
-          p.pop();
+            p.push();
+            p.translate(sx + subW / 2, sy + subH / 2);
+            applyD4ToContext(p, pl.transform);
+            renderer(p, dw, dh, subPadding, ghostFg);
+            p.pop();
+          }
         }
 
         p.noFill();
