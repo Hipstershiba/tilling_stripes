@@ -373,6 +373,9 @@
 
       <!-- RIGHT DOCK PANELS (Contextual: Modo Gerador vs Modo Editor) -->
       <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
+        <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
+          Não foi possível salvar automaticamente. Exporte seu trabalho ou reduza a grade/histórico.
+        </div>
 
         <!-- ================================================================
              WORKSPACE 1: MODO GERADOR (Simetria & Swatches Permitidos)
@@ -547,6 +550,10 @@
                 <div id="editScopeGrid" class="edit-scope-grid">
                   <!-- Populated by JS: 6 compact scope pills -->
                 </div>
+                <p id="editScopeHint" class="edit-scope-hint" aria-live="polite"></p>
+                <div id="sameTileNotice" class="notice-banner hidden">
+                  <span>O escopo Iguais compara 1×1. Reduza o pincel para 1×1 ou use outro escopo.</span>
+                </div>
 
                 <!-- Sub-selector for Global Canvas Center Symmetry -->
                 <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
@@ -711,6 +718,7 @@
   <script src="core/mosaic_engine.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>
+  <div id="editorToast" class="editor-toast hidden" role="status" aria-live="polite"></div>
 </body>
 
 </html>

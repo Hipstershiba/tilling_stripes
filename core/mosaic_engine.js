@@ -961,10 +961,8 @@
           return { placements: Array.from(cellMap.values()), anchorBounds };
         }
       }
-      for (const ac of anchorCells) {
-        putPlacement(ac.gr, ac.gc, ac.baseTileId, ac.transform, true);
-      }
-      return { placements: Array.from(cellMap.values()), anchorBounds };
+      // If multi-cell pattern in same_tile mode, do not perform silent partial fallback
+      return { placements: [], anchorBounds };
     }
 
     if (scopeMode === 'canvas_center') {

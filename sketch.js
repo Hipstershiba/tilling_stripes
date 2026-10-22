@@ -146,6 +146,33 @@ function ensureSupertilePattern() {
 
 const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_state_v2';
 
+let toastTimer = null;
+function showEditorToast(message, type = 'info') {
+  const el = document.getElementById('editorToast');
+  if (!el) return;
+  el.textContent = message;
+  el.dataset.type = type;
+  el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 4200);
+}
+
+function showPersistenceWarning(msg) {
+  const el = document.getElementById('persistenceWarning');
+  if (el) {
+    if (msg) el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+}
+
+function hidePersistenceWarning() {
+  const el = document.getElementById('persistenceWarning');
+  if (el) {
+    el.classList.add('hidden');
+  }
+}
+
+
 function saveStudioStateToStorage() {
   try {
     if (!StudioState.mosaicData) return;
@@ -1249,6 +1276,11 @@ function performSubtileRotateStep(hit, step = 1) {
 function performBrushOrStampAtHit(hit) {
   if (!StudioState.mosaicData || !hit) return false;
   const activePattern = ensureSupertilePattern();
+  const isMultiCell = activePattern.rows > 1 || activePattern.cols > 1;
+  if (StudioState.editScope === 'same_tile' && isMultiCell) {
+    showEditorToast('O escopo Iguais compara 1×1. Reduza o pincel para 1×1 ou use outro escopo.', 'warn');
+    return false;
+  }
   const { placements } = window.MosaicEngine.resolveStampRegionPlacements(
     StudioState.mosaicData,
     activePattern,
@@ -1401,6 +1433,12 @@ function handleCanvasMouseDown(e) {
       // Right-click in paint mode = Rotate the ACTIVE BRUSH / SUPERTILE (+90° CW)
       rotateOrFlipActiveBrush('r90');
     } else if (e.button === 0) {
+      const activePat = ensureSupertilePattern();
+      const isMultiCell = activePat.rows > 1 || activePat.cols > 1;
+      if (StudioState.editScope === 'same_tile' && isMultiCell) {
+        showEditorToast('O escopo Iguais compara 1×1. Reduza o pincel para 1×1 ou use outro escopo.', 'warn');
+        return;
+      }
       StudioState.isPaintingDrag = true;
       StudioState.lastPaintedCellKey = StudioState.brushSnapToBlock
         ? `blk_${hit.row},${hit.col}`
@@ -1440,6 +1478,12 @@ function handleCanvasMouseDown(e) {
       if (shouldSelectRegion) {
         startCanvasRegionCaptureDrag(hit);
       } else {
+        const activePat = ensureSupertilePattern();
+        const isMultiCell = activePat.rows > 1 || activePat.cols > 1;
+        if (StudioState.editScope === 'same_tile' && isMultiCell) {
+          showEditorToast('O escopo Iguais compara 1×1. Reduza o pincel para 1×1 ou use outro escopo.', 'warn');
+          return;
+        }
         StudioState.isPaintingDrag = true;
         StudioState.lastPaintedCellKey = StudioState.brushSnapToBlock
           ? `blk_${hit.row},${hit.col}`
@@ -1637,15 +1681,14 @@ function renderEditBrushPalette() {
       const isBrushActive = StudioState.editBrushTileId === tileId;
       const swatch = document.createElement('button');
       swatch.type = 'button';
-      swatch.className = 'tile-swatch-btn' + (isBrushActive ? ' brush-active' : ' selected');
+      swatch.className = 'tile-swatch-btn' + (isBrushActive ? ' brush-active' : ' available');
+      swatch.setAttribute('aria-pressed', isBrushActive ? 'true' : 'false');
       swatch.title = `#${tileId} • ${tileNames[tileId] || 'Tile'}`;
 
       const img = document.createElement('img');
       img.src = StudioState.thumbnailCache.get(tileId) || '';
       img.alt = tileNames[tileId] || `Tile ${tileId}`;
-      if (!isBrushActive) {
-        img.style.opacity = '0.72';
-      }
+
 
       const idBadge = document.createElement('span');
       idBadge.className = 'tile-swatch-id';
@@ -1682,6 +1725,28 @@ function renderEditBrushPalette() {
     card.appendChild(grid);
     container.appendChild(card);
   }
+
+  requestAnimationFrame(() => {
+    const active = container.querySelector('.tile-swatch-btn.brush-active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+
+function resetActiveBrushOrientation() {
+  const pat = ensureSupertilePattern();
+  for (const row of pat.cells) {
+    for (const cell of row) {
+      cell.transform = 'id';
+      cell.tileId = cell.baseTileId;
+    }
+  }
+  StudioState.editBrushTransform = 'id';
+  StudioState.stampBlock = pat;
+  renderSupertileBuilderCanvas();
+  syncEditWorkspaceUI();
+  saveStudioStateToStorage();
+  redraw();
 }
 
 function renderSupertileBuilderCanvas() {
@@ -1787,6 +1852,9 @@ function handleMiniBuilderCanvasMouse(e, isDrag = false) {
 }
 
 function syncEditWorkspaceUI() {
+  document.body.dataset.activeTool = StudioState.activeTool;
+  document.body.dataset.stampMode = StudioState.stampInteractionMode;
+
   // 1. Top-bar Workspace Switcher ('generate' vs 'edit')
   document.querySelectorAll('#workspaceSwitcher .ws-mode-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.workspace === StudioState.workspace);
@@ -1822,6 +1890,19 @@ function syncEditWorkspaceUI() {
   document.querySelectorAll('#canvasCenterSymControl .seg-btn[data-center-sym]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.centerSym === StudioState.canvasCenterSymmetry);
   });
+
+  const scope = window.MosaicEngine.EDIT_SCOPES[StudioState.editScope];
+  const hintEl = document.getElementById('editScopeHint');
+  if (hintEl) {
+    hintEl.textContent = scope ? `${scope.name} — ${scope.description}` : '';
+  }
+
+  const sameTileNotice = document.getElementById('sameTileNotice');
+  if (sameTileNotice) {
+    const curPat = ensureSupertilePattern();
+    const isMulti = curPat.rows > 1 || curPat.cols > 1;
+    sameTileNotice.classList.toggle('hidden', !(StudioState.editScope === 'same_tile' && isMulti));
+  }
 
   // 6. Contextual Rotate Tool Controls (and hide Brush Panel when Rotate tool is active)
   const isRotateTool = StudioState.activeTool === 'rotate';
@@ -2453,18 +2534,7 @@ function initStudioUI() {
   document.getElementById('btnBrushRot90')?.addEventListener('click', () => rotateOrFlipActiveBrush('r90'));
   document.getElementById('btnBrushFlipX')?.addEventListener('click', () => rotateOrFlipActiveBrush('mx'));
   document.getElementById('btnBrushFlipY')?.addEventListener('click', () => rotateOrFlipActiveBrush('my'));
-  document.getElementById('btnBrushResetD4')?.addEventListener('click', () => {
-    StudioState.editBrushTransform = 'id';
-    const pat = ensureSupertilePattern();
-    if (pat.rows === 1 && pat.cols === 1) {
-      StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(1, 1, StudioState.editBrushTileId, 'id');
-      StudioState.stampBlock = StudioState.supertilePattern;
-    }
-    renderSupertileBuilderCanvas();
-    syncEditWorkspaceUI();
-    saveStudioStateToStorage();
-    redraw();
-  });
+  document.getElementById('btnBrushResetD4')?.addEventListener('click', resetActiveBrushOrientation);
 
   document.getElementById('btnSupertileFillAll')?.addEventListener('click', () => {
     const pat = ensureSupertilePattern();
@@ -2641,6 +2711,9 @@ function initStudioUI() {
       if (e.key === 'Enter') e.target.blur();
       return;
     }
+    if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) {
+      return;
+    }
 
     // Undo / Redo Mosaic Edits (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
     if (e.ctrlKey || e.metaKey) {
@@ -2666,6 +2739,9 @@ function initStudioUI() {
     }
 
     if (e.key === 'Tab') {
+      if (e.target && e.target !== document.body && e.target.id !== 'canvas-stage') {
+        return;
+      }
       e.preventDefault();
       toggleRightDock();
       return;
