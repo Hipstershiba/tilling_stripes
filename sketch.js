@@ -862,6 +862,18 @@ function regenerateMosaic(recordHistory = true) {
 }
 
 function pushGenerationHistory() {
+  // Before pushing new entry, save lazy snapshot of previous entry if it had edits
+  if (StudioState.historyIndex >= 0 && StudioState.history[StudioState.historyIndex] && window.HistoryNav) {
+    const prevEntry = StudioState.history[StudioState.historyIndex];
+    window.HistoryNav.saveLazyHistorySnapshot(
+      prevEntry,
+      StudioState.mosaicData,
+      StudioState.frozenCells,
+      StudioState.editHistoryIndex,
+      StudioState.editHistory
+    );
+  }
+
   const snapshot = {
     seed: StudioState.seed,
     rows: StudioState.rows,
@@ -912,6 +924,26 @@ function restoreGenerationHistory(targetIndex) {
   const snap = StudioState.history[targetIndex];
   if (!snap) return;
 
+  // 1. Before leaving current entry, save lazy snapshot if dirty
+  const currentEntry = StudioState.history[StudioState.historyIndex];
+  if (currentEntry && window.HistoryNav) {
+    window.HistoryNav.saveLazyHistorySnapshot(
+      currentEntry,
+      StudioState.mosaicData,
+      StudioState.frozenCells,
+      StudioState.editHistoryIndex,
+      StudioState.editHistory
+    );
+  }
+
+  // 2. Enforce snapshot budget across history
+  if (window.HistoryNav) {
+    const pruned = window.HistoryNav.pruneSnapshotsOverBudget(StudioState.history);
+    if (pruned > 0) {
+      showEditorToast('Edição antiga descartada para respeitar o limite de memória.', 'warn');
+    }
+  }
+
   StudioState.isRestoringHistory = true;
   try {
     StudioState.seed = snap.seed;
@@ -938,7 +970,34 @@ function restoreGenerationHistory(targetIndex) {
     StudioState.historyIndex = targetIndex;
     syncAllInputsFromState();
     renderSwatchesPanel();
-    regenerateMosaic(false);
+
+    // 3. Plan restoration: restore snapshot if available, otherwise regenerate
+    const plan = window.HistoryNav ? window.HistoryNav.planRestore(snap) : { action: 'regenerate' };
+    if (plan.action === 'restore_snapshot' && plan.snapshot) {
+      if (!StudioState.mosaicData || StudioState.mosaicData.rows !== snap.rows || StudioState.mosaicData.cols !== snap.cols || StudioState.mosaicData.subdivision !== snap.subdivision) {
+        regenerateMosaic(false);
+      }
+      window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, plan.snapshot);
+      if (plan.frozenCells) {
+        StudioState.frozenCells = new Map(plan.frozenCells);
+      }
+      if (snap.savedEditHistory && snap.savedEditHistory.length > 0) {
+        StudioState.editHistory = snap.savedEditHistory.slice();
+        StudioState.editHistoryIndex = snap.savedEditHistoryIndex ?? (StudioState.editHistory.length - 1);
+      } else {
+        resetEditHistoryWithInitialSnapshot();
+      }
+      syncFreezeUI();
+      syncSymmetryPanelUI();
+      updateStatusBar();
+      redraw();
+    } else {
+      if (plan.warning) {
+        showEditorToast('Edição descartada para respeitar o limite de memória.', 'warn');
+      }
+      regenerateMosaic(false);
+    }
+
     renderHistoryUI();
   } finally {
     StudioState.isRestoringHistory = false;

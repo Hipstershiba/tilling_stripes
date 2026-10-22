@@ -22,6 +22,8 @@ const testSuites = [
   'test_payload_version.js',
   'test_history_limits.js',
   'test_persistence_quota.js',
+  'test_history_nav.js',
+  'test_history_edit_preservation.js',
 
   // 4. UI Architecture & Accessibility
   'test_scope_chip.js',
