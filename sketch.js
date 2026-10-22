@@ -91,7 +91,6 @@ const StudioState = {
   mosaicData: null,
   hoveredCell: null,
   thumbnailCache: new Map(),
-  transformedThumbCache: new Map(),
   savedCellsSnapshot: null,
 
   // Generation History
@@ -145,7 +144,7 @@ function ensureSupertilePattern() {
 // State Persistence (Preserve Mosaic Across Page Reloads)
 // ============================================================================
 
-const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_state_v2';
+const STORAGE_KEY_STUDIO_STATE = window.StatePersistence ? window.StatePersistence.STORAGE_KEY_STUDIO_STATE : null;
 
 let toastTimer = null;
 function showEditorToast(message, type = 'info') {
@@ -177,19 +176,24 @@ function hidePersistenceWarning() {
 const MAX_GENERATION_HISTORY = 30;
 const MAX_EDIT_HISTORY = 25;
 
-let debouncedSaveTimer = null;
+const saveScheduler = (typeof window !== 'undefined' && window.StatePersistence && typeof window.StatePersistence.createSaveScheduler === 'function')
+  ? window.StatePersistence.createSaveScheduler({
+      save: () => saveStudioStateToStorage(),
+      delayMs: 300
+    })
+  : {
+      schedule: () => saveStudioStateToStorage(),
+      flush: () => false,
+      cancel: () => {},
+      pending: () => false
+    };
 
-function scheduleSaveStudioStateToStorage(delayMs = 300) {
-  clearTimeout(debouncedSaveTimer);
-  debouncedSaveTimer = setTimeout(() => {
-    saveStudioStateToStorage();
-  }, delayMs);
+function scheduleSaveStudioStateToStorage() {
+  saveScheduler.schedule();
 }
 
 function flushSaveStudioStateToStorage() {
-  clearTimeout(debouncedSaveTimer);
-  debouncedSaveTimer = null;
-  saveStudioStateToStorage();
+  return saveScheduler.flush();
 }
 
 function isQuotaError(err) {
@@ -208,7 +212,7 @@ function buildStudioStatePayload(includeHistories = true) {
   const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
 
   return {
-    version: 2,
+    version: (window.StatePersistence && window.StatePersistence.STORAGE_VERSION) || 3,
     totalTiles,
     timestamp: Date.now(),
     width: StudioState.width,
@@ -264,8 +268,6 @@ function buildStudioStatePayload(includeHistories = true) {
 }
 
 function saveStudioStateToStorage() {
-  clearTimeout(debouncedSaveTimer);
-  debouncedSaveTimer = null;
   if (!StudioState.mosaicData) return;
 
   const fullPayload = buildStudioStatePayload(true);
@@ -317,6 +319,23 @@ function loadStudioStateFromStorage() {
 
     const saved = JSON.parse(raw);
     if (!saved || typeof saved !== 'object') return false;
+
+    const persistence = window.StatePersistence;
+    if (persistence && typeof persistence.validatePayloadVersion === 'function') {
+      const vCheck = persistence.validatePayloadVersion(saved);
+      if (vCheck.restore === false) {
+        if (vCheck.backupKey) {
+          try {
+            localStorage.setItem(vCheck.backupKey, raw);
+          } catch (_) {}
+        }
+        showPersistenceWarning(vCheck.warning || 'Versão do estado salva é incompatível com esta versão do aplicativo.');
+        return false;
+      }
+      if (vCheck.warning) {
+        showPersistenceWarning(vCheck.warning);
+      }
+    }
 
     const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
 
@@ -735,11 +754,21 @@ function draw() {
 // ============================================================================
 
 
+function syncD4Badge() {
+  const badgeEl = document.getElementById('d4EditedBadge');
+  if (!badgeEl) return;
+  if (!StudioState.mosaicData || !window.MosaicEngine || typeof window.MosaicEngine.isMosaicD4Invariant !== 'function') {
+    badgeEl.classList.add('hidden');
+    return;
+  }
+  const isInvariant = window.MosaicEngine.isMosaicD4Invariant(StudioState.mosaicData);
+  badgeEl.classList.toggle('hidden', isInvariant);
+}
+
 function showD4Warning() {
   const warnEl = document.getElementById('d4SymmetryWarning');
-  const badgeEl = document.getElementById('d4EditedBadge');
   if (warnEl) warnEl.classList.remove('hidden');
-  if (badgeEl) badgeEl.classList.remove('hidden');
+  syncD4Badge();
 }
 
 function hideD4Warning() {
@@ -748,10 +777,8 @@ function hideD4Warning() {
 }
 
 function resetD4BrokenState() {
-  StudioState.d4Broken = false;
   hideD4Warning();
-  const badgeEl = document.getElementById('d4EditedBadge');
-  if (badgeEl) badgeEl.classList.add('hidden');
+  syncD4Badge();
 }
 
 function regenerateMosaic(recordHistory = true) {
@@ -1394,7 +1421,9 @@ function performSubtileRotateStep(hit, step = 1) {
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry
     }
   );
-  return window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
+  const changed = window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
+  if (changed) syncD4Badge();
+  return changed;
 }
 
 function performBrushOrStampAtHit(hit) {
@@ -1442,12 +1471,14 @@ function performBrushOrStampAtHit(hit) {
     }
 
     if (breaksD4) {
-      StudioState.d4Broken = true;
+      
       showD4Warning();
     }
   }
 
-  return window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
+  const changed = window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
+  if (changed) syncD4Badge();
+  return changed;
 }
 
 function rotateOrFlipActiveBrush(d4Key) {
@@ -1691,6 +1722,7 @@ function undoMosaicEdit() {
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
   if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap)) {
     syncEditUndoUI();
+    syncD4Badge();
     saveStudioStateToStorage();
     redraw();
   }
@@ -1724,34 +1756,7 @@ function syncEditUndoUI() {
   }
 }
 
-function getTransformedTileThumbDataURL(tileId, d4Key = 'id') {
-  if (d4Key === 'id' && StudioState.thumbnailCache.has(tileId)) {
-    return StudioState.thumbnailCache.get(tileId);
-  }
-  const cacheKey = `${tileId}_${d4Key}`;
-  if (StudioState.transformedThumbCache.has(cacheKey)) {
-    return StudioState.transformedThumbCache.get(cacheKey);
-  }
 
-  const renderer = window.TileRegistry.TILE_RENDERERS[tileId];
-  if (!renderer) return '';
-
-  const size = 64;
-  const pad = size * 0.08;
-  const gfx = createGraphics(size, size);
-  gfx.pixelDensity(1);
-  gfx.clear();
-  gfx.push();
-  gfx.translate(size / 2, size / 2);
-  window.D4Symmetry.applyD4ToContext(gfx, d4Key);
-  renderer(gfx, size, size, pad, color(230, 228, 224));
-  gfx.pop();
-
-  const url = gfx.canvas.toDataURL();
-  gfx.remove();
-  StudioState.transformedThumbCache.set(cacheKey, url);
-  return url;
-}
 
 function buildEditWorkspaceUI() {
   const scopeGrid = document.getElementById('editScopeGrid');
@@ -2048,10 +2053,9 @@ function syncEditWorkspaceUI() {
     btn.classList.toggle('active', btn.dataset.centerSym === StudioState.canvasCenterSymmetry);
   });
 
-  const scope = window.MosaicEngine.EDIT_SCOPES[StudioState.editScope];
-  const hintEl = document.getElementById('editScopeHint');
-  if (hintEl) {
-    hintEl.textContent = scope ? `${scope.name} — ${scope.description}` : '';
+  const chipEl = document.getElementById('editScopeChip');
+  if (chipEl && window.UiFormat && typeof window.UiFormat.formatScopeChip === 'function') {
+    chipEl.textContent = window.UiFormat.formatScopeChip(StudioState.editScope, ensureSupertilePattern());
   }
 
   const sameTileNotice = document.getElementById('sameTileNotice');
@@ -2341,7 +2345,7 @@ function initStudioUI() {
 
   marginInput?.addEventListener('input', () => {
     StudioState.margin = Math.max(0, parseInt(marginInput.value, 10) || 0);
-    saveStudioStateToStorage();
+    saveScheduler.schedule();
     redraw();
   });
 
@@ -2479,6 +2483,7 @@ function initStudioUI() {
     StudioState.paddingRatio = pct / 100;
     if (paddingLabel) paddingLabel.textContent = `${pct}%`;
     renderSupertileBuilderCanvas();
+    saveScheduler.schedule();
     redraw();
   });
 
@@ -2487,13 +2492,13 @@ function initStudioUI() {
   fgPicker?.addEventListener('input', () => {
     StudioState.fgColor = fgPicker.value;
     renderSupertileBuilderCanvas();
-    saveStudioStateToStorage();
+    saveScheduler.schedule();
     redraw();
   });
   bgPicker?.addEventListener('input', () => {
     StudioState.bgColor = bgPicker.value;
     renderSupertileBuilderCanvas();
-    saveStudioStateToStorage();
+    saveScheduler.schedule();
     redraw();
   });
   document.getElementById('btnSwapColors')?.addEventListener('click', () => {
@@ -2503,6 +2508,7 @@ function initStudioUI() {
     if (fgPicker) fgPicker.value = StudioState.fgColor;
     if (bgPicker) bgPicker.value = StudioState.bgColor;
     renderSupertileBuilderCanvas();
+    saveScheduler.flush();
     saveStudioStateToStorage();
     redraw();
   });
@@ -2552,6 +2558,7 @@ function initStudioUI() {
 
   // --- Workspace Mode Switcher, Left Toolbar & Edit Tools ---
   const setActiveTool = (tool) => {
+    saveScheduler.flush();
     StudioState.activeTool = tool;
     if (tool === 'paint' || tool === 'rotate' || tool === 'stamp') {
       StudioState.workspace = 'edit';

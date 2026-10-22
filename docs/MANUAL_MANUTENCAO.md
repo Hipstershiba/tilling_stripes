@@ -59,7 +59,7 @@ $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 1. **`mandala_d4` (Mandala Estrita)**:
    - 8 eixos de simetria com respeito rigoroso aos estabilizadores matemáticos de cada célula.
    - Caso o conjunto de famílias ativas impossibilite tiles invariantes em células fixas, o motor utiliza o **Tile Vazio (#84)** garantindo D4 perfeito sem bloquear a geração.
-2. **`kaleidoscope_permissive` (Caleidoscópio Livre)**:
+2. **`kaleidoscope` (Caleidoscópio Livre)**:
    - Propagação nos 8 octantes aplicando rotações e reflexões sem exigir estabilizadores para as células fixas, permitindo composições ricas mesmo com famílias assimétricas.
 3. **`rotational_c4` (Giro Contínuo)**:
    - 4 quadrantes em giro rotacional contínuo de 90°.

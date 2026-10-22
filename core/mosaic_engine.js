@@ -500,167 +500,6 @@
     return list;
   }
 
-  /**
-   * Resolves all target subtiles in the mosaic for a given hitCell and D4 scopeMode.
-   * Each target contains { row, col, subRow, subCol, relTransform, isAnchor }.
-   */
-  function resolveEditScopeTargets(mosaicData, hitCell, scopeMode, canvasCenterSymmetry = 'mandala_d4') {
-    if (!mosaicData || !hitCell) return [];
-    const { rows, cols, subtilesPerSide: N } = mosaicData;
-    const { row: r0, col: c0, subRow: sr0, subCol: sc0 } = hitCell;
-
-    const anchorBlock = mosaicData.grid[r0]?.[c0];
-    const anchorCell = anchorBlock?.cells[sr0]?.[sc0];
-    if (!anchorBlock || !anchorCell) return [];
-
-    if (scopeMode === 'single') {
-      return [
-        {
-          row: r0,
-          col: c0,
-          subRow: sr0,
-          subCol: sc0,
-          relTransform: 'id',
-          isAnchor: true
-        }
-      ];
-    }
-
-    if (scopeMode === 'canvas_center') {
-      const totalR = rows * N;
-      const totalC = cols * N;
-      const gr0 = r0 * N + sr0;
-      const gc0 = c0 * N + sc0;
-      const globalTransforms = getAllowedTransformsForSymmetry(
-        canvasCenterSymmetry || 'mandala_d4',
-        totalR,
-        totalC
-      );
-      const seen = new Set();
-      const targets = [];
-
-      for (const gGlobal of globalTransforms) {
-        const [tGR, tGC] = transformGridCoords(gr0, gc0, totalR, totalC, gGlobal);
-        if (tGR < 0 || tGR >= totalR || tGC < 0 || tGC >= totalC) continue;
-        const key = `${tGR},${tGC}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        targets.push({
-          row: Math.floor(tGR / N),
-          col: Math.floor(tGC / N),
-          subRow: tGR % N,
-          subCol: tGC % N,
-          relTransform: gGlobal,
-          isAnchor: tGR === gr0 && tGC === gc0
-        });
-      }
-      return targets;
-    }
-
-    if (scopeMode === 'block_sym') {
-      const internal = resolveInternalBlockSubtileTargets(sr0, sc0, N, mosaicData.blockSymmetryMode);
-      return internal.map((bt) => ({
-        row: r0,
-        col: c0,
-        subRow: bt.subRow,
-        subCol: bt.subCol,
-        relTransform: bt.relTransform,
-        isAnchor: bt.isAnchorSubtile
-      }));
-    }
-
-    if (scopeMode === 'orbit_sym') {
-      const internal = resolveInternalBlockSubtileTargets(sr0, sc0, N, mosaicData.blockSymmetryMode);
-      const gridTransforms = getAllowedTransformsForSymmetry(mosaicData.gridSymmetryMode, rows, cols);
-      const seen = new Set();
-      const targets = [];
-
-      for (const gGrid of gridTransforms) {
-        const [br, bc] = transformGridCoords(r0, c0, rows, cols, gGrid);
-        if (br < 0 || br >= rows || bc < 0 || bc >= cols) continue;
-
-        for (const bt of internal) {
-          const [sr, sc] = transformGridCoords(bt.subRow, bt.subCol, N, N, gGrid);
-          const key = `${br},${bc},${sr},${sc}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-
-          const totalTransform = composeD4(gGrid, bt.relTransform);
-          targets.push({
-            row: br,
-            col: bc,
-            subRow: sr,
-            subCol: sc,
-            relTransform: totalTransform,
-            isAnchor: br === r0 && bc === c0 && sr === sr0 && sc === sc0
-          });
-        }
-      }
-      return targets;
-    }
-
-    if (scopeMode === 'all_blocks') {
-      const internal = resolveInternalBlockSubtileTargets(sr0, sc0, N, mosaicData.blockSymmetryMode);
-      const invAnchorBlockTransform = invertD4(anchorBlock.transformFromSource || 'id');
-      const seen = new Set();
-      const targets = [];
-
-      for (let br = 0; br < rows; br++) {
-        for (let bc = 0; bc < cols; bc++) {
-          const targetBlock = mosaicData.grid[br][bc];
-          const relGrid = br === r0 && bc === c0
-            ? 'id'
-            : composeD4(targetBlock.transformFromSource || 'id', invAnchorBlockTransform);
-
-          for (const bt of internal) {
-            const [sr, sc] = transformGridCoords(bt.subRow, bt.subCol, N, N, relGrid);
-            const key = `${br},${bc},${sr},${sc}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
-
-            targets.push({
-              row: br,
-              col: bc,
-              subRow: sr,
-              subCol: sc,
-              relTransform: composeD4(relGrid, bt.relTransform),
-              isAnchor: br === r0 && bc === c0 && sr === sr0 && sc === sc0
-            });
-          }
-        }
-      }
-      return targets;
-    }
-
-    if (scopeMode === 'same_tile') {
-      const matchTileId = anchorCell.tileId;
-      const targets = [];
-      for (let br = 0; br < rows; br++) {
-        for (let bc = 0; bc < cols; bc++) {
-          const block = mosaicData.grid[br][bc];
-          for (let sr = 0; sr < N; sr++) {
-            for (let sc = 0; sc < N; sc++) {
-              const cell = block.cells[sr][sc];
-              if (cell && cell.tileId === matchTileId) {
-                targets.push({
-                  row: br,
-                  col: bc,
-                  subRow: sr,
-                  subCol: sc,
-                  relTransform: 'id',
-                  isAnchor: br === r0 && bc === c0 && sr === sr0 && sc === sc0
-                });
-              }
-            }
-          }
-        }
-      }
-      return targets;
-    }
-
-    return [];
-  }
 
   /**
    * Creates a uniform H x W Supertile / Brush pattern filled with (baseTileId, transform).
@@ -1180,43 +1019,6 @@
     );
   }
 
-  /**
-   * Backwards-compatible wrapper for resolveStampBlockTargets.
-   */
-  function resolveStampBlockTargets(mosaicData, hitRow, hitCol, scopeMode, stampTransform = 'id') {
-    if (!mosaicData) return [];
-    return [];
-  }
-
-  /**
-   * Applies a subtile edit (Paint or Rotate/Cycle) across all resolved scope targets.
-   * Returns true if at least one cell changed.
-   */
-  function applySubtileEdit(mosaicData, targets, newAnchorBaseTileId, newAnchorTransform = 'id') {
-    if (!mosaicData || !Array.isArray(targets) || targets.length === 0) return false;
-    let changed = false;
-
-    for (const t of targets) {
-      const cell = mosaicData.grid[t.row]?.[t.col]?.cells[t.subRow]?.[t.subCol];
-      if (!cell) continue;
-
-      const composedTransform = composeD4(t.relTransform, newAnchorTransform);
-      const nextTileId = getTransformedTileId(newAnchorBaseTileId, composedTransform);
-
-      if (
-        cell.baseTileId !== newAnchorBaseTileId ||
-        cell.transform !== composedTransform ||
-        cell.tileId !== nextTileId
-      ) {
-        cell.baseTileId = newAnchorBaseTileId;
-        cell.transform = composedTransform;
-        cell.tileId = nextTileId;
-        changed = true;
-      }
-    }
-
-    return changed;
-  }
 
   /**
    * Applies resolved clone/stamp placements to the mosaic.
@@ -1581,15 +1383,87 @@
     p.pop();
   }
 
+  /**
+   * Checks whether the current mosaic data strictly satisfies D4/C4/D2 mathematical invariance.
+   * Verifies that for every transformation g in the symmetry group, every cell matches g(srcCell).
+   */
+  function isMosaicD4Invariant(mosaicData) {
+    if (!mosaicData || !mosaicData.grid || !mosaicData.grid.length) return true;
+    const N = mosaicData.subtilesPerSide || (mosaicData.grid[0][0].cells ? mosaicData.grid[0][0].cells.length : 1);
+    const rows = mosaicData.rows || mosaicData.grid.length;
+    const cols = mosaicData.cols || mosaicData.grid[0].length;
+    const R = rows * N;
+    const C = cols * N;
+
+    const mode = mosaicData.gridSymmetryMode || 'none';
+    if (mode === 'none' || mode === 'kaleidoscope') {
+      return true;
+    }
+
+    const D4 = (typeof window !== 'undefined' && window.D4Symmetry) || null;
+    const Registry = (typeof window !== 'undefined' && window.TileRegistry) || null;
+    if (!D4 || !Registry) return true;
+
+    const { getAllowedTransformsForSymmetry, transformGridCoords } = D4;
+    const { getTransformedTileId } = Registry;
+
+    const transforms = getAllowedTransformsForSymmetry(mode, R, C);
+    if (!transforms || !transforms.length) return true;
+
+    const cellAt = (r, c) => {
+      const br = Math.floor(r / N);
+      const bc = Math.floor(c / N);
+      return mosaicData.grid[br]?.[bc]?.cells?.[r % N]?.[c % N] || null;
+    };
+
+    for (const g of transforms) {
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+          const [tr, tc] = transformGridCoords(r, c, R, C, g);
+          const src = cellAt(r, c);
+          const dst = cellAt(tr, tc);
+          if (!src || !dst) return false;
+          if (dst.tileId !== getTransformedTileId(src.tileId, g)) {
+            return false;
+          }
+        }
+      }
+    }
+
+    const blockMode = mosaicData.blockSymmetryMode;
+    if (blockMode && blockMode !== 'none' && blockMode !== 'kaleidoscope') {
+      const blockTransforms = getAllowedTransformsForSymmetry(blockMode, N, N);
+      for (let br = 0; br < rows; br++) {
+        for (let bc = 0; bc < cols; bc++) {
+          const block = mosaicData.grid[br]?.[bc];
+          if (!block || !block.cells) continue;
+          for (const g of blockTransforms) {
+            for (let sr = 0; sr < N; sr++) {
+              for (let sc = 0; sc < N; sc++) {
+                const [tsr, tsc] = transformGridCoords(sr, sc, N, N, g);
+                const src = block.cells[sr]?.[sc];
+                const dst = block.cells[tsr]?.[tsc];
+                if (!src || !dst) return false;
+                if (dst.tileId !== getTransformedTileId(src.tileId, g)) {
+                  return false;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
   window.MosaicEngine = {
     EDIT_SCOPES,
     generateMosaic,
+    isMosaicD4Invariant,
     transformBlock,
     renderMosaicToContext,
     renderGuidesAndOverlays,
-    resolveEditScopeTargets,
-    resolveStampBlockTargets,
-    applySubtileEdit,
     createSupertilePattern,
     resizeSupertilePattern,
     symmetrizeSupertilePattern,
@@ -1600,6 +1474,7 @@
     resolveRotateRegionPlacements,
     applyStampPlacements,
     cloneMosaicCellsSnapshot,
+    snapshotMosaicCells: cloneMosaicCellsSnapshot,
     restoreMosaicCellsSnapshot,
     renderEditScopeAndGhostOverlay
   };

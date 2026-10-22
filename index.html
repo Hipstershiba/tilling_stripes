@@ -381,7 +381,7 @@
           </div>
 
           <div id="status-right" class="status-right">
-            <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos">?</button>
+            <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
           </div>
         </footer>
       </main>
@@ -417,7 +417,7 @@
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
                     <label class="prop-label">1. Simetria da Grade</label>
-                    <button type="button" class="info-btn" data-info-topic="grid-symmetry" aria-label="Saiba mais sobre simetria da grade" aria-haspopup="dialog" aria-expanded="false">i</button>
+                    <button type="button" class="info-btn" data-info-topic="grid-symmetry" aria-label="Saiba mais sobre simetria da grade" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                   <span id="gridSymmetryBadge" class="prop-badge">Mandala D4</span>
                 </div>
@@ -438,7 +438,7 @@
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
                     <label class="prop-label">2. Simetria Interna</label>
-                    <button type="button" class="info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre simetria do bloco" aria-haspopup="dialog" aria-expanded="false">i</button>
+                    <button type="button" class="info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre simetria do bloco" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                   <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
                 </div>
@@ -448,7 +448,7 @@
                 <div id="blockSymmetryDesc" class="prop-sub-hint hidden"></div>
                 <div id="blockSymmetryWarning" class="notice-banner warning hidden" role="alert">
                   <span id="blockSymmetryWarningText"></span>
-                  <button type="button" class="info-btn warning-info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre redução de simetria">i</button>
+                  <button type="button" class="info-btn warning-info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre redução de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                 </div>
               </div>
 
@@ -562,9 +562,9 @@
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
                     <label class="prop-label">Escopo de Simetria</label>
-                    <button type="button" class="info-btn" data-info-topic="scopes" aria-label="Saiba mais sobre escopos de simetria" aria-haspopup="dialog" aria-expanded="false">i</button>
+                    <button type="button" class="info-btn" data-info-topic="scopes" aria-label="Saiba mais sobre escopos de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="editScopeChip" class="prop-badge secondary">Livre • 1 célula</span>
+                  <span id="editScopeChip" class="prop-badge secondary" title="Escopo de propagação ativo"></span>
                   <span id="d4EditedBadge" class="prop-badge d4-edited-badge hidden" title="A edição manual introduziu assimetria no D4">D4 editado</span>
                 </div>
                 <div id="editScopeGrid" class="edit-scope-grid">
@@ -572,7 +572,7 @@
                 </div>
                 <div id="sameTileNotice" class="notice-banner hidden">
                   <span>Iguais exige pincel 1×1.</span>
-                  <button type="button" class="link-btn" data-info-topic="same-tile">Saiba mais</button>
+                  <button type="button" class="link-btn" data-info-topic="same-tile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">Saiba mais</button>
                 </div>
                 <div id="d4SymmetryWarning" class="notice-banner warning hidden" role="alert">
                   <span>Esta edição quebra o D4 estrito.</span>
@@ -587,7 +587,7 @@
                   <div class="prop-label-row" style="margin-bottom: 4px;">
                     <div class="prop-label-with-info">
                       <span class="prop-sub-label">Simetria pelo Centro</span>
-                      <button type="button" class="info-btn" data-info-topic="center-symmetry" aria-label="Saiba mais sobre simetria de centro" aria-haspopup="dialog" aria-expanded="false">i</button>
+                      <button type="button" class="info-btn" data-info-topic="center-symmetry" aria-label="Saiba mais sobre simetria de centro" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                     </div>
                   </div>
                   <div class="canvas-center-sym-grid" id="canvasCenterSymControl">
@@ -606,7 +606,7 @@
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
                     <label class="prop-label">Tamanho do Giro</label>
-                    <button type="button" class="info-btn" data-info-topic="rotate" aria-label="Saiba mais sobre a ferramenta Girar" aria-haspopup="dialog" aria-expanded="false">i</button>
+                    <button type="button" class="info-btn" data-info-topic="rotate" aria-label="Saiba mais sobre a ferramenta Girar" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="rotateSizeControl">
@@ -678,7 +678,7 @@
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
                     <label class="prop-label">Tamanho do Pincel</label>
-                    <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Supertile" aria-haspopup="dialog" aria-expanded="false">i</button>
+                    <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Supertile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="brushSizeControl">
@@ -747,6 +747,7 @@
   <script src="core/tile_registry.js"></script>
   <script src="core/mosaic_engine.js"></script>
   <script src="core/state_persistence.js"></script>
+  <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>

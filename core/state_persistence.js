@@ -1,14 +1,91 @@
 /**
  * core/state_persistence.js
- * Pure state persistence, quota management and history clamping routines
+ * Pure state persistence, quota management, debounce scheduling and history clamping routines
  * for Tiling Stripes Studio v2.
  */
 
 (function () {
-  const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_v2_state';
+  const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_state_v2';
+  const STORAGE_VERSION = 3;
   const MAX_GENERATION_HISTORY = 30;
   const MAX_EDIT_HISTORY = 25;
   const STORAGE_BUDGET_BYTES = 3.2 * 1024 * 1024; // ~3.2 MB target to stay safely within 5 MB browser quota
+
+  /**
+   * Pure save scheduler with debounce, flush and cancel capabilities.
+   * Can accept custom timers for deterministic testing.
+   */
+  function createSaveScheduler({ save, delayMs = 300, timers } = {}) {
+    if (typeof save !== 'function') {
+      throw new TypeError('createSaveScheduler requires a save function');
+    }
+    const _setTimeout = (timers && timers.setTimeout) || setTimeout;
+    const _clearTimeout = (timers && timers.clearTimeout) || clearTimeout;
+    let handle = null;
+    let pendingCount = 0;
+
+    return {
+      schedule() {
+        pendingCount++;
+        _clearTimeout(handle);
+        handle = _setTimeout(() => {
+          handle = null;
+          pendingCount = 0;
+          save();
+        }, delayMs);
+      },
+      flush() {
+        if (handle === null) return false;
+        _clearTimeout(handle);
+        handle = null;
+        pendingCount = 0;
+        save();
+        return true;
+      },
+      cancel() {
+        _clearTimeout(handle);
+        handle = null;
+        pendingCount = 0;
+      },
+      pending() {
+        return handle !== null;
+      }
+    };
+  }
+
+  /**
+   * Validates payload version and enforces migration or future backup policies.
+   */
+  function validatePayloadVersion(payload, currentVersion = STORAGE_VERSION, storageKey = STORAGE_KEY_STUDIO_STATE) {
+    if (!payload || typeof payload !== 'object') {
+      return { restore: false, error: 'Payload inválido' };
+    }
+    const v = payload.version;
+    if (typeof v !== 'number') {
+      return {
+        restore: true,
+        warning: 'Estado migrado de versão anterior.',
+        isLegacy: true,
+        payload
+      };
+    }
+    if (v > currentVersion) {
+      const backupKey = `${storageKey}_backup_${Date.now()}`;
+      return {
+        restore: false,
+        backupKey,
+        warning: `Versão do estado (${v}) é mais recente que a versão suportada (${currentVersion}). Os dados foram preservados em backup para evitar corrupção.`,
+        isFuture: true,
+        payload
+      };
+    }
+    return {
+      restore: true,
+      warning: null,
+      isCurrent: true,
+      payload
+    };
+  }
 
   /**
    * Detects whether an exception was caused by localStorage quota exhaustion.
@@ -159,9 +236,12 @@
 
   const StatePersistence = {
     STORAGE_KEY_STUDIO_STATE,
+    STORAGE_VERSION,
     MAX_GENERATION_HISTORY,
     MAX_EDIT_HISTORY,
     STORAGE_BUDGET_BYTES,
+    createSaveScheduler,
+    validatePayloadVersion,
     isQuotaError,
     getMaxEditHistoryForMosaic,
     trimHistoryOnPush,

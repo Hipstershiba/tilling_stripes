@@ -6,6 +6,16 @@ Construído em JavaScript moderno (ES6+) e [p5.js](https://p5js.org/), sem neces
 
 ---
 
+## Documentação
+
+Toda a documentação vive em [`docs/`](docs/README.md); a raiz guarda apenas o app e este README.
+
+- [`docs/MANUAL_MANUTENCAO.md`](docs/MANUAL_MANUTENCAO.md) — arquitetura, álgebra D4, persistência e regras de manutenção.
+- [`docs/instrucoes/`](docs/instrucoes/) — especificação de cada rodada de trabalho.
+- [`docs/relatorios/`](docs/relatorios/) — relatórios de entrega e auditorias independentes.
+
+---
+
 ## Como Rodar Localmente
 
 Recomenda-se iniciar um servidor HTTP local para carregar os recursos sem bloqueios de CORS:

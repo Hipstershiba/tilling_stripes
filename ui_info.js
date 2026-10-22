@@ -28,14 +28,7 @@
     'scopes': {
       title: 'Escopos de Edição',
       subtitle: 'Para onde sua pincelada ou giro se propaga',
-      body: [
-        'Livre (1): Aplica pontualmente apenas na célula sob o cursor, sem espelhamento.',
-        'No Bloco (2): Reflete nos 4 quadrantes internos do bloco clicado.',
-        'Órbita (3): Combina a simetria do bloco com a simetria macro da grade.',
-        'Todos os Blocos (4): Repete a edição em todos os blocos do mosaico mantendo a orientação.',
-        'Centro do Canvas (5): Propaga em torno do centro absoluto do mosaico (Mandala 8×, Giro 4× ou Espelhos).',
-        'Mesmo Tile (6): Substitui todas as ocorrências do mesmo azulejo em todo o mosaico (exige pincel 1×1).'
-      ]
+      body: []
     },
     'center-symmetry': {
       title: 'Simetria pelo Centro do Canvas',
@@ -124,7 +117,7 @@
         'B: Ativa Ferramenta Pincel | R: Ferramenta Girar | S: Ferramenta Carimbo | V: Inspecionar.',
         'H / Espaço: Mover Visualização (Pan) | Z: Zoom (+ com clique, - com Alt).',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
-        '1 a 6: Seleciona Escopo de Edição (Livre, Bloco, Órbita, Todos, Centro, Iguais).',
+        '1 a 6: Seleciona Escopo de Edição.',
         '0: Centralizar e Ajustar Artboard na Janela.',
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y: Desfazer e Refazer edições.',
@@ -143,6 +136,61 @@
     }
   };
 
+  /**
+   * Synchronizes scope descriptions in INFO_TOPICS strictly from window.MosaicEngine.EDIT_SCOPES.
+   * Eliminates dual sources of truth and ensures shortcuts 1..6 match engine definitions.
+   */
+  function syncScopeTopics() {
+    let engine = (typeof window !== 'undefined' && window.MosaicEngine) || null;
+    if (!engine && typeof require === 'function') {
+      try {
+        const path = require('path');
+        const fs = require('fs');
+        const candidates = [
+          path.join(process.cwd(), 'core/mosaic_engine.js'),
+          path.join(__dirname, 'core/mosaic_engine.js'),
+          path.join(__dirname, '../core/mosaic_engine.js')
+        ];
+        const engineFile = candidates.find(p => fs.existsSync(p));
+        if (engineFile) {
+          const coreDir = path.dirname(engineFile);
+          if (typeof global !== 'undefined') {
+            global.window = global.window || {};
+            if (!global.window.D4Symmetry) {
+              try { require(path.join(coreDir, 'd4_symmetry.js')); } catch (_) {}
+            }
+            if (!global.window.TileRegistry) {
+              try { require(path.join(coreDir, 'tile_registry.js')); } catch (_) {}
+            }
+            require(engineFile);
+            engine = global.window.MosaicEngine;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (engine && engine.EDIT_SCOPES) {
+      const scopes = Object.values(engine.EDIT_SCOPES)
+        .sort((a, b) => Number(a.shortcut) - Number(b.shortcut));
+      INFO_TOPICS.scopes.body = scopes.map((s) => `${s.name} (${s.shortcut}): ${s.description}`);
+
+      const names = scopes.map(s => `${s.name} (${s.shortcut})`).join(', ');
+      const scIndex = INFO_TOPICS.shortcuts.body.findIndex(l => l.includes('1 a 6') || l.includes('1-6') || l.includes('1–6'));
+      const shortcutLine = `1 a 6: Seleciona Escopo de Edição (${names}).`;
+      if (scIndex >= 0) {
+        INFO_TOPICS.shortcuts.body[scIndex] = shortcutLine;
+      }
+    } else {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('MosaicEngine.EDIT_SCOPES unavailable for syncScopeTopics');
+      }
+      INFO_TOPICS.scopes.body = [];
+    }
+  }
+
+  // Initial sync upon module evaluation
+  syncScopeTopics();
+
   let popoverEl = null;
   let popoverTitleEl = null;
   let popoverBodyEl = null;
@@ -152,6 +200,7 @@
   let isPopoverOpen = false;
 
   function init() {
+    syncScopeTopics();
     popoverEl = document.getElementById('infoPopover');
     popoverTitleEl = document.getElementById('infoPopoverTitle');
     popoverBodyEl = document.getElementById('infoPopoverBody');
@@ -333,12 +382,20 @@
     tooltipEl.classList.add('hidden');
   }
 
-  window.InfoUI = {
+  const InfoUI = {
     init,
+    initTopics: syncScopeTopics,
     showPopover,
     hidePopover,
     showTooltip,
     hideTooltip,
     INFO_TOPICS
   };
+
+  if (typeof window !== 'undefined') {
+    window.InfoUI = InfoUI;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = InfoUI;
+  }
 })();

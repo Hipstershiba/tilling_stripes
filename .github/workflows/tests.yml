@@ -22,32 +22,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Run Tile Registry Tests
-        run: node tests/test_tile_registry.js
-
-      - name: Run Mosaic Engine Integration Tests
-        run: node tests/test_mosaic_engine.js
-
-      - name: Run State Persistence Tests
-        run: node tests/test_state_persistence.js
-
-      - name: Run D4 Symmetry Invariance Tests
-        run: node tests/test_d4_invariance.js
-
-      - name: Run History Limits & Trim Tests
-        run: node tests/test_history_limits.js
-
-      - name: Run Persistence Quota Tests
-        run: node tests/test_persistence_quota.js
-
-      - name: Run Editor UI State Tests
-        run: node tests/test_editor_ui_state.js
-
-      - name: Run Information Architecture & UI State Tests
-        run: node tests/test_info_ui_state.js
-
-      - name: Run D4 Grid × Block Combinations Tests
-        run: node tests/test_d4_block_combinations.js
-
-      - name: Run Editor D4 Transparency Tests
-        run: node tests/test_d4_editor.js
+      - name: Run Unified Test Runner (All 18 Suites)
+        run: node tests/run_all.js

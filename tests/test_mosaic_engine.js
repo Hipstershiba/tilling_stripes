@@ -9,7 +9,6 @@ require(path.join(__dirname, '../core/mosaic_engine.js'));
 const {
   generateMosaic,
   renderMosaicToContext,
-  applySubtileEdit
 } = window.MosaicEngine;
 
 const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
