@@ -1,7 +1,35 @@
+# ==============================================================================
+# Tiling Stripes Studio — Git Ignore
+# ==============================================================================
+
+# Vendor / Reference gems
 gems/
 
-# Local asset upload/backup artifacts
+# Asset uploads and temporary directories
 uploads/
 assets/uploads/
 tmp/uploads/
+tmp/
+temp/
 *.tiles-backup.json
+
+# Local artifacts directory (purely local dumps, test outputs and scratch scripts)
+_local/*
+!_local/README.md
+
+# Headless browser profiles and execution traces
+.tmp-edge*
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
