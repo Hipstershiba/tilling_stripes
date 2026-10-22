@@ -1640,6 +1640,12 @@ function setZoomPercent(nextPercent) {
   applyPanTransform();
 }
 
+function resetZoom100() {
+  StudioState.panOffsetX = 0;
+  StudioState.panOffsetY = 0;
+  setZoomPercent(100);
+}
+
 // ============================================================================
 // Canvas Hover Inspection & Mouse Interaction
 // ============================================================================
@@ -3451,7 +3457,7 @@ function initStudioUI() {
   // --- Zoom Status Controls & Canvas Wheel/Pan ---
   document.getElementById('btnZoomIn')?.addEventListener('click', () => setZoomPercent(StudioState.zoomPercent + 25));
   document.getElementById('btnZoomOut')?.addEventListener('click', () => setZoomPercent(StudioState.zoomPercent - 25));
-  document.getElementById('btnZoomReset100')?.addEventListener('click', () => setZoomPercent(100));
+  document.getElementById('btnZoomReset100')?.addEventListener('click', resetZoom100);
 
   const zoomPreset = document.getElementById('zoomPresetSelect');
   zoomPreset?.addEventListener('change', () => {
@@ -3642,6 +3648,16 @@ function initStudioUI() {
         redoMosaicEdit();
         return;
       }
+      if (k === '1') {
+        e.preventDefault();
+        resetZoom100();
+        return;
+      }
+      if (k === '0') {
+        e.preventDefault();
+        fitArtboardToWindow();
+        return;
+      }
       return;
     }
 
@@ -3723,7 +3739,7 @@ function initStudioUI() {
         redraw();
       }
     } else if (k === '1' && !isEditTool) {
-      setZoomPercent(100);
+      resetZoom100();
     } else if (e.key === 'ArrowLeft') {
       restoreGenerationHistory(StudioState.historyIndex - 1);
     } else if (e.key === 'ArrowRight') {
@@ -3748,3 +3764,4 @@ window.applyPanTransform = applyPanTransform;
 window.applyZoomTransform = applyZoomTransform;
 window.fitArtboardToWindow = fitArtboardToWindow;
 window.setZoomPercent = setZoomPercent;
+window.resetZoom100 = resetZoom100;

@@ -169,7 +169,24 @@ assert.strictEqual(StudioState.panOffsetY, -75, 'panOffsetY must scale proportio
 assert.strictEqual(mockStage.style.transform, 'translate(-150px, -75px)');
 console.log('✓ Zooming while panned scales offsets proportionally, maintaining viewport focus.');
 
-// 5. Verify CSS rules in style.css
+// 5. Test resetZoom100 resets zoom to 100% and recenters pan to (0, 0)
+function resetZoom100() {
+  StudioState.panOffsetX = 0;
+  StudioState.panOffsetY = 0;
+  setZoomPercent(100);
+}
+
+StudioState.panOffsetX = -320;
+StudioState.panOffsetY = 190;
+StudioState.zoomPercent = 250;
+resetZoom100();
+assert.strictEqual(StudioState.zoomPercent, 100, 'resetZoom100 must set zoom to 100%');
+assert.strictEqual(StudioState.panOffsetX, 0, 'resetZoom100 must reset panOffsetX to 0 (re-center)');
+assert.strictEqual(StudioState.panOffsetY, 0, 'resetZoom100 must reset panOffsetY to 0 (re-center)');
+assert.strictEqual(mockStage.style.transform, 'translate(0px, 0px)');
+console.log('✓ resetZoom100 (Tecla 1 / Ctrl+1) resets zoom to 100% and re-centers pan.');
+
+// 6. Verify CSS rules in style.css
 const styleCss = fs.readFileSync(path.join(__dirname, '../style.css'), 'utf8');
 assert.ok(styleCss.includes('#artboard-pasteboard {') && styleCss.includes('overflow: hidden;'), 'style.css must set overflow: hidden on #artboard-pasteboard');
 assert.ok(styleCss.includes('body.is-panning'), 'style.css must define body.is-panning grabbing cursor');
