@@ -113,12 +113,46 @@ assert.strictEqual(editHistoryIndex, 5);
 editHistoryIndex--;
 const snapPrevGen = editHistory[editHistoryIndex];
 assert.strictEqual(DocumentSnapshot.hasDocument(snapPrevGen), true, 'Previous document carried params');
-assert.strictEqual(snapPrevGen.document.seed, 100, 'Previous seed 100 preserved');
+assert.strictEqual(snap2.document.seed, 200, 'Fresh generation must carry its OWN seed, not the previous one (Fix A1)');
+assert.strictEqual(snapPrevGen.document.seed, 100, 'Previous document carried params');
 assert.strictEqual(editHistoryIndex, 4, 'Undo goes to edit step 4');
+
+// Redo back to generation 2
+editHistoryIndex++;
+const redoneSnap = editHistory[editHistoryIndex];
+assert.strictEqual(redoneSnap.document.seed, 200, 'Redo restores generation 2 seed 200 (Fix A1)');
+assert.strictEqual(editHistoryIndex, 5, 'Redo goes back to generation 2 index 5');
+
+// Undo generation 2 again
+editHistoryIndex--;
+assert.strictEqual(editHistoryIndex, 4, 'Undo goes back to edit step 4');
 
 // Undo again goes to edit step 3
 editHistoryIndex--;
 assert.strictEqual(editHistoryIndex, 3, 'Second undo goes to edit step 3');
+
+// 4. Dimension change crossing (2x2 -> 3x3 -> undo -> redo)
+const genConfig3 = { ...config, rows: 3, cols: 3, seed: 300 };
+const mosaic3 = generateMosaic(genConfig3, arr => arr[0]);
+const snap3 = DocumentSnapshot.attachDocument(
+  cloneMosaicCellsSnapshot(mosaic3, frozenCells),
+  DocumentSnapshot.collectParams({ ...genConfig3, frozenCells: [] })
+);
+assert.strictEqual(snap3.document.rows, 3, '3x3 document carries rows=3');
+assert.strictEqual(snap3.document.cols, 3, '3x3 document carries cols=3');
+
+// Simulate redo/undo dimension restoration
+let testState = { ...snapPrevGen.document };
+DocumentSnapshot.applyParams(testState, snap3.document);
+assert.strictEqual(testState.rows, 3, 'applyParams restores 3x3 rows');
+assert.strictEqual(testState.cols, 3, 'applyParams restores 3x3 cols');
+assert.strictEqual(testState.seed, 300, 'applyParams restores seed 300');
+
+DocumentSnapshot.applyParams(testState, snapPrevGen.document);
+assert.strictEqual(testState.rows, 2, 'applyParams undo restores 2x2 rows');
+assert.strictEqual(testState.cols, 2, 'applyParams undo restores 2x2 cols');
+assert.strictEqual(testState.seed, 100, 'applyParams undo restores seed 100');
+console.log('✓ Dimension and parameter crossing verified for undo and redo.');
 
 console.log('✓ Ctrl+Z cleanly crosses generations and continues through prior cell edits.');
 console.log('--- ALL MULTI-STEP UNDO CHECKS PASSED! ---');

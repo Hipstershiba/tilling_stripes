@@ -845,8 +845,10 @@ function regenerateMosaic(recordHistory = true) {
     });
   }
 
-  // 4.2/T3 — document snapshot of what is on screen right now, so Ctrl+Z can cross a generation.
-  const previousDocument = isDestructive ? buildDocumentSnapshot() : null;
+  // 4.2/T3 — document snapshot of what is on screen right now, carrying the parameters that produced it
+  const previousDocument = isDestructive
+    ? buildDocumentSnapshot(StudioState.lastDocumentParams || (window.DocumentSnapshot ? window.DocumentSnapshot.collectParams(StudioState) : null))
+    : null;
 
   randomSeed(StudioState.seed);
 
@@ -893,7 +895,9 @@ function regenerateMosaic(recordHistory = true) {
       }
     }
 
-    const freshDocSnap = buildDocumentSnapshot();
+    const currentParams = window.DocumentSnapshot ? window.DocumentSnapshot.collectParams(StudioState) : null;
+    StudioState.lastDocumentParams = currentParams;
+    const freshDocSnap = buildDocumentSnapshot(currentParams);
     if (freshDocSnap) {
       StudioState.editHistory.push(freshDocSnap);
       const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
@@ -901,14 +905,14 @@ function regenerateMosaic(recordHistory = true) {
         StudioState.editHistory.shift();
       }
       StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
-      if (window.DocumentSnapshot) {
-        StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
-      }
       syncEditUndoUI();
     }
   } else {
     if (!Array.isArray(StudioState.editHistory) || StudioState.editHistory.length === 0) {
       resetEditHistoryWithInitialSnapshot();
+    }
+    if (window.DocumentSnapshot) {
+      StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
     }
   }
 
@@ -928,11 +932,11 @@ function regenerateMosaic(recordHistory = true) {
  * The parameters come from the last rendered document (`lastDocumentParams`), because the
  * caller has usually already mutated StudioState before asking for a regeneration.
  */
-function buildDocumentSnapshot() {
+function buildDocumentSnapshot(explicitParams = null) {
   if (!StudioState.mosaicData || !window.MosaicEngine || !window.DocumentSnapshot) return null;
   const cells = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData, StudioState.frozenCells);
   if (!cells) return null;
-  const params = StudioState.lastDocumentParams || window.DocumentSnapshot.collectParams(StudioState);
+  const params = explicitParams || StudioState.lastDocumentParams || window.DocumentSnapshot.collectParams(StudioState);
   return window.DocumentSnapshot.attachDocument(cells, params);
 }
 
@@ -2083,15 +2087,91 @@ function handleCanvasMouseDown(e) {
 // Stage 2: Mosaic Edit Undo/Redo Stack & Editor UI Builders
 // ============================================================================
 
+
+// ============================================================================
+// Stage 4.2 / T2: Document Dirty State & Dirty Guard Dialog
+// ============================================================================
+
+function isDocumentDirty(state = StudioState) {
+  if (!state) return false;
+  const hasEdits = typeof state.editHistoryIndex === 'number' && state.editHistoryIndex > 0;
+  const hasFrozen = Boolean(state.frozenCells && state.frozenCells.size > 0);
+  return hasEdits || hasFrozen;
+}
+
+let dirtyGuardSessionSuppressed = false;
+let pendingDirtyGuardAction = null;
+let dirtyGuardTriggerElement = null;
+
+function requestParamChangeWithGuard(triggerEl, revertFn, applyFn) {
+  if (dirtyGuardSessionSuppressed || !isDocumentDirty(StudioState)) {
+    applyFn();
+    return;
+  }
+
+  const dialog = document.getElementById('dirtyGuardDialog');
+  const btnCancel = document.getElementById('btnDirtyGuardCancel');
+  const descEl = document.getElementById('dirtyGuardDesc');
+
+  if (!dialog) {
+    applyFn();
+    return;
+  }
+
+  dirtyGuardTriggerElement = triggerEl;
+  const editCount = StudioState.editHistoryIndex > 0 ? StudioState.editHistoryIndex : 0;
+  const frozenCount = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
+  let reason = '';
+  if (editCount > 0 && frozenCount > 0) {
+    reason = `Este mosaico tem ${editCount} edições manuais e ${frozenCount} subtiles travados.`;
+  } else if (editCount > 0) {
+    reason = `Este mosaico tem ${editCount} edições manuais.`;
+  } else {
+    reason = `Este mosaico tem ${frozenCount} subtiles travados.`;
+  }
+
+  if (descEl) {
+    descEl.innerHTML = `${reason} Alterar este parâmetro irá regenerar o desenho. Suas alterações vão para o histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.`;
+  }
+
+  pendingDirtyGuardAction = { revertFn, applyFn };
+  dialog.classList.remove('hidden');
+  btnCancel?.focus();
+}
+
+function closeDirtyGuard(confirmed) {
+  const dialog = document.getElementById('dirtyGuardDialog');
+  const dontAskCheckbox = document.getElementById('dirtyGuardDontAsk');
+  if (dontAskCheckbox && dontAskCheckbox.checked) {
+    dirtyGuardSessionSuppressed = true;
+  }
+
+  dialog?.classList.add('hidden');
+  const action = pendingDirtyGuardAction;
+  pendingDirtyGuardAction = null;
+
+  if (confirmed) {
+    if (action && typeof action.applyFn === 'function') action.applyFn();
+  } else {
+    if (action && typeof action.revertFn === 'function') action.revertFn();
+  }
+
+  if (dirtyGuardTriggerElement) {
+    dirtyGuardTriggerElement.focus?.();
+    dirtyGuardTriggerElement = null;
+  }
+}
+
 function resetEditHistoryWithInitialSnapshot() {
   if (!StudioState.mosaicData) return;
-  const initialSnap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
+  const initialSnap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData, StudioState.frozenCells);
+  if (initialSnap && window.DocumentSnapshot) {
+    const params = window.DocumentSnapshot.collectParams(StudioState);
+    StudioState.lastDocumentParams = params;
+    window.DocumentSnapshot.attachDocument(initialSnap, params);
+  }
   StudioState.editHistory = initialSnap ? [initialSnap] : [];
   StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
-  // The document that is now on screen becomes the reference for the next destructive change.
-  if (window.DocumentSnapshot) {
-    StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
-  }
   syncEditUndoUI();
 }
 
@@ -3436,6 +3516,14 @@ function initStudioUI() {
       renderSupertileBuilderCanvas();
       flushSaveStudioStateToStorage();
       redraw();
+      return;
+    }
+
+    // Esc closes Dirty Guard Dialog if open
+    const dirtyDialog = document.getElementById('dirtyGuardDialog');
+    if (e.key === 'Escape' && dirtyDialog && !dirtyDialog.classList.contains('hidden')) {
+      e.preventDefault();
+      closeDirtyGuard(false);
       return;
     }
 

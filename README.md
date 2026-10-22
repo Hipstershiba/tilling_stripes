@@ -147,10 +147,10 @@ A interface adota a taxonomia de quatro superfícies estritas com responsabilida
 
 ## Testes Automatizados
 
-O projeto conta com 20 suítes de teste automatizadas executadas diretamente via Node.js sem frameworks externos:
+O projeto conta com 32 suítes de teste automatizadas executadas diretamente via Node.js sem frameworks externos:
 
 ```powershell
-# Executar todas as 20 suítes de teste:
+# Executar todas as 32 suítes de teste:
 node tests/run_all.js
 ```
 

@@ -119,6 +119,27 @@
     <!-- Floating Seed History Popover (Retained for backwards compatibility) -->
     <div id="seedHistoryPopover" class="floating-popover hidden" style="display:none;"></div>
 
+    <!-- Dialog de Proteção contra Perda de Edições (Rodada 4.2 / T2) -->
+    <div id="dirtyGuardDialog" class="modal-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dirtyGuardTitle" aria-describedby="dirtyGuardDesc">
+      <div class="modal-dialog-card">
+        <h3 id="dirtyGuardTitle" class="modal-dialog-title">Aviso de Edições em Risco</h3>
+        <p id="dirtyGuardDesc" class="modal-dialog-desc">
+          Este mosaico possui edições manuais ou subtiles travados. Alterar este parâmetro irá regenerar o desenho.
+          Suas alterações serão salvas no histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.
+        </p>
+        <div class="modal-dialog-checkbox">
+          <label>
+            <input type="checkbox" id="dirtyGuardDontAsk">
+            Não perguntar nesta sessão
+          </label>
+        </div>
+        <div class="modal-dialog-actions">
+          <button type="button" id="btnDirtyGuardCancel" class="btn-dialog-secondary">Cancelar</button>
+          <button type="button" id="btnDirtyGuardConfirm" class="btn-dialog-primary">Gerar mesmo assim</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
     <div id="workspace-body">
 

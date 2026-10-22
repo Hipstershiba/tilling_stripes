@@ -38,6 +38,8 @@ docs/
 | [RELATORIO_RODADA4.md](relatorios/RELATORIO_RODADA4.md) | Antigravity | Entrega da Rodada 4: reorganização das quatro superfícies, gaveta com régua de 44 px e acordeão |
 | [AVALIACAO_DEEPSEEK_RODADA4.md](relatorios/AVALIACAO_DEEPSEEK_RODADA4.md) | DeepSeek | Auditoria da Rodada 4: layout confirmado no código; duas capturas duplicadas, a extensão de freeze fora do git e dois P0 funcionais (freeze não sobrevive à geração; histórico apaga a edição) |
 | [ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md](relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md) | DeepSeek | Análise de sinergia/harmonia dos 85 subtiles, 31 famílias e 9 conjuntos; 10 famílias propostas |
+| [AVALIACAO_GEMINI_RODADA6_E_4_2.md](relatorios/AVALIACAO_GEMINI_RODADA6_E_4_2.md) | Gemini | Auditoria das Rodadas 4.2/6: contradição spec × teste, camada 3 fantasma e capturas duplicadas |
+| [AVALIACAO_DEEPSEEK_RODADA6_E_LAYOUT.md](relatorios/AVALIACAO_DEEPSEEK_RODADA6_E_LAYOUT.md) | DeepSeek | Auditoria do HEAD pós-pivô: UI 1440 confirmada; P0 no snapshot de geração, camada 3 ausente, testes não probatórios e docs desatualizados |
 
 ## Pranchas (`analise/`)
 
