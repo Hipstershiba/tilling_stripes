@@ -145,38 +145,6 @@
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
-        <!-- Seed & Generation Section -->
-        <div class="sidebar-section sidebar-gen-section" aria-label="Geração e Sementes">
-          <button type="button" id="btnRandomize" class="sidebar-gen-btn" title="Sortear nova Seed (Tecla G)" aria-label="Gerar Mosaico (G)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 3 21 3 21 8"></polyline>
-              <line x1="4" y1="20" x2="21" y2="3"></line>
-              <polyline points="21 16 21 21 16 21"></polyline>
-              <line x1="15" y1="15" x2="21" y2="21"></line>
-              <line x1="4" y1="4" x2="9" y2="9"></line>
-            </svg>
-            <span class="gen-btn-label">Gerar Mosaico</span>
-            <kbd class="sidebar-kbd">G</kbd>
-          </button>
-          <div class="sidebar-seed-row" title="Navegação de Seeds">
-            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled>◀</button>
-            <div class="sidebar-seed-chip" title="Semente atual">
-              <span class="sidebar-seed-hash">#</span>
-              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
-            </div>
-            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled>▶</button>
-            <button type="button" id="btnToggleHistory" class="sidebar-seed-nav-btn" title="Histórico de Gerações" aria-label="Histórico de Seeds">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <polyline points="12 7 12 12 15 15"></polyline>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="tool-divider"></div>
-
         <!-- Ferramentas de Edição em 2 Colunas -->
         <div class="sidebar-section" aria-label="Ferramentas de Inspeção e Edição">
           <div class="sidebar-section-title">Ferramentas</div>
@@ -302,29 +270,62 @@
 
         <div class="tool-divider"></div>
 
-        <!-- Cores (Estilo Illustrator) -->
-        <div class="sidebar-section color-tool-section" aria-label="Esquema de Cores (Estilo Illustrator)">
+        <!-- Cores (Ajuste Minimalista com Rótulos) -->
+        <div class="sidebar-section" aria-label="Esquema de Cores">
+          <div class="sidebar-section-title">Cores</div>
           <div class="illustrator-color-widget">
-            <div class="color-chip-wrap color-chip-bg" data-tooltip="Cor do Fundo">
-              <input type="color" id="bgColorPicker" value="#0c0c0e" aria-label="Cor do Fundo">
+            <div class="sidebar-color-row">
+              <label class="sidebar-color-chip" title="Cor dos Tiles (Traço/Preenchimento)">
+                <span class="color-chip-tag">Tile</span>
+                <div class="color-preview-wrap">
+                  <input type="color" id="fgColorPicker" value="#e2e0dc" aria-label="Cor dos Tiles">
+                </div>
+              </label>
+              <button type="button" id="btnSwapColors" class="sidebar-color-swap-btn" title="Inverter Cores (Tecla X)" aria-label="Inverter Cores (Tecla X)">⇄</button>
+              <label class="sidebar-color-chip" title="Cor do Fundo">
+                <span class="color-chip-tag">Fundo</span>
+                <div class="color-preview-wrap">
+                  <input type="color" id="bgColorPicker" value="#0c0c0e" aria-label="Cor do Fundo">
+                </div>
+              </label>
             </div>
-            <div class="color-chip-wrap color-chip-fg" data-tooltip="Cor dos Tiles">
-              <input type="color" id="fgColorPicker" value="#e2e0dc" aria-label="Cor dos Tiles">
-            </div>
-            <button type="button" id="btnSwapColors" class="color-swap-btn" data-tooltip="Inverter Cores (Tecla X)" aria-label="Inverter Cores (Tecla X)">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
-                <path d="M7 10h14l-4-4m4 8H3l4 4"/>
-              </svg>
-            </button>
           </div>
         </div>
 
         <div class="tool-divider"></div>
 
-        <!-- Histórico de Mosaicos Sempre Visível -->
+        <!-- Gerador de Mosaico & Sementes -->
+        <div class="sidebar-section sidebar-gen-section" aria-label="Geração e Sementes">
+          <div class="sidebar-section-title">Gerador</div>
+          <button type="button" id="btnRandomize" class="sidebar-gen-btn" title="Sortear nova Seed (Tecla G)" aria-label="Gerar Mosaico (G)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+            <span class="gen-btn-label">Gerar Mosaico</span>
+            <kbd class="sidebar-kbd">G</kbd>
+          </button>
+          <div class="sidebar-seed-row" title="Navegação de Seeds">
+            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled>◀</button>
+            <div class="sidebar-seed-chip" title="Semente atual">
+              <span class="sidebar-seed-hash">#</span>
+              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
+            </div>
+            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled>▶</button>
+          </div>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <!-- Histórico de Mosaicos -->
         <div class="sidebar-section sidebar-history-container" aria-label="Histórico de Gerações">
           <div class="sidebar-section-title">
-            <span>Histórico de Mosaicos</span>
+            <span>Histórico</span>
+            <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="true">▾</button>
           </div>
           <div id="seedHistoryList" class="sidebar-history-list"></div>
         </div>

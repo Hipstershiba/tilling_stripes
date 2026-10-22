@@ -2943,15 +2943,14 @@ function initStudioUI() {
 
   btnToggleHistory?.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (!seedPopover) return;
-    const willOpen = seedPopover.classList.contains('hidden');
-    if (willOpen) {
-      positionSeedPopover();
-      seedPopover.classList.remove('hidden');
-      btnToggleHistory.classList.add('active');
-    } else {
-      seedPopover.classList.add('hidden');
-      btnToggleHistory.classList.remove('active');
+    const historyList = document.getElementById('seedHistoryList');
+    const historyContainer = historyList?.closest('.sidebar-history-container');
+    if (historyList) {
+      const isCollapsed = historyList.classList.toggle('collapsed');
+      if (historyContainer) historyContainer.classList.toggle('is-collapsed', isCollapsed);
+      btnToggleHistory.textContent = isCollapsed ? '▸' : '▾';
+      btnToggleHistory.setAttribute('aria-expanded', String(!isCollapsed));
+      btnToggleHistory.title = isCollapsed ? 'Expandir Histórico' : 'Recolher Histórico';
     }
   });
 

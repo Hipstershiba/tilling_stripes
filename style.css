@@ -2158,8 +2158,7 @@ select:focus-visible {
 
 .illustrator-color-widget {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 100%;
 }
 
 .color-chip-wrap {
@@ -2533,30 +2532,31 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .sidebar-gen-btn {
   width: 100%;
-  height: 34px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #2563eb, #0ea5e9);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 12px;
+  height: 27px;
+  border-radius: 4px;
+  background: var(--bg-control);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-blue);
+  font-size: 11px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  padding: 0 8px;
   transition: all 0.12s ease;
 }
 
 .sidebar-gen-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8, #0284c7);
-  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.55);
-  transform: translateY(-1px);
+  background: var(--accent-blue-soft);
+  color: #93c5fd;
+  border-color: #60a5fa;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 .sidebar-gen-btn:active {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 .gen-btn-label {
@@ -2704,18 +2704,119 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
   color: var(--accent-cyan);
 }
 
-/* Illustrator Colors Widget inside Sidebar */
-#left-toolbar .color-tool-section {
+/* Color Adjustment Row (Minimalist Studio Style) */
+.sidebar-color-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.sidebar-color-chip {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.sidebar-color-chip:hover {
+  background: var(--bg-control-hover);
+  border-color: var(--border-light);
+}
+
+.color-chip-tag {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.color-preview-wrap {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 0;
+  flex-shrink: 0;
 }
 
-#left-toolbar .illustrator-color-widget {
-  position: relative;
-  width: 48px;
-  height: 40px;
+.color-preview-wrap input[type="color"] {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+}
+
+.sidebar-color-swap-btn {
+  width: 22px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  padding: 0;
+  transition: all 0.1s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-color-swap-btn:hover {
+  background: var(--bg-control-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+/* Collapsible History Section */
+.sidebar-collapse-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 3px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--bg-control-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-history-list.collapsed {
+  display: none !important;
+}
+
+.sidebar-history-container.is-collapsed {
+  min-height: auto !important;
+  flex: 0 0 auto !important;
 }
 
 /* Permanent Mosaic History List */
@@ -2917,4 +3018,8 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .sidebar-history-list.highlight-pulse {
   animation: historyPulse 0.8s ease-out;
+}
+
+#left-toolbar .illustrator-color-widget {
+  width: 100%;
 }

@@ -171,10 +171,13 @@ for (const scId of seedControlIds) {
   }
 }
 const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
+const fgColorIdx = leftToolbarBounds.content.indexOf('id="fgColorPicker"');
 const randomizeIdx = leftToolbarBounds.content.indexOf('id="btnRandomize"');
-if (!(randomizeIdx > -1 && inspectIdx > randomizeIdx)) {
-  throw new Error('Contract violation: #btnRandomize must come BEFORE #toolInspect in #left-toolbar.');
+const historyListIdx = leftToolbarBounds.content.indexOf('id="seedHistoryList"');
+
+if (!(inspectIdx > -1 && fgColorIdx > inspectIdx && randomizeIdx > fgColorIdx && historyListIdx > randomizeIdx)) {
+  throw new Error('Contract violation: ordering must be tools < colors < randomize < historyList in #left-toolbar.');
 }
-console.log('✓ Seed controls (#btnRandomize, #seedInput, nav, history) are at top of #left-toolbar.');
+console.log('✓ Left toolbar sections ordered: tools → visual guides → colors → generator → history.');
 
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');
