@@ -76,10 +76,11 @@
       title: 'Travar Subtiles (Congelar)',
       subtitle: 'Proteja suas regiões favoritas durante novas gerações',
       body: [
-        'Como funciona: Subtiles travados ficam imunes à geração aleatória. Ao clicar em Gerar (ou pressionar G), apenas as células livres recebem novos tiles.',
-        'Ferramenta Trava (F): Clique ou arraste no canvas para travar/destravar subtiles.',
-        'Integração com Escopos: O congelamento respeita o escopo ativo (ex: com Órbita Simétrica, um clique trava toda a mandala simétrica correspondente).',
-        'Atalho rápido: Alt + Clique ou o botão "Descongelar Tudo" removem as travas a qualquer momento.'
+        'Imunidade à Geração: Subtiles travados não são alterados ao gerar novos mosaicos ou sortear novas sementes (G).',
+        'Modos Congelar e Descongelar: Ação monotônica no canvas — o modo selecionado garante que todo clique adiciona ou todo clique remove.',
+        'Tamanhos de Área: Permite travar regiões desde subtiles individuais (1×1) até blocos completos.',
+        'Escopo de Simetria: Quando ativado, propaga a trava automaticamente para todas as cópias da órbita ou centro.',
+        'Desfazer e Refazer: Suporta Ctrl+Z / Ctrl+Y para reverter alterações de travas a qualquer momento.'
       ]
     },
     'same-tile': {

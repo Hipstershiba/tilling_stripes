@@ -530,10 +530,16 @@
         p.rect(x + 0.5, y + 0.5, subW - 1, subH - 1, 1);
 
         if (subW >= 12 && subH >= 12) {
-          p.noStroke();
-          p.fill(6, 182, 212, 220);
-          p.rect(x + subW - 5.5, y + 2, 4, 3.5, 0.5);
-          p.rect(x + subW - 4.5, y + 0.8, 2, 1.5, 0.5);
+          const cx = x + subW / 2;
+          const cy = y + subH / 2;
+          p.stroke(6, 182, 212, 210);
+          p.strokeWeight(1.2);
+          const r = Math.min(subW, subH) * 0.22;
+          p.line(cx - r, cy, cx + r, cy);
+          p.line(cx, cy - r, cx, cy + r);
+          const d = r * 0.7071;
+          p.line(cx - d, cy - d, cx + d, cy + d);
+          p.line(cx - d, cy + d, cx + d, cy - d);
         }
       }
     }

@@ -1811,7 +1811,7 @@ function handleCanvasMouseDown(e) {
   updateHoverStatusText();
 
   // Alt + Left-Click/Drag anywhere = Capture Tile or Supertile Region from the Mosaic!
-  if (e.altKey && e.button === 0) {
+  if (e.altKey && e.button === 0 && (StudioState.activeTool === 'paint' || StudioState.activeTool === 'stamp' || StudioState.activeTool === 'inspect')) {
     e.preventDefault();
     if (StudioState.activeTool === 'inspect') {
       StudioState.activeTool = 'paint';

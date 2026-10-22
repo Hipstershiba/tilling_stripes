@@ -42,7 +42,8 @@ const testSuites = [
   'test_freeze_generation.js',
   'test_freeze_wiring.js',
   'test_freeze_state.js',
-  'test_freeze_undo.js'
+  'test_freeze_undo.js',
+  'test_freeze_ui_contract.js'
 ];
 
 console.log('====================================================');

@@ -2341,3 +2341,7 @@ select:focus-visible {
 .freeze-status-row .link-btn:hover {
   color: #fca5a5;
 }
+/* Freeze tool canvas cursor */
+body[data-active-tool="freeze"] #canvas-stage canvas {
+  cursor: cell !important;
+}
