@@ -508,10 +508,10 @@ function restoreMosaicFromSavedState() {
     return;
   }
 
-  // 1. Generate canonical mosaic structure
+  // 1. Generate canonical mosaic structure (with frozen cells preserved)
   randomSeed(StudioState.seed);
   const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
-  StudioState.mosaicData = window.MosaicEngine.generateMosaic(
+  StudioState.mosaicData = window.MosaicEngine.generateMosaicWithFrozen(
     {
       rows: StudioState.rows,
       cols: StudioState.cols,
@@ -521,31 +521,9 @@ function restoreMosaicFromSavedState() {
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
       allowedTiles: allowedArray
     },
-    (arr) => arr[floor(random(arr.length))]
+    (arr) => arr[floor(random(arr.length))],
+    StudioState.frozenCells
   );
-
-  // Restore frozen cells into newly generated mosaic
-  if (StudioState.frozenCells && StudioState.frozenCells.size > 0 && StudioState.mosaicData) {
-    const N = StudioState.mosaicData.subtilesPerSide;
-    for (const [key, cellData] of StudioState.frozenCells.entries()) {
-      const parts = key.split(',').map(Number);
-      if (parts.length === 4) {
-        const [r, c, subR, subC] = parts;
-        if (r < StudioState.rows && c < StudioState.cols && subR < N && subC < N) {
-          const targetCell = StudioState.mosaicData.grid[r]?.[c]?.cells[subR]?.[subC];
-          if (targetCell) {
-            targetCell.baseTileId = cellData.baseTileId;
-            targetCell.transform = cellData.transform;
-            targetCell.tileId = cellData.tileId;
-          }
-        } else {
-          StudioState.frozenCells.delete(key);
-        }
-      } else {
-        StudioState.frozenCells.delete(key);
-      }
-    }
-  }
   syncFreezeUI();
 
   // 2. Restore cells from savedCellsSnapshot if dimensions match
@@ -843,7 +821,7 @@ function regenerateMosaic(recordHistory = true) {
 
   const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
 
-  StudioState.mosaicData = window.MosaicEngine.generateMosaic(
+  StudioState.mosaicData = window.MosaicEngine.generateMosaicWithFrozen(
     {
       rows: StudioState.rows,
       cols: StudioState.cols,
@@ -853,8 +831,10 @@ function regenerateMosaic(recordHistory = true) {
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
       allowedTiles: allowedArray
     },
-    (arr) => arr[floor(random(arr.length))]
+    (arr) => arr[floor(random(arr.length))],
+    StudioState.frozenCells
   );
+  syncFreezeUI();
 
   if (StudioState.brushSizeMode === 'block' && StudioState.mosaicData) {
     const N = StudioState.mosaicData.subtilesPerSide;
@@ -1787,6 +1767,7 @@ function handleCanvasMouseDown(e) {
     }
 
     syncFreezeUI();
+    saveScheduler.schedule();
     redraw();
     return;
   }

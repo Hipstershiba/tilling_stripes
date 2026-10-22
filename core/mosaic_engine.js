@@ -281,6 +281,45 @@
   }
 
   /**
+   * Applies frozen cells map onto an existing mosaic grid.
+   * Discards any coordinates outside current grid bounds and returns sanitized Map.
+   */
+  function applyFrozenCells(mosaicData, frozenCells) {
+    if (!mosaicData || !frozenCells) return frozenCells;
+    const N = mosaicData.subtilesPerSide;
+    for (const [key, cellData] of frozenCells.entries()) {
+      const parts = key.split(',').map(Number);
+      if (parts.length === 4) {
+        const [r, c, subR, subC] = parts;
+        if (r < mosaicData.rows && c < mosaicData.cols && subR < N && subC < N) {
+          const targetCell = mosaicData.grid[r]?.[c]?.cells[subR]?.[subC];
+          if (targetCell) {
+            targetCell.baseTileId = cellData.baseTileId;
+            targetCell.transform = cellData.transform;
+            targetCell.tileId = cellData.tileId;
+          }
+        } else {
+          frozenCells.delete(key);
+        }
+      } else {
+        frozenCells.delete(key);
+      }
+    }
+    return frozenCells;
+  }
+
+  /**
+   * Generates a mosaic with frozen cells applied as a single atomic operation.
+   */
+  function generateMosaicWithFrozen(config, randomPick, frozenCells) {
+    const mosaic = generateMosaic(config, randomPick);
+    if (frozenCells && frozenCells.size) {
+      applyFrozenCells(mosaic, frozenCells);
+    }
+    return mosaic;
+  }
+
+  /**
    * Renders the mosaic onto a p5.js context or SimpleSVG vector context.
    */
   function renderMosaicToContext(ctx, mosaicData, layoutConfig) {
@@ -1499,6 +1538,8 @@
   window.MosaicEngine = {
     EDIT_SCOPES,
     generateMosaic,
+    generateMosaicWithFrozen,
+    applyFrozenCells,
     isMosaicD4Invariant,
     transformBlock,
     renderMosaicToContext,
@@ -1517,5 +1558,8 @@
     restoreMosaicCellsSnapshot,
     renderEditScopeAndGhostOverlay
   };
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = window.MosaicEngine;
+  }
 })();
 

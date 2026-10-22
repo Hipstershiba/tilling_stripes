@@ -36,7 +36,9 @@ const testSuites = [
   'test_docs_consistency.js',
 
   // 6. Subtile Freezing / Locking
-  'test_freeze_subtiles.js'
+  'test_freeze_subtiles.js',
+  'test_freeze_generation.js',
+  'test_freeze_wiring.js'
 ];
 
 console.log('====================================================');
