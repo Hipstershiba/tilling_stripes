@@ -20,10 +20,10 @@ console.log('✓ Generic .hidden { display: none !important; } verified in style
 const hiddenMatches = html.match(/class="[^"]*\bhidden\b[^"]*"/g) || [];
 console.log(`✓ Found ${hiddenMatches.length} initial .hidden elements in index.html, all styled with display: none !important.`);
 
-// Assert #editScopeHint exists
-assert.ok(html.includes('id="editScopeHint"'), 'index.html must have #editScopeHint');
-assert.ok(css.includes('.edit-scope-hint'), 'style.css must have .edit-scope-hint rule');
-console.log('✓ #editScopeHint element and CSS rule verified.');
+// Assert #editScopeChip exists (replacing long paragraph #editScopeHint)
+assert.ok(html.includes('id="editScopeChip"'), 'index.html must have #editScopeChip for compact scope state');
+assert.ok(!html.includes('id="editScopeHint"'), 'index.html must NOT have long paragraph #editScopeHint');
+console.log('✓ #editScopeChip verified and long paragraph removed.');
 
 // Assert #sameTileNotice exists
 assert.ok(html.includes('id="sameTileNotice"'), 'index.html must have #sameTileNotice');
@@ -48,7 +48,7 @@ const tools = ['paint', 'rotate', 'stamp', 'inspect', 'pan', 'zoom'];
 for (const t of tools) {
   assert.ok(
     css.includes(`body[data-active-tool="${t}"]`),
-    `style.css must define cursor for tool: ${t}`
+    `style.css must define cursor rule for active tool "${t}"`
   );
 }
 console.log('✓ Cursor rules for all active tools verified in style.css.');

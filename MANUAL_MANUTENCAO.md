@@ -10,13 +10,15 @@ O Tiling Stripes Studio é implementado em vanilla JavaScript (ES6+) e p5.js sem
 
 ```
 core/
-├── d4_symmetry.js     # Álgebra do grupo D4, estabilizadores e resolução de órbitas
-├── tile_registry.js   # Catálogo estático de 85 renderers vetoriais organizados em 31 famílias
-└── mosaic_engine.js   # Motor de geração determinística, propagação por escopo e snapshots
-sketch.js              # Controlador principal da UI, eventos de canvas, histórico e atalhos
-style.css              # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
-index.html             # Shell estrutural, dock contextual e ordem de carga
-tests/                 # Suíte de testes automatizados executáveis com Node.js
+├── d4_symmetry.js         # Álgebra do grupo D4, estabilizadores e resolução de órbitas
+├── tile_registry.js       # Catálogo estático de 85 renderers vetoriais organizados em 31 famílias
+├── mosaic_engine.js       # Motor de geração determinística, propagação por escopo e snapshots
+└── state_persistence.js   # Lógica pura de persistência, fallbacks de cota e gestão de histórico
+ui_info.js                 # Motor de divulgação progressiva (13 tópicos, popovers e tooltips)
+sketch.js                  # Controlador principal da UI, eventos de canvas, histórico e atalhos
+style.css                  # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
+index.html                 # Shell estrutural, dock contextual e ordem de carga
+tests/                     # Suíte com 10 testes automatizados executáveis com Node.js
 ```
 
 ### Ordem Obrigatória de Carga dos Scripts em `index.html`
@@ -27,6 +29,8 @@ tests/                 # Suíte de testes automatizados executáveis com Node.js
 <script src="core/d4_symmetry.js"></script>
 <script src="core/tile_registry.js"></script>
 <script src="core/mosaic_engine.js"></script>
+<script src="core/state_persistence.js"></script>
+<script src="ui_info.js"></script>
 <script src="sketch.js"></script>
 ```
 
@@ -51,13 +55,16 @@ Quando uma célula do mosaico $(r, c)$ é invariante sob uma transformação $g$
 Para que o mosaico ou bloco seja matematicamente invariante sob $g$, o tile atribuído a essa célula **deve obrigatoriamente ser invariante sob $g$**:
 $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 
-O módulo disponibiliza as seguintes funções matemáticas fundamentais:
-- `transformGridCoords(row, col, rows, cols, transformKey)`: Mapeia coordenadas em uma grade sob qualquer elemento de $D_4$.
-- `composeD4(outer, inner)`: Consulta a tabela pré-calculada de Cayley $8 \times 8$ para composição de transformações.
-- `invertD4(transformKey)`: Retorna o elemento inverso $g^{-1}$.
-- `getCellStabilizer(row, col, rows, cols, symmetryMode)`: Calcula o subgrupo estabilizador de uma coordenada.
-- `isTileInvariantUnder(tileId, g)`: Verifica se o tile não altera visualmente sob $g$.
-- `getCompatibleTiles(allowedTiles, stabilizer)`: Filtra o conjunto de tiles para aqueles compatíveis com todas as transformações do estabilizador.
+### Os 4 Modos de Simetria
+1. **`mandala_d4` (Mandala Estrita)**:
+   - 8 eixos de simetria com respeito rigoroso aos estabilizadores matemáticos de cada célula.
+   - Caso o conjunto de famílias ativas impossibilite tiles invariantes em células fixas, o motor utiliza o **Tile Vazio (#84)** garantindo D4 perfeito sem bloquear a geração.
+2. **`kaleidoscope_permissive` (Caleidoscópio Livre)**:
+   - Propagação nos 8 octantes aplicando rotações e reflexões sem exigir estabilizadores para as células fixas, permitindo composições ricas mesmo com famílias assimétricas.
+3. **`rotational_c4` (Giro Contínuo)**:
+   - 4 quadrantes em giro rotacional contínuo de 90°.
+4. **`bilateral_d2` (Espelhamento Duplo)**:
+   - Espelhamento bilateral nos eixos horizontal e vertical.
 
 ---
 
@@ -69,7 +76,7 @@ O catálogo é a fonte de verdade para a renderização vetorial:
 - `TILE_D4_MAP`: Tabela $85 \times 8$ que define para cada tile e transformação em $D_4$ o tile resultante dentro da mesma família.
 - Tiles totalmente simétricos (invariantes sob todas as 8 transformações de $D_4$): IDs `#6, #37, #54, #79, #80, #81, #84`.
 
-> **Regra de Manutenção:** Não altere a numeração dos 85 IDs existentes sem migração de versão do storage, pois saves de usuários usam esses índices diretamente.
+> **Regra de Manutenção:** Não altere a numeração dos 85 IDs existentes sem migração de versão do storage, pois saves de usuários usam esses índices diretamente. O tile `#84` é reservado como o Tile Nulo / Vazio oficial do sistema.
 
 ---
 
@@ -90,33 +97,38 @@ O catálogo é a fonte de verdade para a renderização vetorial:
 
 ---
 
-## 5. Persistência e Tratamento de Quota (`sketch.js`)
+## 5. Divulgação Progressiva de Informações (`ui_info.js`)
 
-### Armazenamento em `localStorage`
-A chave utilizada é `tiling_stripes_studio_state_v2`.
-
-### Limites e Gestão de Histórico
-- `MAX_GENERATION_HISTORY = 30`: Histórico de parâmetros da grade e sementes.
-- `MAX_EDIT_HISTORY = 25`: Snapshots completos das células do mosaico para Undo/Redo.
-- **Corte no Push**: O corte de limites (`shift()`) é feito imediatamente no momento em que um novo estado é inserido (`pushGenerationHistory` e `pushEditHistorySnapshot`), garantindo que os índices ativos apontem com precisão para o snapshot correto e não sofram descolamento ao salvar.
-- **Redução Dinâmica por Bytes**: Em grades muito grandes (ex.: $16 \times 16$, subdivisão 4), `getMaxEditHistoryForMosaic()` reduz dinamicamente o número máximo de snapshots para assegurar que o payload caiba no orçamento de ~3,5 MB do navegador.
-
-### Fallback de Quota
-Ao capturar `QuotaExceededError`:
-1. Tentativa 1: Gravar payload completo com históricos.
-2. Tentativa 2 (Fallback): Gravar payload mínimo contendo apenas a configuração, semente e o `cellsSnapshot` (desenho atual completo), descartando os arrays de histórico. O usuário é avisado via banner `#persistenceWarning`.
-3. Tentativa 3: Se o armazenamento estiver totalmente bloqueado, exibe aviso persistente orientando a exportação manual em SVG/PNG sem perder o estado em memória.
+O sistema adota o padrão de Progressive Disclosure para manter a interface desobstruída e visualmente limpa:
+- **`INFO_TOPICS`**: Dicionário contendo os 13 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Pincel, Girar, Carimbo, Mesmo Tile, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar).
+- **Popover Não-Modal (`#infoPopover`)**: Componente flutuante singleton reposicionado dinamicamente com foco acessível e fechamento ao clicar fora ou via tecla Escape.
+- **Floating Tooltip (`#uiTooltip`)**: Dica rápida acionada via atributo `data-tooltip`.
+- **Botões `ⓘ` e `?`**: Disparadores contextuais que conectam elementos visuais aos tópicos sem exibir textos extensos permanentes.
 
 ---
 
-## 6. Como Rodar e Testar
+## 6. Persistência de Estado (`core/state_persistence.js`)
+
+A lógica de serialização e persistência é isolada em módulo puro exportável para ambientes Node.js e browser:
+- `saveWithQuotaFallback(storage, key, fullPayload, fallbackPayload)`: Mecanismo de persistência em duas etapas que previne perda de dados em caso de quota esgotada.
+- `trimHistoryOnPush(array, limit)`: Garante que arrays de histórico nunca ultrapassem a capacidade máxima permitida.
+- `getMaxEditHistoryForMosaic(mosaic)`: Calcula o orçamento dinâmico de snapshots conforme o tamanho da grade para permanecer em ~3,5 MB.
+- `migratePayloadHistories(payload, maxGen, maxEdit)`: Valida e corrige payloads carregados de versões antigas do storage.
+
+No `sketch.js`:
+- Ações contínuas (sliders, inputs numéricos, arrasto de canvas) utilizam salvamento com debouncing de 300 ms (`scheduleSaveStudioStateToStorage(300)`).
+- Eventos de transição crítica (troca de ferramenta, modo de trabalho, antes de descarregar a página `beforeunload`) acionam o salvamento imediato e síncrono (`flushSaveStudioStateToStorage()`).
+
+---
+
+## 7. Como Rodar e Testar
 
 ### Servidor Local
 ```powershell
 python -m http.server 8765
 ```
 
-### Execução dos Testes Automatizados
+### Execução dos Testes Automatizados (10 Suítes)
 ```powershell
 node tests/test_tile_registry.js
 node tests/test_mosaic_engine.js
@@ -125,10 +137,13 @@ node tests/test_d4_invariance.js
 node tests/test_history_limits.js
 node tests/test_persistence_quota.js
 node tests/test_editor_ui_state.js
+node tests/test_info_ui_state.js
+node tests/test_d4_block_combinations.js
+node tests/test_d4_editor.js
 ```
 
 ---
 
-## 7. Informações de Legado
+## 8. Informações de Legado
 
 Arquivos anteriores da versão 1 (`subtile.js`, `tiles.js`, `supertile.js`, `svg_tile_manager.js`, `tile_transforms.js`) foram arquivados na pasta `_legacy/` para fins históricos e de referência. Não devem ser alterados nem carregados no runtime do estúdio atual.

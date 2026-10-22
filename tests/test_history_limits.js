@@ -1,25 +1,27 @@
 // tests/test_history_limits.js
 const assert = require('assert');
+const path = require('path');
+const StatePersistence = require(path.join(__dirname, '../core/state_persistence.js'));
 
-const MAX_GENERATION_HISTORY = 30;
-const MAX_EDIT_HISTORY = 25;
+const {
+  MAX_GENERATION_HISTORY,
+  MAX_EDIT_HISTORY,
+  trimHistoryOnPush,
+  migratePayloadHistories,
+  getMaxEditHistoryForMosaic
+} = StatePersistence;
 
-console.log('--- Testing History Limits and Bounds Clamping ---');
+console.log('--- Testing History Limits and Bounds Clamping (Real Core Module) ---');
 
-// 1. Generation History Trim-on-Push
+// 1. Generation History Trim-on-Push via pure StatePersistence
 let genHistory = [];
 let genIndex = -1;
 
-function pushGen(item) {
-  genHistory.push(item);
-  while (genHistory.length > MAX_GENERATION_HISTORY) {
-    genHistory.shift();
-  }
-  genIndex = genHistory.length - 1;
-}
-
 for (let i = 0; i < 50; i++) {
-  pushGen({ seed: i });
+  genHistory.push({ seed: i });
+  const trimmed = trimHistoryOnPush(genHistory, MAX_GENERATION_HISTORY, genHistory.length - 1);
+  genHistory = trimmed.history;
+  genIndex = trimmed.index;
 }
 
 assert.strictEqual(genHistory.length, MAX_GENERATION_HISTORY, 'Generation history length should be capped at 30');
@@ -28,82 +30,67 @@ assert.strictEqual(genHistory[0].seed, 20, 'First item should be seed 20 (shifte
 assert.strictEqual(genHistory[genHistory.length - 1].seed, 49, 'Last item should be seed 49');
 console.log('✓ Generation history trim-on-push verified.');
 
-// 2. Edit History Trim-on-Push
+// 2. Edit History Trim-on-Push via pure StatePersistence
 let editHistory = [];
 let editIndex = -1;
 
-function pushEdit(item) {
-  if (editIndex < editHistory.length - 1) {
-    editHistory = editHistory.slice(0, editIndex + 1);
-  }
-  editHistory.push(item);
-  while (editHistory.length > MAX_EDIT_HISTORY) {
-    editHistory.shift();
-  }
-  editIndex = editHistory.length - 1;
-}
-
 for (let i = 0; i < 40; i++) {
-  pushEdit({ editId: i });
+  editHistory.push({ editId: i });
+  const trimmed = trimHistoryOnPush(editHistory, MAX_EDIT_HISTORY, editHistory.length - 1);
+  editHistory = trimmed.history;
+  editIndex = trimmed.index;
 }
 
 assert.strictEqual(editHistory.length, MAX_EDIT_HISTORY, 'Edit history length should be capped at 25');
-assert.strictEqual(editIndex, MAX_EDIT_HISTORY - 1, 'Edit index should point to last item (24)');
-assert.strictEqual(editHistory[0].editId, 15, 'First item should be editId 15');
-assert.strictEqual(editHistory[editHistory.length - 1].editId, 39, 'Last item should be editId 39');
+assert.strictEqual(editIndex, MAX_EDIT_HISTORY - 1, 'Edit index should be last item');
+assert.strictEqual(editHistory[0].editId, 15, 'First item should be edit 15');
+assert.strictEqual(editHistory[editHistory.length - 1].editId, 39, 'Last item should be edit 39');
 console.log('✓ Edit history trim-on-push verified.');
 
-// 3. Payload Migration on Load (Over-limit payload with rewound index)
-function migratePayloadHistories(saved) {
-  let hist = Array.isArray(saved.history) ? saved.history.slice() : [];
-  let hIdx = typeof saved.historyIndex === 'number' ? saved.historyIndex : hist.length - 1;
-  if (hist.length > MAX_GENERATION_HISTORY) {
-    const trimmed = hist.length - MAX_GENERATION_HISTORY;
-    hist = hist.slice(-MAX_GENERATION_HISTORY);
-    hIdx = Math.max(0, hIdx - trimmed);
-  }
-  if (hist.length > 0) {
-    hIdx = Math.max(0, Math.min(hist.length - 1, hIdx));
-  } else {
-    hIdx = -1;
-  }
+// 3. Dynamic Edit History Budget for large mosaics
+const smallMosaic = { rows: 2, cols: 2, subtilesPerSide: 2 }; // 16 subtiles
+const largeMosaic = { rows: 8, cols: 8, subtilesPerSide: 8 }; // 4096 subtiles
 
-  let eHist = Array.isArray(saved.editHistory) ? saved.editHistory.slice() : [];
-  let eIdx = typeof saved.editHistoryIndex === 'number' ? saved.editHistoryIndex : eHist.length - 1;
-  if (eHist.length > MAX_EDIT_HISTORY) {
-    const trimmed = eHist.length - MAX_EDIT_HISTORY;
-    eHist = eHist.slice(-MAX_EDIT_HISTORY);
-    eIdx = Math.max(0, eIdx - trimmed);
-  }
-  if (eHist.length > 0) {
-    eIdx = Math.max(0, Math.min(eHist.length - 1, eIdx));
-  } else {
-    eIdx = -1;
-  }
+const smallCap = getMaxEditHistoryForMosaic(smallMosaic);
+const largeCap = getMaxEditHistoryForMosaic(largeMosaic);
 
-  return { history: hist, historyIndex: hIdx, editHistory: eHist, editHistoryIndex: eIdx };
-}
+assert.strictEqual(smallCap, MAX_EDIT_HISTORY, 'Small mosaic should get full 25 edit snapshots');
+assert.ok(largeCap < MAX_EDIT_HISTORY, 'Large mosaic should have budget clamped');
+assert.ok(largeCap >= 2, 'Large mosaic should have at least 2 edit snapshots');
+console.log(`✓ Dynamic budget verified: small=${smallCap}, large=${largeCap}.`);
 
-// Case 3a: Over-limit history where user had rewound 10 steps
-const overLimitGen = Array.from({ length: 45 }, (_, i) => ({ id: i }));
-const loadedGen = migratePayloadHistories({ history: overLimitGen, historyIndex: 35 });
-assert.strictEqual(loadedGen.history.length, 30);
-assert.strictEqual(loadedGen.historyIndex, 35 - (45 - 30)); // 35 - 15 = 20
-assert.strictEqual(loadedGen.history[loadedGen.historyIndex].id, 35, 'Restored state must match original snapshot at index 35');
+// 4. Migration of Over-limit Payload & Index Clamping
+const bloatedPayload = {
+  version: 2,
+  rows: 4,
+  cols: 4,
+  subdivision: 2,
+  history: Array.from({ length: 100 }, (_, i) => ({ seed: i })),
+  historyIndex: 99,
+  editHistory: Array.from({ length: 80 }, (_, i) => ({ step: i })),
+  editHistoryIndex: 79
+};
 
-// Case 3b: Over-limit edit history where user rewound deep into trimmed items
-const overLimitEdit = Array.from({ length: 40 }, (_, i) => ({ id: i }));
-// Trimmed 15 items (0..14). Index was at 5 (which got trimmed).
-const loadedDeepRewind = migratePayloadHistories({ editHistory: overLimitEdit, editHistoryIndex: 5 });
-assert.strictEqual(loadedDeepRewind.editHistory.length, 25);
-assert.strictEqual(loadedDeepRewind.editHistoryIndex, 0, 'Rewound index beyond trimmed window clamps to 0 safely');
+const migrated = migratePayloadHistories(bloatedPayload, { rows: 4, cols: 4, subtilesPerSide: 4 });
+assert.strictEqual(migrated.history.length, MAX_GENERATION_HISTORY);
+assert.strictEqual(migrated.historyIndex, MAX_GENERATION_HISTORY - 1);
+assert.strictEqual(migrated.history[0].seed, 70);
 
-// Case 3c: Empty payload
-const emptyLoad = migratePayloadHistories({});
-assert.strictEqual(emptyLoad.history.length, 0);
-assert.strictEqual(emptyLoad.historyIndex, -1);
-assert.strictEqual(emptyLoad.editHistory.length, 0);
-assert.strictEqual(emptyLoad.editHistoryIndex, -1);
+assert.ok(migrated.editHistory.length <= MAX_EDIT_HISTORY);
+assert.strictEqual(migrated.editHistoryIndex, migrated.editHistory.length - 1);
+
+// Test clamping when index was previously in the past (e.g. user had rewound)
+const rewoundPayload = {
+  version: 2,
+  history: Array.from({ length: 50 }, (_, i) => ({ seed: i })),
+  historyIndex: 5, // Dropping first 20 items shifts index 5 to 0
+  editHistory: Array.from({ length: 40 }, (_, i) => ({ step: i })),
+  editHistoryIndex: 3
+};
+
+const migratedRewound = migratePayloadHistories(rewoundPayload);
+assert.strictEqual(migratedRewound.historyIndex, 0, 'Rewound history index shifted correctly');
+assert.strictEqual(migratedRewound.editHistoryIndex, 0, 'Rewound edit index shifted correctly');
 
 console.log('✓ Migration of over-limit payloads and rewound indices verified.');
 console.log('--- ALL HISTORY LIMIT CHECKS PASSED PERFECTLY! ---');

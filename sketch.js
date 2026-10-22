@@ -178,31 +178,28 @@ const MAX_GENERATION_HISTORY = 30;
 const MAX_EDIT_HISTORY = 25;
 
 let debouncedSaveTimer = null;
-function scheduleSaveStudioStateToStorage(delayMs = 250) {
+
+function scheduleSaveStudioStateToStorage(delayMs = 300) {
   clearTimeout(debouncedSaveTimer);
   debouncedSaveTimer = setTimeout(() => {
     saveStudioStateToStorage();
   }, delayMs);
 }
 
+function flushSaveStudioStateToStorage() {
+  clearTimeout(debouncedSaveTimer);
+  debouncedSaveTimer = null;
+  saveStudioStateToStorage();
+}
+
 function isQuotaError(err) {
-  return (
-    Boolean(err) &&
-    (err.name === 'QuotaExceededError' ||
-      err.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
-      err.code === 22 ||
-      err.code === 1014 ||
-      (typeof err.message === 'string' && err.message.toLowerCase().includes('quota')))
+  return window.StatePersistence ? window.StatePersistence.isQuotaError(err) : (
+    Boolean(err) && (err.name === 'QuotaExceededError' || err.code === 22)
   );
 }
 
 function getMaxEditHistoryForMosaic(mosaicData) {
-  if (!mosaicData) return MAX_EDIT_HISTORY;
-  const N = mosaicData.subtilesPerSide || 4;
-  const totalSubtiles = (mosaicData.rows || 1) * (mosaicData.cols || 1) * (N * N);
-  const approxBytesPerSnap = totalSubtiles * 45;
-  const maxAllowed = Math.floor((3.2 * 1024 * 1024) / approxBytesPerSnap);
-  return Math.max(2, Math.min(MAX_EDIT_HISTORY, maxAllowed));
+  return window.StatePersistence ? window.StatePersistence.getMaxEditHistoryForMosaic(mosaicData) : 25;
 }
 
 function buildStudioStatePayload(includeHistories = true) {
@@ -268,10 +265,31 @@ function buildStudioStatePayload(includeHistories = true) {
 
 function saveStudioStateToStorage() {
   clearTimeout(debouncedSaveTimer);
+  debouncedSaveTimer = null;
   if (!StudioState.mosaicData) return;
 
   const fullPayload = buildStudioStatePayload(true);
   if (!fullPayload) return;
+
+  const persistence = window.StatePersistence;
+  if (persistence && typeof persistence.saveWithQuotaFallback === 'function') {
+    const res = persistence.saveWithQuotaFallback(
+      localStorage,
+      STORAGE_KEY_STUDIO_STATE,
+      fullPayload,
+      StudioState.mosaicData
+    );
+    if (res.success) {
+      if (res.mode === 'fallback_minimal') {
+        showPersistenceWarning(res.warning);
+      } else {
+        hidePersistenceWarning();
+      }
+    } else {
+      showPersistenceWarning(res.warning || 'Não foi possível salvar automaticamente no navegador.');
+    }
+    return;
+  }
 
   try {
     localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(fullPayload));
@@ -566,7 +584,7 @@ function setup() {
     regenerateMosaic(true);
   }
 
-  window.addEventListener('beforeunload', saveStudioStateToStorage);
+  window.addEventListener('beforeunload', flushSaveStudioStateToStorage);
 
   requestAnimationFrame(() => {
     syncZoomUI();
@@ -716,7 +734,28 @@ function draw() {
 // Mosaic Generation & History
 // ============================================================================
 
+
+function showD4Warning() {
+  const warnEl = document.getElementById('d4SymmetryWarning');
+  const badgeEl = document.getElementById('d4EditedBadge');
+  if (warnEl) warnEl.classList.remove('hidden');
+  if (badgeEl) badgeEl.classList.remove('hidden');
+}
+
+function hideD4Warning() {
+  const warnEl = document.getElementById('d4SymmetryWarning');
+  if (warnEl) warnEl.classList.add('hidden');
+}
+
+function resetD4BrokenState() {
+  StudioState.d4Broken = false;
+  hideD4Warning();
+  const badgeEl = document.getElementById('d4EditedBadge');
+  if (badgeEl) badgeEl.classList.add('hidden');
+}
+
 function regenerateMosaic(recordHistory = true) {
+  resetD4BrokenState();
   randomSeed(StudioState.seed);
 
   const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
@@ -1165,7 +1204,28 @@ function syncSymmetryPanelUI() {
     nonSquareNotice.classList.toggle('hidden', !needsSquare);
   }
 
-  // Step 2: Block Internal Symmetry Pills active state
+  // R8: Block Symmetry Incompatibility Warning
+  const blockWarnEl = document.getElementById('blockSymmetryWarning');
+  const blockWarnText = document.getElementById('blockSymmetryWarningText');
+  if (blockWarnEl && blockWarnText) {
+    if (!StudioState.syncBlockSymmetry) {
+      if (StudioState.gridSymmetryMode === 'mandala_d4' && effectiveBlockModeKey === 'bilateral_d2') {
+        blockWarnText.textContent = 'Bloco Bilateral reduz a simetria global de 8 para 4 eixos.';
+        blockWarnEl.classList.remove('hidden');
+      } else if (StudioState.gridSymmetryMode === 'mandala_d4' && effectiveBlockModeKey === 'rotational_c4') {
+        blockWarnText.textContent = 'Bloco Rotacional reduz a simetria global de 8 para 4 eixos.';
+        blockWarnEl.classList.remove('hidden');
+      } else if (StudioState.gridSymmetryMode === 'kaleidoscope' && (effectiveBlockModeKey === 'bilateral_d2' || effectiveBlockModeKey === 'rotational_c4')) {
+        blockWarnText.textContent = 'Bloco reduz a simetria radial global de 8 para 4 eixos.';
+        blockWarnEl.classList.remove('hidden');
+      } else {
+        blockWarnEl.classList.add('hidden');
+      }
+    } else {
+      blockWarnEl.classList.add('hidden');
+    }
+  }
+
   const selectedPillKey = StudioState.syncBlockSymmetry ? 'sync' : effectiveBlockModeKey;
   document.querySelectorAll('#blockSymmetryGrid .block-sym-pill').forEach((pill) => {
     pill.classList.toggle('active', pill.dataset.blockMode === selectedPillKey);
@@ -1339,13 +1399,9 @@ function performSubtileRotateStep(hit, step = 1) {
 
 function performBrushOrStampAtHit(hit) {
   if (!StudioState.mosaicData || !hit) return false;
+
   const activePattern = ensureSupertilePattern();
-  const isMultiCell = activePattern.rows > 1 || activePattern.cols > 1;
-  if (StudioState.editScope === 'same_tile' && isMultiCell) {
-    showEditorToast('O escopo Iguais compara 1×1. Reduza o pincel para 1×1 ou use outro escopo.', 'warn');
-    return false;
-  }
-  const { placements } = window.MosaicEngine.resolveStampRegionPlacements(
+  const resolved = window.MosaicEngine.resolveStampRegionPlacements(
     StudioState.mosaicData,
     activePattern,
     hit,
@@ -1356,8 +1412,40 @@ function performBrushOrStampAtHit(hit) {
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry
     }
   );
+  const placements = Array.isArray(resolved) ? resolved : (resolved?.placements || []);
 
+  // R8: D4 Transparency Guard
+  // Detect if painting with strict D4 symmetry places an asymmetric tile on a fixed axis cell
+  const isStrictD4 = (StudioState.editScope === 'canvas_center' && StudioState.canvasCenterSymmetry === 'mandala_d4') ||
+    (StudioState.editScope !== 'single' && StudioState.editScope !== 'same_tile' && StudioState.mosaicData.blockSymmetryMode === 'mandala_d4');
 
+  if (isStrictD4) {
+    const N = StudioState.mosaicData.subtilesPerSide;
+    const totalR = StudioState.mosaicData.rows * N;
+    const totalC = StudioState.mosaicData.cols * N;
+    let breaksD4 = false;
+
+    for (const p of placements) {
+      let stab = [];
+      if (StudioState.editScope === 'canvas_center') {
+        stab = window.D4Symmetry.getCellStabilizer(p.gr, p.gc, totalR, totalC, 'mandala_d4');
+      } else {
+        stab = window.D4Symmetry.getCellStabilizer(p.subRow, p.subCol, N, N, 'mandala_d4');
+      }
+      for (const g of stab) {
+        if (!window.D4Symmetry.isTileInvariantUnder(p.tileId, g)) {
+          breaksD4 = true;
+          break;
+        }
+      }
+      if (breaksD4) break;
+    }
+
+    if (breaksD4) {
+      StudioState.d4Broken = true;
+      showD4Warning();
+    }
+  }
 
   return window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
 }
@@ -2129,6 +2217,16 @@ function syncAllInputsFromState() {
 }
 
 function initStudioUI() {
+  window.InfoUI?.init();
+
+  document.getElementById('btnD4Undo')?.addEventListener('click', () => {
+    undoMosaicEdit();
+    hideD4Warning();
+  });
+  document.getElementById('btnD4Continue')?.addEventListener('click', () => {
+    hideD4Warning();
+  });
+
   buildSymmetryPanelUI();
   buildEditWorkspaceUI();
   renderSwatchesPanel();
@@ -2766,6 +2864,30 @@ function initStudioUI() {
       return;
     }
     if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) {
+      return;
+    }
+
+    // Illustrator Shortcut: X swaps foreground and background colors
+    if (e.key === 'x' || e.key === 'X') {
+      e.preventDefault();
+      const tmp = StudioState.fgColor;
+      StudioState.fgColor = StudioState.bgColor;
+      StudioState.bgColor = tmp;
+      const fgPicker = document.getElementById('fgColorPicker');
+      const bgPicker = document.getElementById('bgColorPicker');
+      if (fgPicker) fgPicker.value = StudioState.fgColor;
+      if (bgPicker) bgPicker.value = StudioState.bgColor;
+      renderEditBrushPalette();
+      renderSupertileBuilderCanvas();
+      flushSaveStudioStateToStorage();
+      redraw();
+      return;
+    }
+
+    // Shortcut: ? opens shortcuts help popover
+    if (e.key === '?') {
+      e.preventDefault();
+      window.InfoUI?.showPopover('shortcuts', document.getElementById('btnHelp'));
       return;
     }
 

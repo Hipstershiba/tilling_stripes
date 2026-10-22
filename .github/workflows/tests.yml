@@ -9,14 +9,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
 
       - name: Run Tile Registry Tests
         run: node tests/test_tile_registry.js
@@ -38,3 +42,12 @@ jobs:
 
       - name: Run Editor UI State Tests
         run: node tests/test_editor_ui_state.js
+
+      - name: Run Information Architecture & UI State Tests
+        run: node tests/test_info_ui_state.js
+
+      - name: Run D4 Grid × Block Combinations Tests
+        run: node tests/test_d4_block_combinations.js
+
+      - name: Run Editor D4 Transparency Tests
+        run: node tests/test_d4_editor.js

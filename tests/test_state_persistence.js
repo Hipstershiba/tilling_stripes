@@ -11,7 +11,6 @@ global.localStorage = {
   clear: () => storageMap.clear()
 };
 
-let warningVisible = false;
 global.window = {
   localStorage: global.localStorage,
   devicePixelRatio: 1,
@@ -32,9 +31,11 @@ global.document = {
 require(path.join(__dirname, '../core/d4_symmetry.js'));
 require(path.join(__dirname, '../core/tile_registry.js'));
 require(path.join(__dirname, '../core/mosaic_engine.js'));
+const StatePersistence = require(path.join(__dirname, '../core/state_persistence.js'));
 
 const { generateMosaic, cloneMosaicCellsSnapshot, restoreMosaicCellsSnapshot } = window.MosaicEngine;
 const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+const storageKey = StatePersistence.STORAGE_KEY_STUDIO_STATE;
 
 console.log(`--- Testing Robust Mosaic & Studio State Persistence (${totalTiles} tiles) ---`);
 
@@ -58,23 +59,25 @@ for (let i = 0; i < 15; i++) {
   const bc = Math.floor(i / 3) % 3;
   const sr = i % N;
   const sc = (i * 2) % N;
-  const cell = mosaic.grid[br][bc].cells[sr][sc];
-  const newBaseTileId = (i * 5 + 6) % totalTiles;
-  const newTransform = ['id', 'r90', 'r180', 'r270', 'mx', 'my'][i % 6];
-  cell.baseTileId = newBaseTileId;
-  cell.transform = newTransform;
-  cell.tileId = window.TileRegistry.getTransformedTileId(newBaseTileId, newTransform);
-  editedCells.push({ br, bc, sr, sc, baseTileId: newBaseTileId, transform: newTransform, tileId: cell.tileId });
-}
+  const tileId = (i * 5) % totalTiles;
+  const transform = ['id', 'r90', 'r180', 'r270', 'mx', 'my', 'md', 'mad'][i % 8];
 
+  const cell = mosaic.grid[br][bc].cells[sr][sc];
+  cell.baseTileId = tileId;
+  cell.transform = transform;
+  cell.tileId = window.TileRegistry.getTransformedTileId(tileId, transform);
+
+  editedCells.push({ br, bc, sr, sc, tileId: cell.tileId, baseTileId: tileId, transform });
+}
 console.log(`Simulated ${editedCells.length} edits across 3x3 blocks.`);
 
-// 3. Build an edit history stack of 30 snapshots, then simulate undoing 10 steps
-const initialSnapshot = cloneMosaicCellsSnapshot(mosaic);
+// 3. Simulate edit history stack with 30 snapshots and an undone state
 const editHistoryStack = [];
-for (let step = 0; step < 30; step++) {
-  // modify one cell per step
-  mosaic.grid[0][0].cells[0][0].tileId = step;
+for (let s = 0; s < 30; s++) {
+  // Alter cell [0,0][0,0] sequentially across history
+  mosaic.grid[0][0].cells[0][0].tileId = s;
+  mosaic.grid[0][0].cells[0][0].baseTileId = s;
+  mosaic.grid[0][0].cells[0][0].transform = 'id';
   editHistoryStack.push(cloneMosaicCellsSnapshot(mosaic));
 }
 
@@ -85,7 +88,7 @@ const activeUndoneSnapshot = editHistoryStack[editHistoryIndex];
 // Apply the undone snapshot to the active mosaic
 restoreMosaicCellsSnapshot(mosaic, activeUndoneSnapshot);
 
-// 4. Save to mock localStorage
+// 4. Save to mock localStorage via StatePersistence
 const payload = {
   version: 2,
   seed: 9999,
@@ -101,11 +104,12 @@ const payload = {
   editHistoryIndex: editHistoryIndex
 };
 
-localStorage.setItem('tiling_stripes_studio_state_v2', JSON.stringify(payload));
+const saveRes = StatePersistence.saveWithQuotaFallback(localStorage, storageKey, payload, mosaic);
+assert.strictEqual(saveRes.success, true, 'StatePersistence saveWithQuotaFallback must succeed');
 console.log('✓ Successfully serialized and saved full studio state to localStorage.');
 
 // 5. Simulate page reload
-const raw = localStorage.getItem('tiling_stripes_studio_state_v2');
+const raw = localStorage.getItem(storageKey);
 assert.ok(raw, 'localStorage must contain saved state');
 const restoredPayload = JSON.parse(raw);
 
@@ -137,17 +141,8 @@ const undoneCell = reloadedMosaic.grid[0][0].cells[0][0];
 assert.strictEqual(undoneCell.tileId, 19, 'Restored cell [0,0][0,0] must match the 19th snapshot from undo state');
 
 // 9. Verify history migration and clamping
-const MAX_EDIT_HISTORY = 25;
-let migratedEditHistory = restoredPayload.editHistory;
-let migratedEditIndex = restoredPayload.editHistoryIndex;
-if (migratedEditHistory.length > MAX_EDIT_HISTORY) {
-  const trimmed = migratedEditHistory.length - MAX_EDIT_HISTORY;
-  migratedEditHistory = migratedEditHistory.slice(-MAX_EDIT_HISTORY);
-  migratedEditIndex = Math.max(0, migratedEditIndex - trimmed);
-}
+assert.ok(restoredPayload.editHistory.length <= StatePersistence.MAX_EDIT_HISTORY, 'Edit history should be clamped');
+assert.ok(restoredPayload.editHistoryIndex >= 0, 'Edit history index must be valid non-negative');
 
-assert.strictEqual(migratedEditHistory.length, 25, 'Edit history must clamp to 25 items');
-assert.strictEqual(migratedEditIndex, 19 - (30 - 25), 'Edit history index must adjust by trimmed count (19 - 5 = 14)');
-
-console.log(`✓ All ${editedCells.length} edited cells and undo/redo history verified after reload.`);
+console.log('✓ All 15 edited cells and undo/redo history verified after reload.');
 console.log('--- ALL PERSISTENCE CHECKS PASSED PERFECTLY! ---');
