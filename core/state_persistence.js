@@ -238,8 +238,8 @@
   const IDB_STORE_NAME = 'studio_state_store';
   const IDB_VERSION = 1;
   const IDB_KEY_CURRENT = 'current_studio_state';
-  const IDB_MAX_GENERATION_HISTORY = 100;
-  const IDB_MAX_EDIT_HISTORY = 50;
+  const IDB_MAX_GENERATION_HISTORY = 256;
+  const IDB_MAX_EDIT_HISTORY = 100;
 
   /**
    * Opens the Tiling Stripes IndexedDB instance.

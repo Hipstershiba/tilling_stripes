@@ -192,6 +192,8 @@ function hidePersistenceWarning() {
 
 const MAX_GENERATION_HISTORY = 30;
 const MAX_EDIT_HISTORY = 25;
+const IDB_MAX_GENERATION_HISTORY = 256;
+const IDB_MAX_EDIT_HISTORY = 100;
 
 const saveScheduler = (typeof window !== 'undefined' && window.StatePersistence && typeof window.StatePersistence.createSaveScheduler === 'function')
   ? window.StatePersistence.createSaveScheduler({
@@ -1074,7 +1076,9 @@ function pushGenerationHistory() {
   }
 
   StudioState.history.push(snapshot);
-  while (StudioState.history.length > MAX_GENERATION_HISTORY) {
+  const maxGen = (typeof indexedDB !== 'undefined' && window.StatePersistence && window.StatePersistence.IDB_MAX_GENERATION_HISTORY)
+    || IDB_MAX_GENERATION_HISTORY;
+  while (StudioState.history.length > maxGen) {
     StudioState.history.shift();
   }
   StudioState.historyIndex = StudioState.history.length - 1;
@@ -2261,7 +2265,9 @@ function pushEditHistorySnapshot() {
   }
 
   StudioState.editHistory.push(snap);
-  const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
+  const maxAllowedEdits = (typeof indexedDB !== 'undefined' && window.StatePersistence && window.StatePersistence.IDB_MAX_EDIT_HISTORY)
+    ? window.StatePersistence.IDB_MAX_EDIT_HISTORY
+    : getMaxEditHistoryForMosaic(StudioState.mosaicData);
   while (StudioState.editHistory.length > maxAllowedEdits) {
     StudioState.editHistory.shift();
   }
