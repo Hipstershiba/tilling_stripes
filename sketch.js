@@ -28,6 +28,7 @@ const StudioState = {
   gridSymmetryMode: 'mandala_d4',
   blockSymmetryMode: 'mandala_d4',
   syncBlockSymmetry: true,
+  axisConflictMode: 'blend', // 'blend' | 'kaleidoscope' | 'empty'
 
   // Colors
   fgColor: '#e2e0dc',
@@ -231,6 +232,7 @@ function buildStudioStatePayload(includeHistories = true) {
     gridSymmetryMode: StudioState.gridSymmetryMode,
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
+    axisConflictMode: StudioState.axisConflictMode || 'blend',
 
     fgColor: StudioState.fgColor,
     bgColor: StudioState.bgColor,
@@ -326,6 +328,7 @@ function loadStudioStateFromStorage() {
       StudioState.blockSymmetryMode = saved.blockSymmetryMode;
     }
     if (typeof saved.syncBlockSymmetry === 'boolean') StudioState.syncBlockSymmetry = saved.syncBlockSymmetry;
+    if (typeof saved.axisConflictMode === 'string') StudioState.axisConflictMode = saved.axisConflictMode;
 
     // Colors
     if (typeof saved.fgColor === 'string') StudioState.fgColor = saved.fgColor;
@@ -455,7 +458,8 @@ function restoreMosaicFromSavedState() {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
-      allowedTiles: allowedArray
+      allowedTiles: allowedArray,
+      axisConflictMode: StudioState.axisConflictMode || 'blend'
     },
     (arr) => arr[floor(random(arr.length))]
   );
@@ -728,7 +732,8 @@ function regenerateMosaic(recordHistory = true) {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
-      allowedTiles: allowedArray
+      allowedTiles: allowedArray,
+      axisConflictMode: StudioState.axisConflictMode || 'blend'
     },
     (arr) => arr[floor(random(arr.length))]
   );
@@ -1088,7 +1093,7 @@ function buildSymmetryPanelUI() {
       },
       {
         key: 'mandala_d4',
-        title: 'Mandala (D4)',
+        title: 'Mandala / Caleidoscópio',
         sub: '8 octantes',
         icon: SYMMETRY_ICONS_SVG.mandala_d4
       },
@@ -1176,6 +1181,33 @@ function syncSymmetryPanelUI() {
     blockDesc.textContent = StudioState.syncBlockSymmetry
       ? `Cada bloco usa automaticamente a mesma simetria da grade (${activeBlockMode.name}).`
       : `Os 4 quadrantes internos de cada bloco usam ${activeBlockMode.name} (${activeBlockMode.subtitle}).`;
+  }
+
+  // Step 2b: Axis Conflict Mode in Mandala
+  const axisContainer = document.getElementById('axisConflictContainer');
+  const isMandalaActive = (StudioState.gridSymmetryMode === 'mandala_d4' || effectiveBlockModeKey === 'mandala_d4');
+  if (axisContainer) {
+    axisContainer.classList.toggle('hidden', !isMandalaActive);
+  }
+  document.querySelectorAll('#axisConflictControl .seg-btn[data-axis-mode]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.axisMode === (StudioState.axisConflictMode || 'blend'));
+  });
+  const axisBadge = document.getElementById('axisConflictBadge');
+  const axisDesc = document.getElementById('axisConflictDesc');
+  const curAxisMode = StudioState.axisConflictMode || 'blend';
+  if (axisBadge) {
+    if (curAxisMode === 'blend') axisBadge.textContent = 'Misto + Vazio (Padrão)';
+    else if (curAxisMode === 'kaleidoscope') axisBadge.textContent = 'Caleidoscópio';
+    else if (curAxisMode === 'empty') axisBadge.textContent = 'Respiro Total';
+  }
+  if (axisDesc) {
+    if (curAxisMode === 'blend') {
+      axisDesc.textContent = 'Modo mandala livre / caleidoscópio com tile vazio (#84) como respiro elegante nos eixos.';
+    } else if (curAxisMode === 'kaleidoscope') {
+      axisDesc.textContent = 'Caleidoscópio livre 100% com os tiles selecionados.';
+    } else if (curAxisMode === 'empty') {
+      axisDesc.textContent = 'Respiro vazio total (#84) nos eixos onde falta simetria estrita.';
+    }
   }
 
   // Step 3: Subdivision buttons
@@ -2360,6 +2392,15 @@ function initStudioUI() {
     });
   });
 
+  document.querySelectorAll('#axisConflictControl .seg-btn[data-axis-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      StudioState.axisConflictMode = btn.dataset.axisMode || 'blend';
+      syncSymmetryPanelUI();
+      regenerateMosaic(true);
+      saveStudioStateToStorage();
+    });
+  });
+
   document.querySelectorAll('#subdivisionControl .seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       StudioState.subdivision = parseInt(btn.dataset.sub, 10) || 2;
@@ -2861,3 +2902,5 @@ function initStudioUI() {
   });
 }
 
+// Expose StudioState to window for inspection and integration tests
+window.StudioState = StudioState;

@@ -427,6 +427,25 @@
                 <div id="blockSymmetryDesc" class="prop-sub-hint"></div>
               </div>
 
+              <!-- STEP 2b: Comportamento dos Eixos em Mandala (Caleidoscópio & Respiro) -->
+              <div id="axisConflictContainer" class="prop-section">
+                <div class="prop-label-row">
+                  <label class="prop-label">Eixos em Mandala</label>
+                  <span id="axisConflictBadge" class="prop-badge secondary">Misto + Vazio</span>
+                </div>
+                <div class="segmented-control" id="axisConflictControl" style="grid-template-columns: repeat(3, 1fr);">
+                  <button type="button" class="seg-btn active" data-axis-mode="blend"
+                    title="Mandala Livre / Caleidoscópio: reflete nos octantes e usa o tile vazio (#84) como respiro elegante">Misto + Vazio</button>
+                  <button type="button" class="seg-btn" data-axis-mode="kaleidoscope"
+                    title="Caleidoscópio livre 100% com os tiles selecionados">Caleidoscópio</button>
+                  <button type="button" class="seg-btn" data-axis-mode="empty"
+                    title="Respiro vazio total (#84) nos eixos onde falta simetria">Respiro Total</button>
+                </div>
+                <div id="axisConflictDesc" class="prop-sub-hint">
+                  Modo mandala livre / caleidoscópio com tile vazio (#84) como respiro elegante nos eixos.
+                </div>
+              </div>
+
               <!-- STEP 3: Block Subdivision & Aesthetics -->
               <div class="prop-section">
                 <div class="prop-label-row">
@@ -560,7 +579,7 @@
                   <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);"
                     id="canvasCenterSymControl">
                     <button type="button" class="seg-btn active" data-center-sym="mandala_d4"
-                      title="Mandala 8× em torno do centro do canvas">Mandala 8×</button>
+                      title="Mandala Livre / Caleidoscópio 8× pelo centro">Mandala 8×</button>
                     <button type="button" class="seg-btn" data-center-sym="rotational_c4"
                       title="Rotacional 4× (90°) em torno do centro do canvas">Giro 4×</button>
                     <button type="button" class="seg-btn" data-center-sym="bilateral_d2"

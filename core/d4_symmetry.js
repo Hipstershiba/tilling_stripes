@@ -27,9 +27,9 @@ const D4_METADATA = {
 const SYMMETRY_MODES = {
   mandala_d4: {
     id: 'mandala_d4',
-    name: 'Mandala (D4)',
-    subtitle: '8 eixos • Rotação 90° + Espelhos',
-    description: 'Simetria caleidoscópica de 8 octantes. Os blocos das bordas giram 90° em torno do centro ([1,2,1][2,3,2][1,2,1]).',
+    name: 'Mandala / Caleidoscópio',
+    subtitle: '8 octantes • Radial Livre & Respiro',
+    description: 'Simetria radial estilo caleidoscópio em 8 octantes. Espelha e rotaciona livremente os tiles selecionados, integrando o tile vazio (#84) como respiro elegante nos eixos.',
     requiresSquareForFull: true
   },
   rotational_c4: {

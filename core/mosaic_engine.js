@@ -84,10 +84,11 @@
    * Generates a single canonical source Block (Supertile) of size N x N subtiles
    * where N = 2 * subdivision.
    */
-  function generateSourceBlock(subdivision, blockSymmetryMode, allowedTiles, randomPick) {
+  function generateSourceBlock(subdivision, blockSymmetryMode, allowedTiles, randomPick, options = {}) {
     const N = Math.max(1, subdivision * 2);
     const sourceMap = Array.from({ length: N }, () => new Array(N).fill(null));
     const cells = Array.from({ length: N }, () => new Array(N).fill(null));
+    const axisConflictMode = options.axisConflictMode || 'blend'; // 'blend' | 'kaleidoscope' | 'empty'
 
     // Step 1: Resolve symmetry relations inside the N x N block and generate canonical subtiles
     for (let r = 0; r < N; r++) {
@@ -99,12 +100,44 @@
           let pickedTileId;
 
           if (compatible.length > 0) {
-            pickedTileId = randomPick(compatible);
+            // When invariant tiles exist in the user's allowed set
+            if (axisConflictMode === 'blend' && stabilizer.length > 1 && !allowedTiles.includes(84)) {
+              // Blend: even when invariant tiles exist, occasionally allow empty tile #84 as an organic breath
+              const isCenter = (r >= Math.floor(N / 2) - 1 && c >= Math.floor(N / 2) - 1);
+              const breathWeight = isCenter ? 0.35 : 0.2;
+              const candidates = [...compatible];
+              const breathCopies = Math.max(1, Math.round(candidates.length * breathWeight));
+              for (let b = 0; b < breathCopies; b++) {
+                candidates.push(84);
+              }
+              pickedTileId = randomPick(candidates);
+            } else {
+              pickedTileId = randomPick(compatible);
+            }
           } else {
-            // When no allowed tile is invariant under the cell's stabilizer,
-            // use the empty negative space tile #84 (Tile Vazio) to preserve the design
-            // without injecting unwanted foreign shapes from unselected families.
-            pickedTileId = 84;
+            // When no allowed tile is invariant under the cell's stabilizer (strict D4 is impossible with chosen families):
+            if (axisConflictMode === 'empty') {
+              // Approach A: Strict empty negative space fallback
+              pickedTileId = 84;
+            } else if (axisConflictMode === 'kaleidoscope') {
+              // Approach B: Pure kaleidoscope using user's allowed tiles
+              pickedTileId = allowedTiles.length > 0 ? randomPick(allowedTiles) : 84;
+            } else {
+              // Approach Mixture (A + B): Mandala Livre / Caleidoscópio com Tile Vazio como respiro
+              if (allowedTiles.length === 0) {
+                pickedTileId = 84;
+              } else {
+                const isCenter = (r >= Math.floor(N / 2) - 1 && c >= Math.floor(N / 2) - 1);
+                // Center gets ~45% chance of breath; diagonals get ~30% chance of breath
+                const breathWeight = isCenter ? 0.45 : 0.3;
+                const pool = [...allowedTiles];
+                const breathCopies = Math.max(1, Math.round(pool.length * breathWeight));
+                for (let b = 0; b < breathCopies; b++) {
+                  pool.push(84);
+                }
+                pickedTileId = randomPick(pool);
+              }
+            }
           }
 
           sourceMap[r][c] = {
@@ -187,6 +220,7 @@
       ? gridSymmetryMode
       : (config.blockSymmetryMode || 'mandala_d4');
     const allowedTiles = Array.isArray(config.allowedTiles) ? config.allowedTiles : [];
+    const axisConflictMode = config.axisConflictMode || 'blend';
 
     const sourceBlocks = new Map();
     const orbitIds = new Map();
@@ -205,7 +239,7 @@
           orbitIds.set(key, nextOrbitId++);
         }
         if (rel.isSource && !sourceBlocks.has(key)) {
-          const block = generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick);
+          const block = generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick, { axisConflictMode });
           sourceBlocks.set(key, block);
         }
       }
@@ -219,7 +253,7 @@
         if (!sourceBlocks.has(key)) {
           sourceBlocks.set(
             key,
-            generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick)
+            generateSourceBlock(subdivision, effectiveBlockSymmetry, allowedTiles, randomPick, { axisConflictMode })
           );
         }
       }
