@@ -1130,7 +1130,7 @@
   /**
    * Creates a lightweight deep snapshot of all cells in mosaicData for Undo/Redo.
    */
-  function cloneMosaicCellsSnapshot(mosaicData) {
+  function cloneMosaicCellsSnapshot(mosaicData, frozenCells) {
     if (!mosaicData) return null;
     const { rows, cols, subtilesPerSide: N } = mosaicData;
     const gridSnap = Array.from({ length: rows }, (_, r) =>
@@ -1147,18 +1147,25 @@
         )
       )
     );
+    let frozenSnap = null;
+    if (frozenCells instanceof Map) {
+      frozenSnap = Array.from(frozenCells.entries());
+    } else if (Array.isArray(frozenCells)) {
+      frozenSnap = frozenCells.slice();
+    }
     return {
       rows,
       cols,
       subtilesPerSide: N,
-      gridSnap
+      gridSnap,
+      frozenCells: frozenSnap
     };
   }
 
   /**
    * Restores a snapshot into mosaicData in-place.
    */
-  function restoreMosaicCellsSnapshot(mosaicData, snapshot) {
+  function restoreMosaicCellsSnapshot(mosaicData, snapshot, outFrozenMap) {
     if (!mosaicData || !snapshot) return false;
     if (
       mosaicData.rows !== snapshot.rows ||
@@ -1180,6 +1187,13 @@
             dst.transform = src.transform;
           }
         }
+      }
+    }
+
+    if (snapshot.frozenCells && outFrozenMap instanceof Map) {
+      outFrozenMap.clear();
+      for (const [k, v] of snapshot.frozenCells) {
+        outFrozenMap.set(k, { ...v });
       }
     }
     return true;

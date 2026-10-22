@@ -41,7 +41,8 @@ const testSuites = [
   'test_freeze_subtiles.js',
   'test_freeze_generation.js',
   'test_freeze_wiring.js',
-  'test_freeze_state.js'
+  'test_freeze_state.js',
+  'test_freeze_undo.js'
 ];
 
 console.log('====================================================');

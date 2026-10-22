@@ -1548,9 +1548,15 @@ function syncFreezeUI() {
 
 function clearFrozenCells() {
   if (!StudioState.frozenCells || StudioState.frozenCells.size === 0) return;
+  const count = StudioState.frozenCells.size;
+  if (!confirm(`Deseja descongelar todos os ${count} subtiles travados?`)) {
+    return;
+  }
+  pushEditHistorySnapshot();
   StudioState.frozenCells.clear();
   syncFreezeUI();
   saveStudioStateToStorage();
+  showEditorToast('Todos os subtiles foram descongelados (Ctrl+Z para desfazer).', 'info');
   redraw();
 }
 
@@ -1821,6 +1827,9 @@ function handleCanvasMouseDown(e) {
     const placements = resolveFreezeTargetPlacements(hit);
     if (!placements || placements.length === 0) return;
 
+    // Push edit history snapshot once per freeze gesture for Ctrl+Z undo
+    pushEditHistorySnapshot();
+
     // Right-click inverts action; Left-click uses explicit freezeMode (monotonic)
     const action = e.button === 2
       ? (StudioState.freezeMode === 'freeze' ? 'unfreeze' : 'freeze')
@@ -1938,7 +1947,7 @@ function resetEditHistoryWithInitialSnapshot() {
 
 function pushEditHistorySnapshot() {
   if (!StudioState.mosaicData) return;
-  const snap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
+  const snap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData, StudioState.frozenCells);
   if (!snap) return;
 
   if (StudioState.editHistoryIndex < StudioState.editHistory.length - 1) {
@@ -1959,7 +1968,8 @@ function undoMosaicEdit() {
   if (StudioState.editHistoryIndex <= 0) return;
   StudioState.editHistoryIndex--;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
-  if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap)) {
+  if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap, StudioState.frozenCells)) {
+    syncFreezeUI();
     syncEditUndoUI();
     syncD4Badge();
     saveStudioStateToStorage();
@@ -1971,7 +1981,8 @@ function redoMosaicEdit() {
   if (StudioState.editHistoryIndex >= StudioState.editHistory.length - 1) return;
   StudioState.editHistoryIndex++;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
-  if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap)) {
+  if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap, StudioState.frozenCells)) {
+    syncFreezeUI();
     syncEditUndoUI();
     saveStudioStateToStorage();
     redraw();
