@@ -2406,11 +2406,6 @@ const TOOL_CONTEXT_LABELS = {
 
 function syncContextPanel() {
   const isGenerator = StudioState.workspace === 'generate';
-  const btn = document.getElementById('btnContextGenerator');
-  if (btn) {
-    btn.classList.toggle('active', isGenerator);
-    btn.setAttribute('aria-pressed', isGenerator ? 'true' : 'false');
-  }
   const title = document.getElementById('ctxPanelTitle');
   if (title) {
     title.textContent = isGenerator
@@ -2425,7 +2420,7 @@ function syncEditWorkspaceUI() {
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
 
-  // 1. Workspace panes (the old Gerador/Editor switch is now #btnContextGenerator)
+  // 1. Workspace panes — driven by the tool: inspect shows generation, edit tools show their options.
 
   // 2. Right Dock Workspace Panes
   const genPane = document.getElementById('dock-workspace-generate');
@@ -2981,6 +2976,9 @@ function initStudioUI() {
     StudioState.activeTool = tool;
     if (tool === 'paint' || tool === 'rotate' || tool === 'stamp' || tool === 'freeze') {
       StudioState.workspace = 'edit';
+    } else if (tool === 'inspect') {
+      // Inspect is the generation context: the panel shows grid/symmetry/tiles.
+      StudioState.workspace = 'generate';
     }
     const pasteboard = document.getElementById('artboard-pasteboard');
     if (pasteboard) {
@@ -2991,34 +2989,7 @@ function initStudioUI() {
     redraw();
   };
 
-  const setWorkspaceMode = (mode) => {
-    StudioState.workspace = mode === 'edit' ? 'edit' : 'generate';
-    if (StudioState.workspace === 'edit') {
-      const isEditTool = StudioState.activeTool === 'paint' ||
-        StudioState.activeTool === 'rotate' ||
-        StudioState.activeTool === 'stamp' ||
-        StudioState.activeTool === 'freeze';
-      if (!isEditTool) {
-        StudioState.activeTool = 'paint';
-      }
-    } else {
-      const isEditTool = StudioState.activeTool === 'paint' ||
-        StudioState.activeTool === 'rotate' ||
-        StudioState.activeTool === 'stamp' ||
-        StudioState.activeTool === 'freeze';
-      if (isEditTool) {
-        StudioState.activeTool = 'inspect';
-      }
-    }
-    syncEditWorkspaceUI();
-    saveStudioStateToStorage();
-    redraw();
-  };
-
-  // Round 6: the first icon of the tool column opens the generation panel.
-  document.getElementById('btnContextGenerator')?.addEventListener('click', () => {
-    setWorkspaceMode('generate');
-  });
+  // Round 6: inspect is the generation context — no separate context button any more.
 
 
 
@@ -3266,13 +3237,13 @@ function initStudioUI() {
     const isCollapsed = document.body.classList.contains('right-dock-collapsed');
     StudioState.rightDockCollapsed = isCollapsed;
     if (btnToggleDock) {
-      btnToggleDock.classList.toggle('active', !isCollapsed);
       btnToggleDock.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
       btnToggleDock.setAttribute('title', isCollapsed ? 'Expandir Painel Lateral (Tab)' : 'Recolher Painel Lateral (Tab)');
       btnToggleDock.setAttribute('aria-label', isCollapsed ? 'Expandir Painel Lateral' : 'Recolher Painel Lateral');
       const iconSpan = btnToggleDock.querySelector('.dock-toggle-icon');
       if (iconSpan) {
-        iconSpan.textContent = isCollapsed ? '»' : '«';
+        // The arrow points where the panel goes: » to collapse, « to bring it back.
+        iconSpan.textContent = isCollapsed ? '«' : '»';
       }
     }
   };

@@ -23,7 +23,7 @@ const expectedIds = [
   "toggleGuideAxes", "toggleGuideBlocks", "toggleGuideSubtiles", "toggleGuideOrbits",
   "btnFitArtboard", "btnToggleRightDock",
   "btnZoomOut", "zoomPresetSelect", "btnZoomIn", "btnZoomReset100", "btnHelp",
-  "btnMakeGridEqual", "paddingSlider", "tileSearchInput", "btnSelectAllTiles", "btnSelectNoTiles",
+  "btnMakeGridEqual", "paddingInput", "tileSearchInput", "btnSelectAllTiles", "btnSelectNoTiles",
   "btnInvertTiles", "btnRandomFamilies",
   "btnEditUndo", "btnEditRedo", "btnD4Undo", "btnD4Continue",
   "btnBrushRot90", "btnBrushFlipX", "btnBrushFlipY", "btnBrushResetD4",

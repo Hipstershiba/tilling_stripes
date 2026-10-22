@@ -418,10 +418,9 @@ html, body {
 
 /* Round 6 — geography: rail | canvas | tools | dock.
    Order is applied with flex `order` so the DOM (and the ids) stay untouched. */
-#workspace-body > #left-rail        { order: 0; }
+#workspace-body > #left-toolbar       { order: 0; }
 #workspace-body > #workspace-viewport { order: 1; }
-#workspace-body > #left-toolbar     { order: 2; }
-#workspace-body > #right-dock       { order: 3; }
+#workspace-body > #right-dock         { order: 2; }
 
 /* ==================== LEFT RAIL (reserved) ==================== */
 #left-rail {
@@ -494,7 +493,7 @@ html, body {
 #left-toolbar {
   width: var(--left-tool-w);
   background: var(--bg-panel);
-  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -832,7 +831,13 @@ body.right-dock-collapsed #persistenceWarning {
 }
 
 body.right-dock-collapsed #dock-header {
-  display: none; /* the collapse control now lives in the tool column */
+  display: flex;
+  padding: 8px 0;
+  justify-content: center;
+}
+
+body.right-dock-collapsed .dock-context-title {
+  display: none;
 }
 
 body.right-dock-collapsed #workspaceSwitcher {

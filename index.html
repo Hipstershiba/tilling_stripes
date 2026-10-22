@@ -163,40 +163,10 @@
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
     <div id="workspace-body">
 
-      <!-- LEFT RAIL — reserved column for document-level actions (Round 6) -->
-      <aside id="left-rail" aria-label="Ações do documento">
-        <div class="left-rail-top">
-          <span class="left-rail-brand" title="Tiling Stripes Studio">TS</span>
-        </div>
-        <div class="left-rail-bottom">
-          <button type="button" id="btnEditUndo" class="left-rail-btn" title="Desfazer Edição (Ctrl+Z)" aria-label="Desfazer" disabled>↶</button>
-          <span id="editHistoryStepLabel" class="left-rail-step">0</span>
-          <button type="button" id="btnEditRedo" class="left-rail-btn" title="Refazer Edição (Ctrl+Y)" aria-label="Refazer" disabled>↷</button>
-        </div>
-      </aside>
-
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
-        <!-- Context: generator panel (Round 6 — replaces the Gerador/Editor switch) -->
-        <div class="tool-section" aria-label="Contexto do painel">
-          <button id="btnContextGenerator" class="tool-btn ctx-btn active" title="Painel de geração — grade, simetria e tiles (G)" aria-pressed="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Panel collapse — lives in the tool column so it survives the panel being collapsed -->
-        <div class="tool-section" aria-label="Painel lateral">
-          <button type="button" id="btnToggleRightDock" class="tool-btn active" title="Recolher painel lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
-            <span class="dock-toggle-icon">«</span>
-          </button>
-        </div>
-
-        <div class="tool-divider"></div>
+        <!-- Panel collapse — lives in the tool column so it survives the panel being collapsed.
+             The arrow shows where the panel is going: » collapse, « bring back. -->
         <div class="tool-section" aria-label="Ferramentas de Inspeção e Edição">
           <button id="toolInspect" class="tool-btn active" data-tool="inspect"
             title="Inspecionar Mosaico — Modo Gerador (Tecla V)">
@@ -308,7 +278,9 @@
           </button>
         </div>
 
-        <!-- Illustrator-style Color Scheme Swatches Widget (pinned to footer of left toolbar) -->
+        <div class="tool-divider"></div>
+
+        <!-- Illustrator-style Color Scheme Swatches Widget (last item of the tool column) -->
         <div class="tool-section color-tool-section" aria-label="Esquema de Cores (Estilo Illustrator)">
           <div class="illustrator-color-widget">
             <div class="color-chip-wrap color-chip-bg" data-tooltip="Cor do Fundo">
@@ -394,6 +366,9 @@
         <!-- Dock Header: context title + collapse toggle (the Gerador/Editor switch moved to the rail) -->
         <header id="dock-header">
           <span id="ctxPanelTitle" class="dock-context-title">Geração</span>
+          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
+            <span class="dock-toggle-icon">»</span>
+          </button>
         </header>
 
         <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
@@ -506,8 +481,6 @@
                   </svg>
                 </span>
                 <span id="freezeCountLabel">0 subtiles</span>
-                <span class="freeze-status-sep">·</span>
-                <button type="button" id="btnClearFrozen" class="link-btn">Descongelar tudo</button>
               </div>
             </div>
           </section>
@@ -565,6 +538,11 @@
                   <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
                 </svg>
                 <span>Edição &amp; Simetria</span>
+              </div>
+              <div class="edit-undo-bar" onclick="event.stopPropagation();">
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled>↶</button>
+                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)" disabled>↷</button>
               </div>
               <span class="panel-chevron">▾</span>
             </header>

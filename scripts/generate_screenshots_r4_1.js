@@ -172,8 +172,8 @@ async function main() {
   // Capture 2: Generator workspace with freeze status row visible
   console.log('Setting up Generator workspace with freeze status row...');
   await evaluate(`(() => {
-    const genBtn = document.getElementById('btnContextGenerator');
-    if (genBtn) genBtn.click();
+    const inspectBtn = document.getElementById('toolInspect');
+    if (inspectBtn) inspectBtn.click();
     syncFreezeUI();
     if (window.redraw) redraw();
   })()`);
