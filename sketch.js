@@ -3734,18 +3734,29 @@ function initStudioUI() {
       document.getElementById('toggleGuideSubtiles')?.click();
     } else if (k === 'o') {
       document.getElementById('toggleGuideOrbits')?.click();
-    } else if (k === '0') {
+    } else if (e.shiftKey && (k === '!' || k === ')' || e.code === 'Digit1' || e.code === 'Digit0' || e.code === 'Numpad1' || e.code === 'Numpad0' || k === '1' || k === '0')) {
+      e.preventDefault();
       fitArtboardToWindow();
-    } else if (['1', '2', '3', '4', '5', '6'].includes(k) && isEditTool) {
+    } else if (k === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
+      e.preventDefault();
+      fitArtboardToWindow();
+    } else if ((k === '1' || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
+      e.preventDefault();
+      resetZoom100();
+    } else if (isEditTool) {
       const scopeOrder = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
-      const idx = parseInt(k, 10) - 1;
-      if (scopeOrder[idx]) {
-        StudioState.editScope = scopeOrder[idx];
+      let scopeIdx = -1;
+      if (e.altKey && ['1', '2', '3', '4', '5', '6'].includes(k)) {
+        scopeIdx = parseInt(k, 10) - 1;
+      } else if (!e.shiftKey && !e.altKey && ['2', '3', '4', '5', '6'].includes(k)) {
+        scopeIdx = parseInt(k, 10) - 1;
+      }
+      if (scopeIdx >= 0 && scopeOrder[scopeIdx]) {
+        e.preventDefault();
+        StudioState.editScope = scopeOrder[scopeIdx];
         syncEditWorkspaceUI();
         redraw();
       }
-    } else if (k === '1' && !isEditTool) {
-      resetZoom100();
     } else if (e.key === 'ArrowLeft') {
       restoreGenerationHistory(StudioState.historyIndex - 1);
     } else if (e.key === 'ArrowRight') {

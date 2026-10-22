@@ -186,7 +186,76 @@ assert.strictEqual(StudioState.panOffsetY, 0, 'resetZoom100 must reset panOffset
 assert.strictEqual(mockStage.style.transform, 'translate(0px, 0px)');
 console.log('✓ resetZoom100 (Tecla 1 / Ctrl+1) resets zoom to 100% and re-centers pan.');
 
-// 6. Verify CSS rules in style.css
+// 6. Test 1, Shift+1, and 0 navigation shortcuts while in edit mode (holding brush)
+function simulateKeyNav(e, isEditTool) {
+  const k = e.key ? e.key.toLowerCase() : '';
+  const isDigit1 = k === '1' || e.code === 'Digit1' || e.code === 'Numpad1';
+  const isDigit0 = k === '0' || e.code === 'Digit0' || e.code === 'Numpad0';
+
+  if (e.shiftKey && (isDigit1 || isDigit0 || k === '!' || k === ')')) {
+    fitArtboardToWindow();
+    return 'fit';
+  }
+  if (isDigit0) {
+    fitArtboardToWindow();
+    return 'fit';
+  }
+  if ((k === '1' || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
+    resetZoom100();
+    return '100';
+  }
+  if (isEditTool) {
+    const scopeOrder = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
+    let scopeIdx = -1;
+    if (e.altKey && ['1', '2', '3', '4', '5', '6'].includes(k)) {
+      scopeIdx = parseInt(k, 10) - 1;
+    } else if (!e.shiftKey && !e.altKey && ['2', '3', '4', '5', '6'].includes(k)) {
+      scopeIdx = parseInt(k, 10) - 1;
+    }
+    if (scopeIdx >= 0 && scopeOrder[scopeIdx]) {
+      StudioState.editScope = scopeOrder[scopeIdx];
+      return 'scope_' + StudioState.editScope;
+    }
+  }
+  return null;
+}
+
+// Case A: Holding brush, panned to (-120, 80), presses key '1'
+StudioState.panOffsetX = -120;
+StudioState.panOffsetY = 80;
+StudioState.zoomPercent = 175;
+const action1 = simulateKeyNav({ key: '1', code: 'Digit1', shiftKey: false, altKey: false }, true);
+assert.strictEqual(action1, '100', 'Key 1 with brush must trigger 100% reset');
+assert.strictEqual(StudioState.zoomPercent, 100, 'Zoom must reset to 100%');
+assert.strictEqual(StudioState.panOffsetX, 0, 'Pan X must be re-centered to 0');
+assert.strictEqual(StudioState.panOffsetY, 0, 'Pan Y must be re-centered to 0');
+console.log('✓ Key 1 with brush (isEditTool=true) re-centers and sets 100% zoom.');
+
+// Case B: Holding brush, panned to (200, -150), presses 'Shift + 1'
+StudioState.panOffsetX = 200;
+StudioState.panOffsetY = -150;
+const actionShift1 = simulateKeyNav({ key: '!', code: 'Digit1', shiftKey: true, altKey: false }, true);
+assert.strictEqual(actionShift1, 'fit', 'Shift+1 with brush must trigger fitArtboardToWindow');
+assert.strictEqual(StudioState.panOffsetX, 0, 'Shift+1 must re-center pan X');
+assert.strictEqual(StudioState.panOffsetY, 0, 'Shift+1 must re-center pan Y');
+console.log('✓ Shift+1 with brush (isEditTool=true) re-centers and fits artboard to window.');
+
+// Case C: Holding brush, presses key '0'
+StudioState.panOffsetX = -80;
+StudioState.panOffsetY = 60;
+const action0 = simulateKeyNav({ key: '0', code: 'Digit0', shiftKey: false, altKey: false }, true);
+assert.strictEqual(action0, 'fit', 'Key 0 with brush must trigger fitArtboardToWindow');
+assert.strictEqual(StudioState.panOffsetX, 0, 'Key 0 must re-center pan X');
+assert.strictEqual(StudioState.panOffsetY, 0, 'Key 0 must re-center pan Y');
+console.log('✓ Key 0 with brush (isEditTool=true) re-centers and fits artboard to window.');
+
+// Case D: Holding brush, presses key '2' (switches scope to orbit_sym)
+const action2 = simulateKeyNav({ key: '2', code: 'Digit2', shiftKey: false, altKey: false }, true);
+assert.strictEqual(action2, 'scope_orbit_sym', 'Key 2 with brush must switch to scope orbit_sym');
+assert.strictEqual(StudioState.editScope, 'orbit_sym');
+console.log('✓ Key 2 with brush successfully switches edit scope.');
+
+// 7. Verify CSS rules in style.css
 const styleCss = fs.readFileSync(path.join(__dirname, '../style.css'), 'utf8');
 assert.ok(styleCss.includes('#artboard-pasteboard {') && styleCss.includes('overflow: hidden;'), 'style.css must set overflow: hidden on #artboard-pasteboard');
 assert.ok(styleCss.includes('body.is-panning'), 'style.css must define body.is-panning grabbing cursor');
