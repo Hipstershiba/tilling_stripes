@@ -79,7 +79,7 @@
         'Imunidade à Geração: Subtiles travados não são alterados ao gerar novos mosaicos ou sortear novas sementes (G).',
         'Modos Congelar e Descongelar: Ação monotônica no canvas — o modo selecionado garante que todo clique adiciona ou todo clique remove.',
         'Tamanhos de Área: Permite travar regiões desde subtiles individuais (1×1) até blocos completos.',
-        'Escopo de Simetria: Quando ativado, propaga a trava automaticamente para todas as cópias da órbita ou centro.',
+        'Escopo de Simetria: Respeita diretamente o escopo ativo do Editor (1 a 6) para travar subtiles isolados (Livre) ou propagar pela órbita.',
         'Desfazer e Refazer: Suporta Ctrl+Z / Ctrl+Y para reverter alterações de travas a qualquer momento.'
       ]
     },
@@ -125,7 +125,7 @@
       title: 'Atalhos e Teclas Rápidas',
       subtitle: 'Comandos do teclado para máxima produtividade',
       body: [
-        'B: Pincel | R: Girar | S: Carimbo | F: Travar Subtiles | V: Inspecionar.',
+        'B: Pincel | R: Girar | S: Carimbo | F: Travar Subtiles (Shift+F: Descongelar Tudo) | V: Inspecionar.',
         'H / Espaço: Mover Visualização (Pan) | Z: Zoom (+ com clique, - com Alt).',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
         '1 a 6: Seleciona Escopo de Edição.',

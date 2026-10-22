@@ -87,6 +87,8 @@ const StudioState = {
   pendingEditHistoryPush: false,
   editHistory: [],
   editHistoryIndex: -1,
+  // Parameters of the document as it was last rendered (used by document-level undo).
+  lastDocumentParams: null,
 
   guides: {
     showSymmetryAxes: false,
@@ -827,6 +829,25 @@ function resetD4BrokenState() {
 
 function regenerateMosaic(recordHistory = true) {
   resetD4BrokenState();
+
+  const isDestructive = recordHistory && !StudioState.isRestoringHistory;
+
+  // 4.2/T1 — the previous generation entry must be captured *before* the mosaic is replaced
+  // and before the edit history is reset. After those two steps the capture is a silent no-op.
+  if (isDestructive && window.HistoryNav && typeof window.HistoryNav.captureBeforeRegeneration === 'function') {
+    window.HistoryNav.captureBeforeRegeneration({
+      history: StudioState.history,
+      historyIndex: StudioState.historyIndex,
+      mosaicData: StudioState.mosaicData,
+      frozenCells: StudioState.frozenCells,
+      editHistory: StudioState.editHistory,
+      editHistoryIndex: StudioState.editHistoryIndex
+    });
+  }
+
+  // 4.2/T3 — document snapshot of what is on screen right now, so Ctrl+Z can cross a generation.
+  const previousDocument = isDestructive ? buildDocumentSnapshot() : null;
+
   randomSeed(StudioState.seed);
 
   const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
@@ -860,7 +881,14 @@ function regenerateMosaic(recordHistory = true) {
 
   resetEditHistoryWithInitialSnapshot();
 
-  if (recordHistory && !StudioState.isRestoringHistory) {
+  if (previousDocument) {
+    // [previousDocument, freshSnapshot]; the index points at the fresh one.
+    StudioState.editHistory.unshift(previousDocument);
+    StudioState.editHistoryIndex = 1;
+    syncEditUndoUI();
+  }
+
+  if (isDestructive) {
     pushGenerationHistory();
   }
 
@@ -871,19 +899,71 @@ function regenerateMosaic(recordHistory = true) {
   redraw();
 }
 
-function pushGenerationHistory() {
-  // Before pushing new entry, save lazy snapshot of previous entry if it had edits
-  if (StudioState.historyIndex >= 0 && StudioState.history[StudioState.historyIndex] && window.HistoryNav) {
-    const prevEntry = StudioState.history[StudioState.historyIndex];
-    window.HistoryNav.saveLazyHistorySnapshot(
-      prevEntry,
-      StudioState.mosaicData,
-      StudioState.frozenCells,
-      StudioState.editHistoryIndex,
-      StudioState.editHistory
-    );
-  }
+/**
+ * Builds a snapshot that carries both the cells and the parameters that produced them.
+ * The parameters come from the last rendered document (`lastDocumentParams`), because the
+ * caller has usually already mutated StudioState before asking for a regeneration.
+ */
+function buildDocumentSnapshot() {
+  if (!StudioState.mosaicData || !window.MosaicEngine || !window.DocumentSnapshot) return null;
+  const cells = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData, StudioState.frozenCells);
+  if (!cells) return null;
+  const params = StudioState.lastDocumentParams || window.DocumentSnapshot.collectParams(StudioState);
+  return window.DocumentSnapshot.attachDocument(cells, params);
+}
 
+/**
+ * Restores a document snapshot: parameters, a mosaic with matching dimensions, then the cells.
+ * Used by undo/redo when the step crosses a generation.
+ */
+function restoreDocumentSnapshot(snap) {
+  if (!snap || !window.DocumentSnapshot || !window.MosaicEngine) return false;
+  const doc = snap.document;
+  if (!doc) return false;
+
+  window.DocumentSnapshot.applyParams(StudioState, doc);
+
+  randomSeed(StudioState.seed);
+  const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
+  const frozenMap = new Map(snap.frozenCells || []);
+  StudioState.mosaicData = window.MosaicEngine.generateMosaicWithFrozen(
+    {
+      rows: StudioState.rows,
+      cols: StudioState.cols,
+      subdivision: StudioState.subdivision,
+      gridSymmetryMode: StudioState.gridSymmetryMode,
+      blockSymmetryMode: StudioState.blockSymmetryMode,
+      syncBlockSymmetry: StudioState.syncBlockSymmetry,
+      allowedTiles: allowedArray
+    },
+    (arr) => arr[floor(random(arr.length))],
+    frozenMap
+  );
+
+  StudioState.frozenCells = frozenMap;
+  const ok = window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap, StudioState.frozenCells);
+
+  StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
+
+  if (typeof syncAllInputsFromState === 'function') syncAllInputsFromState();
+  if (typeof renderSwatchesPanel === 'function') renderSwatchesPanel();
+  if (typeof syncSymmetryPanelUI === 'function') syncSymmetryPanelUI();
+  if (typeof syncEditWorkspaceUI === 'function') syncEditWorkspaceUI();
+  if (typeof renderSupertileBuilderCanvas === 'function') renderSupertileBuilderCanvas();
+  if (typeof updateStatusBar === 'function') updateStatusBar();
+  syncFreezeUI();
+  syncD4Badge();
+  syncEditUndoUI();
+  saveStudioStateToStorage();
+  redraw();
+
+  return ok;
+}
+
+function pushGenerationHistory() {
+  // NOTE (4.2): the previous entry is captured by HistoryNav.captureBeforeRegeneration()
+  // at the top of regenerateMosaic(), before the mosaic is replaced. Capturing here would
+  // snapshot the *new* mosaic with editHistoryIndex already reset — a silent no-op.
   const snapshot = {
     seed: StudioState.seed,
     rows: StudioState.rows,
@@ -1511,8 +1591,7 @@ function resolveFreezeTargetPlacements(hit) {
     )
   };
 
-  const useScope = StudioState.freezeUseScope !== false;
-  const scopeMode = useScope ? StudioState.editScope : 'single';
+  const scopeMode = StudioState.editScope || 'single';
 
   const resolved = window.MosaicEngine.resolveStampRegionPlacements(
     StudioState.mosaicData,
@@ -1532,6 +1611,7 @@ function syncFreezeUI() {
   const statusRow = document.getElementById('freezeStatusRow');
   const label = document.getElementById('freezeCountLabel');
   const editorCount = document.getElementById('freezeToolCountBadge');
+  const btnClearEditor = document.getElementById('btnFreezeClearSelection');
   const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
 
   if (statusRow) {
@@ -1543,6 +1623,9 @@ function syncFreezeUI() {
   if (editorCount) {
     editorCount.textContent = count === 0 ? 'Nenhum' : `${count} ${count === 1 ? 'subtile' : 'subtiles'}`;
     editorCount.className = count === 0 ? 'prop-badge secondary' : 'prop-badge freeze-active';
+  }
+  if (btnClearEditor) {
+    btnClearEditor.disabled = count === 0;
   }
 }
 
@@ -1697,6 +1780,35 @@ function setBrushSizeMode(sizeMode) {
   syncEditWorkspaceUI();
   saveStudioStateToStorage();
   redraw();
+}
+
+/**
+ * Cycles the active tool's size (Round 6) — used by Shift+wheel over the canvas.
+ * Paint/Stamp cycle the brush; the Freeze tool cycles its own size.
+ */
+function cycleActiveToolSize(direction) {
+  const order = ['1', '2', '3', '4', 'block'];
+  const label = (value) => (value === 'block' ? 'Bloco' : `${value}×${value}`);
+
+  if (StudioState.activeTool === 'freeze') {
+    const current = Math.max(0, order.indexOf(String(StudioState.freezeSize)));
+    const next = order[(current + direction + order.length) % order.length];
+    StudioState.freezeSize = next;
+    syncEditWorkspaceUI();
+    showEditorToast(`Trava ${label(next)}`);
+    redraw();
+    return true;
+  }
+
+  if (StudioState.activeTool === 'paint' || StudioState.activeTool === 'stamp') {
+    const current = Math.max(0, order.indexOf(String(StudioState.brushSizeMode)));
+    const next = order[(current + direction + order.length) % order.length];
+    setBrushSizeMode(next);
+    showEditorToast(`Pincel ${label(next)}`);
+    return true;
+  }
+
+  return false;
 }
 
 function mouseDragged() {
@@ -1942,6 +2054,10 @@ function resetEditHistoryWithInitialSnapshot() {
   const initialSnap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
   StudioState.editHistory = initialSnap ? [initialSnap] : [];
   StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
+  // The document that is now on screen becomes the reference for the next destructive change.
+  if (window.DocumentSnapshot) {
+    StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
+  }
   syncEditUndoUI();
 }
 
@@ -1968,6 +2084,12 @@ function undoMosaicEdit() {
   if (StudioState.editHistoryIndex <= 0) return;
   StudioState.editHistoryIndex--;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
+
+  // 4.2/T3 — steps that cross a generation carry the whole document (cells + parameters).
+  if (window.DocumentSnapshot && window.DocumentSnapshot.hasDocument(snap)) {
+    if (restoreDocumentSnapshot(snap)) return;
+  }
+
   if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap, StudioState.frozenCells)) {
     syncFreezeUI();
     syncEditUndoUI();
@@ -1981,6 +2103,11 @@ function redoMosaicEdit() {
   if (StudioState.editHistoryIndex >= StudioState.editHistory.length - 1) return;
   StudioState.editHistoryIndex++;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
+
+  if (window.DocumentSnapshot && window.DocumentSnapshot.hasDocument(snap)) {
+    if (restoreDocumentSnapshot(snap)) return;
+  }
+
   if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap, StudioState.frozenCells)) {
     syncFreezeUI();
     syncEditUndoUI();
@@ -2263,17 +2390,42 @@ function handleMiniBuilderCanvasMouse(e, isDrag = false) {
   redraw();
 }
 
+/**
+ * Round 6 — the dock is a single contextual panel. Its title and the rail's first icon
+ * reflect the current context (generation vs. the active tool).
+ */
+const TOOL_CONTEXT_LABELS = {
+  inspect: 'Inspeção',
+  paint: 'Pincel',
+  rotate: 'Girar',
+  stamp: 'Carimbo',
+  freeze: 'Trava',
+  pan: 'Navegação',
+  zoom: 'Zoom'
+};
+
+function syncContextPanel() {
+  const isGenerator = StudioState.workspace === 'generate';
+  const btn = document.getElementById('btnContextGenerator');
+  if (btn) {
+    btn.classList.toggle('active', isGenerator);
+    btn.setAttribute('aria-pressed', isGenerator ? 'true' : 'false');
+  }
+  const title = document.getElementById('ctxPanelTitle');
+  if (title) {
+    title.textContent = isGenerator
+      ? 'Geração'
+      : (TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
+  }
+}
+
 function syncEditWorkspaceUI() {
   syncFreezeUI();
+  syncContextPanel();
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
 
-  // 1. Workspace Switcher ('generate' vs 'edit')
-  document.querySelectorAll('#workspaceSwitcher .ws-mode-btn').forEach((btn) => {
-    const isActive = btn.dataset.workspace === StudioState.workspace;
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-  });
+  // 1. Workspace panes (the old Gerador/Editor switch is now #btnContextGenerator)
 
   // 2. Right Dock Workspace Panes
   const genPane = document.getElementById('dock-workspace-generate');
@@ -2324,14 +2476,7 @@ function syncEditWorkspaceUI() {
   document.querySelectorAll('#freezeSizeControl .seg-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.freezeSize === StudioState.freezeSize);
   });
-  const useScopeCb = document.getElementById('freezeUseScope');
-  if (useScopeCb) {
-    useScopeCb.checked = StudioState.freezeUseScope !== false;
-  }
-  const scopeLbl = document.getElementById('freezeScopeLabel');
-  if (scopeLbl && window.UiFormat && typeof window.UiFormat.formatScopeChip === 'function') {
-    scopeLbl.textContent = window.UiFormat.formatScopeChip(StudioState.editScope, ensureSupertilePattern());
-  }
+
 
   const sameTileNotice = document.getElementById('sameTileNotice');
   if (sameTileNotice) {
@@ -2483,12 +2628,9 @@ function syncAllInputsFromState() {
   setVal('gridCols', StudioState.cols);
   setVal('gridMargin', StudioState.margin);
   setVal('seedInput', StudioState.seed);
-  setVal('paddingSlider', Math.round(StudioState.paddingRatio * 100));
+  setVal('paddingInput', Math.round(StudioState.paddingRatio * 100));
   setVal('fgColorPicker', StudioState.fgColor);
   setVal('bgColorPicker', StudioState.bgColor);
-
-  const padLbl = document.getElementById('paddingValueLabel');
-  if (padLbl) padLbl.textContent = `${Math.round(StudioState.paddingRatio * 100)}%`;
 
   const btnLockCanvas = document.getElementById('btnLockCanvasRatio');
   if (btnLockCanvas) {
@@ -2752,16 +2894,17 @@ function initStudioUI() {
     });
   });
 
-  const paddingSlider = document.getElementById('paddingSlider');
-  const paddingLabel = document.getElementById('paddingValueLabel');
-  paddingSlider?.addEventListener('input', () => {
-    const pct = parseInt(paddingSlider.value, 10) || 0;
+  const paddingInput = document.getElementById('paddingInput');
+  const applyPaddingValue = (raw) => {
+    const pct = Math.max(0, Math.min(25, parseInt(raw, 10) || 0));
     StudioState.paddingRatio = pct / 100;
-    if (paddingLabel) paddingLabel.textContent = `${pct}%`;
+    if (paddingInput && String(paddingInput.value) !== String(pct)) paddingInput.value = pct;
     renderSupertileBuilderCanvas();
     saveScheduler.schedule();
     redraw();
-  });
+  };
+  paddingInput?.addEventListener('input', () => applyPaddingValue(paddingInput.value));
+  paddingInput?.addEventListener('change', () => applyPaddingValue(paddingInput.value));
 
   const fgPicker = document.getElementById('fgColorPicker');
   const bgPicker = document.getElementById('bgColorPicker');
@@ -2836,7 +2979,7 @@ function initStudioUI() {
   const setActiveTool = (tool) => {
     saveScheduler.flush();
     StudioState.activeTool = tool;
-    if (tool === 'paint' || tool === 'rotate' || tool === 'stamp') {
+    if (tool === 'paint' || tool === 'rotate' || tool === 'stamp' || tool === 'freeze') {
       StudioState.workspace = 'edit';
     }
     const pasteboard = document.getElementById('artboard-pasteboard');
@@ -2853,14 +2996,16 @@ function initStudioUI() {
     if (StudioState.workspace === 'edit') {
       const isEditTool = StudioState.activeTool === 'paint' ||
         StudioState.activeTool === 'rotate' ||
-        StudioState.activeTool === 'stamp';
+        StudioState.activeTool === 'stamp' ||
+        StudioState.activeTool === 'freeze';
       if (!isEditTool) {
         StudioState.activeTool = 'paint';
       }
     } else {
       const isEditTool = StudioState.activeTool === 'paint' ||
         StudioState.activeTool === 'rotate' ||
-        StudioState.activeTool === 'stamp';
+        StudioState.activeTool === 'stamp' ||
+        StudioState.activeTool === 'freeze';
       if (isEditTool) {
         StudioState.activeTool = 'inspect';
       }
@@ -2870,8 +3015,9 @@ function initStudioUI() {
     redraw();
   };
 
-  document.querySelectorAll('#workspaceSwitcher .ws-mode-btn[data-workspace]').forEach((btn) => {
-    btn.addEventListener('click', () => setWorkspaceMode(btn.dataset.workspace));
+  // Round 6: the first icon of the tool column opens the generation panel.
+  document.getElementById('btnContextGenerator')?.addEventListener('click', () => {
+    setWorkspaceMode('generate');
   });
 
 
@@ -2902,13 +3048,10 @@ function initStudioUI() {
     });
   });
 
-  const freezeScopeCheckbox = document.getElementById('freezeUseScope');
-  if (freezeScopeCheckbox) {
-    freezeScopeCheckbox.addEventListener('change', () => {
-      StudioState.freezeUseScope = freezeScopeCheckbox.checked;
-      syncEditWorkspaceUI();
-      saveStudioStateToStorage();
-      redraw();
+  const btnFreezeClearSelection = document.getElementById('btnFreezeClearSelection');
+  if (btnFreezeClearSelection) {
+    btnFreezeClearSelection.addEventListener('click', () => {
+      clearFrozenCells();
     });
   }
 
@@ -3166,6 +3309,12 @@ function initStudioUI() {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 15 : -15;
       setZoomPercent(StudioState.zoomPercent + delta);
+      return;
+    }
+
+    // Round 6: Shift+wheel cycles the active size; plain wheel keeps scrolling the pasteboard.
+    if (e.shiftKey && cycleActiveToolSize(e.deltaY < 0 ? 1 : -1)) {
+      e.preventDefault();
     }
   }, { passive: false });
 
@@ -3318,13 +3467,25 @@ function initStudioUI() {
     const k = e.key.toLowerCase();
     const isEditTool = StudioState.activeTool === 'paint' ||
       StudioState.activeTool === 'rotate' ||
-      StudioState.activeTool === 'stamp';
+      StudioState.activeTool === 'stamp' ||
+      StudioState.activeTool === 'freeze';
+
+    if (StudioState.activeTool === 'freeze' && (e.key === 'Delete' || e.key === 'Backspace')) {
+      e.preventDefault();
+      clearFrozenCells();
+      return;
+    }
 
     if (k === 'g') {
       e.preventDefault();
       triggerRandomSeed();
     } else if (k === 'f') {
-      setActiveTool('freeze');
+      if (e.shiftKey) {
+        e.preventDefault();
+        clearFrozenCells();
+      } else {
+        setActiveTool('freeze');
+      }
     } else if (k === 'v') {
       setActiveTool('inspect');
     } else if (k === 'b') {

@@ -41,12 +41,16 @@ async function main() {
   });
   console.log(`HTTP Server running at http://127.0.0.1:${port}`);
 
-  // 2. Start Headless Edge
+  // 2. Select Browser (Prefer Brave, fallback to Edge)
+  const bravePath = 'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe';
   const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-  const userDataDir = path.join(os.tmpdir(), 'edge_shots_' + Date.now());
-  const cdpPort = 9223;
+  const browserPath = fs.existsSync(bravePath) ? bravePath : edgePath;
+  console.log(`Using browser: ${browserPath}`);
 
-  const proc = spawn(edgePath, [
+  const userDataDir = path.join(os.tmpdir(), 'browser_shots_' + Date.now());
+  const cdpPort = 9330 + Math.floor(Math.random() * 500);
+
+  const proc = spawn(browserPath, [
     '--headless=new',
     `--remote-debugging-port=${cdpPort}`,
     '--disable-gpu',
@@ -54,20 +58,32 @@ async function main() {
     '--window-size=1440,900'
   ]);
 
-  await new Promise(r => setTimeout(r, 1500));
-
-  // 3. Connect to CDP
+  // Wait for CDP readiness
   async function cdpRequest(endpoint) {
     return new Promise((resolve, reject) => {
       http.get(`http://127.0.0.1:${cdpPort}${endpoint}`, res => {
         let data = '';
         res.on('data', chunk => data += chunk);
-        res.on('end', () => resolve(JSON.parse(data)));
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+        });
       }).on('error', reject);
     });
   }
 
-  const targets = await cdpRequest('/json/list');
+  let targets = null;
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 200));
+    try {
+      targets = await cdpRequest('/json/list');
+      if (targets && targets.length > 0) break;
+    } catch (e) {}
+  }
+
+  if (!targets || targets.length === 0) {
+    throw new Error('Failed to connect to browser CDP port ' + cdpPort);
+  }
+
   const target = targets[0];
   console.log('Connecting to WebSocket:', target.webSocketDebuggerUrl);
 
@@ -89,10 +105,17 @@ async function main() {
     }
   };
 
-  function sendCommand(method, params = {}) {
+  function sendCommand(method, params = {}, timeoutMs = 10000) {
     return new Promise((resolve, reject) => {
       const id = msgId++;
-      pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`CDP command ${method} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+      pending.set(id, {
+        resolve: (val) => { clearTimeout(timer); resolve(val); },
+        reject: (err) => { clearTimeout(timer); reject(err); }
+      });
       ws.send(JSON.stringify({ id, method, params }));
     });
   }
@@ -132,12 +155,9 @@ async function main() {
   // Capture 1: Freeze rail active in Editor workspace with Editor freeze options
   console.log('Setting up Freeze tool active in Editor workspace...');
   await evaluate(`(() => {
-    const editBtn = document.querySelector('#workspaceSwitcher .ws-mode-btn[data-workspace="edit"]');
-    if (editBtn) editBtn.click();
-    const freezeTool = document.querySelector('#toolFreeze');
+    const freezeTool = document.getElementById('toolFreeze');
     if (freezeTool) freezeTool.click();
-    // Freeze 4 cells
-    if (window.mosaicData && window.mosaicData.cells) {
+    if (window.StudioState && StudioState.frozenCells) {
       StudioState.frozenCells.set('0,0,0,0', { baseTileId: 1, transform: 0, tileId: 1 });
       StudioState.frozenCells.set('0,0,0,1', { baseTileId: 1, transform: 0, tileId: 1 });
       StudioState.frozenCells.set('0,0,1,0', { baseTileId: 1, transform: 0, tileId: 1 });
@@ -149,10 +169,10 @@ async function main() {
   await new Promise(r => setTimeout(r, 600));
   results.push(await captureScreenshot('freeze_editor_options_1440x900.png'));
 
-  // Capture 2: Freeze rail active in Generator workspace with freeze status row visible
-  console.log('Setting up Freeze tool in Generator workspace...');
+  // Capture 2: Generator workspace with freeze status row visible
+  console.log('Setting up Generator workspace with freeze status row...');
   await evaluate(`(() => {
-    const genBtn = document.querySelector('#workspaceSwitcher .ws-mode-btn[data-workspace="generate"]');
+    const genBtn = document.getElementById('btnContextGenerator');
     if (genBtn) genBtn.click();
     syncFreezeUI();
     if (window.redraw) redraw();
@@ -163,8 +183,8 @@ async function main() {
   // Capture 3: Freeze rail active with Unfreeze (☀ Descongelar) mode selected in Editor
   console.log('Setting up Unfreeze mode in Editor...');
   await evaluate(`(() => {
-    const editBtn = document.querySelector('#workspaceSwitcher .ws-mode-btn[data-workspace="edit"]');
-    if (editBtn) editBtn.click();
+    const freezeTool = document.getElementById('toolFreeze');
+    if (freezeTool) freezeTool.click();
     const unfreezeBtn = document.querySelector('#freezeModeControl .seg-btn[data-freeze-mode="unfreeze"]');
     if (unfreezeBtn) unfreezeBtn.click();
     syncFreezeUI();
@@ -178,7 +198,6 @@ async function main() {
   await evaluate(`(() => {
     const freezeBtn = document.querySelector('#freezeModeControl .seg-btn[data-freeze-mode="freeze"]');
     if (freezeBtn) freezeBtn.click();
-    // Add more frozen cells across the canvas to show asterisk overlay clearly
     StudioState.frozenCells.set('1,1,0,0', { baseTileId: 2, transform: 2, tileId: 2 });
     StudioState.frozenCells.set('1,1,0,1', { baseTileId: 2, transform: 2, tileId: 2 });
     StudioState.frozenCells.set('1,1,1,0', { baseTileId: 2, transform: 2, tileId: 2 });

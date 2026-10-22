@@ -22,7 +22,7 @@ const html = fs.readFileSync(path.join(baseDir, 'index.html'), 'utf8');
 assert.ok(html.includes('id="freezeToolOptionsWrap"'), '#freezeToolOptionsWrap must exist in index.html');
 assert.ok(html.includes('id="freezeModeControl"'), '#freezeModeControl must exist in index.html');
 assert.ok(html.includes('id="freezeSizeControl"'), '#freezeSizeControl must exist in index.html');
-assert.ok(html.includes('id="freezeUseScope"'), '#freezeUseScope must exist in index.html');
+assert.ok(html.includes('id="btnFreezeClearSelection"'), '#btnFreezeClearSelection must exist in index.html');
 assert.ok(html.includes('data-freeze-mode="freeze"'), 'freeze mode button must exist');
 assert.ok(html.includes('data-freeze-mode="unfreeze"'), 'unfreeze mode button must exist');
 console.log('✓ All T4 freeze tool controls exist in index.html.');

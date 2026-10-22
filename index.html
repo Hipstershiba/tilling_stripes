@@ -151,21 +151,7 @@
 
       <div class="bar-spacer"></div>
 
-      <!-- Export Controls -->
-      <div class="bar-group export-bar-group" aria-label="Exportar Mosaico">
-        <select id="exportFormatSelect" class="bar-select" title="Formato de exportação">
-          <option value="png" selected>PNG (Imagem)</option>
-          <option value="svg">SVG (Vetor)</option>
-        </select>
-        <button id="btnExport" class="bar-export-btn" title="Baixar arquivo do mosaico atual">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span>Exportar</span>
-        </button>
-      </div>
+      <!-- Export moved to the status bar (Round 6) -->
     </header>
 
     <!-- Floating Seed History Popover (Outside top bar so it is never clipped by overflow or canvas) -->
@@ -177,9 +163,40 @@
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
     <div id="workspace-body">
 
+      <!-- LEFT RAIL — reserved column for document-level actions (Round 6) -->
+      <aside id="left-rail" aria-label="Ações do documento">
+        <div class="left-rail-top">
+          <span class="left-rail-brand" title="Tiling Stripes Studio">TS</span>
+        </div>
+        <div class="left-rail-bottom">
+          <button type="button" id="btnEditUndo" class="left-rail-btn" title="Desfazer Edição (Ctrl+Z)" aria-label="Desfazer" disabled>↶</button>
+          <span id="editHistoryStepLabel" class="left-rail-step">0</span>
+          <button type="button" id="btnEditRedo" class="left-rail-btn" title="Refazer Edição (Ctrl+Y)" aria-label="Refazer" disabled>↷</button>
+        </div>
+      </aside>
+
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
-        <!-- Selection & Mosaic Editing Tools -->
+        <!-- Context: generator panel (Round 6 — replaces the Gerador/Editor switch) -->
+        <div class="tool-section" aria-label="Contexto do painel">
+          <button id="btnContextGenerator" class="tool-btn ctx-btn active" title="Painel de geração — grade, simetria e tiles (G)" aria-pressed="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Panel collapse — lives in the tool column so it survives the panel being collapsed -->
+        <div class="tool-section" aria-label="Painel lateral">
+          <button type="button" id="btnToggleRightDock" class="tool-btn active" title="Recolher painel lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
+            <span class="dock-toggle-icon">«</span>
+          </button>
+        </div>
+
+        <div class="tool-divider"></div>
         <div class="tool-section" aria-label="Ferramentas de Inspeção e Edição">
           <button id="toolInspect" class="tool-btn active" data-tool="inspect"
             title="Inspecionar Mosaico — Modo Gerador (Tecla V)">
@@ -254,6 +271,43 @@
           </button>
         </div>
 
+        <!-- Visual Guides — back to the tool column, between zoom and colors -->
+        <div class="tool-divider"></div>
+
+        <div class="tool-section" aria-label="Guias Visuais">
+          <button id="toggleGuideAxes" class="tool-btn guide-toggle" title="Mostrar/Ocultar Eixos de Simetria (Tecla A)" aria-pressed="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+          <button id="toggleGuideBlocks" class="tool-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos" aria-pressed="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="3" y1="15" x2="21" y2="15"></line>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+          </button>
+          <button id="toggleGuideSubtiles" class="tool-btn guide-toggle" title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)" aria-pressed="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+          <button id="toggleGuideOrbits" class="tool-btn guide-toggle" title="Mostrar/Ocultar Mapa de Órbitas (Tecla O)" aria-pressed="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
+              <polyline points="12 7 15 10 12 13"></polyline>
+              <path d="M9 10h6"></path>
+            </svg>
+          </button>
+        </div>
+
         <!-- Illustrator-style Color Scheme Swatches Widget (pinned to footer of left toolbar) -->
         <div class="tool-section color-tool-section" aria-label="Esquema de Cores (Estilo Illustrator)">
           <div class="illustrator-color-widget">
@@ -316,37 +370,18 @@
           </div>
 
           <div id="status-right" class="status-right">
-            <div class="status-guides-group" role="group" aria-label="Guias Visuais">
-              <button type="button" id="toggleGuideAxes" class="status-guide-btn" data-tooltip="Eixos de Simetria (A)" aria-label="Eixos de Simetria" aria-pressed="false">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="12" y1="2" x2="12" y2="22"></line>
-                  <line x1="2" y1="12" x2="22" y2="12"></line>
-                  <circle cx="12" cy="12" r="3"></circle>
+            <div class="bar-group export-bar-group status-export-group" aria-label="Exportar Mosaico">
+              <select id="exportFormatSelect" class="bar-select" title="Formato de exportação">
+                <option value="png" selected>PNG</option>
+                <option value="svg">SVG</option>
+              </select>
+              <button id="btnExport" class="bar-export-btn" title="Baixar arquivo do mosaico atual">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-              </button>
-              <button type="button" id="toggleGuideBlocks" class="status-guide-btn" data-tooltip="Grade de Blocos" aria-label="Grade de Blocos" aria-pressed="false">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="3" y1="15" x2="21" y2="15"></line>
-                  <line x1="9" y1="3" x2="9" y2="21"></line>
-                  <line x1="15" y1="3" x2="15" y2="21"></line>
-                </svg>
-              </button>
-              <button type="button" id="toggleGuideSubtiles" class="status-guide-btn" data-tooltip="Micro-Grade de Subtiles (M)" aria-label="Micro-Grade de Subtiles" aria-pressed="false">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-              </button>
-              <button type="button" id="toggleGuideOrbits" class="status-guide-btn" data-tooltip="Mapa de Órbitas (O)" aria-label="Mapa de Órbitas" aria-pressed="false">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
-                  <polyline points="12 7 15 10 12 13"></polyline>
-                  <path d="M9 10h6"></path>
-                </svg>
+                <span>Exportar</span>
               </button>
             </div>
             <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
@@ -354,33 +389,11 @@
         </footer>
       </main>
 
-      <!-- RIGHT DOCK PANELS (Contextual: Modo Gerador vs Modo Editor) -->
+      <!-- RIGHT DOCK PANELS (contextual: generation vs. active tool) -->
       <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
-        <!-- Dock Header: Workspace Switcher (Gerador vs Editor) + Collapse Drawer Toggle -->
+        <!-- Dock Header: context title + collapse toggle (the Gerador/Editor switch moved to the rail) -->
         <header id="dock-header">
-          <div class="workspace-mode-switcher" id="workspaceSwitcher" role="tablist" aria-label="Modo de Trabalho">
-            <button type="button" class="ws-mode-btn active" data-workspace="generate" role="tab" aria-selected="true"
-              title="Modo Gerador — Configurar Grade, Simetria e Filtros de Tiles">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-              </svg>
-              <span>Gerador</span>
-            </button>
-            <button type="button" class="ws-mode-btn" data-workspace="edit" role="tab" aria-selected="false"
-              title="Modo Editor — Pintar, Girar e Carimbar com Simetria D4">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-              </svg>
-              <span>Editor</span>
-            </button>
-          </div>
-          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
-            <span class="dock-toggle-icon">«</span>
-          </button>
+          <span id="ctxPanelTitle" class="dock-context-title">Geração</span>
         </header>
 
         <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
@@ -465,13 +478,19 @@
                 </div>
               </div>
 
-              <!-- Padding (Respiro) -->
+              <!-- Padding (Respiro) — numeric chip like W/H (Round 6) -->
               <div class="prop-section">
                 <div class="prop-label-row">
-                  <label class="prop-label" for="paddingSlider">Respiro Interno (Padding)</label>
-                  <span id="paddingValueLabel" class="prop-mono">5%</span>
+                  <label class="prop-label" for="paddingInput">Respiro Interno (Padding)</label>
                 </div>
-                <input type="range" id="paddingSlider" min="0" max="25" step="1" value="5" class="panel-slider" data-tooltip="Espaçamento interno dos azulejos">
+                <div class="input-chip chip-medium" data-tooltip="Espaçamento interno dos azulejos (%)">
+                  <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
+                  <div class="chip-steppers">
+                    <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar respiro">▴</button>
+                    <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir respiro">▾</button>
+                  </div>
+                  <span class="chip-suffix">%</span>
+                </div>
               </div>
 
               <!-- Status de Subtiles Congelados (visível apenas quando há travas) -->
@@ -546,13 +565,6 @@
                   <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
                 </svg>
                 <span>Edição &amp; Simetria</span>
-              </div>
-              <div class="edit-undo-bar" onclick="event.stopPropagation();">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)"
-                  disabled>↶</button>
-                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Y)"
-                  disabled>↷</button>
               </div>
               <span class="panel-chevron">▾</span>
             </header>
@@ -673,10 +685,16 @@
                   <button type="button" data-freeze-size="block" class="seg-btn">Bloco</button>
                 </div>
 
-                <label class="prop-checkbox" style="margin-top: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" id="freezeUseScope" checked>
-                  <span>Aplicar ao escopo (<span id="freezeScopeLabel">Centro • 8 eixos</span>)</span>
-                </label>
+                <div class="freeze-actions-row" style="margin-top: 10px;">
+                  <button type="button" id="btnFreezeClearSelection" class="freeze-action-btn" title="Descongelar todos os subtiles (Shift+F ou Delete)" disabled>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Descongelar Tudo</span>
+                    <kbd style="font-size: 10px; opacity: 0.7; margin-left: 4px;">⇧F</kbd>
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -785,6 +803,7 @@
   <script src="core/mosaic_engine.js"></script>
   <script src="core/state_persistence.js"></script>
   <script src="core/history_nav.js"></script>
+  <script src="core/document_snapshot.js"></script>
   <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
   <!-- Main Studio Controller -->

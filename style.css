@@ -150,6 +150,14 @@ html, body {
   padding-right: 2px;
 }
 
+.chip-suffix {
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  user-select: none;
+  padding-left: 2px;
+}
+
 .input-chip input[type="number"] {
   background: transparent;
   border: none;
@@ -408,11 +416,85 @@ html, body {
   overflow: hidden;
 }
 
+/* Round 6 — geography: rail | canvas | tools | dock.
+   Order is applied with flex `order` so the DOM (and the ids) stay untouched. */
+#workspace-body > #left-rail        { order: 0; }
+#workspace-body > #workspace-viewport { order: 1; }
+#workspace-body > #left-toolbar     { order: 2; }
+#workspace-body > #right-dock       { order: 3; }
+
+/* ==================== LEFT RAIL (reserved) ==================== */
+#left-rail {
+  width: 44px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.left-rail-top,
+.left-rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.left-rail-brand {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #fff;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.left-rail-btn {
+  width: 32px;
+  height: 26px;
+  border-radius: 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.left-rail-btn:hover:not(:disabled) {
+  background: var(--bg-control-hover);
+  color: var(--text-primary);
+}
+
+.left-rail-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.left-rail-step {
+  font-size: 9px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ==================== LEFT TOOLBAR ==================== */
 #left-toolbar {
   width: var(--left-tool-w);
   background: var(--bg-panel);
-  border-right: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -537,6 +619,26 @@ html, body {
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+}
+
+/* Export moved to the status bar (Round 6) */
+.status-export-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-export-group .bar-select {
+  height: 22px;
+  padding: 0 2px;
+  font-size: 10.5px;
+}
+
+.status-export-group .bar-export-btn {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  gap: 4px;
 }
 
 .status-center {
@@ -671,6 +773,18 @@ html, body {
   flex-shrink: 0;
 }
 
+.dock-context-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #dock-header #workspaceSwitcher {
   flex: 1;
 }
@@ -718,11 +832,7 @@ body.right-dock-collapsed #persistenceWarning {
 }
 
 body.right-dock-collapsed #dock-header {
-  flex-direction: column;
-  height: auto;
-  padding: 8px 0;
-  gap: 8px;
-  align-items: center;
+  display: none; /* the collapse control now lives in the tool column */
 }
 
 body.right-dock-collapsed #workspaceSwitcher {
@@ -2024,8 +2134,8 @@ select:focus-visible {
 
 /* Adobe Illustrator-style Color Scheme Swatches Widget on Left Toolbar */
 .color-tool-section {
-  margin-top: auto;
-  margin-bottom: 8px;
+  margin-top: 6px;
+  margin-bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2344,4 +2454,34 @@ select:focus-visible {
 /* Freeze tool canvas cursor */
 body[data-active-tool="freeze"] #canvas-stage canvas {
   cursor: cell !important;
+}
+.freeze-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.08);
+  color: #f87171;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.freeze-action-btn:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #fca5a5;
+}
+
+.freeze-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
 }

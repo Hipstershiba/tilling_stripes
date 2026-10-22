@@ -46,10 +46,29 @@ const statusRowContent = html.slice(statusRowIdx, statusRowCloseIdx);
 assert.ok(statusRowContent.includes('id="btnClearFrozen"'), '#btnClearFrozen must be inside #freezeStatusRow');
 console.log('✓ #btnClearFrozen inside #freezeStatusRow verified.');
 
-// 6. Mode, Size, Scope controls exist
+// 6. Mode, Size, and Clear Selection controls exist; redundant freezeUseScope checkbox absent
 assert.ok(html.includes('id="freezeModeControl"'), '#freezeModeControl must exist');
 assert.ok(html.includes('id="freezeSizeControl"'), '#freezeSizeControl must exist');
-assert.ok(html.includes('id="freezeUseScope"'), '#freezeUseScope must exist');
-console.log('✓ All freeze mode, size, and scope controls exist.');
+assert.ok(html.includes('id="btnFreezeClearSelection"'), '#btnFreezeClearSelection must exist in editor');
+assert.ok(!html.includes('id="freezeUseScope"'), '#freezeUseScope checkbox must be absent (free scope already exists)');
+console.log('✓ All freeze mode, size, and clear selection controls verified.');
+
+// 7. Verify keyboard shortcuts in sketch.js: Shift+F and Delete/Backspace
+const sketchCode = fs.readFileSync(path.join(baseDir, 'sketch.js'), 'utf8');
+assert.ok(
+  sketchCode.includes("k === 'f'") && sketchCode.includes("e.shiftKey") && sketchCode.includes("clearFrozenCells"),
+  'Shift+F shortcut must trigger clearFrozenCells in sketch.js'
+);
+assert.ok(
+  sketchCode.includes("StudioState.activeTool === 'freeze'") &&
+  sketchCode.includes("e.key === 'Delete'") &&
+  sketchCode.includes("clearFrozenCells"),
+  'Delete/Backspace shortcut must trigger clearFrozenCells when freeze tool is active'
+);
+assert.ok(
+  sketchCode.includes("btnFreezeClearSelection.addEventListener('click'"),
+  '#btnFreezeClearSelection must have click listener in sketch.js'
+);
+console.log('✓ Freeze clear selection button listener and shortcuts (Shift+F, Delete/Backspace) verified.');
 
 console.log('--- ALL FREEZE UI CONTRACT CHECKS PASSED! ---');
