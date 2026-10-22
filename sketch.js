@@ -2584,7 +2584,7 @@ const TOOL_CONTEXT_LABELS = {
   rotate: 'Girar',
   stamp: 'Carimbo',
   freeze: 'Trava',
-  pan: 'Navegação',
+  pan: 'Pan',
   zoom: 'Zoom'
 };
 
