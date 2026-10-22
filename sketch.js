@@ -92,6 +92,7 @@ const StudioState = {
   hoveredCell: null,
   thumbnailCache: new Map(),
   transformedThumbCache: new Map(),
+  savedCellsSnapshot: null,
 
   // Generation History
   history: [],
@@ -140,11 +141,313 @@ function ensureSupertilePattern() {
 }
 
 // ============================================================================
+// State Persistence (Preserve Mosaic Across Page Reloads)
+// ============================================================================
+
+const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_state_v2';
+
+function saveStudioStateToStorage() {
+  try {
+    if (!StudioState.mosaicData) return;
+
+    const cellsSnapshot = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData);
+    const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+
+    const payload = {
+      version: 2,
+      totalTiles,
+      timestamp: Date.now(),
+      // Artboard / Canvas
+      width: StudioState.width,
+      height: StudioState.height,
+      lockCanvasRatio: StudioState.lockCanvasRatio,
+      canvasRatio: StudioState.canvasRatio,
+      zoomPercent: StudioState.zoomPercent,
+      zoomMode: StudioState.zoomMode,
+
+      // Grid & Structure
+      rows: StudioState.rows,
+      cols: StudioState.cols,
+      lockGridRatio: StudioState.lockGridRatio,
+      gridRatio: StudioState.gridRatio,
+      margin: StudioState.margin,
+      subdivision: StudioState.subdivision,
+      paddingRatio: StudioState.paddingRatio,
+
+      // Symmetry
+      gridSymmetryMode: StudioState.gridSymmetryMode,
+      blockSymmetryMode: StudioState.blockSymmetryMode,
+      syncBlockSymmetry: StudioState.syncBlockSymmetry,
+
+      // Colors
+      fgColor: StudioState.fgColor,
+      bgColor: StudioState.bgColor,
+
+      // Seed & Allowed Tiles
+      seed: StudioState.seed,
+      allowedTiles: Array.from(StudioState.allowedTiles),
+
+      // Workspace Context & Tool State
+      workspace: StudioState.workspace,
+      activeTool: StudioState.activeTool,
+      editScope: StudioState.editScope,
+      canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
+      editBrushTileId: StudioState.editBrushTileId,
+      editBrushTransform: StudioState.editBrushTransform,
+      brushSizeMode: StudioState.brushSizeMode,
+      brushSnapToBlock: StudioState.brushSnapToBlock,
+      supertilePattern: StudioState.supertilePattern,
+
+      // Rotate Tool State
+      rotateSizeMode: StudioState.rotateSizeMode,
+      rotateSnapToBlock: StudioState.rotateSnapToBlock,
+      rotateGroupMode: StudioState.rotateGroupMode,
+      rotateBehavior: StudioState.rotateBehavior,
+
+      // Clone / Stamp State
+      stampInteractionMode: StudioState.stampInteractionMode,
+
+      // Visual Guides
+      guides: StudioState.guides,
+
+      // The Exact Mosaic Data (All Painted / Rotated / Stamped Cells)
+      cellsSnapshot,
+
+      // Histories (Capped to preserve memory and storage)
+      history: StudioState.history.slice(-30),
+      historyIndex: StudioState.historyIndex,
+      editHistory: StudioState.editHistory.slice(-25),
+      editHistoryIndex: StudioState.editHistoryIndex
+    };
+
+    localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(payload));
+  } catch (err) {
+    console.warn('Failed to save StudioState to localStorage:', err);
+  }
+}
+
+function loadStudioStateFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_STUDIO_STATE);
+    if (!raw) return false;
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') return false;
+
+    const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+
+    // Artboard
+    if (typeof saved.width === 'number' && saved.width >= 100 && saved.width <= 4096) StudioState.width = saved.width;
+    if (typeof saved.height === 'number' && saved.height >= 100 && saved.height <= 4096) StudioState.height = saved.height;
+    if (typeof saved.lockCanvasRatio === 'boolean') StudioState.lockCanvasRatio = saved.lockCanvasRatio;
+    if (typeof saved.canvasRatio === 'number') StudioState.canvasRatio = saved.canvasRatio;
+    if (typeof saved.zoomPercent === 'number') StudioState.zoomPercent = saved.zoomPercent;
+    if (typeof saved.zoomMode === 'string') StudioState.zoomMode = saved.zoomMode;
+
+    // Grid
+    if (typeof saved.rows === 'number' && saved.rows >= 1 && saved.rows <= 32) StudioState.rows = saved.rows;
+    if (typeof saved.cols === 'number' && saved.cols >= 1 && saved.cols <= 32) StudioState.cols = saved.cols;
+    if (typeof saved.lockGridRatio === 'boolean') StudioState.lockGridRatio = saved.lockGridRatio;
+    if (typeof saved.gridRatio === 'number') StudioState.gridRatio = saved.gridRatio;
+    if (typeof saved.margin === 'number' && saved.margin >= 0) StudioState.margin = saved.margin;
+    if (typeof saved.subdivision === 'number' && saved.subdivision >= 1 && saved.subdivision <= 4) StudioState.subdivision = saved.subdivision;
+    if (typeof saved.paddingRatio === 'number' && saved.paddingRatio >= 0 && saved.paddingRatio <= 0.5) StudioState.paddingRatio = saved.paddingRatio;
+
+    // Symmetry
+    if (typeof saved.gridSymmetryMode === 'string' && window.D4Symmetry.SYMMETRY_MODES[saved.gridSymmetryMode]) {
+      StudioState.gridSymmetryMode = saved.gridSymmetryMode;
+    }
+    if (typeof saved.blockSymmetryMode === 'string' && window.D4Symmetry.SYMMETRY_MODES[saved.blockSymmetryMode]) {
+      StudioState.blockSymmetryMode = saved.blockSymmetryMode;
+    }
+    if (typeof saved.syncBlockSymmetry === 'boolean') StudioState.syncBlockSymmetry = saved.syncBlockSymmetry;
+
+    // Colors
+    if (typeof saved.fgColor === 'string') StudioState.fgColor = saved.fgColor;
+    if (typeof saved.bgColor === 'string') StudioState.bgColor = saved.bgColor;
+
+    // Seed
+    if (typeof saved.seed === 'number') StudioState.seed = saved.seed;
+
+    // Allowed Tiles (Automatically include newly added tiles if user had all tiles selected)
+    if (Array.isArray(saved.allowedTiles)) {
+      const validAllowed = saved.allowedTiles.filter((id) => Number.isInteger(id) && id >= 0 && id < totalTiles);
+      if (validAllowed.length > 0) {
+        const hadAllTiles = saved.allowedTiles.length >= (saved.totalTiles || totalTiles);
+        StudioState.allowedTiles = new Set(validAllowed);
+        if (hadAllTiles) {
+          for (let i = 0; i < totalTiles; i++) {
+            StudioState.allowedTiles.add(i);
+          }
+        }
+      }
+    }
+
+    // Workspace & Tool State
+    if (saved.workspace === 'generate' || saved.workspace === 'edit') StudioState.workspace = saved.workspace;
+    if (typeof saved.activeTool === 'string') StudioState.activeTool = saved.activeTool;
+    if (typeof saved.editScope === 'string' && window.MosaicEngine.EDIT_SCOPES[saved.editScope]) StudioState.editScope = saved.editScope;
+    if (typeof saved.canvasCenterSymmetry === 'string') StudioState.canvasCenterSymmetry = saved.canvasCenterSymmetry;
+    if (typeof saved.editBrushTileId === 'number' && saved.editBrushTileId >= 0 && saved.editBrushTileId < totalTiles) {
+      StudioState.editBrushTileId = saved.editBrushTileId;
+    }
+    if (typeof saved.editBrushTransform === 'string') StudioState.editBrushTransform = saved.editBrushTransform;
+    if (typeof saved.brushSizeMode === 'string') StudioState.brushSizeMode = saved.brushSizeMode;
+    if (typeof saved.brushSnapToBlock === 'boolean') StudioState.brushSnapToBlock = saved.brushSnapToBlock;
+
+    // Supertile pattern
+    if (saved.supertilePattern && Array.isArray(saved.supertilePattern.cells)) {
+      const pat = saved.supertilePattern;
+      for (let r = 0; r < pat.rows; r++) {
+        for (let c = 0; c < pat.cols; c++) {
+          const cell = pat.cells[r]?.[c];
+          if (cell) {
+            if (!Number.isInteger(cell.baseTileId) || cell.baseTileId < 0 || cell.baseTileId >= totalTiles) {
+              cell.baseTileId = 0;
+            }
+            if (!Number.isInteger(cell.tileId) || cell.tileId < 0 || cell.tileId >= totalTiles) {
+              cell.tileId = cell.baseTileId;
+            }
+          }
+        }
+      }
+      StudioState.supertilePattern = pat;
+      StudioState.stampBlock = pat;
+    }
+
+    // Rotate tool options
+    if (typeof saved.rotateSizeMode === 'string') StudioState.rotateSizeMode = saved.rotateSizeMode;
+    if (typeof saved.rotateSnapToBlock === 'boolean') StudioState.rotateSnapToBlock = saved.rotateSnapToBlock;
+    if (typeof saved.rotateGroupMode === 'string') StudioState.rotateGroupMode = saved.rotateGroupMode;
+    if (typeof saved.rotateBehavior === 'string') StudioState.rotateBehavior = saved.rotateBehavior;
+    if (typeof saved.stampInteractionMode === 'string') StudioState.stampInteractionMode = saved.stampInteractionMode;
+
+    // Guides
+    if (saved.guides && typeof saved.guides === 'object') {
+      StudioState.guides = Object.assign({}, StudioState.guides, saved.guides);
+    }
+
+    // Cells snapshot for mosaic reconstruction
+    if (saved.cellsSnapshot && Array.isArray(saved.cellsSnapshot.gridSnap)) {
+      StudioState.savedCellsSnapshot = saved.cellsSnapshot;
+    }
+
+    // Histories
+    if (Array.isArray(saved.history) && saved.history.length > 0) {
+      StudioState.history = saved.history;
+      StudioState.historyIndex = typeof saved.historyIndex === 'number' ? saved.historyIndex : saved.history.length - 1;
+    }
+
+    if (Array.isArray(saved.editHistory) && saved.editHistory.length > 0) {
+      StudioState.editHistory = saved.editHistory.filter((snap) => {
+        return snap && snap.rows === StudioState.rows && snap.cols === StudioState.cols && Array.isArray(snap.gridSnap);
+      });
+      StudioState.editHistoryIndex = typeof saved.editHistoryIndex === 'number'
+        ? Math.max(0, Math.min(StudioState.editHistory.length - 1, saved.editHistoryIndex))
+        : StudioState.editHistory.length - 1;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('Failed to load StudioState from localStorage:', err);
+    return false;
+  }
+}
+
+function restoreMosaicFromSavedState() {
+  if (!StudioState.savedCellsSnapshot) {
+    regenerateMosaic(true);
+    return;
+  }
+
+  // 1. Generate canonical mosaic structure
+  randomSeed(StudioState.seed);
+  const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
+  StudioState.mosaicData = window.MosaicEngine.generateMosaic(
+    {
+      rows: StudioState.rows,
+      cols: StudioState.cols,
+      subdivision: StudioState.subdivision,
+      gridSymmetryMode: StudioState.gridSymmetryMode,
+      blockSymmetryMode: StudioState.blockSymmetryMode,
+      syncBlockSymmetry: StudioState.syncBlockSymmetry,
+      allowedTiles: allowedArray
+    },
+    (arr) => arr[floor(random(arr.length))]
+  );
+
+  // 2. Restore cells from savedCellsSnapshot if dimensions match
+  const snap = StudioState.savedCellsSnapshot;
+  const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
+  if (
+    snap &&
+    snap.rows === StudioState.rows &&
+    snap.cols === StudioState.cols &&
+    snap.subtilesPerSide === StudioState.mosaicData.subtilesPerSide &&
+    Array.isArray(snap.gridSnap)
+  ) {
+    for (let r = 0; r < snap.rows; r++) {
+      for (let c = 0; c < snap.cols; c++) {
+        for (let sr = 0; sr < snap.subtilesPerSide; sr++) {
+          for (let sc = 0; sc < snap.subtilesPerSide; sc++) {
+            const cell = snap.gridSnap[r]?.[c]?.[sr]?.[sc];
+            if (cell) {
+              if (!Number.isInteger(cell.baseTileId) || cell.baseTileId < 0 || cell.baseTileId >= totalTiles) {
+                cell.baseTileId = 0;
+              }
+              if (!Number.isInteger(cell.tileId) || cell.tileId < 0 || cell.tileId >= totalTiles) {
+                cell.tileId = cell.baseTileId;
+              }
+            }
+          }
+        }
+      }
+    }
+    window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap);
+  } else {
+    resetEditHistoryWithInitialSnapshot();
+    pushGenerationHistory();
+  }
+
+  if (StudioState.brushSizeMode === 'block' && StudioState.mosaicData) {
+    const N = StudioState.mosaicData.subtilesPerSide;
+    StudioState.supertilePattern = window.MosaicEngine.resizeSupertilePattern(
+      StudioState.supertilePattern,
+      N,
+      N,
+      StudioState.editBrushTileId,
+      StudioState.editBrushTransform
+    );
+  }
+  renderSupertileBuilderCanvas();
+
+  // If editHistory wasn't restored or is empty, initialize it
+  if (!Array.isArray(StudioState.editHistory) || StudioState.editHistory.length === 0) {
+    resetEditHistoryWithInitialSnapshot();
+  } else {
+    syncEditUndoUI();
+  }
+
+  renderHistoryUI();
+  syncSymmetryPanelUI();
+  updateStatusBar();
+  applyZoomTransform();
+  redraw();
+}
+
+window.clearStudioStorage = function () {
+  localStorage.removeItem(STORAGE_KEY_STUDIO_STATE);
+  console.log('Studio storage cleared.');
+};
+
+// ============================================================================
 // p5.js Lifecycle
 // ============================================================================
 
 function setup() {
   pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+  const hasSavedState = loadStudioStateFromStorage();
+
   const cnv = createCanvas(StudioState.width, StudioState.height);
   cnv.parent('canvas-stage');
 
@@ -152,16 +455,33 @@ function setup() {
   cnv.elt.addEventListener('contextmenu', (e) => e.preventDefault());
   cnv.elt.addEventListener('mousedown', handleCanvasMouseDown);
 
-  // Enable all built-in tiles initially
   const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
-  for (let i = 0; i < totalTiles; i++) {
-    StudioState.allowedTiles.add(i);
+  if (!hasSavedState || StudioState.allowedTiles.size === 0) {
+    for (let i = 0; i < totalTiles; i++) {
+      StudioState.allowedTiles.add(i);
+    }
+  } else {
+    StudioState.allowedTiles = new Set(
+      Array.from(StudioState.allowedTiles).filter((id) => Number.isInteger(id) && id >= 0 && id < totalTiles)
+    );
+    if (StudioState.allowedTiles.size === 0) {
+      for (let i = 0; i < totalTiles; i++) {
+        StudioState.allowedTiles.add(i);
+      }
+    }
   }
 
   ensureSupertilePattern();
   buildTileThumbnails();
   initStudioUI();
-  regenerateMosaic(true);
+
+  if (hasSavedState && StudioState.savedCellsSnapshot) {
+    restoreMosaicFromSavedState();
+  } else {
+    regenerateMosaic(true);
+  }
+
+  window.addEventListener('beforeunload', saveStudioStateToStorage);
 
   requestAnimationFrame(() => {
     syncZoomUI();
@@ -346,6 +666,8 @@ function regenerateMosaic(recordHistory = true) {
   if (recordHistory && !StudioState.isRestoringHistory) {
     pushGenerationHistory();
   }
+
+  saveStudioStateToStorage();
 
   syncSymmetryPanelUI();
   updateStatusBar();
@@ -948,6 +1270,7 @@ function rotateOrFlipActiveBrush(d4Key) {
   StudioState.editBrushTransform = window.D4Symmetry.composeD4(d4Key, StudioState.editBrushTransform || 'id');
   renderSupertileBuilderCanvas();
   syncEditWorkspaceUI();
+  saveStudioStateToStorage();
   redraw();
 }
 
@@ -972,6 +1295,7 @@ function setBrushSizeMode(sizeMode) {
   StudioState.stampBlock = StudioState.supertilePattern;
   renderSupertileBuilderCanvas();
   syncEditWorkspaceUI();
+  saveStudioStateToStorage();
   redraw();
 }
 
@@ -1157,6 +1481,7 @@ function pushEditHistorySnapshot() {
   }
   StudioState.editHistoryIndex = StudioState.editHistory.length - 1;
   syncEditUndoUI();
+  saveStudioStateToStorage();
 }
 
 function undoMosaicEdit() {
@@ -1165,6 +1490,7 @@ function undoMosaicEdit() {
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
   if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap)) {
     syncEditUndoUI();
+    saveStudioStateToStorage();
     redraw();
   }
 }
@@ -1175,6 +1501,7 @@ function redoMosaicEdit() {
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
   if (window.MosaicEngine.restoreMosaicCellsSnapshot(StudioState.mosaicData, snap)) {
     syncEditUndoUI();
+    saveStudioStateToStorage();
     redraw();
   }
 }
@@ -1256,6 +1583,7 @@ function buildEditWorkspaceUI() {
     btn.addEventListener('click', () => {
       StudioState.editScope = s.id;
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
     scopeGrid.appendChild(btn);
@@ -1344,6 +1672,7 @@ function renderEditBrushPalette() {
         renderEditBrushPalette();
         renderSupertileBuilderCanvas();
         syncEditWorkspaceUI();
+        saveStudioStateToStorage();
         redraw();
       });
 
@@ -1453,6 +1782,7 @@ function handleMiniBuilderCanvasMouse(e, isDrag = false) {
   StudioState.stampBlock = pat;
   renderSupertileBuilderCanvas();
   syncEditWorkspaceUI();
+  saveStudioStateToStorage();
   redraw();
 }
 
@@ -1638,6 +1968,17 @@ function syncAllInputsFromState() {
 
   const padLbl = document.getElementById('paddingValueLabel');
   if (padLbl) padLbl.textContent = `${Math.round(StudioState.paddingRatio * 100)}%`;
+
+  const btnLockCanvas = document.getElementById('btnLockCanvasRatio');
+  if (btnLockCanvas) {
+    btnLockCanvas.classList.toggle('locked', Boolean(StudioState.lockCanvasRatio));
+    btnLockCanvas.innerHTML = StudioState.lockCanvasRatio ? LOCK_ICON_SVG : UNLOCK_ICON_SVG;
+  }
+  const btnLockGrid = document.getElementById('btnLockGridRatio');
+  if (btnLockGrid) {
+    btnLockGrid.classList.toggle('locked', Boolean(StudioState.lockGridRatio));
+    btnLockGrid.innerHTML = StudioState.lockGridRatio ? LOCK_ICON_SVG : UNLOCK_ICON_SVG;
+  }
 }
 
 function initStudioUI() {
@@ -1755,6 +2096,7 @@ function initStudioUI() {
 
   marginInput?.addEventListener('input', () => {
     StudioState.margin = Math.max(0, parseInt(marginInput.value, 10) || 0);
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -1900,11 +2242,13 @@ function initStudioUI() {
   fgPicker?.addEventListener('input', () => {
     StudioState.fgColor = fgPicker.value;
     renderSupertileBuilderCanvas();
+    saveStudioStateToStorage();
     redraw();
   });
   bgPicker?.addEventListener('input', () => {
     StudioState.bgColor = bgPicker.value;
     renderSupertileBuilderCanvas();
+    saveStudioStateToStorage();
     redraw();
   });
   document.getElementById('btnSwapColors')?.addEventListener('click', () => {
@@ -1914,6 +2258,7 @@ function initStudioUI() {
     if (fgPicker) fgPicker.value = StudioState.fgColor;
     if (bgPicker) bgPicker.value = StudioState.bgColor;
     renderSupertileBuilderCanvas();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -1971,6 +2316,7 @@ function initStudioUI() {
       pasteboard.classList.toggle('panning', tool === 'pan' || StudioState.isSpaceDown);
     }
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   };
 
@@ -1992,6 +2338,7 @@ function initStudioUI() {
       }
     }
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   };
 
@@ -2016,6 +2363,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       StudioState.canvasCenterSymmetry = btn.dataset.centerSym || 'mandala_d4';
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
   });
@@ -2029,6 +2377,7 @@ function initStudioUI() {
         StudioState.rotateSnapToBlock = true;
       }
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
   });
@@ -2036,6 +2385,7 @@ function initStudioUI() {
   document.getElementById('btnRotateSnapBlock')?.addEventListener('click', () => {
     StudioState.rotateSnapToBlock = !StudioState.rotateSnapToBlock;
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -2043,6 +2393,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       StudioState.rotateGroupMode = btn.dataset.rotGroup || 'group';
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
   });
@@ -2051,6 +2402,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       StudioState.rotateBehavior = btn.dataset.rotMode || 'd4_r90';
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
   });
@@ -2065,6 +2417,7 @@ function initStudioUI() {
   document.getElementById('btnBrushSnapBlock')?.addEventListener('click', () => {
     StudioState.brushSnapToBlock = !StudioState.brushSnapToBlock;
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -2073,6 +2426,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       StudioState.stampInteractionMode = btn.dataset.stampMode || 'select';
       syncEditWorkspaceUI();
+      saveStudioStateToStorage();
       redraw();
     });
   });
@@ -2108,6 +2462,7 @@ function initStudioUI() {
     }
     renderSupertileBuilderCanvas();
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -2122,6 +2477,7 @@ function initStudioUI() {
     StudioState.stampBlock = StudioState.supertilePattern;
     renderSupertileBuilderCanvas();
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -2137,6 +2493,7 @@ function initStudioUI() {
     StudioState.stampBlock = StudioState.supertilePattern;
     renderSupertileBuilderCanvas();
     syncEditWorkspaceUI();
+    saveStudioStateToStorage();
     redraw();
   });
 
@@ -2160,6 +2517,7 @@ function initStudioUI() {
     btn.addEventListener('click', () => {
       StudioState.guides[guideKey] = !StudioState.guides[guideKey];
       btn.classList.toggle('active', StudioState.guides[guideKey]);
+      saveStudioStateToStorage();
       redraw();
     });
   };
@@ -2260,6 +2618,7 @@ function initStudioUI() {
           renderEditBrushPalette();
           renderSupertileBuilderCanvas();
           syncEditWorkspaceUI();
+          saveStudioStateToStorage();
           redraw();
         }
       }
