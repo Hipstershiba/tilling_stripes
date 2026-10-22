@@ -20,7 +20,7 @@
   --accent-amber: #f59e0b;
   --top-bar-h: 46px;
   --status-bar-h: 28px;
-  --left-tool-w: 184px;
+  --left-tool-w: 192px;
   --right-dock-w: 350px;
   --dock-rail-w: 44px;
 }
@@ -2779,4 +2779,28 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .history-item-meta {
   font-size: 9px;
   color: var(--text-muted);
+}
+
+#toolPan {
+  grid-column: span 2;
+  justify-content: center;
+}
+
+.history-item-seed {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.history-item-seed .seed-num {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.history-item-seed .history-item-time {
+  font-size: 9px;
+  opacity: 0.65;
+  font-family: sans-serif;
 }
