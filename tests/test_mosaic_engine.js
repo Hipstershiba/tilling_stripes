@@ -12,9 +12,9 @@ const {
   applySubtileEdit
 } = window.MosaicEngine;
 
-console.log('Testing MosaicEngine with 90 tiles across 3 symmetry modes...');
+console.log('Testing MosaicEngine with 89 tiles across 3 symmetry modes...');
 
-const allowedAll = Array.from({ length: 90 }, (_, i) => i);
+const allowedAll = Array.from({ length: 89 }, (_, i) => i);
 const randomPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 for (const symMode of ['mandala_d4', 'rotational_c4', 'bilateral_d2']) {

@@ -600,26 +600,8 @@ const TILE_RENDERERS = [
     ctx.endShape('CLOSE');
   },
 
-  // Family 21: Losango Vazado (Diamond Frame) (59)
-  function (ctx, w, h, padding, color) {
-    ctx.noFill();
-    ctx.stroke(color);
-    const dw = w - padding * 2;
-    const dh = h - padding * 2;
-    const weight = Math.min(dw, dh) * 0.12;
-    ctx.strokeWeight(weight);
-    const halfW = (dw - weight) / 2;
-    const halfH = (dh - weight) / 2;
-    ctx.beginShape();
-    ctx.vertex(0, -halfH);
-    ctx.vertex(halfW, 0);
-    ctx.vertex(0, halfH);
-    ctx.vertex(-halfW, 0);
-    ctx.endShape('CLOSE');
-  },
-
-  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
-  // Family 22: Meio Bloco & Círculo (60..63: L, R, T, B)
+// --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  // Family 21: Meio Bloco & Círculo (59..62: L, R, T, B)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -653,7 +635,7 @@ const TILE_RENDERERS = [
     ctx.ellipse(0, -dh / 4, dw / 2, dh / 2);
   },
 
-  // Family 23: Semicírculo de Borda (64..67: L, R, T, B)
+  // Family 22: Semicírculo de Borda (63..66: L, R, T, B)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -683,7 +665,7 @@ const TILE_RENDERERS = [
     drawSemicircle(ctx, 0, dh / 2, dw / 2, dh / 2, Math.PI, 2 * Math.PI);
   },
 
-  // Family 24: Arco de Quarto (Médio) (68..71: TL, TR, BR, BL)
+  // Family 23: Arco de Quarto (Médio) (67..70: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -713,7 +695,7 @@ const TILE_RENDERERS = [
     drawAnnularSector(ctx, -dw / 2, dh / 2, 0, 0, dw / 2, dh / 2, (3 * Math.PI) / 2, 2 * Math.PI);
   },
 
-  // Family 25: Arco de Quarto (Total) (72..75: TL, TR, BR, BL)
+  // Family 24: Arco de Quarto (Total) (71..74: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -743,7 +725,7 @@ const TILE_RENDERERS = [
     drawAnnularSector(ctx, -dw / 2, dh / 2, 0, 0, dw, dh, (3 * Math.PI) / 2, 2 * Math.PI);
   },
 
-  // Family 26: Pétala de Canto (Roseta) (76..79: TL, TR, BR, BL)
+  // Family 25: Pétala de Canto (Roseta) (75..78: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -773,7 +755,7 @@ const TILE_RENDERERS = [
     drawPetal(ctx, dw / 2, dh / 2, -dw / 2, 0, 0, Math.PI / 2, 0, dh / 2, Math.PI, (3 * Math.PI) / 2);
   },
 
-  // Family 27: Ondas de Canto (80..83: TL, TR, BR, BL)
+  // Family 26: Ondas de Canto (79..82: TL, TR, BR, BL)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
@@ -816,7 +798,7 @@ const TILE_RENDERERS = [
   },
 
   // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
-  // Family 28: Alvo Circular (Target) (84)
+  // Family 27: Alvo Circular (Target) (83)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
@@ -829,7 +811,7 @@ const TILE_RENDERERS = [
     ctx.ellipse(0, 0, dw * 0.2, dh * 0.2);
   },
 
-  // Family 29: Alvo Quadrado (85)
+  // Family 28: Alvo Quadrado (84)
   function (ctx, w, h, padding, color) {
     ctx.noFill();
     ctx.stroke(color);
@@ -842,7 +824,7 @@ const TILE_RENDERERS = [
     ctx.rect(-dw * 0.1, -dh * 0.1, dw * 0.2, dh * 0.2);
   },
 
-  // Family 30: Quatro Pontos (86)
+  // Family 29: Quatro Pontos (85)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -857,7 +839,7 @@ const TILE_RENDERERS = [
     ctx.ellipse(ox, oy, d, d);
   },
 
-  // Family 31: Três Pontos Diagonais (87, 88: TL-BR, TR-BL)
+  // Family 30: Três Pontos Diagonais (86, 87: TL-BR, TR-BL)
   function (ctx, w, h, padding, color) {
     ctx.fill(color);
     ctx.noStroke();
@@ -880,7 +862,7 @@ const TILE_RENDERERS = [
   },
 
   // --- GRUPO 6: ESPAÇO NEGATIVO ---
-  // Family 32: Tile Vazio (Espaço) (89)
+  // Family 31: Tile Vazio (Espaço) (88)
   function () {
     // Intentionally empty
   }
@@ -951,7 +933,6 @@ const TILE_NAMES = [
   "Ampulheta (Horizontal / Laço)",
   "Ampulheta (Vertical)",
   "Losango Sólido",
-  "Losango Vazado",
 
   // Grupo 4: Círculos, Arcos & Rosetas
   "Meio Bloco & Círculo (Esquerdo)",
@@ -1017,28 +998,27 @@ const TILE_FAMILIES_META = [
   { id: 'chevron',         name: 'Ponta de Flecha (Chevron)',    group: 'Massas Sólidas', tileIds: [52, 53, 54, 55] },
   { id: 'bowtie',          name: 'Ampulheta & Laço',             group: 'Massas Sólidas', tileIds: [56, 57] },
   { id: 'diamond',         name: 'Losango Sólido',               group: 'Massas Sólidas', tileIds: [58] },
-  { id: 'diamond-frame',   name: 'Losango Vazado',               group: 'Massas Sólidas', tileIds: [59] },
 
-  // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
-  { id: 'half-circle',     name: 'Meio Bloco & Círculo',         group: 'Círculos & Arcos', tileIds: [60, 61, 62, 63] },
-  { id: 'edge-semicircle', name: 'Semicírculo de Borda',         group: 'Círculos & Arcos', tileIds: [64, 65, 66, 67] },
-  { id: 'quarter-arc-mid', name: 'Arco de Quarto (Médio)',       group: 'Círculos & Arcos', tileIds: [68, 69, 70, 71] },
-  { id: 'quarter-arc-full',name: 'Arco de Quarto (Total)',       group: 'Círculos & Arcos', tileIds: [72, 73, 74, 75] },
-  { id: 'corner-petal',    name: 'Pétala de Canto (Roseta)',     group: 'Círculos & Arcos', tileIds: [76, 77, 78, 79] },
-  { id: 'corner-waves',    name: 'Ondas de Canto',               group: 'Círculos & Arcos', tileIds: [80, 81, 82, 83] },
+// --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
+  { id: 'half-circle',     name: 'Meio Bloco & Círculo',         group: 'Círculos & Arcos', tileIds: [59, 60, 61, 62] },
+  { id: 'edge-semicircle', name: 'Semicírculo de Borda',         group: 'Círculos & Arcos', tileIds: [63, 64, 65, 66] },
+  { id: 'quarter-arc-mid', name: 'Arco de Quarto (Médio)',       group: 'Círculos & Arcos', tileIds: [67, 68, 69, 70] },
+  { id: 'quarter-arc-full',name: 'Arco de Quarto (Total)',       group: 'Círculos & Arcos', tileIds: [71, 72, 73, 74] },
+  { id: 'corner-petal',    name: 'Pétala de Canto (Roseta)',     group: 'Círculos & Arcos', tileIds: [75, 76, 77, 78] },
+  { id: 'corner-waves',    name: 'Ondas de Canto',               group: 'Círculos & Arcos', tileIds: [79, 80, 81, 82] },
 
   // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
-  { id: 'target-circle',   name: 'Alvo Circular (Target)',       group: 'Focos & Pontos', tileIds: [84] },
-  { id: 'target-square',   name: 'Alvo Quadrado',                group: 'Focos & Pontos', tileIds: [85] },
-  { id: 'four-dots',       name: 'Quatro Pontos',                group: 'Focos & Pontos', tileIds: [86] },
-  { id: 'diagonal-dots',   name: 'Três Pontos Diagonais',        group: 'Focos & Pontos', tileIds: [87, 88] },
+  { id: 'target-circle',   name: 'Alvo Circular (Target)',       group: 'Focos & Pontos', tileIds: [83] },
+  { id: 'target-square',   name: 'Alvo Quadrado',                group: 'Focos & Pontos', tileIds: [84] },
+  { id: 'four-dots',       name: 'Quatro Pontos',                group: 'Focos & Pontos', tileIds: [85] },
+  { id: 'diagonal-dots',   name: 'Três Pontos Diagonais',        group: 'Focos & Pontos', tileIds: [86, 87] },
 
   // --- GRUPO 6: ESPAÇO NEGATIVO ---
-  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',          group: 'Espaço Negativo', tileIds: [89] }
+  { id: 'empty-tile',      name: 'Tile Vazio (Espaço)',          group: 'Espaço Negativo', tileIds: [88] }
 ];
 
 /**
- * Build exact D4 group action tables for all 90 built-in tiles across 33 families.
+ * Build exact D4 group action tables for all 89 built-in tiles across 32 families.
  * Every tileId maps under { id, r90, r180, r270, mx, my, md, mad } to its rotated/mirrored tileId.
  */
 const TILE_D4_MAP = (() => {
@@ -1122,24 +1102,23 @@ const TILE_D4_MAP = (() => {
   registerEdge4(52, 53, 54, 55);    // Family 18: Ponta de Flecha (Chevron)
   registerAxis2(56, 57);            // Family 19: Ampulheta & Laço
   registerSymmetric1(58);            // Family 20: Losango Sólido
-  registerSymmetric1(59);            // Family 21: Losango Vazado
 
   // --- GRUPO 4: CÍRCULOS, ARCOS & ROSETAS ---
-  registerEdge4(60, 61, 62, 63);    // Family 22: Meio Bloco & Círculo
-  registerEdge4(64, 65, 66, 67);    // Family 23: Semicírculo de Borda
-  registerCorner4(68, 69, 70, 71);  // Family 24: Arco de Quarto (Médio)
-  registerCorner4(72, 73, 74, 75);  // Family 25: Arco de Quarto (Total)
-  registerCorner4(76, 77, 78, 79);  // Family 26: Pétala de Canto (Roseta)
-  registerCorner4(80, 81, 82, 83);  // Family 27: Ondas de Canto
+  registerEdge4(59, 60, 61, 62);    // Family 21: Meio Bloco & Círculo
+  registerEdge4(63, 64, 65, 66);    // Family 22: Semicírculo de Borda
+  registerCorner4(67, 68, 69, 70);  // Family 23: Arco de Quarto (Médio)
+  registerCorner4(71, 72, 73, 74);  // Family 24: Arco de Quarto (Total)
+  registerCorner4(75, 76, 77, 78);  // Family 25: Pétala de Canto (Roseta)
+  registerCorner4(79, 80, 81, 82);  // Family 26: Ondas de Canto
 
   // --- GRUPO 5: FOCOS CENTRAIS & PONTOS ---
-  registerSymmetric1(84);            // Family 28: Alvo Circular (Target)
-  registerSymmetric1(85);            // Family 29: Alvo Quadrado
-  registerSymmetric1(86);            // Family 30: Quatro Pontos
-  registerDiag2(87, 88);            // Family 31: Três Pontos Diagonais
+  registerSymmetric1(83);            // Family 27: Alvo Circular (Target)
+  registerSymmetric1(84);            // Family 28: Alvo Quadrado
+  registerSymmetric1(85);            // Family 29: Quatro Pontos
+  registerDiag2(86, 87);            // Family 30: Três Pontos Diagonais
 
   // --- GRUPO 6: ESPAÇO NEGATIVO ---
-  registerSymmetric1(89);            // Family 32: Tile Vazio (Espaço)
+  registerSymmetric1(88);            // Family 31: Tile Vazio (Espaço)
 
   return map;
 })();
