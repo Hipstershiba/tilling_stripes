@@ -1,0 +1,40 @@
+name: Node Tests
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Tile Registry Tests
+        run: node tests/test_tile_registry.js
+
+      - name: Run Mosaic Engine Integration Tests
+        run: node tests/test_mosaic_engine.js
+
+      - name: Run State Persistence Tests
+        run: node tests/test_state_persistence.js
+
+      - name: Run D4 Symmetry Invariance Tests
+        run: node tests/test_d4_invariance.js
+
+      - name: Run History Limits & Trim Tests
+        run: node tests/test_history_limits.js
+
+      - name: Run Persistence Quota Tests
+        run: node tests/test_persistence_quota.js
+
+      - name: Run Editor UI State Tests
+        run: node tests/test_editor_ui_state.js

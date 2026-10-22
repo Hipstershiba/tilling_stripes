@@ -1,317 +1,134 @@
-# Manual de Manutencao e Evolucao
+# Manual de Manutenção e Arquitetura — Tiling Stripes Studio
 
-Este documento explica como manter, evoluir e depurar o projeto `tilling_stripes`.
-Tambem funciona como tutorial para quem quer aprender a construir uma aplicacao de arte generativa desse tipo.
-
-## Visao Geral
-
-A aplicacao gera padroes em grade com simetria, permite edicao em tempo real e suporta importacao de tiles SVG.
-
-Pilares do projeto:
-
-- Geracao deterministica por seed.
-- Composicao em camadas: `Subtile` -> `Tile` -> `Supertile`.
-- Registro central de tiles e familias no registry.
-- Fluxo de Assets para importar, editar, mover e remover tiles.
-- Historicos separados para geracao, edicao e assets.
-- Exportacao para PNG e SVG.
-
-## Mapa de Arquivos
-
-- `index.html`: estrutura da UI, IDs de controles e ordem de carga dos scripts.
-- `style.css`: layout e responsividade.
-- `sketch.js`: orquestrador principal (estado global, UI, eventos e render loop).
-- `tile_registry.js`: fonte de verdade de tiles, familias, nomes, derivados e snapshots.
-- `svg_tile_manager.js`: upload/sanitizacao de SVG, persistencia, backup/restore e operacoes de assets.
-- `tile_transforms.js`: compensacao de espelhamento para modo Paint.
-- `subtile.js`: unidade minima de renderizacao.
-- `tiles.js`: classe `Tile` (2x2 subtiles, com buffer de performance).
-- `supertile.js`: classe `Supertile` (2x2 tiles, com espelhamentos por quadrante).
-
-## Ordem de Carga e Bootstrap
-
-Ordem esperada dos scripts no `index.html`:
-
-1. `tile_registry.js`
-1. `svg_tile_manager.js`
-1. `tile_transforms.js`
-1. `subtile.js`
-1. `tiles.js`
-1. `supertile.js`
-1. `sketch.js`
-
-Motivo:
-
-- `sketch.js` depende de simbolos globais criados pelos arquivos anteriores.
-- Trocar essa ordem pode causar erro de startup por dependencia indefinida.
-
-Fluxo de inicializacao:
-
-1. `setup()` cria canvas e define seed inicial.
-1. `setupUI()` conecta Setup/Edit/Assets.
-1. `setupSvgUploadUI()` conecta import/export/restore de assets.
-1. `selectAllTiles()` ativa tipos iniciais.
-1. `initGrid()` gera a grade.
-
-## Modelo Mental de Dados
-
-Trabalhe sempre com 3 camadas:
-
-- Render:
-  - `TILE_RENDERERS`, `Tile`, `Supertile`, `Subtile`.
-- Catalogo:
-  - nomes, familias, visibilidade, derivados e backup.
-  - principal em `tile_registry.js` e `svg_tile_manager.js`.
-- Interacao:
-  - eventos da UI, atalhos e historicos em `sketch.js`.
-
-Quando houver bug, primeiro descubra em qual camada ele nasceu.
-
-## Como Cada Aba Funciona
-
-### Setup
-
-Objetivo:
-
-- Ajustar canvas, grade e seed.
-- Filtrar tipos permitidos em `Allowed Tiles`.
-
-Funcoes-chave:
-
-- `initGrid(recordHistory = true)`
-- `createAllowedTilesList()`
-- `updateAllowedTypes()`
-- `pushGenerationState()`
-- `restoreGenerationState()`
-
-### Edit
-
-Objetivo:
-
-- Pintar tiles e aplicar rotacoes por escopo.
-
-Funcoes-chave:
-
-- `getHitInfo()`
-- `mapVisualTargetToLogical()`
-- `buildScopePreviewTargets()`
-- `drawScopePreview()`
-- `mousePressed()`, `mouseDragged()`, `mouseReleased()`
-- `handleTileClick()`
-- `pushEditState()`, `undoEdit()`, `redoEdit()`, `restoreEditState()`
-
-### Assets
-
-Objetivo:
-
-- Organizar familias.
-- Importar SVG.
-- Renomear/mover/remover tiles.
-- Criar tiles editados e variantes.
-- Fazer backup/restore.
-
-Funcoes-chave:
-
-- `setupSvgUploadUI()`
-- `renderAssetFamilyList()`
-- `renderAssetTileGrid()`
-- `renderAssetInspector()`
-- `pushAssetsHistoryCheckpoint()`
-- `restoreAssetsHistoryTo()`
-
-## Tutorial de Evolucao Segura
-
-Sempre que criar uma feature:
-
-1. Defina a camada afetada (render, catalogo ou interacao).
-1. Reaproveite APIs e handlers existentes quando possivel.
-1. Mantenha estado e UI sincronizados.
-1. Proteja fluxos de restore contra regressao de IDs.
-1. Atualize documentacao de usuario e de manutencao.
-
-Dica pratica para Assets:
-
-- Depois de alterar dados de assets, normalmente voce precisa chamar:
-  - `refreshTileCatalogUI(...)`
-  - `pushAssetsHistoryCheckpoint()`
-
-## Cadastro de Tiles
-
-Existem dois caminhos:
-
-- Recomendado (UI Assets):
-  - Importa SVG na interface.
-  - Registra tile com `SVGTileManager.registerUploadedSvgTile(...)`.
-  - Persiste em `localStorage`.
-- Avancado (codigo):
-  - Usa `registerTile({ ... })` em `tile_registry.js`.
-  - Indicado para tile nativo com logica propria.
-
-## Backup, Restore e Escopos
-
-Escopos de backup:
-
-- `full`: arquivos + organizacao.
-- `tiles`: somente arquivos importados.
-- `layout`: somente organizacao.
-
-Funcoes relevantes:
-
-- `buildBackupPayload(options)`
-- `downloadBackup(...)`
-- `importBackupText(text, options)`
-
-Ponto critico:
-
-- IDs podem mudar entre sessoes.
-- O import precisa remapear oldId -> newId antes de aplicar snapshot de layout.
-- `hiddenTileIds` tambem deve ser remapeado.
-
-Teste obrigatorio apos mexer nisso:
-
-1. Exportar backup `full`.
-1. Limpar `localStorage`.
-1. Importar backup.
-1. Conferir familias, nomes e visibilidade.
-
-## Historicos
-
-Tipos de historico:
-
-- Geracao: seed e configuracao da grade.
-- Edicao: alteracoes no canvas.
-- Assets: alteracoes de biblioteca e layout de tiles.
-
-Regra:
-
-- Toda mutacao relevante precisa criar checkpoint no historico correto.
-- Evite checkpoints duplicados de estado identico.
-
-## Atalhos
-
-- Edit:
-  - `Ctrl+Z`
-  - `Ctrl+Shift+Z`
-- Assets:
-  - `Ctrl+Z`
-  - `Ctrl+Shift+Z`
-  - `Ctrl+Y`
-  - `Delete`/`Backspace` para remover selecao (com regras da aba)
-  - `Enter` para confirmar create/rename/move nos campos associados
-
-Boa pratica:
-
-- Atalhos devem ser contextuais a aba ativa para evitar conflitos.
-
-## Guia Rapido de Depuracao
-
-Fluxo recomendado:
-
-1. Reproduzir com passos minimos.
-1. Identificar camada afetada.
-1. Inspecionar estado atual:
-   - familia selecionada
-   - tileId selecionado
-   - snapshot de familias
-   - hidden IDs
-   - entries de storage
-1. Validar integracao:
-   - `getTileRegistrySnapshot()`
-   - `applyTileRegistrySnapshot(...)`
-   - `SVGTileManager.importBackupText(...)`
-1. Repetir cenario apos limpar `localStorage`.
-
-## Checklists
-
-Checklist de PR:
-
-- Setup/Edit/Assets funcionando.
-- Undo/redo sem regressao.
-- Import/export de backup funcional.
-- Sem erros de sintaxe.
-- Documentacao atualizada quando necessario.
-
-Checklist de release:
-
-- `develop` limpo.
-- Commit isolado por objetivo.
-- Merge para `main` sem conflitos.
-- Smoke test:
-  - gerar seed
-  - editar no canvas
-  - importar tile
-  - criar variante
-  - exportar/importar backup
-
-## Roteiro de Estudo Para Criar App Similar
-
-Trilha sugerida:
-
-1. Base p5.js (canvas, draw loop, coordenadas e eventos).
-1. Composicao em camadas (`Subtile -> Tile -> Supertile`).
-1. Registry central de componentes e metadados.
-1. UI orientada a estado.
-1. Persistencia local versionada.
-1. Backup/restore com remapeamento de IDs.
-1. Undo/redo por snapshot.
-1. Fluxo de release simples (`develop -> main`).
-
-## Limites Atuais e Melhorias
-
-Riscos atuais:
-
-- `sketch.js` concentrando muitas responsabilidades.
-- Dependencia intensa de estado global em `window`.
-- Ausencia de testes automatizados.
-
-Melhorias recomendadas:
-
-1. Extrair modulos de UI por aba.
-1. Criar servico isolado para historico.
-1. Adicionar testes de contrato para snapshot/import/export.
-1. Definir migracoes explicitas de versao de backup.
-
-## Referencia Rapida de Funcoes Criticas
-
-`sketch.js`:
-
-- `setup()`
-- `setupUI()`
-- `setupSvgUploadUI()`
-- `initGrid()`
-- `draw()`
-- `handleTileClick()`
-- `getHitInfo()`
-- `pushEditState()`
-- `undoEdit()`
-- `redoEdit()`
-- `pushAssetsHistoryCheckpoint()`
-- `restoreAssetsHistoryTo()`
-
-`tile_registry.js`:
-
-- `registerTile(config)`
-- `getTileRegistrySnapshot()`
-- `applyTileRegistrySnapshot(snapshot, options)`
-- `createDerivedTileFromExisting(...)`
-- `restoreBuiltInRegistryDefaults()`
-
-`svg_tile_manager.js`:
-
-- `registerUploadedSvgTile(config, options)`
-- `downloadBackup(...)`
-- `importBackupText(...)`
-- `inferTileIdMapFromRegistry(...)`
-- `exportHistoryState()`
-- `importHistoryState(...)`
-- `createEditedTile(...)`
-- `generateSymmetryVariants(...)`
+Este documento serve como guia técnico detalhado para desenvolvedores e mantenedores do projeto `tilling_stripes`.
 
 ---
 
-Se voce esta entrando agora no projeto:
+## 1. Visão Geral da Arquitetura
 
-1. Leia este manual.
-1. Leia `README.md`.
-1. Abra `index.html` para entender a estrutura da UI.
-1. Leia `sketch.js` para fluxo completo de execucao.
+O Tiling Stripes Studio é implementado em vanilla JavaScript (ES6+) e p5.js sem bundlers ou frameworks, organizado modularmente na pasta `core/`:
+
+```
+core/
+├── d4_symmetry.js     # Álgebra do grupo D4, estabilizadores e resolução de órbitas
+├── tile_registry.js   # Catálogo estático de 85 renderers vetoriais organizados em 31 famílias
+└── mosaic_engine.js   # Motor de geração determinística, propagação por escopo e snapshots
+sketch.js              # Controlador principal da UI, eventos de canvas, histórico e atalhos
+style.css              # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
+index.html             # Shell estrutural, dock contextual e ordem de carga
+tests/                 # Suíte de testes automatizados executáveis com Node.js
+```
+
+### Ordem Obrigatória de Carga dos Scripts em `index.html`
+
+```html
+<script src="libraries/p5.min.js"></script>
+<script src="libraries/simple-svg.js"></script>
+<script src="core/d4_symmetry.js"></script>
+<script src="core/tile_registry.js"></script>
+<script src="core/mosaic_engine.js"></script>
+<script src="sketch.js"></script>
+```
+
+---
+
+## 2. Álgebra de Simetria e Grupo Diédrico D4 (`core/d4_symmetry.js`)
+
+O grupo diédrico $D_4$ consiste nas 8 isometrias do quadrado:
+- `id`: Identidade (0°)
+- `r90`: Rotação de 90° no sentido horário
+- `r180`: Rotação de 180°
+- `r270`: Rotação de 270° no sentido horário
+- `mx`: Reflexão horizontal (troca colunas)
+- `my`: Reflexão vertical (troca linhas)
+- `md`: Reflexão na diagonal principal ($r = c$)
+- `mad`: Reflexão na anti-diagonal ($r + c = N - 1$)
+
+### Invariância e Estabilizadores de Célula
+
+Quando uma célula do mosaico $(r, c)$ é invariante sob uma transformação $g$ ($g(r, c) = (r, c)$), o elemento $g$ pertence ao **estabilizador** da célula ($\mathrm{Stab}(r, c)$).
+
+Para que o mosaico ou bloco seja matematicamente invariante sob $g$, o tile atribuído a essa célula **deve obrigatoriamente ser invariante sob $g$**:
+$$g(\mathrm{tileId}) = \mathrm{tileId}$$
+
+O módulo disponibiliza as seguintes funções matemáticas fundamentais:
+- `transformGridCoords(row, col, rows, cols, transformKey)`: Mapeia coordenadas em uma grade sob qualquer elemento de $D_4$.
+- `composeD4(outer, inner)`: Consulta a tabela pré-calculada de Cayley $8 \times 8$ para composição de transformações.
+- `invertD4(transformKey)`: Retorna o elemento inverso $g^{-1}$.
+- `getCellStabilizer(row, col, rows, cols, symmetryMode)`: Calcula o subgrupo estabilizador de uma coordenada.
+- `isTileInvariantUnder(tileId, g)`: Verifica se o tile não altera visualmente sob $g$.
+- `getCompatibleTiles(allowedTiles, stabilizer)`: Filtra o conjunto de tiles para aqueles compatíveis com todas as transformações do estabilizador.
+
+---
+
+## 3. Catálogo de Tiles (`core/tile_registry.js`)
+
+O catálogo é a fonte de verdade para a renderização vetorial:
+- 85 renderers procedurais (`TILE_RENDERERS`), indexados de 0 a 84.
+- 31 famílias fechadas sob a ação de $D_4$ (`TILE_FAMILIES_META`).
+- `TILE_D4_MAP`: Tabela $85 \times 8$ que define para cada tile e transformação em $D_4$ o tile resultante dentro da mesma família.
+- Tiles totalmente simétricos (invariantes sob todas as 8 transformações de $D_4$): IDs `#6, #37, #54, #79, #80, #81, #84`.
+
+> **Regra de Manutenção:** Não altere a numeração dos 85 IDs existentes sem migração de versão do storage, pois saves de usuários usam esses índices diretamente.
+
+---
+
+## 4. Motor de Mosaico (`core/mosaic_engine.js`)
+
+### Estrutura Hierárquica
+1. **Mosaico Macro**: Grade de $rows \times cols$ blocos (Supertiles).
+2. **Bloco / Supertile**: Bloco quadrado composto por $N \times N$ subtiles, onde $N = 2 \times \text{subdivisão}$.
+3. **Subtile**: Célula mínima que renderiza um tile indexado com sua transformação de orientação.
+
+### Escopos de Edição
+- `canvas_center`: Propaga globalmente em torno do centro do artboard. Requer que células nos eixos obedeçam aos estabilizadores da simetria do centro.
+- `orbit_sym`: Combina a simetria do bloco com a órbita macro da grade.
+- `block_sym`: Propaga exclusivamente nos 4 quadrantes internos do bloco clicado.
+- `all_blocks`: Propaga para todos os blocos mantendo a rotação macro de cada um.
+- `single`: Modo pontual livre; permite aplicar qualquer tile na célula sob o cursor sem propagação.
+- `same_tile`: Substituição global de todas as ocorrências de um tile. Opera exclusivamente no tamanho 1×1 (tamanhos maiores exibem `#sameTileNotice` e aviso no editor).
+
+---
+
+## 5. Persistência e Tratamento de Quota (`sketch.js`)
+
+### Armazenamento em `localStorage`
+A chave utilizada é `tiling_stripes_studio_state_v2`.
+
+### Limites e Gestão de Histórico
+- `MAX_GENERATION_HISTORY = 30`: Histórico de parâmetros da grade e sementes.
+- `MAX_EDIT_HISTORY = 25`: Snapshots completos das células do mosaico para Undo/Redo.
+- **Corte no Push**: O corte de limites (`shift()`) é feito imediatamente no momento em que um novo estado é inserido (`pushGenerationHistory` e `pushEditHistorySnapshot`), garantindo que os índices ativos apontem com precisão para o snapshot correto e não sofram descolamento ao salvar.
+- **Redução Dinâmica por Bytes**: Em grades muito grandes (ex.: $16 \times 16$, subdivisão 4), `getMaxEditHistoryForMosaic()` reduz dinamicamente o número máximo de snapshots para assegurar que o payload caiba no orçamento de ~3,5 MB do navegador.
+
+### Fallback de Quota
+Ao capturar `QuotaExceededError`:
+1. Tentativa 1: Gravar payload completo com históricos.
+2. Tentativa 2 (Fallback): Gravar payload mínimo contendo apenas a configuração, semente e o `cellsSnapshot` (desenho atual completo), descartando os arrays de histórico. O usuário é avisado via banner `#persistenceWarning`.
+3. Tentativa 3: Se o armazenamento estiver totalmente bloqueado, exibe aviso persistente orientando a exportação manual em SVG/PNG sem perder o estado em memória.
+
+---
+
+## 6. Como Rodar e Testar
+
+### Servidor Local
+```powershell
+python -m http.server 8765
+```
+
+### Execução dos Testes Automatizados
+```powershell
+node tests/test_tile_registry.js
+node tests/test_mosaic_engine.js
+node tests/test_state_persistence.js
+node tests/test_d4_invariance.js
+node tests/test_history_limits.js
+node tests/test_persistence_quota.js
+node tests/test_editor_ui_state.js
+```
+
+---
+
+## 7. Informações de Legado
+
+Arquivos anteriores da versão 1 (`subtile.js`, `tiles.js`, `supertile.js`, `svg_tile_manager.js`, `tile_transforms.js`) foram arquivados na pasta `_legacy/` para fins históricos e de referência. Não devem ser alterados nem carregados no runtime do estúdio atual.
