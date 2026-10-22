@@ -250,6 +250,42 @@ function resolveCellSymmetry(row, col, rows, cols, symmetryMode) {
   };
 }
 
+
+/**
+ * Calculates the stabilizer subgroup of a cell (row, col) in a (rows x cols) grid
+ * under the specified symmetryMode.
+ */
+function getCellStabilizer(row, col, rows, cols, symmetryMode) {
+  const transforms = getAllowedTransformsForSymmetry(symmetryMode, rows, cols);
+  return transforms.filter((g) => {
+    const [r, c] = transformGridCoords(row, col, rows, cols, g);
+    return r === row && c === col;
+  });
+}
+
+/**
+ * Checks whether tileId is invariant under transformation g (g(tileId) === tileId).
+ */
+function isTileInvariantUnder(tileId, g) {
+  const registry = (typeof window !== 'undefined' && window.TileRegistry) ||
+    (typeof global !== 'undefined' && global.window && global.window.TileRegistry);
+  if (registry && typeof registry.getTransformedTileId === 'function') {
+    return registry.getTransformedTileId(tileId, g) === tileId;
+  }
+  return true;
+}
+
+/**
+ * Filters allowedTiles to only those tiles invariant under every transform in stabilizer.
+ */
+function getCompatibleTiles(allowedTiles, stabilizer) {
+  if (!Array.isArray(allowedTiles) || allowedTiles.length === 0) return [];
+  if (!Array.isArray(stabilizer) || stabilizer.length === 0) return allowedTiles.slice();
+  return allowedTiles.filter((tileId) =>
+    stabilizer.every((g) => isTileInvariantUnder(tileId, g))
+  );
+}
+
 // Export to window
 window.D4Symmetry = {
   D4_TRANSFORMS,
@@ -260,5 +296,12 @@ window.D4Symmetry = {
   invertD4,
   applyD4ToContext,
   getAllowedTransformsForSymmetry,
-  resolveCellSymmetry
+  resolveCellSymmetry,
+  getCellStabilizer,
+  isTileInvariantUnder,
+  getCompatibleTiles
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = window.D4Symmetry;
+}

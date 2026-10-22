@@ -1349,6 +1349,28 @@ function performBrushOrStampAtHit(hit) {
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry
     }
   );
+
+  if (StudioState.editScope !== 'single' && StudioState.editScope !== 'same_tile') {
+    const N = StudioState.mosaicData.subtilesPerSide;
+    const totalR = StudioState.mosaicData.rows * N;
+    const totalC = StudioState.mosaicData.cols * N;
+
+    for (const p of placements) {
+      let stab = [];
+      if (StudioState.editScope === 'canvas_center') {
+        stab = window.D4Symmetry.getCellStabilizer(p.gr, p.gc, totalR, totalC, StudioState.canvasCenterSymmetry);
+      } else {
+        stab = window.D4Symmetry.getCellStabilizer(p.subRow, p.subCol, N, N, StudioState.mosaicData.blockSymmetryMode);
+      }
+      for (const g of stab) {
+        if (!window.D4Symmetry.isTileInvariantUnder(p.tileId, g)) {
+          showEditorToast('Este tile não é invariante no eixo. Escolha um tile simétrico ou use o escopo Livre.', 'warn');
+          return false;
+        }
+      }
+    }
+  }
+
   return window.MosaicEngine.applyStampPlacements(StudioState.mosaicData, placements);
 }
 
