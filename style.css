@@ -2490,3 +2490,121 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.4);
 }
+
+/* Seed Section in Left Toolbar */
+.seed-tool-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding-bottom: 2px;
+}
+
+.seed-gen-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+}
+
+.seed-gen-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0284c7);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.6);
+  transform: translateY(-1px);
+}
+
+.seed-gen-btn:active {
+  transform: translateY(0);
+}
+
+.seed-mini-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  gap: 2px;
+}
+
+.tool-mini-btn {
+  flex: 1;
+  height: 18px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.tool-mini-btn:hover:not(:disabled) {
+  background: var(--bg-control-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.tool-mini-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tool-sub-btn {
+  width: 32px;
+  height: 24px;
+  color: var(--text-secondary);
+}
+
+.tool-sub-btn:hover {
+  color: var(--text-primary);
+}
+
+.seed-input-chip {
+  display: flex;
+  align-items: center;
+  width: 34px;
+  height: 18px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+  padding: 0 2px;
+}
+
+.seed-hash {
+  font-size: 9px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.seed-input-chip input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 9px;
+  font-family: var(--font-mono, monospace);
+  text-align: center;
+  padding: 0;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.seed-input-chip input::-webkit-outer-spin-button,
+.seed-input-chip input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

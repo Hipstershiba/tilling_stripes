@@ -2801,9 +2801,14 @@ function initStudioUI() {
     if (!btnToggleHistory || !seedPopover) return;
     const rect = btnToggleHistory.getBoundingClientRect();
     const popWidth = 290;
-    const left = Math.max(8, Math.min(window.innerWidth - popWidth - 8, rect.right - popWidth));
-    seedPopover.style.top = `${Math.round(rect.bottom + 6)}px`;
-    seedPopover.style.left = `${Math.round(left)}px`;
+    if (rect.left < 100) {
+      seedPopover.style.left = `${Math.round(rect.right + 8)}px`;
+      seedPopover.style.top = `${Math.round(Math.max(8, Math.min(window.innerHeight - 320, rect.top)))}px`;
+    } else {
+      const left = Math.max(8, Math.min(window.innerWidth - popWidth - 8, rect.right - popWidth));
+      seedPopover.style.top = `${Math.round(rect.bottom + 6)}px`;
+      seedPopover.style.left = `${Math.round(left)}px`;
+    }
   };
 
   seedInput?.addEventListener('change', () => {

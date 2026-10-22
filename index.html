@@ -98,56 +98,18 @@
               title="Diminuir Margem">▾</button>
           </div>
         </div>
-      </div>
-
-      <div class="bar-divider"></div>
-
-      <!-- Seed & Generation History -->
-      <div class="bar-group seed-bar-group" aria-label="Seed e Histórico de Geração">
-        <span class="bar-group-label">Seed</span>
-        <div class="input-chip seed-chip" title="Semente determinística do gerador">
-          <span class="chip-prefix">#</span>
-          <input type="number" id="seedInput" value="1024" step="1">
+        <div class="input-chip chip-medium" title="Respiro / Padding interno dos azulejos (%)">
+          <span class="chip-prefix"><span class="chip-label-full">Respiro</span><span class="chip-label-short">P</span></span>
+          <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="1" tabindex="-1"
-              title="Próxima Seed (+1)">▴</button>
-            <button type="button" class="step-btn" data-step-target="seedInput" data-step-dir="-1" tabindex="-1"
-              title="Seed Anterior (-1)">▾</button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Respiro">▴</button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Respiro">▾</button>
           </div>
-        </div>
-        <button id="btnRandomize" class="btn-primary-accent" title="Sortear nova Seed (Tecla G)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="16 3 21 3 21 8"></polyline>
-            <line x1="4" y1="20" x2="21" y2="3"></line>
-            <polyline points="21 16 21 21 16 21"></polyline>
-            <line x1="15" y1="15" x2="21" y2="21"></line>
-            <line x1="4" y1="4" x2="9" y2="9"></line>
-          </svg>
-          <span class="btn-full-text">Gerar</span>
-        </button>
-
-        <div class="history-nav-group">
-          <button id="btnPrevSeed" class="icon-btn" title="Geração Anterior (←)" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-          <button id="btnNextSeed" class="icon-btn" title="Próxima Geração (→)" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-          <div class="history-dropdown-wrap">
-            <button id="btnToggleHistory" class="icon-btn" title="Histórico de Seeds Geradas">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <polyline points="12 7 12 12 15 15"></polyline>
-              </svg>
-            </button>
-          </div>
+          <span class="chip-suffix">%</span>
         </div>
       </div>
+
+
 
       <div class="bar-spacer"></div>
 
@@ -165,6 +127,35 @@
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
+        <!-- Seed & Generation Trigger Section (Round 6) -->
+        <div class="tool-section seed-tool-section" aria-label="Geração e Sementes">
+          <button type="button" id="btnRandomize" class="seed-gen-btn" title="Sortear nova Seed (Tecla G)" aria-label="Gerar Mosaico (G)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+          </button>
+          <div class="seed-mini-nav" title="Geração Anterior / Próxima">
+            <button type="button" id="btnPrevSeed" class="tool-mini-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled>◀</button>
+            <button type="button" id="btnNextSeed" class="tool-mini-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled>▶</button>
+          </div>
+          <button type="button" id="btnToggleHistory" class="tool-btn tool-sub-btn" title="Histórico de Seeds Geradas" aria-label="Histórico de Seeds">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <polyline points="12 7 12 12 15 15"></polyline>
+            </svg>
+          </button>
+          <div class="seed-input-chip" title="Semente atual (digite ou use ▴▾)">
+            <span class="seed-hash">#</span>
+            <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
+          </div>
+        </div>
+
+        <div class="tool-divider"></div>
         <!-- Panel collapse — lives in the tool column so it survives the panel being collapsed.
              The arrow shows where the panel is going: » collapse, « bring back. -->
         <div class="tool-section" aria-label="Ferramentas de Inspeção e Edição">
@@ -453,20 +444,7 @@
                 </div>
               </div>
 
-              <!-- Padding (Respiro) — numeric chip like W/H (Round 6) -->
-              <div class="prop-section">
-                <div class="prop-label-row">
-                  <label class="prop-label" for="paddingInput">Respiro Interno (Padding)</label>
-                </div>
-                <div class="input-chip chip-medium" data-tooltip="Espaçamento interno dos azulejos (%)">
-                  <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
-                  <div class="chip-steppers">
-                    <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar respiro">▴</button>
-                    <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir respiro">▾</button>
-                  </div>
-                  <span class="chip-suffix">%</span>
-                </div>
-              </div>
+
 
               <!-- Status de Subtiles Congelados (visível apenas quando há travas) -->
               <div id="freezeStatusRow" class="freeze-status-row hidden">

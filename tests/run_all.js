@@ -24,6 +24,8 @@ const testSuites = [
   'test_persistence_quota.js',
   'test_history_nav.js',
   'test_history_edit_preservation.js',
+  'test_document_snapshot.js',
+  'test_regeneration_capture.js',
 
   // 4. UI Architecture & Accessibility
   'test_scope_chip.js',

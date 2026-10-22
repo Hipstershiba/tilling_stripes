@@ -149,4 +149,32 @@ for (const [selector, order] of orderRules) {
 }
 console.log('✓ Flex order is left-toolbar (0) → canvas (1) → right-dock (2).');
 
+// 6. Padding (Respiro) in top bar Grade group; Seed group in left toolbar
+const topBarBounds = getElementBounds(html, 'top-control-bar');
+if (!topBarBounds) throw new Error('Missing #top-control-bar in index.html');
+
+if (!topBarBounds.content.includes('id="paddingInput"')) {
+  throw new Error('Contract violation: #paddingInput must be inside #top-control-bar (Grade group).');
+}
+if (rightDockBounds.content.includes('id="paddingInput"')) {
+  throw new Error('Contract violation: #paddingInput must not be inside #right-dock.');
+}
+console.log('✓ #paddingInput is in #top-control-bar (Grade group) and removed from #right-dock.');
+
+const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed', 'btnToggleHistory'];
+for (const scId of seedControlIds) {
+  if (!leftToolbarBounds.content.includes(`id="${scId}"`)) {
+    throw new Error(`Contract violation: #${scId} must be inside #left-toolbar.`);
+  }
+  if (topBarBounds.content.includes(`id="${scId}"`)) {
+    throw new Error(`Contract violation: #${scId} must not be inside #top-control-bar.`);
+  }
+}
+const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
+const randomizeIdx = leftToolbarBounds.content.indexOf('id="btnRandomize"');
+if (!(randomizeIdx > -1 && inspectIdx > randomizeIdx)) {
+  throw new Error('Contract violation: #btnRandomize must come BEFORE #toolInspect in #left-toolbar.');
+}
+console.log('✓ Seed controls (#btnRandomize, #seedInput, nav, history) are at top of #left-toolbar.');
+
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');

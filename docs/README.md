@@ -22,6 +22,8 @@ docs/
 | [INSTRUCOES_GEMINI_RODADA3.md](instrucoes/INSTRUCOES_GEMINI_RODADA3.md) | 3 | Fechar o que foi declarado pronto (debounce, chip, chave de storage, ajuda) com prova que falha no baseline |
 | [INSTRUCOES_GEMINI_RODADA4.md](instrucoes/INSTRUCOES_GEMINI_RODADA4.md) | 4 | Arquitetura de informação das barras: modo no cabeçalho do dock, gaveta de 44 px, acordeão de painéis, cores no rodapé esquerdo, zoom/Ajustar/1:1 juntos |
 | [INSTRUCOES_GEMINI_RODADA4_1.md](instrucoes/INSTRUCOES_GEMINI_RODADA4_1.md) | 4.1 | Correção cirúrgica: trava sobrevivendo à geração, histórico sem perder edição, e redesenho da integração da Trava (modo, tamanho, escopo, undo) |
+| [INSTRUCOES_GEMINI_RODADA4_2.md](instrucoes/INSTRUCOES_GEMINI_RODADA4_2.md) | 4.2 | Segurança do documento: snapshot antes de gerar, aviso de edições em risco e `Ctrl+Z` atravessando a geração |
+| [INSTRUCOES_GEMINI_RODADA6.md](instrucoes/INSTRUCOES_GEMINI_RODADA6.md) | 6 | Geografia invertida: faixa esquerda reservada, canvas, ferramentas à direita, painel contextual; exportar no rodapé, guias de volta, respiro numérico, wheel e switches |
 | [INSTRUCOES_GEMINI_RODADA5.md](instrucoes/INSTRUCOES_GEMINI_RODADA5.md) | 5 | Gramática de conjuntos, 10 famílias novas (IDs 85–103), UI de conjuntos e ajustes de harmonia |
 
 ## Relatórios e auditorias (`relatorios/`)

@@ -113,9 +113,29 @@
     return pruned;
   }
 
+  /**
+   * Captures the cells of the *current* generation-history entry before a destructive
+   * regeneration replaces the mosaic. Must be called BEFORE generateMosaicWithFrozen and
+   * BEFORE the edit history is reset — otherwise mosaicData already belongs to the new
+   * mosaic and editHistoryIndex is 0, and the capture is silently a no-op.
+   *
+   * @param {Object} state - { history, historyIndex, mosaicData, frozenCells, editHistory, editHistoryIndex }
+   * @returns {boolean} true when a snapshot was stored in the current entry
+   */
+  function captureBeforeRegeneration(state) {
+    if (!state) return false;
+    const { history, historyIndex, mosaicData, frozenCells, editHistory, editHistoryIndex } = state;
+    if (!Array.isArray(history) || historyIndex < 0 || historyIndex >= history.length) return false;
+    const entry = history[historyIndex];
+    if (!entry) return false;
+    if (entry.cellsSnapshot) return false; // already captured; never overwrite a real edit
+    return saveLazyHistorySnapshot(entry, mosaicData, frozenCells, editHistoryIndex, editHistory);
+  }
+
   const HistoryNav = {
     planRestore,
     saveLazyHistorySnapshot,
+    captureBeforeRegeneration,
     pruneSnapshotsOverBudget
   };
 

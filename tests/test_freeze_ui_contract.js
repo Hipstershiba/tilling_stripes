@@ -38,13 +38,15 @@ assert.ok(!html.includes('id="freezeHelpText"'), '#freezeHelpText must be absent
 assert.ok(!html.includes('id="btnToggleFreezeTool"'), '#btnToggleFreezeTool must be absent from DOM');
 console.log('✓ Legacy duplicates (#freezeHelpText, #btnToggleFreezeTool) absent.');
 
-// 5. #btnClearFrozen inside #freezeStatusRow
+// 5. Round 6 revision: the generation panel is read-only status; the clear action moved
+//    to the freeze tool options (#btnFreezeClearSelection).
 const statusRowIdx = html.indexOf('id="freezeStatusRow"');
 assert.ok(statusRowIdx !== -1, '#freezeStatusRow must exist');
 const statusRowCloseIdx = html.indexOf('</div>', statusRowIdx);
 const statusRowContent = html.slice(statusRowIdx, statusRowCloseIdx);
-assert.ok(statusRowContent.includes('id="btnClearFrozen"'), '#btnClearFrozen must be inside #freezeStatusRow');
-console.log('✓ #btnClearFrozen inside #freezeStatusRow verified.');
+assert.ok(!statusRowContent.includes('id="btnClearFrozen"'), '#btnClearFrozen must not be inside #freezeStatusRow');
+assert.ok(!html.includes('id="btnClearFrozen"'), '#btnClearFrozen must be gone from the DOM');
+console.log('✓ Generation status row is read-only (no clear button).');
 
 // 6. Mode, Size, and Clear Selection controls exist; redundant freezeUseScope checkbox absent
 assert.ok(html.includes('id="freezeModeControl"'), '#freezeModeControl must exist');
