@@ -1921,6 +1921,17 @@ function cycleActiveToolSize(direction) {
     return true;
   }
 
+  if (StudioState.activeTool === 'rotate') {
+    const current = Math.max(0, order.indexOf(String(StudioState.rotateSizeMode)));
+    const next = order[(current + direction + order.length) % order.length];
+    StudioState.rotateSizeMode = next;
+    StudioState.rotateSnapToBlock = (next === 'block');
+    syncEditWorkspaceUI();
+    showEditorToast(`Girar ${label(next)}`);
+    redraw();
+    return true;
+  }
+
   if (StudioState.activeTool === 'paint' || StudioState.activeTool === 'stamp') {
     const current = Math.max(0, order.indexOf(String(StudioState.brushSizeMode)));
     const next = order[(current + direction + order.length) % order.length];
@@ -3487,21 +3498,48 @@ function initStudioUI() {
   });
 
   const pasteboard = document.getElementById('artboard-pasteboard');
+  let wheelDeltaAccumulator = 0;
+  const WHEEL_STEP_THRESHOLD = 45;
+
   pasteboard?.addEventListener('wheel', (e) => {
-    if (e.ctrlKey || e.metaKey || StudioState.activeTool === 'zoom') {
+    // 1. Zoom with modifier: Ctrl / Cmd / Alt + wheel (or active tool 'zoom')
+    if (e.ctrlKey || e.metaKey || e.altKey || StudioState.activeTool === 'zoom') {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 15 : -15;
       setZoomPercent(StudioState.zoomPercent + delta);
       return;
     }
 
-    // Round 6: Shift+wheel cycles the active size; plain wheel pans in 2D.
-    if (e.shiftKey && cycleActiveToolSize(e.deltaY < 0 ? 1 : -1)) {
+    // 2. Pan with modifier (Shift) or while Space is held or in Pan tool:
+    if (e.shiftKey || StudioState.isSpaceDown || StudioState.activeTool === 'pan') {
       e.preventDefault();
+      const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
+      const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
+      StudioState.panOffsetX = (StudioState.panOffsetX || 0) - dx;
+      StudioState.panOffsetY = (StudioState.panOffsetY || 0) - dy;
+      applyPanTransform();
       return;
     }
 
-    // Plain wheel or trackpad: Pan the canvas in 2D
+    // 3. Edit tools (paint, stamp, rotate, freeze) without modifier keys:
+    // Directly cycle tool/brush size using the mouse wheel!
+    const isEditTool = StudioState.activeTool === 'paint' ||
+      StudioState.activeTool === 'stamp' ||
+      StudioState.activeTool === 'rotate' ||
+      StudioState.activeTool === 'freeze';
+
+    if (isEditTool) {
+      e.preventDefault();
+      wheelDeltaAccumulator += e.deltaY;
+      if (Math.abs(wheelDeltaAccumulator) >= WHEEL_STEP_THRESHOLD) {
+        const direction = wheelDeltaAccumulator < 0 ? 1 : -1;
+        wheelDeltaAccumulator = 0;
+        cycleActiveToolSize(direction);
+      }
+      return;
+    }
+
+    // 4. Non-edit tools (inspect): plain wheel pans the canvas in 2D
     e.preventDefault();
     StudioState.panOffsetX = (StudioState.panOffsetX || 0) - e.deltaX;
     StudioState.panOffsetY = (StudioState.panOffsetY || 0) - e.deltaY;
@@ -3792,3 +3830,4 @@ window.fitArtboardToWindow = fitArtboardToWindow;
 window.setZoomPercent = setZoomPercent;
 window.resetZoom100 = resetZoom100;
 window.recenterView = recenterView;
+window.cycleActiveToolSize = cycleActiveToolSize;

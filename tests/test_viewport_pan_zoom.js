@@ -267,7 +267,76 @@ assert.strictEqual(action2, 'scope_orbit_sym', 'Key 2 with brush must switch to 
 assert.strictEqual(StudioState.editScope, 'orbit_sym');
 console.log('✓ Key 2 with brush successfully switches edit scope.');
 
-// 7. Verify CSS rules in style.css
+// 7. Test Wheel behavior: plain wheel controls brush size without modifier keys; modifiers control zoom and pan!
+function simulateWheel(e, activeTool, isSpaceDown = false) {
+  // 1. Zoom with modifier
+  if (e.ctrlKey || e.metaKey || e.altKey || activeTool === 'zoom') {
+    const delta = e.deltaY < 0 ? 15 : -15;
+    setZoomPercent(StudioState.zoomPercent + delta);
+    return 'zoom';
+  }
+
+  // 2. Pan with modifier (Shift) or Space bar or Pan tool
+  if (e.shiftKey || isSpaceDown || activeTool === 'pan') {
+    const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
+    const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
+    StudioState.panOffsetX = (StudioState.panOffsetX || 0) - dx;
+    StudioState.panOffsetY = (StudioState.panOffsetY || 0) - dy;
+    applyPanTransform();
+    return 'pan';
+  }
+
+  // 3. Edit tools without modifier keys: controls tool/brush size directly!
+  const isEditTool = activeTool === 'paint' || activeTool === 'stamp' || activeTool === 'rotate' || activeTool === 'freeze';
+  if (isEditTool) {
+    const order = ['1', '2', '3', '4', 'block'];
+    const dir = e.deltaY < 0 ? 1 : -1;
+    if (activeTool === 'paint' || activeTool === 'stamp') {
+      const cur = Math.max(0, order.indexOf(String(StudioState.brushSizeMode || '1')));
+      StudioState.brushSizeMode = order[(cur + dir + order.length) % order.length];
+      return 'brush_size_' + StudioState.brushSizeMode;
+    }
+  }
+
+  // 4. Inspect tool: plain wheel pans canvas in 2D
+  StudioState.panOffsetX = (StudioState.panOffsetX || 0) - e.deltaX;
+  StudioState.panOffsetY = (StudioState.panOffsetY || 0) - e.deltaY;
+  applyPanTransform();
+  return 'pan';
+}
+
+// Subtest 7a: Plain wheel over paint tool increases brush size from '1' to '2' without any modifier key
+StudioState.brushSizeMode = '1';
+const wheelRes1 = simulateWheel({ deltaY: -100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelRes1, 'brush_size_2', 'Plain wheel up must increase brush size without modifiers');
+assert.strictEqual(StudioState.brushSizeMode, '2');
+console.log('✓ Plain wheel directly cycles brush size without needing Ctrl or Shift.');
+
+// Subtest 7b: Ctrl+wheel over paint tool zooms instead of changing brush size
+StudioState.zoomPercent = 100;
+const wheelRes2 = simulateWheel({ deltaY: -100, deltaX: 0, ctrlKey: true, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelRes2, 'zoom', 'Ctrl+wheel over paint tool must zoom');
+assert.strictEqual(StudioState.zoomPercent, 115);
+console.log('✓ Ctrl+wheel over brush zooms in.');
+
+// Subtest 7c: Shift+wheel over paint tool pans instead of changing brush size
+StudioState.panOffsetX = 0;
+StudioState.panOffsetY = 0;
+const wheelRes3 = simulateWheel({ deltaY: 50, deltaX: 0, ctrlKey: false, shiftKey: true, altKey: false }, 'paint');
+assert.strictEqual(wheelRes3, 'pan', 'Shift+wheel over paint tool must pan');
+assert.strictEqual(StudioState.panOffsetX, -50);
+console.log('✓ Shift+wheel over brush pans canvas horizontally.');
+
+// Subtest 7d: Plain wheel over inspect tool pans canvas
+StudioState.panOffsetX = 0;
+StudioState.panOffsetY = 0;
+const wheelRes4 = simulateWheel({ deltaY: 30, deltaX: 20, ctrlKey: false, shiftKey: false, altKey: false }, 'inspect');
+assert.strictEqual(wheelRes4, 'pan', 'Plain wheel over inspect tool must pan');
+assert.strictEqual(StudioState.panOffsetX, -20);
+assert.strictEqual(StudioState.panOffsetY, -30);
+console.log('✓ Plain wheel over inspect tool pans canvas in 2D.');
+
+// 8. Verify CSS rules in style.css
 const styleCss = fs.readFileSync(path.join(__dirname, '../style.css'), 'utf8');
 assert.ok(styleCss.includes('#artboard-pasteboard {') && styleCss.includes('overflow: hidden;'), 'style.css must set overflow: hidden on #artboard-pasteboard');
 assert.ok(styleCss.includes('body.is-panning'), 'style.css must define body.is-panning grabbing cursor');
