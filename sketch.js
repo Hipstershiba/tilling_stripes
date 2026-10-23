@@ -3734,13 +3734,10 @@ function initStudioUI() {
       document.getElementById('toggleGuideSubtiles')?.click();
     } else if (k === 'o') {
       document.getElementById('toggleGuideOrbits')?.click();
-    } else if (e.shiftKey && (k === '!' || k === ')' || e.code === 'Digit1' || e.code === 'Digit0' || e.code === 'Numpad1' || e.code === 'Numpad0' || k === '1' || k === '0')) {
+    } else if (k === '0' || (e.shiftKey && k === ')') || e.code === 'Digit0' || e.code === 'Numpad0') {
       e.preventDefault();
       fitArtboardToWindow();
-    } else if (k === '0' || e.code === 'Digit0' || e.code === 'Numpad0') {
-      e.preventDefault();
-      fitArtboardToWindow();
-    } else if ((k === '1' || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
+    } else if ((k === '1' || (e.shiftKey && k === '!') || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
       e.preventDefault();
       resetZoom100();
     } else if (isEditTool) {

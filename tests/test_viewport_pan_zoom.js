@@ -189,18 +189,14 @@ console.log('✓ resetZoom100 (Tecla 1 / Ctrl+1) resets zoom to 100% and re-cent
 // 6. Test 1, Shift+1, and 0 navigation shortcuts while in edit mode (holding brush)
 function simulateKeyNav(e, isEditTool) {
   const k = e.key ? e.key.toLowerCase() : '';
-  const isDigit1 = k === '1' || e.code === 'Digit1' || e.code === 'Numpad1';
-  const isDigit0 = k === '0' || e.code === 'Digit0' || e.code === 'Numpad0';
+  const isDigit0 = k === '0' || (e.shiftKey && k === ')') || e.code === 'Digit0' || e.code === 'Numpad0';
+  const isDigit1 = k === '1' || (e.shiftKey && k === '!') || e.code === 'Digit1' || e.code === 'Numpad1';
 
-  if (e.shiftKey && (isDigit1 || isDigit0 || k === '!' || k === ')')) {
-    fitArtboardToWindow();
-    return 'fit';
-  }
   if (isDigit0) {
     fitArtboardToWindow();
     return 'fit';
   }
-  if ((k === '1' || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
+  if (isDigit1 && !e.altKey) {
     resetZoom100();
     return '100';
   }
@@ -231,14 +227,16 @@ assert.strictEqual(StudioState.panOffsetX, 0, 'Pan X must be re-centered to 0');
 assert.strictEqual(StudioState.panOffsetY, 0, 'Pan Y must be re-centered to 0');
 console.log('✓ Key 1 with brush (isEditTool=true) re-centers and sets 100% zoom.');
 
-// Case B: Holding brush, panned to (200, -150), presses 'Shift + 1'
+// Case B: Holding brush, panned to (200, -150), presses 'Shift + 1' -> sets 100% (1:1) and re-centers
 StudioState.panOffsetX = 200;
 StudioState.panOffsetY = -150;
+StudioState.zoomPercent = 50;
 const actionShift1 = simulateKeyNav({ key: '!', code: 'Digit1', shiftKey: true, altKey: false }, true);
-assert.strictEqual(actionShift1, 'fit', 'Shift+1 with brush must trigger fitArtboardToWindow');
+assert.strictEqual(actionShift1, '100', 'Shift+1 with brush must trigger 100% reset (1:1 e recentralizar)');
+assert.strictEqual(StudioState.zoomPercent, 100, 'Shift+1 must reset zoom to 100%');
 assert.strictEqual(StudioState.panOffsetX, 0, 'Shift+1 must re-center pan X');
 assert.strictEqual(StudioState.panOffsetY, 0, 'Shift+1 must re-center pan Y');
-console.log('✓ Shift+1 with brush (isEditTool=true) re-centers and fits artboard to window.');
+console.log('✓ Shift+1 with brush (isEditTool=true) re-centers and sets 100% zoom (1:1).');
 
 // Case C: Holding brush, presses key '0'
 StudioState.panOffsetX = -80;
