@@ -289,12 +289,33 @@ function simulateWheel(e, activeTool, isSpaceDown = false) {
   // 3. Edit tools without modifier keys: controls tool/brush size directly!
   const isEditTool = activeTool === 'paint' || activeTool === 'stamp' || activeTool === 'rotate' || activeTool === 'freeze';
   if (isEditTool) {
-    const order = ['1', '2', '3', '4', 'block'];
     const dir = e.deltaY < 0 ? 1 : -1;
     if (activeTool === 'paint' || activeTool === 'stamp') {
-      const cur = Math.max(0, order.indexOf(String(StudioState.brushSizeMode || '1')));
-      StudioState.brushSizeMode = order[(cur + dir + order.length) % order.length];
-      return 'brush_size_' + StudioState.brushSizeMode;
+      const N = StudioState.mosaicData ? StudioState.mosaicData.subtilesPerSide : 4;
+      const totalR = StudioState.mosaicData ? StudioState.mosaicData.rows * N : 64;
+      const totalC = StudioState.mosaicData ? StudioState.mosaicData.cols * N : 64;
+      const maxDim = Math.max(totalR, totalC);
+
+      let currentDim = 1;
+      if (StudioState.brushSizeMode === 'block') {
+        currentDim = N;
+      } else {
+        currentDim = Math.max(1, parseInt(StudioState.brushSizeMode, 10) || 1);
+      }
+
+      if (StudioState.brushSnapToBlock) {
+        const maxBlocks = Math.max(1, Math.floor(maxDim / N));
+        const currentBlocks = Math.max(1, Math.round(currentDim / N));
+        const nextBlocks = Math.max(1, Math.min(maxBlocks, currentBlocks + dir));
+        if (nextBlocks === currentBlocks) return 'clamped';
+        StudioState.brushSizeMode = String(nextBlocks * N);
+        return 'brush_size_' + StudioState.brushSizeMode;
+      } else {
+        const nextDim = Math.max(1, Math.min(maxDim, currentDim + dir));
+        if (nextDim === currentDim) return 'clamped';
+        StudioState.brushSizeMode = String(nextDim);
+        return 'brush_size_' + StudioState.brushSizeMode;
+      }
     }
   }
 
@@ -306,11 +327,34 @@ function simulateWheel(e, activeTool, isSpaceDown = false) {
 }
 
 // Subtest 7a: Plain wheel over paint tool increases brush size from '1' to '2' without any modifier key
+StudioState.brushSnapToBlock = false;
 StudioState.brushSizeMode = '1';
 const wheelRes1 = simulateWheel({ deltaY: -100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
 assert.strictEqual(wheelRes1, 'brush_size_2', 'Plain wheel up must increase brush size without modifiers');
 assert.strictEqual(StudioState.brushSizeMode, '2');
-console.log('✓ Plain wheel directly cycles brush size without needing Ctrl or Shift.');
+console.log('✓ Plain wheel directly steps brush size without needing Ctrl or Shift.');
+
+// Subtest 7a-2: Wheel down at min size 1 clamps strictly at 1 and does NOT cycle
+const wheelClampMin = simulateWheel({ deltaY: 100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelClampMin, 'brush_size_1');
+const wheelClampMinAgain = simulateWheel({ deltaY: 100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelClampMinAgain, 'clamped', 'Scrolling down at 1 must clamp');
+assert.strictEqual(StudioState.brushSizeMode, '1', 'Must remain at min size 1 without wrapping to max');
+console.log('✓ Brush sizing clamps at 1 and does NOT cycle.');
+
+// Subtest 7a-3: Snap to block stepping (steps in whole block increments)
+StudioState.brushSnapToBlock = true;
+StudioState.brushSizeMode = '4'; // 1 block (when N=4)
+const wheelBlockUp = simulateWheel({ deltaY: -100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelBlockUp, 'brush_size_8', 'Snap to block must step by whole block (N=4)');
+assert.strictEqual(StudioState.brushSizeMode, '8');
+const wheelBlockDown = simulateWheel({ deltaY: 100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelBlockDown, 'brush_size_4');
+const wheelBlockClamp = simulateWheel({ deltaY: 100, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: false }, 'paint');
+assert.strictEqual(wheelBlockClamp, 'clamped', 'Snap to block must clamp at 1 block');
+assert.strictEqual(StudioState.brushSizeMode, '4');
+StudioState.brushSnapToBlock = false;
+console.log('✓ Snap to block steps in whole block increments and clamps at 1 block.');
 
 // Subtest 7b: Ctrl+wheel over paint tool zooms instead of changing brush size
 StudioState.zoomPercent = 100;

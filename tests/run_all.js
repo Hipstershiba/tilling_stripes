@@ -37,6 +37,7 @@ const testSuites = [
   'test_editor_ui_state.js',
   'test_info_ui_state.js',
   'test_viewport_pan_zoom.js',
+  'test_brush_sizing_snap.js',
   'test_ui_control_registry.js',
   'test_ui_layout_contract.js',
 
