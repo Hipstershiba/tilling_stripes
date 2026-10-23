@@ -40,6 +40,7 @@ docs/
 | [ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md](relatorios/ANALISE_SUBTILES_FAMILIAS_CONJUNTOS.md) | DeepSeek | Análise de sinergia/harmonia dos 85 subtiles, 31 famílias e 9 conjuntos; 10 famílias propostas |
 | [AVALIACAO_GEMINI_RODADA6_E_4_2.md](relatorios/AVALIACAO_GEMINI_RODADA6_E_4_2.md) | Gemini | Auditoria das Rodadas 4.2/6: contradição spec × teste, camada 3 fantasma e capturas duplicadas |
 | [AVALIACAO_DEEPSEEK_RODADA6_E_LAYOUT.md](relatorios/AVALIACAO_DEEPSEEK_RODADA6_E_LAYOUT.md) | DeepSeek | Auditoria do HEAD pós-pivô: UI 1440 confirmada; P0 no snapshot de geração, camada 3 ausente, testes não probatórios e docs desatualizados |
+| [ANALISE_CRITICA_APLICACAO.md](relatorios/ANALISE_CRITICA_APLICACAO.md) | DeepSeek | Análise crítica do estado atual (HEAD `255e5d0`): dirty guard morto, IDB sobrescrito pelo cache local, exportação não-plotter, acessibilidade e desempenho |
 
 ## Pranchas (`analise/`)
 
