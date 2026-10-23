@@ -60,6 +60,54 @@
     return Boolean(pixels) && pixels.length === frameByteLength(width, height);
   }
 
+  /**
+   * Signature of the *artwork* (not of the screen): mosaic cells plus the layout parameters
+   * that change the clean render. Used to re-render the Spout buffer only when the art changes,
+   * ignoring pans, zooms, guide toggles and hover, which never reach the output.
+   */
+  function artifactSignature(mosaicData, layout) {
+    const params = layout || {};
+    let hash = 2166136261 >>> 0;
+    const mix = (value) => {
+      hash ^= (Number(value) | 0);
+      hash = Math.imul(hash, 16777619) >>> 0;
+    };
+    const mixString = (text) => {
+      const value = String(text == null ? '' : text);
+      for (let i = 0; i < value.length; i++) mix(value.charCodeAt(i));
+    };
+
+    mix(params.width);
+    mix(params.height);
+    mix(params.margin);
+    mix(Math.round((Number(params.paddingRatio) || 0) * 1000));
+    mixString(params.fgColor);
+    mixString(params.bgColor);
+
+    if (!mosaicData || !mosaicData.grid) return hash;
+
+    mix(mosaicData.rows);
+    mix(mosaicData.cols);
+    mix(mosaicData.subtilesPerSide);
+
+    for (let r = 0; r < mosaicData.rows; r++) {
+      for (let c = 0; c < mosaicData.cols; c++) {
+        const block = mosaicData.grid[r][c];
+        if (!block) continue;
+        for (let sr = 0; sr < mosaicData.subtilesPerSide; sr++) {
+          for (let sc = 0; sc < mosaicData.subtilesPerSide; sc++) {
+            const cell = block.cells[sr][sc];
+            if (!cell) continue;
+            mix(cell.tileId);
+            mixString(cell.transform);
+          }
+        }
+      }
+    }
+
+    return hash;
+  }
+
   const SpoutOutput = {
     SPOUT_DEFAULT_NAME,
     SPOUT_WS_URL,
@@ -67,6 +115,7 @@
     sanitizeSenderName,
     frameByteLength,
     frameSignature,
+    artifactSignature,
     buildStartMessage,
     isValidFrame
   };

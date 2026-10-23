@@ -44,6 +44,37 @@ const fallback = JSON.parse(Spout.buildStartMessage('', 1, 2));
 assert.strictEqual(fallback.name, Spout.SPOUT_DEFAULT_NAME);
 console.log('✓ Start message matches the bridge protocol.');
 
+// 4b. Artwork signature: only the art invalidates a frame (not pan/zoom/guides)
+const mosaic = {
+  rows: 1,
+  cols: 1,
+  subtilesPerSide: 2,
+  grid: [[{
+    cells: [
+      [{ tileId: 1, transform: 'id' }, { tileId: 2, transform: 'r90' }],
+      [{ tileId: 3, transform: 'id' }, { tileId: 4, transform: 'mx' }]
+    ]
+  }]]
+};
+const layout = { width: 600, height: 600, margin: 24, paddingRatio: 0.05, fgColor: '#e2e0dc', bgColor: '#0c0c0e' };
+const artSig = Spout.artifactSignature(mosaic, layout);
+
+assert.strictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout }), 'same art, same signature');
+assert.strictEqual(artSig, Spout.artifactSignature(JSON.parse(JSON.stringify(mosaic)), layout), 'copy of the art, same signature');
+
+const repainted = JSON.parse(JSON.stringify(mosaic));
+repainted.grid[0][0].cells[0][0].tileId = 9;
+assert.notStrictEqual(artSig, Spout.artifactSignature(repainted, layout), 'a repainted cell invalidates the frame');
+
+const rotated = JSON.parse(JSON.stringify(mosaic));
+rotated.grid[0][0].cells[1][1].transform = 'my';
+assert.notStrictEqual(artSig, Spout.artifactSignature(rotated, layout), 'a rotated cell invalidates the frame');
+
+assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, fgColor: '#ffffff' }), 'color change invalidates');
+assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, margin: 30 }), 'margin change invalidates');
+assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, width: 800 }), 'artboard change invalidates');
+console.log('✓ Artwork signature follows the mosaic, not the viewport.');
+
 // 5. The bridge file exists and documents the same port
 const fs = require('fs');
 const bridge = fs.readFileSync(path.join(__dirname, '../tools/spout_bridge.py'), 'utf8');

@@ -1079,36 +1079,74 @@ function syncSpoutUI() {
   if (!StudioState.spoutEnabled) setSpoutStatus('off', 'off', 'Saída Spout desligada');
 }
 
-function captureSpoutFrame() {
-  const cnv = document.querySelector('#canvas-stage canvas');
-  if (!cnv || typeof cnv.getContext !== 'function') return null;
-  const ctx = cnv.getContext('2d');
-  if (!ctx || typeof ctx.getImageData !== 'function') return null;
-  const width = cnv.width;
-  const height = cnv.height;
-  if (!width || !height) return null;
-  try {
-    const image = ctx.getImageData(0, 0, width, height);
-    return { width, height, pixels: new Uint8Array(image.data.buffer) };
-  } catch (err) {
-    console.warn('Spout: leitura do canvas falhou', err);
-    return null;
+// ---------------------------------------------------------------------------
+// The Spout output renders the artwork, not the screen: no zoom, no guides,
+// no hover ghost, no orbit badges. A p5.Graphics buffer at the artboard size
+// is drawn with the same engine used by the on-screen canvas.
+// ---------------------------------------------------------------------------
+
+let spoutGraphics = null;
+
+function spoutArtSignature() {
+  if (!window.SpoutOutput) return 0;
+  return window.SpoutOutput.artifactSignature(StudioState.mosaicData, {
+    width: StudioState.width,
+    height: StudioState.height,
+    margin: StudioState.margin,
+    paddingRatio: StudioState.paddingRatio,
+    fgColor: StudioState.fgColor,
+    bgColor: StudioState.bgColor
+  });
+}
+
+function renderSpoutFrame() {
+  if (!StudioState.mosaicData || typeof createGraphics !== 'function' || !window.MosaicEngine) return null;
+
+  const width = Math.max(1, Math.round(StudioState.width));
+  const height = Math.max(1, Math.round(StudioState.height));
+
+  if (!spoutGraphics || spoutGraphics.width !== width || spoutGraphics.height !== height) {
+    if (spoutGraphics) {
+      try { spoutGraphics.remove(); } catch (err) { /* already gone */ }
+    }
+    spoutGraphics = createGraphics(width, height);
+    spoutGraphics.pixelDensity(1);
   }
+
+  const g = spoutGraphics;
+  g.push();
+  window.MosaicEngine.renderMosaicToContext(g, StudioState.mosaicData, {
+    width,
+    height,
+    margin: StudioState.margin,
+    paddingRatio: StudioState.paddingRatio,
+    fgColor: StudioState.fgColor,
+    bgColor: StudioState.bgColor
+  });
+  g.pop();
+  g.loadPixels();
+
+  // Copy: p5 reuses the buffer on the next render.
+  const pixels = new Uint8Array(g.pixels.length);
+  pixels.set(g.pixels);
+  return { width, height, pixels };
 }
 
 function spoutPump() {
-  if (!spoutSocket || spoutSocket.readyState !== WebSocket.OPEN || !spoutFrameInfo) return;
-  const frame = captureSpoutFrame();
+  if (!spoutSocket || spoutSocket.readyState !== WebSocket.OPEN) return;
+
+  // Cheap: only the artwork invalidates the frame. Panning, zooming or toggling guides do not.
+  const signature = spoutArtSignature();
+  if (spoutFrameInfo && signature === spoutLastSignature) return;
+
+  const frame = renderSpoutFrame();
   if (!frame) return;
 
-  if (frame.width !== spoutFrameInfo.width || frame.height !== spoutFrameInfo.height) {
+  if (!spoutFrameInfo || frame.width !== spoutFrameInfo.width || frame.height !== spoutFrameInfo.height) {
     spoutFrameInfo = { width: frame.width, height: frame.height };
     spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
   }
 
-  // The mosaic is static most of the time: skip identical frames instead of streaming 1.4 MB/tick.
-  const signature = window.SpoutOutput.frameSignature(frame.pixels);
-  if (signature === spoutLastSignature) return;
   spoutLastSignature = signature;
   spoutSocket.send(frame.pixels);
 }
@@ -1139,16 +1177,16 @@ function startSpoutOutput() {
 
   spoutSocket.onopen = () => {
     if (spoutRetryTimer) { clearTimeout(spoutRetryTimer); spoutRetryTimer = null; }
-    const frame = captureSpoutFrame();
+    const frame = renderSpoutFrame();
     if (!frame) {
-      setSpoutStatus('sem canvas', 'error', 'Canvas não encontrado');
+      setSpoutStatus('sem canvas', 'error', 'Mosaico ainda não gerado');
       return;
     }
     spoutFrameInfo = { width: frame.width, height: frame.height };
     spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
-    setSpoutStatus('on', 'on', 'Enviando o canvas para o Spout');
-    spoutLastSignature = 0;
-    spoutPump();
+    spoutSocket.send(frame.pixels);
+    spoutLastSignature = spoutArtSignature();
+    setSpoutStatus('on', 'on', 'Enviando o mosaico puro para o Spout');
     if (!spoutTimer) spoutTimer = setInterval(spoutPump, 50);
   };
 
