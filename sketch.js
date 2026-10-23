@@ -139,12 +139,12 @@ const SYMMETRY_ICONS_SVG = {
 };
 
 const EDIT_SCOPE_ICONS = {
-  canvas_center: '⊕',
-  orbit_sym: '✦',
-  block_sym: '❖',
-  all_blocks: '⊞',
-  single: '▪',
-  same_tile: '⇄'
+  canvas_center: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
+  orbit_sym: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>',
+  block_sym: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
+  all_blocks: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  single: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>',
+  same_tile: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>'
 };
 
 function ensureSupertilePattern() {
@@ -2915,7 +2915,7 @@ function updateHoverStatusText() {
   const subCell = block.cells[hit.subRow]?.[hit.subCol];
   const tileName = subCell ? (window.TileRegistry.TILE_NAMES[subCell.tileId] || `Tile #${subCell.tileId}`) : '';
   const isCellFrozen = StudioState.frozenCells && StudioState.frozenCells.has(`${hit.row},${hit.col},${hit.subRow},${hit.subCol}`);
-  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;">❄️ TRAVADO</span>' : '';
+  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>TRAVADO</span>' : '';
 
   el.innerHTML =
     `Bloco <strong>[L${hit.row + 1}, C${hit.col + 1}]</strong> • ` +
