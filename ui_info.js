@@ -130,7 +130,7 @@
         'Roda do Mouse: Redimensionar Pincel (inteiro até tamanho do canvas, sem ciclo).',
         'Ctrl+U / Shift: Alternar / Forçar Ajuste ao Bloco (Snap to Block).',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
-        '1 a 6: Seleciona Escopo de Edição.',
+        '1 a 6: Seleciona Escopo de Edição (Q ou Tab: Ciclar entre escopos).',
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
         'Tab: Mostrar / Ocultar Painéis Direitos.'

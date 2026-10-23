@@ -208,4 +208,21 @@ for (let r = 0; r < 3; r++) {
 }
 console.log('✓ Restoring previous tile fills multi-cell brush pattern with restored tile.');
 
-console.log('--- ALL BRUSH SIZING, SNAP TO BLOCK & ERASER TESTS PASSED! ---');
+// 5. Testing Scope Mode Cycling (cycleEditScope via Q or Tab)
+console.log('5. Testing Scope Mode Cycling...');
+assert.strictEqual(typeof window.cycleEditScope, 'function', 'window.cycleEditScope must be exported');
+
+StudioState.editScope = 'canvas_center'; // 1
+assert.strictEqual(window.cycleEditScope(1), 'orbit_sym', 'Must cycle 1 -> 2 (orbit_sym)');
+assert.strictEqual(window.cycleEditScope(1), 'block_sym', 'Must cycle 2 -> 3 (block_sym)');
+assert.strictEqual(window.cycleEditScope(1), 'all_blocks', 'Must cycle 3 -> 4 (all_blocks)');
+assert.strictEqual(window.cycleEditScope(1), 'single', 'Must cycle 4 -> 5 (single)');
+assert.strictEqual(window.cycleEditScope(1), 'same_tile', 'Must cycle 5 -> 6 (same_tile)');
+assert.strictEqual(window.cycleEditScope(1), 'canvas_center', 'Must wrap around 6 -> 1 (canvas_center)');
+
+// Reverse cycling with Shift (direction = -1)
+assert.strictEqual(window.cycleEditScope(-1), 'same_tile', 'Must cycle backward 1 -> 6 (same_tile)');
+assert.strictEqual(window.cycleEditScope(-1), 'single', 'Must cycle backward 6 -> 5 (single)');
+console.log('✓ cycleEditScope smoothly cycles forward and backward across all 6 scopes.');
+
+console.log('--- ALL BRUSH SIZING, SNAP TO BLOCK, ERASER & SCOPE CYCLING TESTS PASSED! ---');

@@ -2476,6 +2476,20 @@ function buildEditWorkspaceUI() {
   }
 }
 
+function cycleEditScope(direction = 1) {
+  const scopeOrder = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
+  const curIdx = Math.max(0, scopeOrder.indexOf(StudioState.editScope));
+  const nextIdx = (curIdx + direction + scopeOrder.length) % scopeOrder.length;
+  StudioState.editScope = scopeOrder[nextIdx];
+  const meta = window.MosaicEngine?.EDIT_SCOPES?.[StudioState.editScope];
+  const name = meta ? meta.name : StudioState.editScope;
+  showEditorToast(`Escopo: ${name} (${nextIdx + 1}/6)`);
+  syncEditWorkspaceUI();
+  saveStudioStateToStorage();
+  redraw();
+  return StudioState.editScope;
+}
+
 function renderEditBrushPalette() {
   const container = document.getElementById('editBrushPaletteContainer');
   if (!container) return;
@@ -3821,20 +3835,30 @@ function initStudioUI() {
       return;
     }
 
-    if (e.key === 'Tab') {
-      if (e.target && e.target !== document.body && e.target.id !== 'canvas-stage') {
-        return;
-      }
-      e.preventDefault();
-      toggleRightDock();
-      return;
-    }
-
     const k = e.key.toLowerCase();
     const isEditTool = StudioState.activeTool === 'paint' ||
       StudioState.activeTool === 'rotate' ||
       StudioState.activeTool === 'stamp' ||
       StudioState.activeTool === 'freeze';
+
+    if (e.key === 'Tab') {
+      if (e.target && e.target !== document.body && e.target.id !== 'canvas-stage') {
+        return;
+      }
+      e.preventDefault();
+      if (isEditTool || StudioState.workspace === 'edit') {
+        cycleEditScope(e.shiftKey ? -1 : 1);
+      } else {
+        toggleRightDock();
+      }
+      return;
+    }
+
+    if (k === 'q') {
+      e.preventDefault();
+      cycleEditScope(e.shiftKey ? -1 : 1);
+      return;
+    }
 
     if (StudioState.activeTool === 'freeze' && (e.key === 'Delete' || e.key === 'Backspace')) {
       e.preventDefault();
@@ -3956,3 +3980,4 @@ window.cycleActiveToolSize = cycleActiveToolSize;
 window.selectBrushTile = selectBrushTile;
 window.isEffectiveBrushSnap = isEffectiveBrushSnap;
 window.setBrushSizeMode = setBrushSizeMode;
+window.cycleEditScope = cycleEditScope;
