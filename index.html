@@ -396,6 +396,17 @@
           </div>
 
           <div id="status-right" class="status-right">
+            <div class="status-spout" aria-label="Saída Spout">
+              <button type="button" id="spoutToggle" class="switch" role="switch" aria-checked="false"
+                aria-label="Ligar ou desligar a saída Spout" title="Ligar/desligar a saída Spout">
+                <span class="switch-knob"></span>
+              </button>
+              <input type="text" id="spoutName" class="status-spout-name" value="Tiling Stripes"
+                maxlength="60" spellcheck="false" aria-label="Nome da saída Spout"
+                title="Nome do sender Spout">
+              <span id="spoutStatus" class="spout-status" data-state="off"
+                title="Ponte: tools\spout_bridge.cmd">off</span>
+            </div>
             <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
           </div>
         </footer>
@@ -549,11 +560,9 @@
               </div>
             </div>
           </section>
-        </div>
 
-        <!-- ================================================================
-             WORKSPACE 2: MODO EDITOR (Escopo D4, Supertile, Giro & Clone)
-             ================================================================ -->
+          <!-- Spout output moved to the status bar (one switch + sender name) -->
+        </div>
         <div id="dock-workspace-edit" class="dock-workspace-pane hidden">
 
           <!-- EDIT PANEL 1: FERRAMENTA, ESCOPO D4 & OPÇÕES DE GIRO -->
@@ -823,6 +832,7 @@
   <script src="core/state_persistence.js"></script>
   <script src="core/history_nav.js"></script>
   <script src="core/document_snapshot.js"></script>
+  <script src="core/spout_output.js"></script>
   <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
   <!-- Main Studio Controller -->

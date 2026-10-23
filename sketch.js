@@ -94,6 +94,10 @@ const StudioState = {
   // Parameters of the document as it was last rendered (used by document-level undo).
   lastDocumentParams: null,
 
+  // Spout output (frames go to tools/spout_bridge.py over WebSocket)
+  spoutEnabled: false,
+  spoutName: 'Tiling Stripes',
+
   guides: {
     showSymmetryAxes: false,
     showBlockGrid: false,
@@ -260,6 +264,7 @@ function buildStudioStatePayload(includeHistories = true) {
 
     seed: StudioState.seed,
     allowedTiles: Array.from(StudioState.allowedTiles),
+    spoutName: StudioState.spoutName,
 
     workspace: StudioState.workspace,
     activeTool: StudioState.activeTool,
@@ -389,6 +394,13 @@ function applySavedStudioState(saved) {
 
   // Seed
   if (typeof saved.seed === 'number') StudioState.seed = saved.seed;
+
+  // Spout sender name (the output itself always starts off)
+  if (typeof saved.spoutName === 'string') {
+    StudioState.spoutName = window.SpoutOutput
+      ? window.SpoutOutput.sanitizeSenderName(saved.spoutName)
+      : saved.spoutName;
+  }
 
   // Allowed Tiles (Automatically include newly added tiles if user had all tiles selected)
   if (Array.isArray(saved.allowedTiles)) {
@@ -1038,6 +1050,145 @@ function restoreDocumentSnapshot(snap) {
   redraw();
 
   return ok;
+}
+
+// ============================================================================
+// Spout output: browser → tools/spout_bridge.py → SpoutGL (shared texture)
+// ============================================================================
+
+let spoutSocket = null;
+let spoutTimer = null;
+let spoutFrameInfo = null;
+let spoutLastSignature = 0;
+
+function setSpoutStatus(label, state, detail) {
+  const el = document.getElementById('spoutStatus');
+  if (!el) return;
+  el.textContent = label;
+  el.dataset.state = state;
+  el.title = detail || label;
+}
+
+function syncSpoutUI() {
+  const toggle = document.getElementById('spoutToggle');
+  if (toggle) toggle.setAttribute('aria-checked', StudioState.spoutEnabled ? 'true' : 'false');
+  const nameInput = document.getElementById('spoutName');
+  if (nameInput && document.activeElement !== nameInput) {
+    nameInput.value = StudioState.spoutName;
+  }
+  if (!StudioState.spoutEnabled) setSpoutStatus('off', 'off', 'Saída Spout desligada');
+}
+
+function captureSpoutFrame() {
+  const cnv = document.querySelector('#canvas-stage canvas');
+  if (!cnv || typeof cnv.getContext !== 'function') return null;
+  const ctx = cnv.getContext('2d');
+  if (!ctx || typeof ctx.getImageData !== 'function') return null;
+  const width = cnv.width;
+  const height = cnv.height;
+  if (!width || !height) return null;
+  try {
+    const image = ctx.getImageData(0, 0, width, height);
+    return { width, height, pixels: new Uint8Array(image.data.buffer) };
+  } catch (err) {
+    console.warn('Spout: leitura do canvas falhou', err);
+    return null;
+  }
+}
+
+function spoutPump() {
+  if (!spoutSocket || spoutSocket.readyState !== WebSocket.OPEN || !spoutFrameInfo) return;
+  const frame = captureSpoutFrame();
+  if (!frame) return;
+
+  if (frame.width !== spoutFrameInfo.width || frame.height !== spoutFrameInfo.height) {
+    spoutFrameInfo = { width: frame.width, height: frame.height };
+    spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
+  }
+
+  // The mosaic is static most of the time: skip identical frames instead of streaming 1.4 MB/tick.
+  const signature = window.SpoutOutput.frameSignature(frame.pixels);
+  if (signature === spoutLastSignature) return;
+  spoutLastSignature = signature;
+  spoutSocket.send(frame.pixels);
+}
+
+let spoutRetryTimer = null;
+const SPOUT_RETRY_MS = 3000;
+
+function scheduleSpoutRetry() {
+  if (!StudioState.spoutEnabled || spoutRetryTimer) return;
+  setSpoutStatus('offline', 'error', 'Ponte offline — rode tools/spout_bridge.cmd');
+  spoutRetryTimer = setTimeout(() => {
+    spoutRetryTimer = null;
+    if (StudioState.spoutEnabled && !spoutSocket) startSpoutOutput();
+  }, SPOUT_RETRY_MS);
+}
+
+function startSpoutOutput() {
+  if (spoutSocket) return;
+  const url = window.SpoutOutput ? window.SpoutOutput.SPOUT_WS_URL : 'ws://127.0.0.1:8766';
+  try {
+    spoutSocket = new WebSocket(url);
+  } catch (err) {
+    spoutSocket = null;
+    scheduleSpoutRetry();
+    return;
+  }
+  spoutSocket.binaryType = 'arraybuffer';
+
+  spoutSocket.onopen = () => {
+    if (spoutRetryTimer) { clearTimeout(spoutRetryTimer); spoutRetryTimer = null; }
+    const frame = captureSpoutFrame();
+    if (!frame) {
+      setSpoutStatus('sem canvas', 'error', 'Canvas não encontrado');
+      return;
+    }
+    spoutFrameInfo = { width: frame.width, height: frame.height };
+    spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
+    setSpoutStatus('on', 'on', 'Enviando o canvas para o Spout');
+    spoutLastSignature = 0;
+    spoutPump();
+    if (!spoutTimer) spoutTimer = setInterval(spoutPump, 50);
+  };
+
+  spoutSocket.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === 'error') setSpoutStatus('erro', 'error', msg.reason || 'Erro na ponte');
+      else if (msg.type === 'status' && msg.sender) setSpoutStatus('on', 'on', 'Enviando o canvas para o Spout');
+    } catch (err) { /* status messages are best-effort */ }
+  };
+
+  spoutSocket.onerror = () => {
+    // A failed connect fires error and then close; the retry is scheduled in onclose.
+    if (spoutRetryTimer) return;
+    setSpoutStatus('offline', 'error', 'Ponte offline — rode tools/spout_bridge.cmd');
+  };
+
+  spoutSocket.onclose = () => {
+    if (spoutTimer) { clearInterval(spoutTimer); spoutTimer = null; }
+    spoutSocket = null;
+    spoutFrameInfo = null;
+    if (StudioState.spoutEnabled) {
+      scheduleSpoutRetry();   // keep the switch on and keep trying
+    } else {
+      setSpoutStatus('off', 'off', 'Saída Spout desligada');
+    }
+  };
+}
+
+function stopSpoutOutput() {
+  if (spoutRetryTimer) { clearTimeout(spoutRetryTimer); spoutRetryTimer = null; }
+  if (spoutTimer) { clearInterval(spoutTimer); spoutTimer = null; }
+  if (spoutSocket) {
+    try { spoutSocket.send(JSON.stringify({ type: 'stop' })); } catch (err) { /* already closing */ }
+    spoutSocket.close();
+    spoutSocket = null;
+  }
+  spoutFrameInfo = null;
+  spoutLastSignature = 0;
+  setSpoutStatus('off', 'off', 'Saída Spout desligada');
 }
 
 function pushGenerationHistory() {
@@ -3235,6 +3386,30 @@ function initStudioUI() {
   };
   paddingInput?.addEventListener('input', () => applyPaddingValue(paddingInput.value));
   paddingInput?.addEventListener('change', () => applyPaddingValue(paddingInput.value));
+
+  // --- Spout output ---
+  const spoutToggle = document.getElementById('spoutToggle');
+  spoutToggle?.addEventListener('click', () => {
+    StudioState.spoutEnabled = !StudioState.spoutEnabled;
+    syncSpoutUI();
+    if (StudioState.spoutEnabled) startSpoutOutput();
+    else stopSpoutOutput();
+  });
+
+  const spoutNameInput = document.getElementById('spoutName');
+  spoutNameInput?.addEventListener('change', () => {
+    StudioState.spoutName = window.SpoutOutput
+      ? window.SpoutOutput.sanitizeSenderName(spoutNameInput.value)
+      : spoutNameInput.value;
+    spoutNameInput.value = StudioState.spoutName;
+    if (spoutSocket && spoutSocket.readyState === WebSocket.OPEN && spoutFrameInfo) {
+      spoutSocket.send(window.SpoutOutput.buildStartMessage(
+        StudioState.spoutName, spoutFrameInfo.width, spoutFrameInfo.height
+      ));
+    }
+    saveStudioStateToStorage();
+  });
+  syncSpoutUI();
 
   const fgPicker = document.getElementById('fgColorPicker');
   const bgPicker = document.getElementById('bgColorPicker');

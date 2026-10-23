@@ -1,5 +1,5 @@
 // tests/test_ui_control_registry.js
-// Validates that all 58 frozen UI control IDs from Annex A exist exactly once in index.html.
+// Validates that all 60 frozen UI control IDs from Annex A exist exactly once in index.html.
 
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +11,7 @@ const baseDir = process.env.TEST_TARGET_DIR
 const htmlPath = path.join(baseDir, 'index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 
-console.log('--- Testing UI Control Registry (58 IDs) ---');
+console.log('--- Testing UI Control Registry (60 IDs) ---');
 
 const expectedIds = [
   "canvasW", "btnSwapCanvasSize", "canvasH", "btnLockCanvasRatio", "btnFitCanvasToGrid",
@@ -28,11 +28,12 @@ const expectedIds = [
   "btnEditUndo", "btnEditRedo", "btnD4Undo", "btnD4Continue",
   "btnBrushRot90", "btnBrushFlipX", "btnBrushFlipY", "btnBrushResetD4",
   "btnSupertileFillAll", "btnSupertileSymmetrize", "btnSupertileCapture",
-  "editBrushSearchInput", "infoPopoverClose"
+  "editBrushSearchInput", "infoPopoverClose",
+  "spoutToggle", "spoutName"
 ];
 
-if (expectedIds.length !== 58) {
-  throw new Error(`Expected exactly 58 IDs in registry list, got ${expectedIds.length}`);
+if (expectedIds.length !== 60) {
+  throw new Error(`Expected exactly 60 IDs in registry list, got ${expectedIds.length}`);
 }
 
 const missing = [];
@@ -57,5 +58,5 @@ if (duplicates.length > 0) {
   throw new Error(`Duplicate UI control IDs found in index.html: ${duplicates.join(', ')}`);
 }
 
-console.log(`✓ All 58 control IDs exist exactly once in index.html.`);
+console.log(`✓ All 60 control IDs exist exactly once in index.html.`);
 console.log('--- ALL UI CONTROL REGISTRY CHECKS PASSED! ---');
