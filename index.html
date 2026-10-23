@@ -740,15 +740,24 @@
                     <label class="prop-label">Tamanho do Pincel</label>
                     <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Supertile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
+                  <span class="prop-hint" style="font-size: 10px; color: var(--text-tertiary);">Roda do mouse</span>
                 </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="brushSizeControl">
-                  <button type="button" class="seg-btn active" data-brush-size="1"
-                    title="Pincel de 1 Tile (1×1)">1×1</button>
-                  <button type="button" class="seg-btn" data-brush-size="2" title="Supertile 2×2">2×2</button>
-                  <button type="button" class="seg-btn" data-brush-size="3" title="Supertile 3×3">3×3</button>
-                  <button type="button" class="seg-btn" data-brush-size="4" title="Supertile 4×4">4×4</button>
-                  <button type="button" class="seg-btn" data-brush-size="block"
-                    title="Supertile do tamanho de 1 Bloco">Bloco</button>
+                <div class="brush-size-display-row" id="brushSizeControl">
+                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" title="Diminuir tamanho do pincel (ou Roda do Mouse para baixo)">−</button>
+                  <div class="brush-size-badge" id="brushSizeDisplayBadge">
+                    <span class="brush-size-val" id="brushSizeValueText">1×1</span>
+                    <span class="brush-size-sub" id="brushSizeSubText">1 subtile</span>
+                  </div>
+                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" title="Aumentar tamanho do pincel (ou Roda do Mouse para cima)">+</button>
+                </div>
+                <div class="brush-snap-row" id="brushSnapRow">
+                  <button type="button" class="brush-snap-toggle-btn" id="btnToggleBrushSnap" title="Alternar Ajuste ao Bloco (Atalho: Ctrl+U ou segurar Shift)">
+                    <span class="snap-icon">🧲</span>
+                    <span class="snap-label">Snap ao Bloco:</span>
+                    <span class="snap-status" id="brushSnapStatusText">Desativado</span>
+                    <kbd class="snap-kbd">Ctrl+U</kbd>
+                  </button>
+                  <div class="snap-hint-text">Segure <kbd>Shift</kbd> para alternar ao pintar</div>
                 </div>
               </div>
 

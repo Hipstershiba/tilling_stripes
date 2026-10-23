@@ -44,8 +44,12 @@ global.localStorage = {
   getItem: () => null,
   removeItem: () => {}
 };
+const elCache = new Map();
 global.document = {
-  getElementById: (id) => createMockEl(id),
+  getElementById: (id) => {
+    if (!elCache.has(id)) elCache.set(id, createMockEl(id));
+    return elCache.get(id);
+  },
   createElement: (tag) => createMockEl('', tag),
   querySelectorAll: () => [],
   body: createMockEl('body', 'body')
@@ -225,4 +229,23 @@ assert.strictEqual(window.cycleEditScope(-1), 'same_tile', 'Must cycle backward 
 assert.strictEqual(window.cycleEditScope(-1), 'single', 'Must cycle backward 6 -> 5 (single)');
 console.log('✓ cycleEditScope smoothly cycles forward and backward across all 6 scopes.');
 
-console.log('--- ALL BRUSH SIZING, SNAP TO BLOCK, ERASER & SCOPE CYCLING TESTS PASSED! ---');
+// 6. Testing Brush Size & Snap Status UI Display Elements
+console.log('6. Testing Brush Size & Snap Status UI display elements...');
+const sizeValEl = document.getElementById('brushSizeValueText');
+const sizeSubEl = document.getElementById('brushSizeSubText');
+const snapStatusEl = document.getElementById('brushSnapStatusText');
+
+StudioState.brushSnapToBlock = false;
+window.setBrushSizeMode('3');
+assert.strictEqual(sizeValEl.textContent, '3×3', 'Display must show 3×3');
+assert.strictEqual(sizeSubEl.textContent, '3 subtiles', 'Display must show 3 subtiles');
+assert.strictEqual(snapStatusEl.textContent, 'Desativado', 'Snap status must show Desativado');
+
+StudioState.brushSnapToBlock = true;
+window.setBrushSizeMode('8', true); // 2 blocks (N=4)
+assert.strictEqual(sizeValEl.textContent, '8×8', 'Display must show 8×8');
+assert.strictEqual(sizeSubEl.textContent, '2×2 blocos', 'Display must show 2×2 blocos');
+assert.strictEqual(snapStatusEl.textContent, 'Ativado', 'Snap status must show Ativado');
+console.log('✓ Brush size value text and snap status badge render accurately.');
+
+console.log('--- ALL BRUSH SIZING, SNAP TO BLOCK, ERASER, SCOPE & UI DISPLAY TESTS PASSED! ---');

@@ -126,14 +126,15 @@
       subtitle: 'Comandos do teclado para máxima produtividade',
       body: [
         'B: Pincel | E: Borracha (Tile Vazio #84) | R: Girar | S: Carimbo | F: Travar Subtiles (Shift+F: Descongelar) | V: Inspecionar.',
-        'H / Espaço: Pan | Z: Zoom | 1: Zoom 100% (1:1) | 0: Centralizar e Ajustar Artboard na Janela.',
-        'Roda do Mouse: Redimensionar Pincel (inteiro até tamanho do canvas, sem ciclo).',
+        'H / Espaço: Pan 2D | Z: Zoom | 1: Zoom 100% (1:1) | 0: Centralizar e Ajustar Artboard na Janela.',
+        'Ctrl + Roda: Zoom | Alt + Roda: Pan Vertical | Shift + Roda: Pan Horizontal.',
+        'Roda livre (sem teclas): Redimensionar Pincel (números inteiros até limite do canvas, sem ciclo).',
         'Ctrl+U / Shift: Alternar / Forçar Ajuste ao Bloco (Snap to Block).',
+        'Q ou Tab (Shift+Q / Shift+Tab): Ciclar entre os 6 Modos de Escopo de Edição (antigos atalhos 1 a 6 removidos).',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
-        '1 a 6: Seleciona Escopo de Edição (Q ou Tab: Ciclar entre escopos).',
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
-        'Tab: Mostrar / Ocultar Painéis Direitos.'
+        'Tab (no Gerador): Mostrar / Ocultar Painéis Direitos.'
       ]
     },
     'inspect': {

@@ -214,19 +214,6 @@ function simulateKeyNav(e, isEditTool) {
     resetZoom100();
     return '100';
   }
-  if (isEditTool) {
-    const scopeOrder = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
-    let scopeIdx = -1;
-    if (e.altKey && ['1', '2', '3', '4', '5', '6'].includes(k)) {
-      scopeIdx = parseInt(k, 10) - 1;
-    } else if (!e.shiftKey && !e.altKey && ['2', '3', '4', '5', '6'].includes(k)) {
-      scopeIdx = parseInt(k, 10) - 1;
-    }
-    if (scopeIdx >= 0 && scopeOrder[scopeIdx]) {
-      StudioState.editScope = scopeOrder[scopeIdx];
-      return 'scope_' + StudioState.editScope;
-    }
-  }
   return null;
 }
 
@@ -261,22 +248,31 @@ assert.strictEqual(StudioState.panOffsetX, 0, 'Key 0 must re-center pan X');
 assert.strictEqual(StudioState.panOffsetY, 0, 'Key 0 must re-center pan Y');
 console.log('✓ Key 0 with brush (isEditTool=true) re-centers and fits artboard to window.');
 
-// Case D: Holding brush, presses key '2' (switches scope to orbit_sym)
+// Case D: Old numeric scope shortcuts (1-6) are deactivated: pressing '2' does not switch scope
+StudioState.editScope = 'canvas_center';
 const action2 = simulateKeyNav({ key: '2', code: 'Digit2', shiftKey: false, altKey: false }, true);
-assert.strictEqual(action2, 'scope_orbit_sym', 'Key 2 with brush must switch to scope orbit_sym');
-assert.strictEqual(StudioState.editScope, 'orbit_sym');
-console.log('✓ Key 2 with brush successfully switches edit scope.');
+assert.strictEqual(action2, null, 'Key 2 with brush must no longer switch scope (old numeric shortcuts removed)');
+assert.strictEqual(StudioState.editScope, 'canvas_center', 'editScope must remain unchanged on numeric keys');
+console.log('✓ Old numeric scope shortcuts successfully deactivated.');
 
 // 7. Test Wheel behavior: plain wheel controls brush size without modifier keys; modifiers control zoom and pan!
 function simulateWheel(e, activeTool, isSpaceDown = false) {
-  // 1. Zoom with modifier
-  if (e.ctrlKey || e.metaKey || e.altKey || activeTool === 'zoom') {
+  // 1. Zoom with Ctrl / Cmd (or active tool 'zoom')
+  if (e.ctrlKey || e.metaKey || activeTool === 'zoom') {
     const delta = e.deltaY < 0 ? 15 : -15;
     setZoomPercent(StudioState.zoomPercent + delta);
     return 'zoom';
   }
 
-  // 2. Pan with modifier (Shift) or Space bar or Pan tool
+  // 2. Vertical Pan with Alt
+  if (e.altKey) {
+    const dy = e.deltaY;
+    StudioState.panOffsetY = (StudioState.panOffsetY || 0) - dy;
+    applyPanTransform();
+    return 'pan_vertical';
+  }
+
+  // 3. Pan with modifier (Shift) or Space bar or Pan tool
   if (e.shiftKey || isSpaceDown || activeTool === 'pan') {
     const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
     const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
@@ -362,6 +358,13 @@ const wheelRes2 = simulateWheel({ deltaY: -100, deltaX: 0, ctrlKey: true, shiftK
 assert.strictEqual(wheelRes2, 'zoom', 'Ctrl+wheel over paint tool must zoom');
 assert.strictEqual(StudioState.zoomPercent, 115);
 console.log('✓ Ctrl+wheel over brush zooms in.');
+
+// Subtest 7b-2: Alt+wheel over paint tool pans vertically instead of zooming or resizing
+StudioState.panOffsetY = 0;
+const wheelResAlt = simulateWheel({ deltaY: 40, deltaX: 0, ctrlKey: false, shiftKey: false, altKey: true }, 'paint');
+assert.strictEqual(wheelResAlt, 'pan_vertical', 'Alt+wheel over paint tool must pan vertically');
+assert.strictEqual(StudioState.panOffsetY, -40);
+console.log('✓ Alt+wheel over brush pans vertically.');
 
 // Subtest 7c: Shift+wheel over paint tool pans instead of changing brush size
 StudioState.panOffsetX = 0;

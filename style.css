@@ -1778,6 +1778,146 @@ body.right-dock-collapsed .dock-toggle-btn {
   flex-shrink: 0;
 }
 
+/* --- Brush Size & Snap to Block Display --- */
+.brush-size-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.brush-step-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.brush-step-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.brush-size-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+}
+
+.brush-size-val {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.brush-size-sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
+.brush-snap-row {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.brush-snap-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.brush-snap-toggle-btn:hover {
+  background: var(--bg-hover);
+  border-color: rgba(0, 210, 255, 0.4);
+}
+
+.brush-snap-toggle-btn.active {
+  background: rgba(0, 210, 255, 0.08);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+}
+
+.brush-snap-toggle-btn.active .snap-status {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.snap-icon {
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.snap-label {
+  font-weight: 600;
+  flex: 1;
+  text-align: left;
+}
+
+.snap-status {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-right: 8px;
+}
+
+.snap-kbd {
+  font-size: 9.5px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text-secondary);
+}
+
+.brush-snap-toggle-btn.active .snap-kbd {
+  border-color: rgba(0, 210, 255, 0.4);
+  color: var(--accent-cyan);
+}
+
+.snap-hint-text {
+  font-size: 9.5px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.snap-hint-text kbd {
+  font-size: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
 .active-brush-controls {
   flex: 1;
   min-width: 0;

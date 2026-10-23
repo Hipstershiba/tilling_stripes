@@ -2818,17 +2818,38 @@ function syncEditWorkspaceUI() {
     btn.classList.toggle('active', btn.dataset.stampMode === StudioState.stampInteractionMode);
   });
 
-  document.querySelectorAll('#brushSizeControl .seg-btn[data-brush-size]').forEach((btn) => {
-    const val = btn.dataset.brushSize;
-    const N = StudioState.mosaicData ? StudioState.mosaicData.subtilesPerSide : 4;
-    let isActive = false;
-    if (val === 'block') {
-      isActive = (StudioState.brushSizeMode === 'block' || (StudioState.brushSnapToBlock && parseInt(StudioState.brushSizeMode, 10) === N));
+  // 7. Brush Size Display & Snap Status Badge
+  const sizeValEl = document.getElementById('brushSizeValueText');
+  const sizeSubEl = document.getElementById('brushSizeSubText');
+  const snapStatusEl = document.getElementById('brushSnapStatusText');
+  const snapBtn = document.getElementById('btnToggleBrushSnap');
+
+  const N = StudioState.mosaicData ? StudioState.mosaicData.subtilesPerSide : 4;
+  let currentDim = 1;
+  if (StudioState.brushSizeMode === 'block') {
+    currentDim = N;
+  } else {
+    currentDim = Math.max(1, parseInt(StudioState.brushSizeMode, 10) || 1);
+  }
+
+  if (sizeValEl) {
+    sizeValEl.textContent = `${currentDim}×${currentDim}`;
+  }
+  if (sizeSubEl) {
+    if (StudioState.brushSnapToBlock) {
+      const blocks = Math.max(1, Math.round(currentDim / N));
+      sizeSubEl.textContent = `${blocks}×${blocks} ${blocks === 1 ? 'bloco' : 'blocos'}`;
     } else {
-      isActive = (val === String(StudioState.brushSizeMode) && !StudioState.brushSnapToBlock);
+      sizeSubEl.textContent = `${currentDim} ${currentDim === 1 ? 'subtile' : 'subtiles'}`;
     }
-    btn.classList.toggle('active', isActive);
-  });
+  }
+  if (snapStatusEl) {
+    snapStatusEl.textContent = StudioState.brushSnapToBlock ? 'Ativado' : 'Desativado';
+  }
+  if (snapBtn) {
+    snapBtn.classList.toggle('active', Boolean(StudioState.brushSnapToBlock));
+    snapBtn.setAttribute('aria-pressed', StudioState.brushSnapToBlock ? 'true' : 'false');
+  }
 
 
   // 8. Supertile Builder Metadata, Badges & Contextual Actions
@@ -3394,11 +3415,28 @@ function initStudioUI() {
     });
   });
 
-  // Brush / Supertile Size & Snap to Block
-  document.querySelectorAll('#brushSizeControl .seg-btn[data-brush-size]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setBrushSizeMode(btn.dataset.brushSize || '1');
-    });
+  // Brush Size Stepper Buttons & Snap to Block Toggle
+  document.getElementById('btnBrushSizeInc')?.addEventListener('click', () => {
+    cycleActiveToolSize(1);
+  });
+  document.getElementById('btnBrushSizeDec')?.addEventListener('click', () => {
+    cycleActiveToolSize(-1);
+  });
+  document.getElementById('btnToggleBrushSnap')?.addEventListener('click', () => {
+    StudioState.brushSnapToBlock = !StudioState.brushSnapToBlock;
+    const N = StudioState.mosaicData ? StudioState.mosaicData.subtilesPerSide : 4;
+    let currentDim = StudioState.brushSizeMode === 'block' ? N : (parseInt(StudioState.brushSizeMode, 10) || 1);
+    if (StudioState.brushSnapToBlock) {
+      const snappedDim = Math.max(1, Math.round(currentDim / N)) * N;
+      setBrushSizeMode(String(snappedDim), true);
+      const blocks = snappedDim / N;
+      showEditorToast(`Ajuste ao Bloco: Ativado • Pincel ${blocks}×${blocks} blocos (Ctrl+U)`);
+    } else {
+      showEditorToast(`Ajuste ao Bloco: Desativado • Modo Subtile Livre (Ctrl+U)`);
+      syncEditWorkspaceUI();
+      redraw();
+    }
+    saveStudioStateToStorage();
   });
 
 
@@ -3593,15 +3631,24 @@ function initStudioUI() {
   const WHEEL_STEP_THRESHOLD = 45;
 
   pasteboard?.addEventListener('wheel', (e) => {
-    // 1. Zoom with modifier: Ctrl / Cmd / Alt + wheel (or active tool 'zoom')
-    if (e.ctrlKey || e.metaKey || e.altKey || StudioState.activeTool === 'zoom') {
+    // 1. Zoom with modifier: Ctrl / Cmd + wheel (or active tool 'zoom')
+    if (e.ctrlKey || e.metaKey || StudioState.activeTool === 'zoom') {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 15 : -15;
       setZoomPercent(StudioState.zoomPercent + delta);
       return;
     }
 
-    // 2. Pan with modifier (Shift) or while Space is held or in Pan tool:
+    // 2. Vertical Pan with Alt:
+    if (e.altKey) {
+      e.preventDefault();
+      const dy = e.deltaY;
+      StudioState.panOffsetY = (StudioState.panOffsetY || 0) - dy;
+      applyPanTransform();
+      return;
+    }
+
+    // 3. Horizontal Pan with Shift, or 2D Pan when Space is held or in Pan tool:
     if (e.shiftKey || StudioState.isSpaceDown || StudioState.activeTool === 'pan') {
       e.preventDefault();
       const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
@@ -3931,20 +3978,6 @@ function initStudioUI() {
     } else if ((k === '1' || (e.shiftKey && k === '!') || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
       e.preventDefault();
       resetZoom100();
-    } else if (isEditTool) {
-      const scopeOrder = ['canvas_center', 'orbit_sym', 'block_sym', 'all_blocks', 'single', 'same_tile'];
-      let scopeIdx = -1;
-      if (e.altKey && ['1', '2', '3', '4', '5', '6'].includes(k)) {
-        scopeIdx = parseInt(k, 10) - 1;
-      } else if (!e.shiftKey && !e.altKey && ['2', '3', '4', '5', '6'].includes(k)) {
-        scopeIdx = parseInt(k, 10) - 1;
-      }
-      if (scopeIdx >= 0 && scopeOrder[scopeIdx]) {
-        e.preventDefault();
-        StudioState.editScope = scopeOrder[scopeIdx];
-        syncEditWorkspaceUI();
-        redraw();
-      }
     } else if (e.key === 'ArrowLeft') {
       restoreGenerationHistory(StudioState.historyIndex - 1);
     } else if (e.key === 'ArrowRight') {
