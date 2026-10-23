@@ -1632,7 +1632,10 @@ function fitArtboardToWindow() {
 function setZoomPercent(nextPercent) {
   const oldZoom = StudioState.zoomPercent || 100;
   const clampedZoom = Math.max(15, Math.min(400, Math.round(nextPercent)));
-  if (clampedZoom === oldZoom && StudioState.zoomMode === 'custom') return;
+  if (clampedZoom === oldZoom && StudioState.zoomMode === 'custom') {
+    applyPanTransform();
+    return;
+  }
 
   const ratio = clampedZoom / oldZoom;
   StudioState.panOffsetX = Math.round((StudioState.panOffsetX || 0) * ratio);
@@ -1644,10 +1647,19 @@ function setZoomPercent(nextPercent) {
   applyPanTransform();
 }
 
+function recenterView() {
+  StudioState.panOffsetX = 0;
+  StudioState.panOffsetY = 0;
+  applyPanTransform();
+}
+
 function resetZoom100() {
   StudioState.panOffsetX = 0;
   StudioState.panOffsetY = 0;
-  setZoomPercent(100);
+  StudioState.zoomPercent = 100;
+  StudioState.zoomMode = 'custom';
+  applyZoomTransform();
+  applyPanTransform();
 }
 
 // ============================================================================
@@ -3779,3 +3791,4 @@ window.applyZoomTransform = applyZoomTransform;
 window.fitArtboardToWindow = fitArtboardToWindow;
 window.setZoomPercent = setZoomPercent;
 window.resetZoom100 = resetZoom100;
+window.recenterView = recenterView;

@@ -173,9 +173,12 @@ console.log('✓ Zooming while panned scales offsets proportionally, maintaining
 function resetZoom100() {
   StudioState.panOffsetX = 0;
   StudioState.panOffsetY = 0;
-  setZoomPercent(100);
+  StudioState.zoomPercent = 100;
+  StudioState.zoomMode = 'custom';
+  applyPanTransform();
 }
 
+// Subtest 5a: With zoom already applied (e.g. 250%)
 StudioState.panOffsetX = -320;
 StudioState.panOffsetY = 190;
 StudioState.zoomPercent = 250;
@@ -184,7 +187,18 @@ assert.strictEqual(StudioState.zoomPercent, 100, 'resetZoom100 must set zoom to 
 assert.strictEqual(StudioState.panOffsetX, 0, 'resetZoom100 must reset panOffsetX to 0 (re-center)');
 assert.strictEqual(StudioState.panOffsetY, 0, 'resetZoom100 must reset panOffsetY to 0 (re-center)');
 assert.strictEqual(mockStage.style.transform, 'translate(0px, 0px)');
-console.log('✓ resetZoom100 (Tecla 1 / Ctrl+1) resets zoom to 100% and re-centers pan.');
+
+// Subtest 5b: REGRESSION TEST - When ALREADY at 100% zoom and panned accidentally!
+StudioState.zoomPercent = 100;
+StudioState.zoomMode = 'custom';
+StudioState.panOffsetX = -180;
+StudioState.panOffsetY = 150;
+mockStage.style.transform = 'translate(-180px, 150px)';
+resetZoom100();
+assert.strictEqual(StudioState.panOffsetX, 0, 'Must re-center panOffsetX to 0 even if already at 100% zoom');
+assert.strictEqual(StudioState.panOffsetY, 0, 'Must re-center panOffsetY to 0 even if already at 100% zoom');
+assert.strictEqual(mockStage.style.transform, 'translate(0px, 0px)', 'Transform must be updated to 0px, 0px');
+console.log('✓ resetZoom100 (Tecla 1 / Ctrl+1) re-centers even when ALREADY at 100% zoom.');
 
 // 6. Test 1, Shift+1, and 0 navigation shortcuts while in edit mode (holding brush)
 function simulateKeyNav(e, isEditTool) {
