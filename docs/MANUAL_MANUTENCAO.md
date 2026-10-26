@@ -10,15 +10,20 @@ O Tiling Stripes Studio é implementado em vanilla JavaScript (ES6+) e p5.js sem
 
 ```
 core/
-├── d4_symmetry.js         # Álgebra do grupo D4, estabilizadores e resolução de órbitas
+├── d4_symmetry.js         # Álgebra do grupo D4, transformações, estabilizadores e resolução de órbitas
 ├── tile_registry.js       # Catálogo estático de 85 renderers vetoriais organizados em 31 famílias
-├── mosaic_engine.js       # Motor de geração determinística, propagação por escopo e snapshots
-└── state_persistence.js   # Lógica pura de persistência, fallbacks de cota e gestão de histórico
-ui_info.js                 # Motor de divulgação progressiva (13 tópicos, popovers e tooltips)
-sketch.js                  # Controlador principal da UI, eventos de canvas, histórico e atalhos
+├── mosaic_engine.js       # Motor de geração determinística, propagação por escopo, render e snapshots
+├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
+├── history_nav.js         # Navegação preguiçosa no histórico de geração, orçamento e snapshots
+├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
+├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
+└── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
+ui_info.js                 # Motor de divulgação progressiva (13 tópicos, popovers e tooltips acessíveis)
+sketch.js                  # Controlador principal da UI, eventos de canvas, histórico, atalhos e Spout
 style.css                  # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
-index.html                 # Shell estrutural, dock contextual e ordem de carga
-tests/                     # Suíte com 10 testes automatizados executáveis com Node.js
+index.html                 # Shell estrutural, superfícies de controle e ordem estrita de carga
+tests/                     # Suíte com 36 testes automatizados executáveis com Node.js puro
+tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ```
 
 ### Ordem Obrigatória de Carga dos Scripts em `index.html`
@@ -30,6 +35,10 @@ tests/                     # Suíte com 10 testes automatizados executáveis com
 <script src="core/tile_registry.js"></script>
 <script src="core/mosaic_engine.js"></script>
 <script src="core/state_persistence.js"></script>
+<script src="core/history_nav.js"></script>
+<script src="core/document_snapshot.js"></script>
+<script src="core/spout_output.js"></script>
+<script src="core/ui_format.js"></script>
 <script src="ui_info.js"></script>
 <script src="sketch.js"></script>
 ```
@@ -62,7 +71,7 @@ $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 2. **`kaleidoscope` (Caleidoscópio Livre)**:
    - Propagação nos 8 octantes aplicando rotações e reflexões sem exigir estabilizadores para as células fixas, permitindo composições ricas mesmo com famílias assimétricas.
 3. **`rotational_c4` (Giro Contínuo)**:
-   - 4 quadrantes em giro rotacional contínuo de 90°.
+   - 4 quadrantes em giro rotacional contínuo de 90° ao redor do centro.
 4. **`bilateral_d2` (Espelhamento Duplo)**:
    - Espelhamento bilateral nos eixos horizontal e vertical.
 
@@ -99,70 +108,112 @@ O catálogo é a fonte de verdade para a renderização vetorial:
 
 ## 5. Arquitetura de UI — As Quatro Superfícies
 
-A partir da Rodada 4, a interface é rigorosamente estruturada em quatro superfícies funcionais dedicadas:
+A interface adota a taxonomia de quatro superfícies estritas com responsabilidades dedicadas e layout responsivo testado em 1280×800 e 1440×900:
 
 1. **Barra Superior (`#top-control-bar` — O Documento)**:
-   - Configurações do documento: Artboard (largura, altura, proporção travada, ajuste à grade), Grade (linhas, colunas, proporção, células 1:1, margem externa), Seed (semente, gerar aleatório, navegação e histórico) e Exportar (PNG/SVG).
-   - Não contém seletores de modo nem ferramentas. Totalmente responsivo e sem acionar rolagem horizontal em 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
+   - Configurações do documento: Artboard (largura, altura, inversão W ⇄ H, proporção travada, ajuste à grade), Grade (linhas, colunas, inversão L ⇄ C, proporção travada, células quadradas 1:1, margem externa em px, respiro percentual `#paddingInput`).
+   - Sem rolagem horizontal nos monitores 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
 
-2. **Barra Lateral Esquerda (`#left-toolbar` — As Ferramentas)**:
-   - Exatamente 6 botões de ferramentas (`inspect`, `paint`, `rotate`, `stamp`, `pan`, `zoom`).
-   - Widget de cores sobrepostas estilo Photoshop/Illustrator (`.color-tool-section`) posicionado no rodapé da barra (`margin-top: auto;`) colado ao fundo (distância ≤ 16 px). Atalho `X` inverte cores.
+2. **Barra Lateral Esquerda (`#left-toolbar` — Ferramentas e Ações)**:
+   - Organizada em duas colunas funcionais contendo:
+     - **7 Ferramentas**: Inspecionar (`V`), Pincel (`B`), Girar (`R`), Carimbo/Clonar (`S`), Travar Subtiles (`F`), Pan (`H`) e Zoom (`Z`).
+     - **Guias Visuais**: 4 toggles (`toggleGuideAxes`, `toggleGuideBlocks`, `toggleGuideSubtiles`, `toggleGuideOrbits`) com estado `aria-pressed`.
+     - **Controle de Cores**: Widget estilo Adobe Illustrator (`.color-tool-section`) com swatches sobrepostos de Primeiro Plano (`#fgColorPicker`) e Fundo (`#bgColorPicker`) e botão de inversão rápida (`#btnSwapColors`, tecla `X`).
+     - **Gerador e Semente**: Botão de sorteio aleatório (`#btnRandomize`, tecla `G`), campo numérico de seed (`#seedInput`), navegação de sementes (`#btnPrevSeed`, `#btnNextSeed`) e lista permanente de histórico recente (`#seedHistoryList`).
+     - **Exportação**: Seletor de formato PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`).
 
-3. **Barra Inferior de Status (`#status-bar` — A Visão)**:
-   - Zona esquerda: Grupo coeso de zoom (`.zoom-widget`) contendo `[−] [100% ▾] [+] [Ajustar] [1:1]` (todos a ≤ 24 px do seletor).
-   - Zona central: Dimensões do artboard, Grade/Órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em viewports reduzidas.
-   - Zona direita: 4 toggles de guias visuais (`#toggleGuideAxes`, `#toggleGuideBlocks`, `#toggleGuideSubtiles`, `#toggleGuideOrbits`) com classe `.status-guide-btn`, estado visual `.active` sincronizado com `aria-pressed`, e o botão de Central de Ajuda (`#btnHelp` / `?`).
+3. **Área Central e Viewport (`#workspace-viewport` / `#canvas-stage`)**:
+   - Artboard do mosaico centrado sobre o pasteboard escuro.
+   - Pan 2D contínuo via CSS transforms (sem re-renderizar primitivas geométricas) operável via ferramenta Pan (`H`), arrasto com botão do meio, `Espaço + Arrasto` ou `Alt + Arrasto`.
+   - Zoom centrado na janela ou sob o cursor (Ctrl + Roda do mouse) com limites de 25% a 400%.
+   - Teclas `1`, `Shift+1` e `Ctrl+1` recentralizam o canvas e fixam zoom em 100%; tecla `0` ajusta o artboard à janela visível. Roda do mouse livre redimensiona o tamanho do pincel.
 
-4. **Dock Lateral Direito (`#right-dock` — Propriedades, Modos e Gaveta)**:
-   - Cabeçalho Fixo (`#dock-header`): Seletor de Modo (`#workspaceSwitcher`, Gerador vs Editor) e botão de alternância de gaveta (`#btnToggleRightDock`, `«` expandido, `»` recolhido, `aria-expanded`).
-   - Gaveta Recolhida (`body.right-dock-collapsed`): Dock reduz para régua de 44 px (`--dock-rail-w: 44px`), oculta os painéis roláveis e apresenta os dois modos como ícones verticais 32×32 acessíveis que alternam o workspace sem expandir a régua. A área útil do canvas expande ~306 px.
-   - Acordeão de Painéis: Cabeçalhos `.panel-header[data-collapse-target]` acessíveis (`role="button"`, `tabindex="0"`, `aria-expanded`, `aria-controls`), operáveis via mouse e teclado (Enter/Espaço), com chevron giratório e persistência de estado.
+4. **Barra Inferior de Status (`#status-bar` — A Visão e Saída)**:
+   - Zona esquerda: Grupo de zoom integrado (`.zoom-widget`) com `[−] [100% ▾] [+] [Ajustar] [1:1]`.
+   - Zona central: Dimensões em pixels, contagem de grade/órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em viewports compactas.
+   - Zona direita: Streaming Spout em tempo real (`#spoutToggle`, `#spoutName`), indicador de status de conexão e botão de Central de Ajuda (`#btnHelp` / `?`).
+
+5. **Dock Lateral Direito (`#right-dock` — Painel Contextual Dinâmico)**:
+   - Adapta-se automaticamente à ferramenta ativa no estúdio (`inspect` abre o painel de Geração; `paint` exibe opções de Pincel, Supertile e paleta; `rotate` exibe opções de rotação; `stamp` exibe opções de captura/carimbo; `freeze` exibe opções de trava de subtiles).
+   - Botão de alternância de gaveta (`#btnToggleRightDock`, `«` expandido, `»` recolhido, `aria-expanded`). Quando recolhido (`body.right-dock-collapsed`), comprime-se em régua de 44 px liberando ~306 px para o canvas.
 
 ---
 
 ## 6. Divulgação Progressiva de Informações (`ui_info.js`)
 
 O sistema adota o padrão de Progressive Disclosure para manter a interface desobstruída e visualmente limpa:
-- **`INFO_TOPICS`**: Dicionário contendo os 13 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Pincel, Girar, Carimbo, Mesmo Tile, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar).
+- **`INFO_TOPICS`**: Dicionário contendo os 13 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Pincel, Girar, Carimbo, Trava, Mesmo Tile, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar).
 - **Popover Não-Modal (`#infoPopover`)**: Componente flutuante singleton reposicionado dinamicamente com foco acessível e fechamento ao clicar fora ou via tecla Escape.
 - **Floating Tooltip (`#uiTooltip`)**: Dica rápida acionada via atributo `data-tooltip`.
 - **Botões `ⓘ` e `?`**: Disparadores contextuais que conectam elementos visuais aos tópicos sem exibir textos extensos permanentes.
 
 ---
 
-## 7. Persistência de Estado (`core/state_persistence.js`)
+## 7. Persistência de Estado e Snapshots (`core/state_persistence.js` e `core/document_snapshot.js`)
 
-A lógica de serialização e persistência é isolada em módulo puro exportável para ambientes Node.js e browser:
-- `isQuotaError(err)`: Detecta falhas de cota de armazenamento no browser.
-- `saveWithQuotaFallback(storage, key, fullPayload, fallbackPayload)`: Mecanismo de persistência em duas etapas que previne perda de dados em caso de quota esgotada.
-- `trimHistoryOnPush(array, limit)`: Garante que arrays de histórico nunca ultrapassem a capacidade máxima permitida.
-- `getMaxEditHistoryForMosaic(mosaic)`: Calcula o orçamento dinâmico de snapshots conforme o tamanho da grade para permanecer em ~3,5 MB.
-- `migratePayloadHistories(payload, maxGen, maxEdit)`: Valida e corrige payloads carregados de versões antigas do storage.
-- `buildMinimalEmergencyPayload(state)`: Monta payload de contingência contendo apenas o estado visual atual do mosaico.
-- `createSaveScheduler(options)`: Agendador de salvamento com debounce para ações contínuas.
-- `validatePayloadVersion(payload)`: Validador semântico de integridade e versão do schema salvo.
+A persistência do estúdio opera em arquitetura híbrida de duas camadas:
 
-Campos aditivos de UI persistidos (sem incremento de schema versão 3):
-- `rightDockCollapsed`: Booleano do estado da gaveta lateral.
-- `dockPanels`: Dicionário chave-booleano de abertura dos painéis do acordeão.
+### 1. Camada Primária: IndexedDB (`TilingStripesDB_v1`)
+- Opera de forma assíncrona com capacidade ampla de armazenamento.
+- Armazena histórico rico de até 256 gerações (`IDB_MAX_GENERATION_HISTORY`) e até 100 etapas de desfazer/refazer edições (`IDB_MAX_EDIT_HISTORY`).
+- Funções exportadas: `openIndexedDB`, `saveToIndexedDB`, `loadFromIndexedDB`, `migrateLocalStorageToIndexedDB`.
+
+### 2. Camada Secundária de Boot: `localStorage` (`tiling_stripes_studio_v3_state`)
+- Cache síncrono para inicialização imediata e recuperação sem travamento.
+- Funções puras exportadas de `core/state_persistence.js`:
+  - `isQuotaError(err)`: Detecta falhas de cota de armazenamento no browser.
+  - `saveWithQuotaFallback(storage, key, fullPayload, fallbackPayload)`: Mecanismo de persistência em duas etapas que previne perda de dados em caso de quota esgotada.
+  - `trimHistoryOnPush(array, limit)`: Garante que arrays de histórico nunca ultrapassem a capacidade máxima permitida.
+  - `getMaxEditHistoryForMosaic(mosaic)`: Calcula o orçamento dinâmico de snapshots conforme o tamanho da grade.
+  - `migratePayloadHistories(payload, maxGen, maxEdit)`: Valida e corrige payloads carregados de versões antigas do storage.
+  - `buildMinimalEmergencyPayload(state)`: Monta payload de contingência contendo apenas o estado visual atual do mosaico.
+  - `createSaveScheduler(options)`: Agendador de salvamento com debounce de 300 ms para ações contínuas.
+  - `validatePayloadVersion(payload)`: Validador semântico de integridade e versão do schema salvo (versão 3).
+
+### 3. Snapshots de Documento (`core/document_snapshot.js`)
+- `collectParams(state)`: Coleta parâmetros macro do documento (seed, linhas, colunas, subdivisão, simetrias, margem, respiro e tiles permitidos).
+- `attachDocument(cellsSnapshot, documentParams)`: Vincula o registro de parâmetros ao snapshot de células.
+- Permite que o comando `Ctrl+Z` / `Ctrl+Y` atravesse regenerações destrutivas mantendo o estado de parâmetros sincronizado com as células.
 
 ---
 
-## 8. Como Rodar e Testar
+## 8. Saída em Tempo Real via Spout (`core/spout_output.js` e `tools/spout_bridge.py`)
+
+Para integração com softwares de VJ e projeção visual (Resolume Arena, TouchDesigner, MadMapper, OBS Studio):
+- O estúdio renderiza um buffer `p5.Graphics` offscreen exclusivo no tamanho nativo do artboard (sem zoom de tela, sem guias de alinhamento e sem cursor de hover).
+- `core/spout_output.js` calcula a assinatura de arte limpa (`artifactSignature`) e descarta frames inalterados, transmitindo pela porta WebSocket local `ws://127.0.0.1:8766` a até 20 fps.
+- O utilitário `tools/spout_bridge.py` recebe os bytes RGBA do WebSocket e os publica diretamente na GPU através da API SpoutGL (DirectX/OpenGL).
+- Script de inicialização com 1 clique: `tools/spout_bridge.cmd` (com teste de saúde `/health`).
+
+---
+
+## 9. Como Rodar e Testar
 
 ### Servidor Local
 ```powershell
+# Python 3
 python -m http.server 8765
+
+# Ou via Node.js
+npx serve -l 8765
 ```
 
-### Execução de Todas as 20 Suítes Automatizadas
+### Execução de Todas as 36 Suítes Automatizadas
 ```powershell
 node tests/run_all.js
 ```
 
+As 36 suítes cobrem:
+1. Álgebra D4 e axiomas de grupo (`test_tile_registry.js`, `test_d4_invariance.js`, `test_d4_block_combinations.js`, `test_d4_editor.js`, `test_d4_badge_state.js`).
+2. Motor de mosaico e renderização vetorial (`test_mosaic_engine.js`).
+3. Persistência de estado híbrida, IndexedDB, quotas e limites (`test_state_persistence.js`, `test_indexeddb_persistence.js`, `test_save_scheduler.js`, `test_storage_key.js`, `test_payload_version.js`, `test_history_limits.js`, `test_persistence_quota.js`, `test_history_nav.js`, `test_history_edit_preservation.js`, `test_document_snapshot.js`, `test_regeneration_capture.js`, `test_multistep_undo.js`, `test_dirty_guard.js`).
+4. UI, acessibilidade, navegação e contratos estruturais (`test_scope_chip.js`, `test_info_scopes_source.js`, `test_info_aria.js`, `test_editor_ui_state.js`, `test_info_ui_state.js`, `test_viewport_pan_zoom.js`, `test_brush_sizing_snap.js`, `test_ui_control_registry.js`, `test_ui_layout_contract.js`).
+5. Consistência e fidelidade da documentação (`test_docs_consistency.js`).
+6. Sistema de trava de subtiles e persistência sob regeneração (`test_freeze_subtiles.js`, `test_freeze_generation.js`, `test_freeze_wiring.js`, `test_freeze_state.js`, `test_freeze_undo.js`, `test_freeze_ui_contract.js`).
+7. Pipeline Spout e WebSocket bridge (`test_spout_output.js`).
+
 ---
 
-## 9. Informações de Legado
+## 10. Informações de Legado
 
 Arquivos anteriores da versão 1 (`subtile.js`, `tiles.js`, `supertile.js`, `svg_tile_manager.js`, `tile_transforms.js`) foram arquivados na pasta `_legacy/` para fins históricos e de referência. Não devem ser alterados nem carregados no runtime do estúdio atual.
