@@ -33,3 +33,21 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Python Virtual Environments & Bytecode
+.venv/
+venv/
+env/
+ENV/
+*.venv*
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Graphify Knowledge Graph artifacts & local caches
+graphify-out/
+.graphify/
+
+# Node / Package dependencies
+node_modules/
+npm-debug.log*

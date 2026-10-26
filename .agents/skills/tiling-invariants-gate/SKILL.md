@@ -1,0 +1,66 @@
+---
+name: tiling-invariants-gate
+description: >-
+  Use this skill before committing or delivering any code changes in this workspace to enforce the 6 mathematical invariants of Tiling Stripes Studio: D4 dihedral group algebra, cell stabilizers, UI 4-surface hierarchy, 60 frozen controls registry, persistence schema v3, and documentation consistency.
+---
+
+# Tiling Stripes Invariants & Quality Gate
+
+This skill acts as the quality firewall for the `tiling_stripes` workspace. No code change may be considered complete without passing through this gate.
+
+---
+
+## 1. The 6 Non-Negotiable Project Invariants
+
+1. **D4 Dihedral Group Symmetry ($D_4$):**
+   - Strictly 8 square isometries: `id`, `r90`, `r180`, `r270`, `mx`, `my`, `md`, `mad`.
+   - In cells with non-trivial stabilizers under `mandala_d4`, the assigned tile MUST be stabilizer-invariant ($g(t) = t$) or default to the canonical Empty Tile (`#84`).
+   - The 4 canonical symmetry mode IDs are: `mandala_d4`, `kaleidoscope`, `rotational_c4`, `bilateral_d2`. NEVER use `kaleidoscope_permissive`.
+   - The 85-tile catalog (IDs 0–84) in 31 families is algebraically closed under $D_4$.
+
+2. **UI 4-Surfaces Contract & Flex Order:**
+   - `#left-toolbar` (order: 0) — 2-column sidebar: 7 tools, visual guides, swatches, generator/seed, history, export.
+   - `#workspace-viewport` (order: 1) — Canvas with 2D pan and zoom via CSS transforms.
+   - `#right-dock` (order: 2) — Dynamic contextual panel with collapsible 44px drawer toggle (`#btnToggleRightDock`).
+   - NEVER create `#left-rail`, `#workspaceSwitcher`, or `#btnContextGenerator`.
+   - The control registry consists of **exactly 60 frozen control IDs**.
+
+3. **Persistence and Snapshots:**
+   - Canonical localStorage key: `tiling_stripes_studio_v3_state` (NEVER v2).
+   - IndexedDB database: `TilingStripesDB_v1` / store: `studio_state`.
+   - Undo snapshots between generations must use `DocumentSnapshot.collectParams` and `DocumentSnapshot.attachDocument`.
+   - The 8 pure persistence functions in `core/state_persistence.js` must remain exported.
+
+4. **Canonical Shortcuts:**
+   - `V`: Inspect / Generation Context
+   - `B`: Brush | `E`: Eraser (Tile #84) | `R`: Rotate | `S`: Stamp (`C` captures) | `F`: Freeze (`Shift+F` clears)
+   - `H` or `Space`: Pan | `Z`: Zoom | `1` / `Shift+1`: 100% centered | `0`: Fit to window
+   - `Q` / `Tab`: Cycle symmetry scopes (1..6)
+   - `Ctrl+U`: Snap to block | `Shift` (hold): Momentary snap invert
+   - `Ctrl+Z` / `Ctrl+Shift+Z`: Undo and redo
+
+5. **Spout Real-Time Output:**
+   - Rendered offscreen in a dedicated `p5.Graphics` at native artboard dimensions (clean buffer: no zoom, no guides, no hover ghosts).
+   - Frame broadcast via WebSocket `ws://127.0.0.1:8766` with `artifactSignature` frame deduplication.
+
+6. **Documentation Synchronization:**
+   - `README.md` and `docs/MANUAL_MANUTENCAO.md` must stay in 100% sync with code contracts.
+
+---
+
+## 2. Verification Protocol (Pre-flight and Post-flight)
+
+Execute the full automated test suite using Node.js:
+
+```powershell
+node tests/run_all.js
+```
+
+### Acceptance Criteria:
+* Exit code MUST be `0`.
+* All 36 test suites MUST output `PASSED`.
+* If any test fails, inspect the failing suite individually:
+  ```powershell
+  node tests/<suite_name>.js
+  ```
+* Revert or fix deviations immediately before finishing any turn.
