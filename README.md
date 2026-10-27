@@ -47,6 +47,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
 │   ├── tile_registry.js       # Fachada reativa do catálogo de tiles, famílias e mapas D4 (libraryRevision)
 │   ├── vector_editor.js       # Motor vetorial interativo [-0.5, 0.5] (8 ferramentas, Bezier, snap, undo/redo)
+│   ├── vector_boolean.js      # Booleanas Paper.js headless, transformações D4 na seleção, camadas e I/O SVG
 │   ├── subtile_studio_ui.js   # Modo Estúdio de Subtiles (data-studio-mode="tiles"), grupos/famílias e preview D4
 │   ├── mosaic_engine.js       # Geração macro/micro, escopos de edição, render e snapshots de células
 │   ├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
@@ -54,10 +55,10 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 │   ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 │   └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-├── tests/                     # Suíte com 43 testes automatizados em Node.js puro
+├── tests/                     # Suíte com 44 testes automatizados em Node.js puro
 ├── tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
-├── ui_info.js                 # Motor de divulgação progressiva (16 tópicos, popovers e tooltips acessíveis)
-├── libraries/                 # Bibliotecas p5.min.js e simple-svg.js
+├── ui_info.js                 # Motor de divulgação progressiva (17 tópicos, popovers e tooltips acessíveis)
+├── libraries/                 # Bibliotecas p5.min.js, simple-svg.js e paper-core.min.js (v0.12.18, booleanas)
 ├── index.html                 # Estrutura do shell e superfícies de controle
 ├── style.css                  # Tema Adobe Illustrator CC Dark e regras visuais responsivas
 └── sketch.js                  # Controlador principal, UI, atalhos, histórico, canvas e Spout
@@ -94,6 +95,8 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 4 superfícies da UI e mantendo a saída Spout do mosaico ao vivo:
 - **Prancheta Normalizada `[-0.5, 0.5]` & Preview de Continuidade**: Modos de visualização `1×1`, `3×3` (8 vizinhos fantasmas), `Espelhos 2×2` (`mandala_d4`) e `Giro C4 2×2` (`rotational_c4`), com grade magnética configurável (`Off`, `1/2`, `1/3`, `1/4`, `1/6`, `1/8`, `1/12`, `1/16`), eixos $D_4$, portas de fita (`±1/6` e centro) e margem de respiro (`#paddingInput` compartilhado).
 - **Editor Vetorial Interativo (`core/vector_editor.js`)**: 8 ferramentas dedicadas — Seleção BBox com 8 alças e rotação (`V`), Seleção Direta de Nós e Tangentes Bezier Cúbicas (`A`, com subdivisão exata De Casteljau), Caneta Bezier (`P`), Retângulo arredondado (`M`), Elipse (`L`), Polígono/Estrela (`G`), Arco/Setor Anular Truchet (`U`) e Linha (`\`), além de presets rápidos de fita `1/3`, alinhamento/distribuição na célula, histórico *Undo/Redo* por família e área de transferência (`Ctrl+C`/`V`/`D`).
+- **Pathfinder, Transformações $D_4$ & Camadas (`core/vector_boolean.js`)**: Operações booleanas **Unir**, **Subtrair**, **Interseção** e **Excluir (XOR)** via Paper.js headless local (`libraries/paper-core.min.js`), preservando curvas Bezier cúbicas e gerando caminhos compostos com furos (`fillRule: evenodd`); giro `+90°`/`-90°` e espelhos `H`/`V` sobre a seleção; painel **Camadas (Formas)** com reordenação de Z-index por *Drag-and-Drop*, setas e atalhos (`Ctrl+]`/`Ctrl+[`, `Ctrl+Shift+]`/`Ctrl+Shift+[`), renomeação inline (duplo-clique), visibilidade e trava por forma.
+- **Importar / Exportar SVG**: `importSVGToShapes` converte `<path>` (incl. arcos `A`), `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>` e `<line>` com `<g transform>` aninhados, normalizando o `viewBox` para `[-0.5, 0.5]` como formas editáveis (sobre mestre built-in, cria automaticamente uma família customizada); `exportFamilyToSVG` gera um `.svg` unitário limpo da variante ativa.
 - **Painel de Órbita & Variantes $D_4$ ao Vivo**: Exibe estabilizador $H$ (atualizado em tempo real durante o arrasto), compatibilidade axial/diagonal/central e miniaturas das variantes geradas (`1`, `2`, `4` ou `8`), com duplo-clique para pintar diretamente no mosaico.
 - **Gerenciador de Grupos e Famílias**: Criação, renomeação inline, reordenação via *Drag-and-Drop* ou setas `↑`/`↓`, movimentação entre grupos, **Duplicar p/ Editar** em 1 clique sobre mestres built-in protegidos (`#0..#84`), higienização automática para `#84` ao excluir famílias em uso, backup `.json` (`merge` ou `replace`) e **Restaurar Padrão**.
 
@@ -194,14 +197,14 @@ A interface adota a taxonomia de quatro superfícies estritas com responsabilida
 
 ## Testes Automatizados
 
-O projeto conta com **43 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **44 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 43 suítes de teste:
+# Executar todas as 44 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 43 Suítes:
+### Cobertura das 44 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
@@ -253,6 +256,7 @@ node tests/run_all.js
    - `test_library_store_crud.js`: CRUD persistente de grupos e famílias, duplicação de built-ins, remapeamento de IDs e *tombstone* $\to$ `#84`, import/export `.json` e hidratação assíncrona IndexedDB.
    - `test_tile_studio_ui_contract.js`: Chaveamento `data-studio-mode="mosaic|tiles"`, ordenação reativa de grupos/famílias (`getOrderedGroupedFamilies`), auto-matrícula em `allowedTiles`, sanitização `#84`, preview $D_4$ e isolamento de atalhos.
    - `test_vector_editor_ops.js`: Grade magnética (`0..16`) e *smart snap*, criação paramétrica e presets `1/3`, conversão `convertShapeToPath` com paridade $D_4$/SVG, subdivisão De Casteljau e edição de nós/alças Bezier, *undo/redo* por família e fluxo ponta-a-ponta até exportação SVG de mosaico `mandala_d4`.
+- `test_vector_boolean_svg.js`: Booleanas Paper.js headless (`unite`, `subtract`, `intersect`, `exclude`) com curvas e linhas traçadas, furos compostos `evenodd`, transformações $D_4$ na seleção, operações de camadas, importação SVG (primitivas, `<g transform>`, `viewBox`), *round-trip* de exportação e fluxo ponta-a-ponta (booleana + SVG → edição de nós → $D_4$ → mosaico `mandala_d4` → SVG).
 
 ---
 

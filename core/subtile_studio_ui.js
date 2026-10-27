@@ -19,6 +19,7 @@
     let store = win && win.LibraryStore;
     let reg = win && win.TileRegistry;
     let ve = win && win.VectorEditor;
+    let vb = win && win.VectorBoolean;
 
     if (typeof require === 'function') {
       if (!d4) {
@@ -32,9 +33,10 @@
       if (!store) store = require('./library_store.js');
       if (!reg) reg = require('./tile_registry.js');
       if (!ve) ve = require('./vector_editor.js');
+      if (!vb) vb = require('./vector_boolean.js');
     }
 
-    return { win, d4, vr, det, lib, compiler, store, reg, ve };
+    return { win, d4, vr, det, lib, compiler, store, reg, ve, vb };
   }
 
   const ORBIT_LABELS_PT = {
@@ -302,7 +304,8 @@
     collapsedGroups: new Set(),
     editingGroupId: null,
     editingFamilyId: null,
-    dragState: null, // { kind: 'group' | 'family', id: string, groupId?: string }
+    editingLayerId: null,
+    dragState: null, // { kind: 'group' | 'family' | 'layer', id: string, groupId?: string }
     guides: {
       showGrid: true,
       showAxes: true,
@@ -667,6 +670,132 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function triggerDownloadSVG(filename, svgString) {
+    if (typeof document === 'undefined') return;
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function handleExportSubtileSvg(customOptions = {}) {
+    const { vb } = resolveDeps();
+    const fam = ensureValidSelection();
+    const famDoc = getSelectedFamilyDoc();
+    if (!vb || !fam || !famDoc) return '';
+
+    const selectedTransform = customOptions.transform ||
+      (fam.variantTransforms && fam.variantTransforms[uiState.selectedVariantIndex]) ||
+      'id';
+    const st = hostCtx && hostCtx.studioState ? hostCtx.studioState : null;
+    const svgStr = vb.exportFamilyToSVG(famDoc, {
+      size: customOptions.size || 1000,
+      transform: selectedTransform,
+      fgColor: customOptions.fgColor || (st && st.fgColor) || '#111827',
+      bgColor: customOptions.bgColor || (st && st.bgColor) || '#ffffff',
+      includeBackground: Boolean(customOptions.includeBackground),
+      paddingRatio: customOptions.paddingRatio !== undefined
+        ? customOptions.paddingRatio
+        : ((st && st.paddingRatio) || 0)
+    });
+
+    if (!svgStr) {
+      notifyToast('Não foi possível gerar o SVG deste subtile.', 'error');
+      return '';
+    }
+
+    if (customOptions.download !== false && typeof document !== 'undefined') {
+      const slug = String(fam.name || fam.id || 'subtile')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'subtile';
+      const suffix = selectedTransform !== 'id' ? `_${selectedTransform}` : '';
+      triggerDownloadSVG(`${slug}${suffix}.svg`, svgStr);
+      notifyToast(`SVG exportado: ${slug}${suffix}.svg`);
+    }
+
+    return svgStr;
+  }
+
+  function handleImportSvgText(svgText, sourceFileName = 'subtile.svg', options = {}) {
+    const { store, ve, vb } = resolveDeps();
+    if (!vb || !store) {
+      return { ok: false, error: 'Módulo vetorial indisponível.' };
+    }
+
+    const parsed = vb.importSVGToShapes(svgText, options);
+    if (!parsed.ok) {
+      notifyToast(parsed.error || 'Falha ao importar SVG.', 'error');
+      return parsed;
+    }
+
+    const fam = getSelectedFamilyMeta();
+    const famDoc = getSelectedFamilyDoc();
+    const cleanFileBase = String(sourceFileName || 'SVG Importado')
+      .replace(/\.svg$/i, '')
+      .replace(/[_-]+/g, ' ')
+      .trim()
+      .slice(0, 44) || 'SVG Importado';
+
+    // When a built-in / protected master is selected, automatically create an editable custom family
+    if (!famDoc || famDoc.builtIn || famDoc.protected || options.asNewFamily) {
+      const targetGrp = fam && !fam.builtIn ? fam.groupId : undefined;
+      const created = store.createFamily({
+        name: cleanFileBase,
+        groupId: targetGrp,
+        shapes: parsed.shapes
+      });
+      if (ve) {
+        ve.resetTransientForFamilySwitch(created.family.id);
+        ve.ensureFamilyHistory(created.family.id, created.family);
+        ve.state.selectedShapeIds = (created.family.shapes || []).map((s) => s.id);
+        ve.state.selectedNodes = [];
+      }
+      uiState.selectedFamilyId = created.family.id;
+      uiState.selectedVariantIndex = 0;
+      uiState.collapsedGroups.delete(created.family.groupId);
+      if (uiState.filterMode === 'builtin') {
+        uiState.filterMode = 'all';
+      }
+      refresh();
+      requestHostRedraw();
+      notifyToast(`Novo subtile "${created.family.name}" criado a partir do SVG (${parsed.shapes.length} formas).`);
+      return {
+        ok: true,
+        createdNewFamily: true,
+        familyId: created.family.id,
+        importedCount: parsed.shapes.length,
+        shapes: created.family.shapes
+      };
+    }
+
+    // Otherwise append imported shapes onto the active custom family
+    const nextShapes = [
+      ...(famDoc.shapes || []).map((s) => JSON.parse(JSON.stringify(s))),
+      ...parsed.shapes
+    ];
+    if (ve) {
+      ve.state.selectedShapeIds = parsed.shapes.map((s) => s.id);
+      ve.state.selectedNodes = [];
+    }
+    commitFamilyShapes(famDoc.id, nextShapes);
+    notifyToast(`${parsed.shapes.length} ${parsed.shapes.length === 1 ? 'forma importada' : 'formas importadas'} do SVG.`);
+    return {
+      ok: true,
+      createdNewFamily: false,
+      familyId: famDoc.id,
+      importedCount: parsed.shapes.length,
+      shapes: parsed.shapes
+    };
   }
 
   // ==========================================================================
@@ -1620,7 +1749,7 @@
 
   function renderShapePropsPanel(forceRebuild = false) {
     if (typeof document === 'undefined') return;
-    const { ve } = resolveDeps();
+    const { ve, vb } = resolveDeps();
     const container = document.getElementById('vecPropsContainer');
     const selBadge = document.getElementById('vecSelectionBadge');
     const toolLabelEl = document.getElementById('vecToolContextLabel');
@@ -1763,6 +1892,13 @@
         </div>
       ` : ''}
       ${hasSel ? `
+        <div class="vec-subblock-title" style="margin-top:5px;"><span>Transformar Seleção (D4)</span></div>
+        <div class="vec-d4-strip">
+          <button type="button" class="mini-btn" data-sel-d4="r90" title="Girar seleção +90° horário">↻ +90°</button>
+          <button type="button" class="mini-btn" data-sel-d4="r270" title="Girar seleção -90° anti-horário">↺ -90°</button>
+          <button type="button" class="mini-btn" data-sel-d4="mx" title="Espelhar seleção horizontalmente (mx)">↔ Esp. H</button>
+          <button type="button" class="mini-btn" data-sel-d4="my" title="Espelhar seleção verticalmente (my)">↕ Esp. V</button>
+        </div>
         <div class="vec-inline-actions" style="margin-top:3px;">
           <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">⧉ Duplicar</button>
           ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Virar Caminho</button>' : ''}
@@ -1780,6 +1916,13 @@
     alignBlock.querySelectorAll('[data-distrib]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const nextShapes = ve.distributeShapes(shapes, ve.state.selectedShapeIds, btn.dataset.distrib);
+        commitFamilyShapes(famDoc.id, nextShapes);
+      });
+    });
+    alignBlock.querySelectorAll('[data-sel-d4]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!vb) return;
+        const nextShapes = vb.transformSelectedShapesD4(shapes, ve.state.selectedShapeIds, btn.dataset.selD4);
         commitFamilyShapes(famDoc.id, nextShapes);
       });
     });
@@ -1802,6 +1945,41 @@
       commitFamilyShapes(famDoc.id, nextShapes);
     });
     container.appendChild(alignBlock);
+
+    // 2B. Pathfinder Boolean Operations (Unite, Subtract, Intersect, Exclude)
+    if (vb) {
+      const unlockedSelCount = selected.filter((s) => !s.locked && s.visible !== false).length;
+      const canBool = unlockedSelCount >= 2;
+      const boolBlock = document.createElement('div');
+      boolBlock.className = 'vec-props-subblock';
+      boolBlock.innerHTML = `
+        <div class="vec-subblock-title">
+          <span>Pathfinder (Booleanas)</span>
+          <span style="font-weight:400;opacity:0.7;">${canBool ? `${unlockedSelCount} formas` : 'Selecione 2+'}</span>
+        </div>
+        <div class="vec-bool-strip">
+          <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir formas selecionadas num contorno contínuo" ${!canBool ? 'disabled' : ''}>∪ Unir</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Subtrair formas da frente sobre a forma de trás (furos compostos)" ${!canBool ? 'disabled' : ''}>− Subtrair</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Manter apenas a área comum de interseção" ${!canBool ? 'disabled' : ''}>∩ Interseç.</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Diferença simétrica (XOR) vazando sobreposições" ${!canBool ? 'disabled' : ''}>⊕ Excluir</button>
+        </div>
+      `;
+      boolBlock.querySelectorAll('[data-bool-op]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const op = btn.dataset.boolOp;
+          const res = vb.applyBooleanOp(shapes, ve.state.selectedShapeIds, op);
+          if (!res.ok) {
+            notifyToast('Selecione ao menos 2 formas visíveis e destravadas.', 'info');
+            return;
+          }
+          ve.state.selectedShapeIds = res.resultIds;
+          ve.state.selectedNodes = [];
+          commitFamilyShapes(famDoc.id, res.shapes);
+          notifyToast(res.emptyResult ? 'Operação resultou em área vazia.' : `Booleana (${btn.textContent.trim()}) aplicada.`);
+        });
+      });
+      container.appendChild(boolBlock);
+    }
 
     // 3. When NO shape is selected: show active drawing tool defaults
     if (selected.length === 0) {
@@ -2129,12 +2307,302 @@
     }
   }
 
+  function renderLayersPanel() {
+    if (typeof document === 'undefined') return;
+    const { ve, vb } = resolveDeps();
+    const listEl = document.getElementById('tileLayersListContainer');
+    const countBadge = document.getElementById('tileLayersCountBadge');
+    const bringFrontBtn = document.getElementById('btnLayerBringFront');
+    const sendBackBtn = document.getElementById('btnLayerSendBack');
+    if (!listEl) return;
+
+    const fam = ensureValidSelection();
+    const famDoc = getSelectedFamilyDoc();
+    if (!fam || !famDoc) {
+      listEl.innerHTML = '<div class="vec-empty-hint">Nenhuma família selecionada.</div>';
+      if (countBadge) countBadge.textContent = '0 formas';
+      if (bringFrontBtn) bringFrontBtn.disabled = true;
+      if (sendBackBtn) sendBackBtn.disabled = true;
+      return;
+    }
+
+    const shapes = famDoc.shapes || [];
+    const isEditable = Boolean(!fam.builtIn && !fam.protected && ve && vb);
+    const selSet = new Set(ve ? ve.state.selectedShapeIds : []);
+
+    if (countBadge) {
+      countBadge.textContent = `${shapes.length} ${shapes.length === 1 ? 'forma' : 'formas'}`;
+    }
+    if (bringFrontBtn) {
+      bringFrontBtn.disabled = !isEditable || selSet.size !== 1 || shapes.length <= 1;
+    }
+    if (sendBackBtn) {
+      sendBackBtn.disabled = !isEditable || selSet.size !== 1 || shapes.length <= 1;
+    }
+
+    listEl.innerHTML = '';
+
+    if (shapes.length === 0) {
+      const hint = document.createElement('div');
+      hint.className = 'vec-empty-hint';
+      hint.textContent = fam.isCanonicalEmpty
+        ? 'Célula vazia canônica (#84) — respiro geométrico sem formas.'
+        : 'Nenhuma forma nesta família. Use as ferramentas vetoriais ou importe um SVG.';
+      listEl.appendChild(hint);
+      return;
+    }
+
+    const shortTags = {
+      rect: 'RET',
+      ellipse: 'ELI',
+      polygon: 'POL',
+      triangle: 'TRI',
+      arc: 'ARC',
+      line: 'LIN',
+      path: 'CAM'
+    };
+    const defaultLabels = {
+      rect: 'Retângulo',
+      ellipse: 'Elipse',
+      polygon: 'Polígono',
+      triangle: 'Triângulo',
+      arc: 'Arco/Fita',
+      line: 'Linha',
+      path: 'Caminho'
+    };
+
+    // Render top-to-bottom in visual Z-order (topmost shape = index length-1 first)
+    for (let idx = shapes.length - 1; idx >= 0; idx--) {
+      const sh = shapes[idx];
+      if (!sh) continue;
+
+      const isSelected = selSet.has(sh.id);
+      const isHidden = sh.visible === false;
+      const isLocked = Boolean(sh.locked);
+      const isRenaming = isEditable && uiState.editingLayerId === sh.id;
+
+      const row = document.createElement('div');
+      row.className = [
+        'tile-layer-row',
+        isSelected ? 'is-selected' : '',
+        isHidden ? 'is-hidden' : '',
+        isLocked ? 'is-locked' : ''
+      ].filter(Boolean).join(' ');
+      row.dataset.shapeId = sh.id;
+      row.dataset.zIndex = String(idx);
+
+      if (isEditable && !isRenaming) {
+        row.draggable = true;
+        row.addEventListener('dragstart', (e) => {
+          uiState.dragState = { kind: 'layer', id: sh.id };
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            try {
+              e.dataTransfer.setData('text/plain', sh.id);
+            } catch (_err) {
+              // Ignore restricted dataTransfer environments
+            }
+          }
+        });
+        row.addEventListener('dragover', (e) => {
+          if (!uiState.dragState || uiState.dragState.kind !== 'layer' || uiState.dragState.id === sh.id) return;
+          e.preventDefault();
+          row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => {
+          row.classList.remove('drag-over');
+        });
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          row.classList.remove('drag-over');
+          const draggedId = uiState.dragState && uiState.dragState.kind === 'layer' ? uiState.dragState.id : null;
+          uiState.dragState = null;
+          if (!draggedId || draggedId === sh.id) return;
+          const nextShapes = vb.reorderShapeZ(shapes, draggedId, idx);
+          commitFamilyShapes(famDoc.id, nextShapes);
+        });
+        row.addEventListener('dragend', () => {
+          uiState.dragState = null;
+          row.classList.remove('drag-over');
+        });
+      }
+
+      if (isEditable) {
+        const grip = document.createElement('span');
+        grip.className = 'tile-layer-drag-grip';
+        grip.title = 'Arrastar para reordenar Z-index';
+        grip.textContent = '⋮⋮';
+        row.appendChild(grip);
+      }
+
+      const tag = document.createElement('span');
+      tag.className = 'tile-layer-type-tag';
+      tag.textContent = shortTags[sh.type] || 'VET';
+      row.appendChild(tag);
+
+      const displayName = sh.name || `${defaultLabels[sh.type] || 'Forma'} #${idx + 1}`;
+
+      if (isRenaming) {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'tile-layer-rename-input';
+        inp.value = displayName;
+        inp.maxLength = 44;
+
+        let committed = false;
+        const finishRename = (save) => {
+          if (committed) return;
+          committed = true;
+          uiState.editingLayerId = null;
+          const trimmed = inp.value.trim();
+          if (save && trimmed && trimmed !== sh.name) {
+            const nextShapes = vb.renameShape(shapes, sh.id, trimmed);
+            commitFamilyShapes(famDoc.id, nextShapes);
+          } else {
+            renderLayersPanel();
+          }
+        };
+
+        inp.addEventListener('click', (e) => e.stopPropagation());
+        inp.addEventListener('keydown', (e) => {
+          e.stopPropagation();
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            finishRename(true);
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            finishRename(false);
+          }
+        });
+        inp.addEventListener('blur', () => finishRename(true));
+        row.appendChild(inp);
+        setTimeout(() => {
+          inp.focus();
+          inp.select();
+        }, 0);
+      } else {
+        const nameEl = document.createElement('span');
+        nameEl.className = 'tile-layer-name';
+        nameEl.textContent = displayName;
+        if (isEditable) {
+          nameEl.title = `${displayName} — Duplo-clique para renomear`;
+          nameEl.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            uiState.editingLayerId = sh.id;
+            renderLayersPanel();
+          });
+        }
+        row.appendChild(nameEl);
+      }
+
+      if (isEditable) {
+        row.addEventListener('click', (e) => {
+          if (isHidden || isLocked) return;
+          if (e.shiftKey) {
+            if (selSet.has(sh.id)) {
+              ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => id !== sh.id);
+            } else {
+              ve.state.selectedShapeIds = [...ve.state.selectedShapeIds, sh.id];
+            }
+          } else {
+            ve.state.selectedShapeIds = [sh.id];
+          }
+          ve.state.selectedNodes = [];
+          renderShapePropsPanel(true);
+          renderLayersPanel();
+          requestHostRedraw();
+        });
+
+        const actions = document.createElement('div');
+        actions.className = 'tile-layer-actions';
+
+        // Move Up 1 step (forward)
+        const btnUp = document.createElement('button');
+        btnUp.type = 'button';
+        btnUp.className = 'tile-layer-icon-btn';
+        btnUp.title = 'Subir camada (Ctrl+])';
+        btnUp.textContent = '↑';
+        btnUp.disabled = idx === shapes.length - 1;
+        btnUp.addEventListener('click', (e) => {
+          e.stopPropagation();
+          commitFamilyShapes(famDoc.id, vb.reorderShapeZ(shapes, sh.id, 'forward'));
+        });
+
+        // Move Down 1 step (backward)
+        const btnDown = document.createElement('button');
+        btnDown.type = 'button';
+        btnDown.className = 'tile-layer-icon-btn';
+        btnDown.title = 'Descer camada (Ctrl+[)';
+        btnDown.textContent = '↓';
+        btnDown.disabled = idx === 0;
+        btnDown.addEventListener('click', (e) => {
+          e.stopPropagation();
+          commitFamilyShapes(famDoc.id, vb.reorderShapeZ(shapes, sh.id, 'backward'));
+        });
+
+        // Visibility toggle
+        const btnVis = document.createElement('button');
+        btnVis.type = 'button';
+        btnVis.className = 'tile-layer-icon-btn';
+        btnVis.title = isHidden ? 'Mostrar forma' : 'Ocultar forma';
+        btnVis.textContent = isHidden ? '—' : '👁';
+        btnVis.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nextShapes = vb.toggleShapeVisible(shapes, sh.id);
+          if (!isHidden) {
+            ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => id !== sh.id);
+          }
+          commitFamilyShapes(famDoc.id, nextShapes);
+        });
+
+        // Lock toggle
+        const btnLock = document.createElement('button');
+        btnLock.type = 'button';
+        btnLock.className = 'tile-layer-icon-btn';
+        btnLock.title = isLocked ? 'Destravar forma' : 'Travar forma';
+        btnLock.textContent = isLocked ? '🔒' : '🔓';
+        btnLock.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nextShapes = vb.toggleShapeLocked(shapes, sh.id);
+          if (!isLocked) {
+            ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => id !== sh.id);
+          }
+          commitFamilyShapes(famDoc.id, nextShapes);
+        });
+
+        // Delete shape
+        const btnDel = document.createElement('button');
+        btnDel.type = 'button';
+        btnDel.className = 'tile-layer-icon-btn danger';
+        btnDel.title = 'Excluir forma';
+        btnDel.textContent = '×';
+        btnDel.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nextShapes = shapes.filter((item) => item && item.id !== sh.id);
+          ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => id !== sh.id);
+          ve.state.selectedNodes = [];
+          commitFamilyShapes(famDoc.id, nextShapes);
+        });
+
+        actions.appendChild(btnUp);
+        actions.appendChild(btnDown);
+        actions.appendChild(btnVis);
+        actions.appendChild(btnLock);
+        actions.appendChild(btnDel);
+        row.appendChild(actions);
+      }
+
+      listEl.appendChild(row);
+    }
+  }
+
   function refresh() {
     if (typeof document === 'undefined') return;
     ensureValidSelection();
     renderTopBarControls();
     renderLeftPaneState();
     renderShapePropsPanel();
+    renderLayersPanel();
     renderD4LivePanel();
     renderLibraryManagerTree();
   }
@@ -2390,6 +2858,7 @@
       commitFamilyShapes(famDoc.id, res.commitShapes);
     } else {
       renderShapePropsPanel(true);
+      renderLayersPanel();
       requestHostRedraw();
     }
     return Boolean(res.handled);
@@ -2437,6 +2906,7 @@
       return true;
     }
     renderShapePropsPanel(true);
+    renderLayersPanel();
     renderD4LivePanel();
     requestHostRedraw();
     return false;
@@ -2677,6 +3147,41 @@
 
     document.getElementById('btnResetLibraryDefaults')?.addEventListener('click', handleResetLibraryDefaults);
 
+    // Fase D: SVG Import / Export & Layer Z-Order toolbar
+    const svgInput = document.getElementById('subtileSvgFileInput');
+    const openSvgPicker = () => {
+      if (svgInput) {
+        svgInput.value = '';
+        svgInput.click();
+      }
+    };
+    document.getElementById('btnImportSubtileSvg')?.addEventListener('click', openSvgPicker);
+    document.getElementById('btnLayersImportSvg')?.addEventListener('click', openSvgPicker);
+    svgInput?.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        handleImportSvgText(String(reader.result || ''), file.name);
+      };
+      reader.onerror = () => {
+        notifyToast('Erro ao ler o arquivo SVG selecionado.', 'error');
+      };
+      reader.readAsText(file);
+    });
+    document.getElementById('btnExportSubtileSvg')?.addEventListener('click', () => handleExportSubtileSvg());
+    document.getElementById('btnLayersExportSvg')?.addEventListener('click', () => handleExportSubtileSvg());
+
+    const reorderSelected = (target) => {
+      const { vb } = resolveDeps();
+      const famDoc = getSelectedFamilyDoc();
+      if (!vb || !ve || !famDoc || famDoc.builtIn || famDoc.protected) return;
+      if (ve.state.selectedShapeIds.length !== 1) return;
+      commitFamilyShapes(famDoc.id, vb.reorderShapeZ(famDoc.shapes || [], ve.state.selectedShapeIds[0], target));
+    };
+    document.getElementById('btnLayerBringFront')?.addEventListener('click', () => reorderSelected('front'));
+    document.getElementById('btnLayerSendBack')?.addEventListener('click', () => reorderSelected('back'));
+
     // D4 Live Panel inline metadata controls
     document.getElementById('btnNoticeDuplicateToEdit')?.addEventListener('click', () => {
       handleDuplicateFamily(uiState.selectedFamilyId);
@@ -2826,6 +3331,7 @@
         ve.state.selectedShapeIds = [];
         ve.state.selectedNodes = [];
         renderShapePropsPanel(true);
+        renderLayersPanel();
         requestHostRedraw();
         return true;
       }
@@ -2883,7 +3389,18 @@
           .filter((s) => s && !s.locked && s.visible !== false)
           .map((s) => s.id);
         renderShapePropsPanel(true);
+        renderLayersPanel();
         requestHostRedraw();
+        return true;
+      }
+      if ((e.key === ']' || e.key === '[' || e.code === 'BracketRight' || e.code === 'BracketLeft') && isEditable) {
+        e.preventDefault();
+        const { vb } = resolveDeps();
+        if (vb && ve.state.selectedShapeIds.length === 1) {
+          const isUp = e.key === ']' || e.key === '}' || e.code === 'BracketRight';
+          const target = isUp ? (e.shiftKey ? 'front' : 'forward') : (e.shiftKey ? 'back' : 'backward');
+          commitFamilyShapes(famDoc.id, vb.reorderShapeZ(famDoc.shapes || [], ve.state.selectedShapeIds[0], target));
+        }
         return true;
       }
       if (k === 'u' && ve) {
@@ -3039,6 +3556,9 @@
     commitFamilyShapes,
     handleVecUndo,
     handleVecRedo,
+    handleImportSvgText,
+    handleExportSubtileSvg,
+    renderLayersPanel,
     renderViewport,
     screenToNormalizedMaster,
     handleViewportMouseDown,

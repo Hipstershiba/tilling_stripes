@@ -62,7 +62,8 @@ const testSuites = [
   'test_library_compiler.js',
   'test_library_store_crud.js',
   'test_tile_studio_ui_contract.js',
-  'test_vector_editor_ops.js'
+  'test_vector_editor_ops.js',
+  'test_vector_boolean_svg.js'
 ];
 
 console.log('====================================================');

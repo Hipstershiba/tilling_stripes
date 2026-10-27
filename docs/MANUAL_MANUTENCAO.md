@@ -18,6 +18,7 @@ core/
 ├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
 ├── tile_registry.js       # Fachada reativa do catálogo de renderers, famílias e mapas D4 (libraryRevision)
 ├── vector_editor.js       # Motor vetorial interativo [-0.5, 0.5] (8 ferramentas, Bezier, snap, undo/redo)
+├── vector_boolean.js      # Booleanas Paper.js headless (vm isolado no Node), transformações D4, camadas e I/O SVG
 ├── subtile_studio_ui.js   # Controlador do Modo Estúdio de Subtiles (data-studio-mode="tiles"), CRUD UI e preview D4
 ├── mosaic_engine.js       # Motor de geração determinística, propagação por escopo, render e snapshots
 ├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
@@ -25,11 +26,11 @@ core/
 ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-ui_info.js                 # Motor de divulgação progressiva (16 tópicos, popovers e tooltips acessíveis)
+ui_info.js                 # Motor de divulgação progressiva (17 tópicos, popovers e tooltips acessíveis)
 sketch.js                  # Controlador principal da UI, eventos de canvas, histórico, atalhos e Spout
 style.css                  # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
 index.html                 # Shell estrutural, superfícies de controle e ordem estrita de carga
-tests/                     # Suíte com 43 testes automatizados executáveis com Node.js puro
+tests/                     # Suíte com 44 testes automatizados executáveis com Node.js puro
 tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ```
 
@@ -38,6 +39,7 @@ tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_
 ```html
 <script src="libraries/p5.min.js"></script>
 <script src="libraries/simple-svg.js"></script>
+<script src="libraries/paper-core.min.js"></script>
 <script src="core/d4_symmetry.js"></script>
 <script src="core/vector_renderer.js"></script>
 <script src="core/d4_detect.js"></script>
@@ -53,6 +55,7 @@ tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_
 <script src="core/ui_format.js"></script>
 <script src="ui_info.js"></script>
 <script src="core/vector_editor.js"></script>
+<script src="core/vector_boolean.js"></script>
 <script src="core/subtile_studio_ui.js"></script>
 <script src="sketch.js"></script>
 ```
@@ -98,6 +101,8 @@ O catálogo vetorial é compilado deterministicamente a partir de mestres JSON n
 - **Detecção automática de simetria $D_4$ (`core/d4_detect.js`)**: Classifica qualquer mestre em um dos 10 subgrupos estabilizadores de $D_4$, gerando `1`, `2`, `4` ou `8` variantes e preenchendo `TILE_D4_MAP` com fechamento algébrico exato.
 - **Mutação in-place e `libraryRevision`**: `TileRegistry` sincroniza `TILE_RENDERERS`, `TILE_NAMES`, `TILE_FAMILIES_META` e `TILE_D4_MAP` in-place, expõe `getOrderedGroupedFamilies()` respeitando `LibraryStore.getGroups()` e `uiOrder`, e incrementa `libraryRevision` (integrado ao `artifactSignature` do Spout).
 - **Modo Estúdio de Subtiles e Editor Vetorial (`core/vector_editor.js` e `core/subtile_studio_ui.js`)**: Alterna `body[data-studio-mode="mosaic|tiles"]` (`Ctrl+E`) sem violar a hierarquia das 4 superfícies nem os 60 controles congelados, oferecendo 8 ferramentas vetoriais interativas (`select`, `direct`, `pen`, `rect`, `ellipse`, `polygon`, `arc`, `line`), grade magnética (`0..16`), subdivisão De Casteljau, *undo/redo* por família, árvore *Drag-and-Drop* de grupos/famílias, preview de vizinhos (`1×1`, `3×3`, `mandala_d4`, `rotational_c4`), auto-matrícula de novos IDs em `allowedTiles` e sanitização *tombstone* $\to$ `#84`.
+
+- **Booleanas, Camadas & SVG (`core/vector_boolean.js`)**: Expõe `window.VectorBoolean` com `applyBooleanOp(shapes, selectedIds, op)` (`unite` | `subtract` | `intersect` | `exclude`), `transformSelectedShapesD4(shapes, selectedIds, d4Key)`, `reorderShapeZ(shapes, id, target)` (`front` | `forward` | `backward` | `back` | índice), `setShapeVisible`/`toggleShapeVisible`, `setShapeLocked`/`toggleShapeLocked`, `renameShape`, `importSVGToShapes(svgText, options)` e `exportFamilyToSVG(familyDoc, options)`. No navegador usa `window.paper` (`libraries/paper-core.min.js`); no Node carrega a mesma biblioteca num contexto `vm` isolado (zero dependências npm). As coordenadas são escaladas por `PAPER_SCALE = 1000` (`[-0.5, 0.5] ↔ [-500, 500]`) para respeitar as tolerâncias internas do Paper.js. Formas travadas ou ocultas nunca participam de booleanas/transformações.
 - **Persistência e Remapeamento (`core/library_store.js`)**: Persiste bibliotecas customizadas em `IndexedDB` (`tiling_stripes_library_db` / `tile_library_store`) com cache síncrono em `localStorage` (`tiling_stripes_tile_library_v1`), remapeando IDs em memória e convertendo famílias excluídas em *tombstone* para `#84`.
 - Tiles built-in totalmente simétricos (invariantes sob todas as 8 transformações de $D_4$): IDs `#6, #37, #54, #79, #80, #81, #84`.
 
@@ -214,12 +219,12 @@ python -m http.server 8765
 npx serve -l 8765
 ```
 
-### Execução de Todas as 43 Suítes Automatizadas
+### Execução de Todas as 44 Suítes Automatizadas
 ```powershell
 node tests/run_all.js
 ```
 
-As 43 suítes cobrem:
+As 44 suítes cobrem:
 1. Álgebra D4 e axiomas de grupo (`test_tile_registry.js`, `test_d4_invariance.js`, `test_d4_block_combinations.js`, `test_d4_editor.js`, `test_d4_badge_state.js`).
 2. Motor de mosaico e renderização vetorial (`test_mosaic_engine.js`).
 3. Persistência de estado híbrida, IndexedDB, quotas e limites (`test_state_persistence.js`, `test_indexeddb_persistence.js`, `test_save_scheduler.js`, `test_storage_key.js`, `test_payload_version.js`, `test_history_limits.js`, `test_persistence_quota.js`, `test_history_nav.js`, `test_history_edit_preservation.js`, `test_document_snapshot.js`, `test_regeneration_capture.js`, `test_multistep_undo.js`, `test_dirty_guard.js`).
@@ -227,7 +232,7 @@ As 43 suítes cobrem:
 5. Consistência e fidelidade da documentação (`test_docs_consistency.js`).
 6. Sistema de trava de subtiles e persistência sob regeneração (`test_freeze_subtiles.js`, `test_freeze_generation.js`, `test_freeze_wiring.js`, `test_freeze_state.js`, `test_freeze_undo.js`, `test_freeze_ui_contract.js`).
 7. Pipeline Spout, WebSocket bridge e exportação SVG avançada (`test_spout_output.js`, `test_simple_svg_paths.js`).
-8. Motor vetorial de subtiles, detecção $D_4$, compilador JSON, CRUD de biblioteca, contrato de UI e operações interativas do Editor Vetorial (`test_vector_renderer.js`, `test_d4_detect.js`, `test_library_compiler.js`, `test_library_store_crud.js`, `test_tile_studio_ui_contract.js`, `test_vector_editor_ops.js`).
+8. Motor vetorial de subtiles, detecção $D_4$, compilador JSON, CRUD de biblioteca, contrato de UI e operações interativas do Editor Vetorial (`test_vector_renderer.js`, `test_d4_detect.js`, `test_library_compiler.js`, `test_library_store_crud.js`, `test_tile_studio_ui_contract.js`, `test_vector_editor_ops.js`, `test_vector_boolean_svg.js`).
 
 ---
 

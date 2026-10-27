@@ -8,6 +8,7 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
+  <script src="libraries/paper-core.min.js"></script>
 </head>
 
 <body data-studio-mode="mosaic">
@@ -515,6 +516,21 @@
           </div>
 
           <div class="subtile-left-spacer"></div>
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">SVG (Subtile)</div>
+            <div class="tools-grid-2col">
+              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn" title="Importar arquivo .svg normalizado para [-0.5, 0.5]">
+                <span>↑ SVG</span>
+              </button>
+              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn" title="Exportar o subtile atual como vetor .svg unitário">
+                <span>↓ SVG</span>
+              </button>
+            </div>
+            <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
+          </div>
+
           <div class="tool-divider"></div>
 
           <div class="sidebar-section">
@@ -1042,6 +1058,42 @@
             </div>
           </section>
 
+          <!-- TILES PANEL 0.5: CAMADAS (FORMAS) & INTERCÂMBIO SVG (Fase D) -->
+          <section class="dock-panel" id="panel-tile-layers">
+            <header class="panel-header" data-collapse-target="panelTileLayersBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLayersBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                <span>Camadas &amp; SVG</span>
+              </div>
+              <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
+              <span class="panel-chevron">▾</span>
+            </header>
+
+            <div class="panel-body" id="panelTileLayersBody">
+              <div class="prop-section">
+                <div class="prop-label-row" style="margin-bottom: 6px;">
+                  <div class="prop-label-with-info">
+                    <span class="prop-label">Pilha de Formas (Ordem Z)</span>
+                    <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Booleanas, Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                </div>
+                <div class="tile-layers-toolbar">
+                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent" title="Importar formas editáveis de um arquivo .svg">↑ Importar SVG</button>
+                  <button type="button" id="btnLayersExportSvg" class="mini-btn" title="Baixar este subtile como arquivo .svg limpo">↓ Exportar .SVG</button>
+                  <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])">⤒</button>
+                  <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)">⤓</button>
+                </div>
+                <div id="tileLayersListContainer" class="tile-layers-list">
+                  <!-- Populated dynamically by SubtileStudioUI -->
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- TILES PANEL 1: VARIANTES D4 AO VIVO & METADADOS DA FAMÍLIA -->
           <section class="dock-panel" id="panel-tile-d4-live">
             <header class="panel-header" data-collapse-target="panelTileD4LiveBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileD4LiveBody">
@@ -1159,6 +1211,7 @@
   <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
   <script src="core/vector_editor.js"></script>
+  <script src="core/vector_boolean.js"></script>
   <script src="core/subtile_studio_ui.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>

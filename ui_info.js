@@ -170,6 +170,16 @@
         'Primitivas: Retângulo (M), Elipse (L), Polígono/Estrela (G), Arco/Setor Anular de Fita (U) e Linha (\\).',
         'Ímã e Grade (1/2 a 1/16): A divisão 1/6 alinha exatamente bordas (±0.5), centro (0) e portas de fita Truchet (±1/6 e ±1/3).'
       ]
+    },
+    'vector-layers': {
+      title: 'Booleanas, Camadas & SVG',
+      subtitle: 'Pathfinder Bezier (Paper.js), Ordem Z e Intercâmbio Vetorial',
+      body: [
+        'Pathfinder (selecione 2+ formas com Shift+Clique ou laço): Unir, Subtrair Frente, Interseção e Excluir (XOR com furos par-ímpar).',
+        'Transformações D4 na Seleção: Gire +90°/-90° ou espelhe Horizontal/Verticalmente em torno do centro (0, 0).',
+        'Camadas (Formas): Arraste linhas para alterar a Ordem Z (topo da lista = frente), duplo-clique para renomear, oculte (👁) ou trave (🔒).',
+        'Importar e Exportar SVG: Converte <path>, <rect>, <circle>, <ellipse>, <polygon> e <line> normalizando o viewBox para [-0.5, 0.5], e exporta subtiles unitários limpos em .svg.'
+      ]
     }
   };
 
