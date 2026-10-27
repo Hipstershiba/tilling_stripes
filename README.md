@@ -339,3 +339,22 @@ O criador abre na visualização **1×1 Mestre**, com mais espaço para desenhar
 No canvas, **V** ativa Seleção; **Shift+clique** adiciona ou remove um objeto, **arrastar no vazio** seleciona por área e **Shift+arrastar no vazio** acrescenta à seleção existente. **Todos / Ctrl+A** seleciona os objetos visíveis e destravados. O Pathfinder fica acima das abas Camadas e Propriedades e habilita Unir, Subtrair, Interseção e Excluir com dois ou mais objetos elegíveis. A seleção permanece ao trocar de aba; **Ctrl+Z** desfaz edições e booleanas.
 
 Na Biblioteca, **conjunto** é o nome de interface para os grupos de famílias existentes no modelo de dados. Há busca, filtros Todos / Meus subtiles / Padrão, filtro por conjunto, Expandir/Recolher e Localizar atual. Os metadados da família selecionada ficam junto da biblioteca. Cada família reúne um mestre e suas variantes D4; mover uma família para outro conjunto preserva suas variantes. Os formatos de persistência e os IDs canônicos 0–84 permanecem iguais.
+
+
+A exclusão de uma família pede apenas a confirmação da ação e informa seu uso; não baixa backup automaticamente nem limpa o histórico vetorial das outras famílias. Exportar a biblioteca continua disponível quando desejado. Referências à família excluída continuam sendo convertidas para o Tile Vazio (#84). A guia visual **Subtiles** usa ciano com a mesma espessura e opacidade dos limites de blocos (1,5 px; alfa 165/255), sem contorno adicional; a guia Blocos usa lilás para diferenciar as escalas; continua opcional e não aparece nas exportações nem na saída Spout.
+
+
+O botão **Backup da biblioteca** fica sempre acessível na barra esquerda, tanto no mosaico como no criador. Na confirmação de exclusão de família, a opção **Baixar backup da biblioteca antes de excluir (.json)** começa desmarcada; marque-a para baixar o estado anterior à exclusão. Cancelar não baixa backup nem exclui. Fazer backup não apaga o histórico de edição vetorial. O **Gerador** fica visível por padrão, e o cabeçalho **Histórico** permanece acessível logo abaixo, com sua lista recolhível.
+
+Nos swatches do gerador, o cabeçalho de cada **conjunto** permite ativar/desativar todas as suas famílias, indica seleção parcial e mostra a contagem de tiles ativos. O botão **SOLO** do conjunto gera apenas com ele. A ação inclui o conjunto completo mesmo quando a busca exibe só parte das famílias.
+
+
+A saída Spout acompanha os blocos realmente renderizados, incluindo mudanças de tile-base, transformações, cores, margem, padding, dimensões e revisão da biblioteca. Conectar antes de existir um mosaico mantém a atualização ativa; renomear o remetente reenvia também a imagem; redimensionar recria o buffer em resolução nativa. Sob congestionamento, quadros intermediários não são enfileirados: o próximo envio usa a edição mais recente. Conexões antigas não interrompem um remetente recém-conectado. O canvas dedicado permanece limpo, sem guias, zoom, pan, seleção, hover ou prévias de ferramentas.
+
+### Roteamento de teclado e proteção de alterações (T02)
+
+Diálogos modais bloqueiam comandos externos, mantêm o foco com Tab/Shift+Tab e o restauram ao fechar. X sem modificadores troca cores; Ctrl+X mantém sua função de edição de texto. Campos editáveis, composição de texto e eventos já consumidos não acionam o documento; comandos discretos não repetem ao manter a tecla pressionada.
+
+Q cicla os seis escopos. Tab é alias somente com foco na área de trabalho e ferramenta de edição do mosaico; em controles ou no gerador, navega pelo foco. Escape no canvas cancela o gesto e retorna à ferramenta. Setas navegam gerações somente no canvas com Inspecionar. Shift inverte momentaneamente o encaixe.
+
+Reduzir linhas, colunas ou subdivisão informa a quantidade de preservações fora da nova grade antes de aplicar; Cancelar conserva a topologia, e desfazer recupera a grade e as preservações anteriores. Nova semente mantém as preservações que cabem na grade.

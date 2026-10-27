@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01 concluída, T02–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T02 concluídas, T03–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -635,7 +635,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | Tarefa | Estado inicial | Evidência necessária para concluir |
 |---|---|---|
 | T01 | Concluída em 27/10/2026 | [Baseline, mapa, 45/45 suítes e cinco capturas 1440×900](T01_BASELINE_E_MAPA_ACOES.md). |
-| T02 | Planejada | Regressões de roteamento + foco modal real. |
+| T02 | Concluída em 27/10/2026 | `test_dirty_guard.js`: listener real, modificadores, repetição, IME, campos editáveis e foco modal. No navegador: dirty guard bloqueou X/G/undo/Ctrl+E; Tab cíclico, Escape e retorno ao campo; editor ampliado e confirmação da biblioteca retornaram ao acionador. 45/45 suítes aprovadas. |
 | T03 | Planejada | Captura 2×2 → E → S e testes de edição. |
 | T04 | Planejada | Matriz de backends, ordem de callbacks e recuperação. |
 | T05 | Planejada | Undo por gesto, snapshot antigo e geração. |
@@ -665,3 +665,11 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 ## 13. Prompt de implementação para copiar
 
 > Trabalhe no Tiling Stripes Studio seguindo `docs/ux/PLANO_IMPLEMENTACAO_UI_UX.md` e a auditoria associada. Priorize gerar mosaicos e fazer ajustes rápidos. Execute apenas a próxima tarefa planejada cujas dependências já estejam concluídas, começando por T01. Antes de buscar/ler fonte consulte Graphify usando o Python local disponível; preserve alterações locais. Implemente os critérios do cartão, não um redesenho genérico. Mantenha os 60 IDs legados, as quatro superfícies de controle, a álgebra D4, schema v3 e saídas limpas. Comprove o comportamento com testes adequados e interação real quando exigida. Aplique tiling-invariants-gate, rode todas as suítes, sincronize conhecimento, atualize o quadro e relate exatamente o que foi concluído ou permanece pendente. Não altere relatórios históricos nem declare como implementado algo que só foi planejado.
+
+### Registro da T02 — 27/10/2026
+
+Estado modal e ciclo de foco compartilhados entre aviso de regeneração, confirmação, importação e editor de pincel. Troca de cores usa uma única ação; atalhos respeitam foco e modificadores. Área de trabalho focável, Tab contextual e saída com Escape. Redução de topologia calcula preservações que deixam de caber, adia a alteração até confirmar e mantém o caminho existente de undo.
+
+Teste de navegador executado em origem separada `127.0.0.1:8874`, pois o Zen em `5500` recebia interação simultânea do usuário. Confirmados o isolamento de comandos, Tab/Shift+Tab e cancelamento do dirty guard e da confirmação da biblioteca, além de Escape e retorno de foco no editor ampliado. O diálogo de importação usa o mesmo ciclo; importação real de arquivo e leitor de tela não foram executados nesta etapa. A revisão visual da biblioteca permanece na T12/T13.
+
+Higiene: PNGs novos e pastas de evidências ignorados; artefatos da T01 retirados somente do índice, preservados localmente. Outros PNGs históricos rastreados não foram removidos. Alterações anteriores de Spout, motor, biblioteca, navegação vetorial e layout não integram o commit funcional da T02.

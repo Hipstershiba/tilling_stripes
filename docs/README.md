@@ -6,12 +6,22 @@
 docs/
 ├── README.md                  este índice
 ├── MANUAL_MANUTENCAO.md       arquitetura, álgebra D4, persistência e regras de manutenção
+├── ux/                       auditoria e plano executável de interface/experiência
 ├── instrucoes/                o que foi pedido em cada rodada
 ├── relatorios/                o que foi entregue e o que foi auditado
 └── analise/                   pranchas da análise de famílias e conjuntos
 ```
 
 ---
+
+## Interface e experiência — plano atual
+
+A revisão de 27/10/2026 prioriza **gerar mosaicos e fazer ajustes rápidos**, conforme orientação do usuário. É uma especificação de melhorias; não representa correções já implementadas.
+
+- [Auditoria geral de UI/UX](ux/AUDITORIA_UX_2026-10-27.md) — estrutura, jornadas, 40 achados e oportunidades de interface/experiência, 9 problemas documentais, evidências e limites da análise.
+- [Plano executável de implementação](ux/PLANO_IMPLEMENTACAO_UI_UX.md) — decisões de design, glossário, atalhos, estados, 17 tarefas com dependências/testes e roteiro de aceite.
+
+Para implementar essa revisão, comece pelo plano e confirme o estado atual do código. Relatórios e instruções de rodadas anteriores são registros históricos; uma falha descrita neles pode já ter sido corrigida.
 
 ## Especificações (`instrucoes/`)
 
@@ -52,11 +62,11 @@ As imagens da análise ficam em [`analise/`](analise/): atlas das 31 famílias, 
 
 1. **Para entender o app:** comece pelo [README](../README.md) e depois pelo
    [manual](MANUAL_MANUTENCAO.md).
-2. **Para retomar o trabalho:** leia a instrução da rodada em aberto e o relatório da rodada
-   anterior.
-3. **Para saber em quem confiar:** `relatorios/` é o que o agente de implementação *declarou*;
-   `AVALIACAO_DEEPSEEK_RODADA2.md` é o que foi *verificado*. Quando os dois divergirem, vale a
-   auditoria — e a rodada 3 nasceu exatamente dessa divergência.
+2. **Para executar a revisão de interface:** leia o [plano de UI/UX](ux/PLANO_IMPLEMENTACAO_UI_UX.md)
+   e sua auditoria; as tarefas ainda planejadas estão indicadas no quadro de acompanhamento.
+3. **Para retomar outra rodada:** identifique a instrução vigente e confira no código o que
+   já foi implementado. Relatórios e auditorias antigos descrevem a base de sua própria rodada;
+   não são uma comprovação automática do estado atual.
 
 ## Notas de manutenção
 
