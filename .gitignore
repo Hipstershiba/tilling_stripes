@@ -51,3 +51,6 @@ graphify-out/
 # Node / Package dependencies
 node_modules/
 npm-debug.log*
+
+# Local AI / Tooling configurations
+.codex/
