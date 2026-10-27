@@ -646,7 +646,7 @@
               <div class="prop-section">
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
-                    <label class="prop-label">1. Simetria da Grade</label>
+                    <label class="prop-label">Simetria da composição</label>
                     <button type="button" class="info-btn" data-info-topic="grid-symmetry" aria-label="Saiba mais sobre simetria da grade" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                   <span id="gridSymmetryBadge" class="prop-badge">Mandala</span>
@@ -667,11 +667,12 @@
               <div id="blockSymmetryContainer" class="prop-section">
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
-                    <label class="prop-label">2. Simetria Interna</label>
+                    <label class="prop-label">Simetria do bloco</label>
                     <button type="button" class="info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre simetria do bloco" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
+                  <span id="blockSymmetryBadge" class="prop-badge secondary hidden">Igual à Grade</span>
                 </div>
+                <button type="button" id="btnBlockSymmetryOptions" class="generator-block-choice" aria-controls="blockSymmetryGrid" aria-expanded="false">Igual à composição</button>
                 <div id="blockSymmetryGrid" class="block-sym-pill-grid">
                   <!-- Populated by JS -->
                 </div>
@@ -685,18 +686,18 @@
               <!-- STEP 3: Block Subdivision & Aesthetics -->
               <div class="prop-section">
                 <div class="prop-label-row">
-                  <label class="prop-label">3. Subdivisão por Quadrante</label>
+                  <label class="prop-label">Peças por bloco</label>
                   <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
                 </div>
                 <div class="segmented-control" id="subdivisionControl">
                   <button type="button" class="seg-btn" data-sub="1"
-                    title="1x1 subtile por quadrante (Bloco 2x2)">1×1</button>
+                    title="Bloco com 2×2 peças (1×1 por quadrante)">2×2</button>
                   <button type="button" class="seg-btn active" data-sub="2"
-                    title="2x2 subtiles por quadrante (Bloco 4x4 padrão)">2×2</button>
+                    title="Bloco com 4×4 peças (2×2 por quadrante)">4×4</button>
                   <button type="button" class="seg-btn" data-sub="3"
-                    title="3x3 subtiles por quadrante (Bloco 6x6)">3×3</button>
+                    title="Bloco com 6×6 peças (3×3 por quadrante)">6×6</button>
                   <button type="button" class="seg-btn" data-sub="4"
-                    title="4x4 subtiles por quadrante (Bloco 8x8)">4×4</button>
+                    title="Bloco com 8×8 peças (4×4 por quadrante)">8×8</button>
                 </div>
               </div>
 
@@ -745,11 +746,11 @@
                 </div>
                 <div class="swatch-bulk-actions">
                   <button type="button" id="btnSelectAllTiles" class="mini-btn"
-                    title="Ativar todos os tiles">Todos</button>
+                    title="Permitir todas as peças da biblioteca, inclusive as ocultas pela busca">Todos</button>
                   <button type="button" id="btnSelectNoTiles" class="mini-btn"
-                    title="Desativar todos os tiles">Nenhum</button>
+                    title="Desativar todas as peças da biblioteca, inclusive as ocultas pela busca">Nenhum</button>
                   <button type="button" id="btnInvertTiles" class="mini-btn"
-                    title="Inverter seleção atual">Inverter</button>
+                    title="Inverter todas as peças da biblioteca, inclusive as ocultas pela busca">Inverter</button>
                   <button type="button" id="btnRandomFamilies" class="mini-btn accent"
                     title="Sortear um subconjunto aleatório de famílias e regerar">Sortear seleção</button>
                 </div>

@@ -1528,191 +1528,103 @@ function buildTileThumbnails() {
   }
 }
 
+const generatorUiState = {expanded: new Set(), isolation: null, blockExpanded: null};
+function sameGeneratorTiles(a, b) { return a.size === b.size && [...a].every(id => b.has(id)); }
+function toggleGeneratorIsolation(key, ids) {
+  const previous = generatorUiState.isolation;
+  if (previous && !sameGeneratorTiles(StudioState.allowedTiles, previous.selected)) generatorUiState.isolation = null;
+  const active = generatorUiState.isolation;
+  if (active?.key === key) {
+    StudioState.allowedTiles = new Set(active.before); generatorUiState.isolation = null;
+  } else {
+    const selected = new Set(ids);
+    generatorUiState.isolation = {key, before: new Set(active?.before || StudioState.allowedTiles), selected};
+    StudioState.allowedTiles = new Set(selected);
+  }
+  renderSwatchesPanel(); regenerateMosaic(true);
+}
 function renderSwatchesPanel() {
   const container = document.getElementById('familiesSwatchContainer');
-  const counterEl = document.getElementById('activeTilesCounter');
   if (!container) return;
-
-  const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
-  if (counterEl) {
-    counterEl.textContent = `${StudioState.allowedTiles.size} / ${totalTiles}`;
-  }
-
+  const counterEl = document.getElementById('activeTilesCounter');
+  if (counterEl) counterEl.textContent = `${StudioState.allowedTiles.size}/${window.TileRegistry.TILE_RENDERERS.length} peças`;
+  if (generatorUiState.isolation && !sameGeneratorTiles(StudioState.allowedTiles, generatorUiState.isolation.selected)) generatorUiState.isolation = null;
+  const focusKey = document.activeElement?.dataset?.generatorFocus;
   const query = (StudioState.searchQuery || '').trim().toLowerCase();
-  const grouped = (window.TileRegistry && typeof window.TileRegistry.getOrderedGroupedFamilies === 'function')
-    ? window.TileRegistry.getOrderedGroupedFamilies()
-    : [{ id: 'all', name: '', families: window.TileRegistry.TILE_FAMILIES_META }];
+  const grouped = window.TileRegistry.getOrderedGroupedFamilies();
   const tileNames = window.TileRegistry.TILE_NAMES;
-
   container.innerHTML = '';
-
-  for (const grp of grouped) {
-    let groupHeaderAppended = false;
-    for (const fam of grp.families) {
-      const groupLabel = grp.name || fam.group || '';
-      const matchingTiles = fam.tileIds.filter((id) => {
-        if (!query) return true;
-        const tName = (tileNames[id] || '').toLowerCase();
-        const gName = groupLabel.toLowerCase();
-        return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
-      });
-
-      if (matchingTiles.length === 0) continue;
-
-      if (groupLabel && !groupHeaderAppended) {
-        groupHeaderAppended = true;
-        const groupHeading = document.createElement('div');
-        groupHeading.className = 'swatches-group-heading';
-        const groupTileIds = [...new Set(grp.families.flatMap((family) => family.tileIds))];
-        const selectedCount = groupTileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
-        const groupSelected = selectedCount === groupTileIds.length;
-        const groupToggle = document.createElement('button');
-        groupToggle.type = 'button';
-        groupToggle.className = 'swatches-group-toggle';
-        groupToggle.setAttribute('role', 'checkbox');
-        groupToggle.setAttribute('aria-checked', groupSelected ? 'true' : selectedCount ? 'mixed' : 'false');
-        groupToggle.setAttribute('aria-label', `Conjunto ${groupLabel}`);
-        groupToggle.title = `${groupSelected ? 'Desativar' : 'Ativar'} todas as famílias do conjunto, inclusive as ocultas pela busca`;
-        const indicator = document.createElement('span');
-        indicator.className = 'family-check-indicator';
-        indicator.textContent = groupSelected ? '✓' : selectedCount ? '–' : '';
-        const groupName = document.createElement('span');
-        groupName.textContent = groupLabel;
-        groupToggle.appendChild(indicator);
-        groupToggle.appendChild(groupName);
-        groupToggle.addEventListener('click', () => {
-          groupTileIds.forEach((id) => groupSelected ? StudioState.allowedTiles.delete(id) : StudioState.allowedTiles.add(id));
-          renderSwatchesPanel();
-          regenerateMosaic(true);
+  function button(text, className, label, key, action) {
+    const el = document.createElement('button'); el.type = 'button'; el.className = className;
+    el.textContent = text; el.setAttribute('aria-label', label); el.title = label; el.dataset.generatorFocus = key;
+    el.addEventListener('click', action); return el;
+  }
+  function solo(key, ids, label) {
+    const active = generatorUiState.isolation?.key === key;
+    const el = button(active ? 'Restaurar seleção' : 'Isolar', 'family-solo-btn',
+      active ? 'Restaurar a seleção anterior ao isolamento' : `Isolar ${label}`, key + ':solo', () => toggleGeneratorIsolation(key, ids));
+    el.setAttribute('aria-pressed', String(active)); return el;
+  }
+  for (const group of grouped) {
+    let headingAdded = false;
+    for (const fam of group.families) {
+      const matching = fam.tileIds.filter(id => !query || fam.name.toLowerCase().includes(query) || group.name.toLowerCase().includes(query) ||
+        (tileNames[id] || '').toLowerCase().includes(query) || `#${id}` === query);
+      if (!matching.length) continue;
+      if (!headingAdded) {
+        headingAdded = true;
+        const heading = document.createElement('div'); heading.className = 'swatches-group-heading';
+        const ids = [...new Set(group.families.flatMap(f => f.tileIds))];
+        const count = ids.filter(id => StudioState.allowedTiles.has(id)).length;
+        const toggle = button(group.name, 'swatches-group-toggle', `Conjunto ${group.name}: ${count} de ${ids.length} peças; inclui as ocultas pela busca`, group.id + ':toggle', () => {
+          ids.forEach(id => count === ids.length ? StudioState.allowedTiles.delete(id) : StudioState.allowedTiles.add(id));
+          renderSwatchesPanel(); regenerateMosaic(true);
         });
-        const groupCount = document.createElement('span');
-        groupCount.className = 'family-count-tag';
-        groupCount.textContent = `${selectedCount}/${groupTileIds.length}`;
-        const groupSolo = document.createElement('button');
-        groupSolo.type = 'button';
-        groupSolo.className = 'family-solo-btn';
-        groupSolo.textContent = 'Isolar';
-        groupSolo.setAttribute('aria-label', `Isolar conjunto ${groupLabel}`);
-        groupSolo.title = `Gerar apenas com as famílias de ${groupLabel}`;
-        groupSolo.addEventListener('click', () => {
-          StudioState.allowedTiles.clear();
-          groupTileIds.forEach((id) => StudioState.allowedTiles.add(id));
-          renderSwatchesPanel();
-          regenerateMosaic(true);
-        });
-        groupHeading.appendChild(groupToggle);
-        groupHeading.appendChild(groupCount);
-        groupHeading.appendChild(groupSolo);
-        container.appendChild(groupHeading);
+        toggle.setAttribute('role', 'checkbox'); toggle.setAttribute('aria-checked', count === ids.length ? 'true' : count ? 'mixed' : 'false');
+        const indicator = document.createElement('span'); indicator.className = 'family-check-indicator'; indicator.setAttribute('aria-hidden', 'true');
+        indicator.textContent = count === ids.length ? '✓' : count ? '–' : ''; toggle.prepend(indicator);
+        heading.appendChild(toggle); heading.appendChild(solo('group:' + group.id, ids, `conjunto ${group.name}`)); container.appendChild(heading);
       }
-
-      const selectedInFam = fam.tileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
-      const allSelected = selectedInFam === fam.tileIds.length;
-      const noneSelected = selectedInFam === 0;
-
-      const card = document.createElement('div');
-      card.className = 'family-swatch-card ' +
-        (allSelected ? 'family-all' : noneSelected ? 'family-none' : 'family-partial');
-
-      const header = document.createElement('div');
-      header.className = 'family-card-header';
-
-      const toggleBtn = document.createElement('button');
-      toggleBtn.type = 'button';
-      toggleBtn.className = 'family-toggle-btn';
-      toggleBtn.title = allSelected ? 'Desativar família inteira' : 'Ativar família inteira';
-      toggleBtn.innerHTML = `
-        <span class="family-check-indicator">${allSelected ? '✓' : (!noneSelected ? '–' : '')}</span>
-        <span>${fam.name}</span>
-      `;
-      toggleBtn.addEventListener('click', () => {
-        if (allSelected) {
-          fam.tileIds.forEach((id) => StudioState.allowedTiles.delete(id));
-        } else {
-          fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
-        }
+      const selected = fam.tileIds.filter(id => StudioState.allowedTiles.has(id)).length;
+      const all = selected === fam.tileIds.length;
+      const card = document.createElement('div'); card.className = 'family-swatch-card ' + (all ? 'family-all' : selected ? 'family-partial' : 'family-none');
+      const header = document.createElement('div'); header.className = 'family-card-header';
+      const preview = document.createElement('img'); preview.className = 'generator-family-preview'; preview.alt = ''; preview.src = StudioState.thumbnailCache.get(fam.tileIds[0]) || ''; header.appendChild(preview);
+      const toggle = button(fam.name, 'family-toggle-btn', `${fam.name}: ${selected} de ${fam.tileIds.length} variantes permitidas`, fam.id + ':toggle', () => {
+        fam.tileIds.forEach(id => all ? StudioState.allowedTiles.delete(id) : StudioState.allowedTiles.add(id)); renderSwatchesPanel(); regenerateMosaic(true);
+      });
+      toggle.setAttribute('role', 'checkbox'); toggle.setAttribute('aria-checked', all ? 'true' : selected ? 'mixed' : 'false');
+      const mark = document.createElement('span'); mark.className = 'family-check-indicator'; mark.setAttribute('aria-hidden', 'true'); mark.textContent = all ? '✓' : selected ? '–' : ''; toggle.prepend(mark);
+      header.appendChild(toggle);
+      const count = document.createElement('span'); count.className = 'family-count-tag'; count.textContent = `${selected}/${fam.tileIds.length}`; header.appendChild(count);
+      const open = Boolean(query) || generatorUiState.expanded.has(fam.id);
+      const disclosure = button(open ? '⌃' : '⌄', 'generator-family-expand', `Variantes de ${fam.name}`, fam.id + ':expand', () => {
+        if (generatorUiState.expanded.has(fam.id)) generatorUiState.expanded.delete(fam.id); else generatorUiState.expanded.add(fam.id);
         renderSwatchesPanel();
-        regenerateMosaic(true);
       });
-
-      const rightWrap = document.createElement('div');
-      rightWrap.className = 'family-actions-right';
-
-      const countTag = document.createElement('span');
-      countTag.className = 'family-count-tag';
-      countTag.textContent = `${selectedInFam}/${fam.tileIds.length}`;
-
-      const studioJumpBtn = document.createElement('button');
-      studioJumpBtn.type = 'button';
-      studioJumpBtn.className = 'family-studio-jump-btn';
-      studioJumpBtn.innerHTML = window.UiFormat.icon(fam.builtIn ? 'copy' : 'edit');
-      studioJumpBtn.title = fam.builtIn
-        ? `Inspecionar / Duplicar "${fam.name}" no Estúdio de Subtiles`
-        : `Abrir "${fam.name}" no Estúdio de Subtiles`;
-      studioJumpBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.SubtileStudioUI?.openTilesStudio(fam.id);
-      });
-
-      const soloBtn = document.createElement('button');
-      soloBtn.type = 'button';
-      soloBtn.className = 'family-solo-btn';
-      soloBtn.textContent = 'Isolar';
-      soloBtn.title = `Isolar apenas a família "${fam.name}" para testar no mosaico`;
-      soloBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        StudioState.allowedTiles.clear();
-        fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
-        renderSwatchesPanel();
-        regenerateMosaic(true);
-      });
-
-      rightWrap.appendChild(countTag);
-      rightWrap.appendChild(studioJumpBtn);
-      rightWrap.appendChild(soloBtn);
-
-      header.appendChild(toggleBtn);
-      header.appendChild(rightWrap);
-      card.appendChild(header);
-
-      const grid = document.createElement('div');
-      grid.className = 'family-tiles-grid';
-
-      for (const tileId of matchingTiles) {
-        const isSelected = StudioState.allowedTiles.has(tileId);
-        const swatch = document.createElement('button');
-        swatch.type = 'button';
-        swatch.className = 'tile-swatch-btn' + (isSelected ? ' selected' : '');
-        swatch.title = `#${tileId}: ${tileNames[tileId] || 'Tile'}`;
-
-        const img = document.createElement('img');
-        img.src = StudioState.thumbnailCache.get(tileId) || '';
-        img.alt = tileNames[tileId] || `Tile ${tileId}`;
-
-        const idBadge = document.createElement('span');
-        idBadge.className = 'tile-swatch-id';
-        idBadge.textContent = tileId;
-
-        swatch.appendChild(img);
-        swatch.appendChild(idBadge);
-
-        swatch.addEventListener('click', () => {
-          if (StudioState.allowedTiles.has(tileId)) {
-            StudioState.allowedTiles.delete(tileId);
-          } else {
-            StudioState.allowedTiles.add(tileId);
-          }
-          renderSwatchesPanel();
-          regenerateMosaic(true);
+      disclosure.hidden = Boolean(query);
+      disclosure.setAttribute('aria-expanded', String(open)); disclosure.setAttribute('aria-controls', `generatorVariants-${fam.id}`); header.appendChild(disclosure); card.appendChild(header);
+      const details = document.createElement('div'); details.id = `generatorVariants-${fam.id}`; details.className = 'generator-variants'; details.hidden = !open;
+      const actions = document.createElement('div'); actions.className = 'generator-family-actions';
+      actions.appendChild(solo('family:' + fam.id, fam.tileIds, `família ${fam.name}`));
+      actions.appendChild(button('Editar peça', 'family-solo-btn', `Abrir ${fam.name} no editor de peças`, fam.id + ':edit', () => window.SubtileStudioUI?.openTilesStudio(fam.id)));
+      details.appendChild(actions);
+      const grid = document.createElement('div'); grid.className = 'family-tiles-grid';
+      for (const id of matching) {
+        const active = StudioState.allowedTiles.has(id);
+        const swatch = button('', 'tile-swatch-btn' + (active ? ' selected' : ''), `#${id}: ${tileNames[id]}`, 'tile:' + id, () => {
+          if (StudioState.allowedTiles.has(id)) StudioState.allowedTiles.delete(id); else StudioState.allowedTiles.add(id);
+          renderSwatchesPanel(); regenerateMosaic(true);
         });
-
-        grid.appendChild(swatch);
+        swatch.setAttribute('role', 'checkbox'); swatch.setAttribute('aria-checked', String(active));
+        const img = document.createElement('img'); img.src = StudioState.thumbnailCache.get(id) || ''; img.alt = '';
+        const badge = document.createElement('span'); badge.className = 'tile-swatch-id'; badge.textContent = id;
+        swatch.appendChild(img); swatch.appendChild(badge); grid.appendChild(swatch);
       }
-
-      card.appendChild(grid);
-      container.appendChild(card);
+      details.appendChild(grid); card.appendChild(details); container.appendChild(card);
     }
   }
+  if (focusKey) [...container.querySelectorAll('[data-generator-focus]')].find(el => el.dataset.generatorFocus === focusKey)?.focus({preventScroll: true});
 }
 
 // ============================================================================
@@ -1736,7 +1648,6 @@ function buildSymmetryPanelUI() {
         <div class="sym-card-icon">${SYMMETRY_ICONS_SVG[m.id] || ''}</div>
         <div class="sym-card-text">
           <span class="sym-card-title">${m.name}</span>
-          <span class="sym-card-sub">${m.subtitle}</span>
         </div>
       `;
       btn.addEventListener('click', () => {
@@ -1751,12 +1662,17 @@ function buildSymmetryPanelUI() {
     }
   }
 
+  const blockChoice = document.getElementById('btnBlockSymmetryOptions');
+  if (blockChoice) blockChoice.onclick = () => {
+    generatorUiState.blockExpanded = !(generatorUiState.blockExpanded ?? !StudioState.syncBlockSymmetry);
+    syncSymmetryPanelUI();
+  };
   if (blockGrid) {
     blockGrid.innerHTML = '';
     const blockOptions = [
       {
         key: 'sync',
-        title: 'Igual à Grade',
+        title: 'Igual à composição',
         sub: 'Automático',
         icon: SYMMETRY_ICONS_SVG.sync
       },
@@ -1795,12 +1711,12 @@ function buildSymmetryPanelUI() {
         <div class="block-sym-pill-icon">${opt.icon || ''}</div>
         <div class="block-sym-pill-text">
           <span class="block-sym-pill-title">${opt.title}</span>
-          <span class="block-sym-pill-sub">${opt.sub}</span>
         </div>
       `;
       btn.addEventListener('click', () => {
         if (opt.key === 'sync' ? StudioState.syncBlockSymmetry :
           !StudioState.syncBlockSymmetry && StudioState.blockSymmetryMode === opt.key) return;
+        generatorUiState.blockExpanded = opt.key !== 'sync';
         if (opt.key === 'sync') {
           StudioState.syncBlockSymmetry = true;
           StudioState.blockSymmetryMode = StudioState.gridSymmetryMode;
@@ -1826,6 +1742,7 @@ function syncSymmetryPanelUI() {
   // Step 1: Grid Symmetry Cards active state
   document.querySelectorAll('#gridSymmetryGrid .sym-card').forEach((card) => {
     card.classList.toggle('active', card.dataset.mode === StudioState.gridSymmetryMode);
+    card.setAttribute('aria-pressed', String(card.dataset.mode === StudioState.gridSymmetryMode));
   });
 
   const gridBadge = document.getElementById('gridSymmetryBadge');
@@ -1865,6 +1782,7 @@ function syncSymmetryPanelUI() {
   const selectedPillKey = StudioState.syncBlockSymmetry ? 'sync' : effectiveBlockModeKey;
   document.querySelectorAll('#blockSymmetryGrid .block-sym-pill').forEach((pill) => {
     pill.classList.toggle('active', pill.dataset.blockMode === selectedPillKey);
+    pill.setAttribute('aria-pressed', String(pill.dataset.blockMode === selectedPillKey));
   });
 
   const blockBadge = document.getElementById('blockSymmetryBadge');
@@ -1874,6 +1792,14 @@ function syncSymmetryPanelUI() {
       : activeBlockMode.name;
   }
 
+  const blockChoice = document.getElementById('btnBlockSymmetryOptions');
+  const blockGrid = document.getElementById('blockSymmetryGrid');
+  const showBlockOptions = generatorUiState.blockExpanded ?? !StudioState.syncBlockSymmetry;
+  if (blockChoice) {
+    blockChoice.textContent = `${StudioState.syncBlockSymmetry ? 'Igual à composição' : activeBlockMode.name} ${showBlockOptions ? '⌃' : '⌄'}`;
+    blockChoice.setAttribute('aria-expanded', String(showBlockOptions));
+  }
+  if (blockGrid) blockGrid.hidden = !showBlockOptions;
   const blockDesc = document.getElementById('blockSymmetryDesc');
   if (blockDesc) {
     blockDesc.textContent = StudioState.syncBlockSymmetry
@@ -1889,7 +1815,7 @@ function syncSymmetryPanelUI() {
   const subSummary = document.getElementById('subdivisionSummary');
   if (subSummary) {
     const n = StudioState.subdivision * 2;
-    subSummary.textContent = `Bloco ${n}×${n}`;
+    subSummary.textContent = `Bloco com ${n}×${n} peças`;
   }
 }
 

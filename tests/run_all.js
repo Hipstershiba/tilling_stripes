@@ -33,6 +33,7 @@ const testSuites = [
   'test_studio_commands.js',
   'test_visual_tokens.js',
   'test_ui_fields.js',
+  'test_generator_ui.js',
   'test_dirty_guard.js',
 
   // 4. UI Architecture & Accessibility

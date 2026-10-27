@@ -4671,3 +4671,21 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .swatches-search-row { align-items: flex-start; }
 
 .vec-props-subblock[hidden] { display: none; }
+
+/* T09: composition first, family summaries before individual variants. */
+.generator-block-choice { width: 100%; min-height: 32px; padding: 6px 10px; text-align: left; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-control); color: var(--text-primary); font: inherit; cursor: pointer; }
+.block-sym-pill-grid[hidden], .generator-variants[hidden] { display: none; }
+.block-sym-pill-grid { margin-top: 8px; }
+#familiesSwatchContainer .family-swatch-card.family-none { opacity: 1; }
+#familiesSwatchContainer .family-partial { border-left: 3px solid var(--accent-blue); }
+#familiesSwatchContainer .family-toggle-btn { min-width: 0; font-weight: 500; }
+.generator-family-preview { width: 30px; height: 30px; object-fit: contain; flex: 0 0 30px; }
+.generator-family-expand { flex: 0 0 28px; width: 28px; height: 28px; border: 0; border-radius: 4px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.generator-family-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 4px 0 8px; }
+#familiesSwatchContainer .swatches-group-heading { text-transform: none; letter-spacing: 0; color: var(--text-secondary); }
+#familiesSwatchContainer .swatches-group-heading::after { display: none; }
+
+#familiesSwatchContainer .family-solo-btn { min-height: 28px; height: auto; padding: 4px 8px; font-weight: 500; background: var(--bg-panel-header); border-color: transparent; }
+#familiesSwatchContainer .family-solo-btn:hover { color: var(--text-primary); background: var(--bg-control-hover); border-color: transparent; }
+#familiesSwatchContainer .family-solo-btn[aria-pressed="true"] { color: var(--text-primary); background: var(--bg-selected); border-color: var(--accent-blue); }
+.generator-family-expand[hidden] { display: none; }

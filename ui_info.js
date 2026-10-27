@@ -9,7 +9,7 @@
     (typeof require === 'function' ? require('./core/studio_commands.js') : null);
   const INFO_TOPICS = {
     'grid-symmetry': {
-        "title": "Simetria da grade",
+        "title": "Simetria da composição",
         "body": [
             "Mandala: oito setores com simetria rigorosa. Nos eixos, peças incompatíveis dão lugar à peça vazia.",
             "Caleidoscópio: espelha oito setores, permitindo peças assimétricas nos eixos.",
@@ -20,7 +20,7 @@
     'block-symmetry': {
         "title": "Simetria do bloco",
         "body": [
-            "Igual à grade: usa a mesma simetria do mosaico em cada bloco.",
+            "Igual à composição: usa a mesma simetria do mosaico em cada bloco.",
             "Independente: permite escolher outra simetria dentro dos blocos.",
             "Uma simetria interna diferente pode reduzir a simetria do resultado."
         ]

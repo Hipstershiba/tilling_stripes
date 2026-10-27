@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T08 concluídas; T09–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T09 concluídas; T10–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -642,7 +642,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T06 | Concluída em 27/10/2026 | Catálogo de comandos por ambiente, glossário, Ctrl+D exclusivo para formas e Caneta Enter/Escape. `test_studio_commands.js` e navegador validam atalhos, botões, ajuda e retorno ao mosaico. 48/48 suítes aprovadas. |
 | T07 | Concluída em 27/10/2026 | Tokens CSS/inline resolvidos, pele comum, texto 12/13 px, alvos 28/32 px, SVGs e tooltip com quebra/foco. Contraste automatizado e computado; capturas antes/depois em 1440×900/100%. 49/49 suítes aprovadas. |
 | T08 | Concluída | Rótulos/unidades, foco visível, buscas com limpeza/contagem e edição numérica validada. |
-| T09 | Planejada | Fluxo de gerar sem abrir matemática avançada. |
+| T09 | Concluída | Fluxo de gerar sem abrir matemática avançada. |
 | T10 | Planejada | Matriz de ferramentas/preview/alcance. |
 | T11 | Planejada | Gerações editadas e quatro alvos de exportação. |
 | T12 | Planejada | Uma ação principal por contexto; IDs preservados. |
@@ -802,3 +802,15 @@ A T08 acrescentou elementos permanentes demais às buscas. Esta correção reduz
 - [x] Gate completo: 50/50 suítes; AST/vault sincronizados preservando notas locais; commit separado.
 
 Captura em `_local/limpeza-ui/propriedades.png` permanece ignorada. Não se iniciou a T09. Mudanças matemáticas, limites, histórico e persistência estão fora desta correção.
+
+### Registro da T09 — 27/10/2026
+
+- [x] Simetria da composição com quatro opções de nome/miniatura e matemática na ajuda.
+- [x] Simetria do bloco progressiva; documento restaurado independente mantém o modo e o apresenta aberto. Expansão não muda dados.
+- [x] Botões representam blocos completos 2×2 a 8×8; valores de subdivisão por quadrante preservados.
+- [x] Famílias com miniatura, contador e estado total/parcial/vazio; variantes sob expansão ou busca. Estado vazio não usa opacidade baixa.
+- [x] Isolamento reversível por família/conjunto; troca de isolamento preserva seleção inicial, alteração manual invalida restauração antiga.
+- [x] Todos/Nenhum/Inverter continuam globais, com alcance informado no título; busca revela famílias/peças; editor permanece separado.
+- [x] Gate completo: 51/51 suítes; AST/vault sincronizados; commit separado.
+
+Testes novos executam renderer real com DOM de teste, seleção parcial, expansão/busca, preservação do foco, isolamento e sincronização da simetria salva. No navegador em 8874, modo Rotacional independente sobreviveu ao reload; busca #0 + Nenhum desativou 121 peças, Todos reativou 121; isolar Faixa Central reduziu para duas e Restaurar seleção voltou a 121. Desmarcar uma variante produziu estado mixed. Capturas em `_local/t09` são ignoradas. A sessão Zen em 5500 foi preservada.
