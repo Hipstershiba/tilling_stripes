@@ -54,3 +54,8 @@ npm-debug.log*
 
 # Local AI / Tooling configurations
 .codex/
+
+# Generated visual evidence and audit execution artifacts
+*.png
+/docs/ux/evidencias/
+/docs/relatorios/assets/

@@ -4,6 +4,8 @@ Concluída em 27/10/2026. Base Git: `c3e9f33`, mais alterações locais anterior
 
 ## Evidências e reprodução
 
+Os arquivos em `evidencias/` são locais e ignorados pelo Git. Capturas, logs e o patch de baseline permanecem no computador onde foram gerados; os links abaixo não fazem parte de um clone novo. Somente os registros textuais de decisão e aceite são versionados.
+
 - Estado inicial: [status-inicial.txt](evidencias/T01/status-inicial.txt).
 - Diferenças rastreadas anteriores: [alteracoes-preexistentes.patch.gz](evidencias/T01/alteracoes-preexistentes.patch.gz). O arquivo gzip contém o patch e preserva o contexto de execução; não aplicar sobre o checkout atual. Os arquivos não rastreados constam do status, mas não estão neste patch.
 - Suíte completa: [testes-baseline.txt](evidencias/T01/testes-baseline.txt), 45/45 aprovadas, saída 0. Os testes validam contratos existentes, não o aceite das correções futuras.
