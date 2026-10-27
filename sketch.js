@@ -3055,6 +3055,12 @@ function requestTopologyChange(next, trigger) {
   if (rows === StudioState.rows && cols === StudioState.cols && subdivision === StudioState.subdivision) return;
   const frozenLoss = countFrozenOutsideTopology(StudioState.frozenCells, rows, cols, subdivision);
   requestParamChangeWithGuard(trigger || document.activeElement, syncAllInputsFromState, () => {
+    // A restored session may not yet have lastDocumentParams. Capture the old
+    // topology before changing it, so the first undo after reload is complete.
+    const previousParams = window.DocumentSnapshot.collectParams(StudioState);
+    StudioState.lastDocumentParams = previousParams;
+    const previousEntry = StudioState.editHistory[StudioState.editHistoryIndex];
+    if (previousEntry) window.DocumentSnapshot.attachDocument(previousEntry, previousParams);
     Object.assign(StudioState, next);
     syncAllInputsFromState();
     regenerateMosaic(true);

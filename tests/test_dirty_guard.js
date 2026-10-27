@@ -119,3 +119,17 @@ vm.runInContext(sketchSource.slice(sketchSource.indexOf('function countFrozenOut
 assert.equal(context.countFrozenOutsideTopology(new Map([['0,0,0,0',{}],['2,2,3,3',{}],['0,0,4,4',{}]]),2,2,2),2);
 assert.equal(context.countFrozenOutsideTopology(new Map([['2,2,3,3',{}]]),3,3,2),0);
 console.log('--- ALL DIRTY GUARD AND KEYBOARD CHECKS PASSED! ---');
+
+// First topology change after restoring a session must snapshot parameters BEFORE mutation.
+context.window.DocumentSnapshot = require('../core/document_snapshot.js');
+context.StudioState = {rows:3, cols:3, subdivision:2, frozenCells:new Map(), editHistory:[{}], editHistoryIndex:0, lastDocumentParams:null};
+context.requestParamChangeWithGuard = (_trigger, _revert, apply) => apply();
+context.syncAllInputsFromState = () => {};
+context.regenerateMosaic = () => {
+  assert.equal(context.StudioState.lastDocumentParams.rows,3);
+  assert.equal(context.StudioState.editHistory[0].document.rows,3);
+  assert.equal(context.StudioState.rows,1);
+};
+vm.runInContext(sketchSource.slice(sketchSource.indexOf('function requestTopologyChange('),sketchSource.indexOf('function swapStudioColors(')),context);
+context.requestTopologyChange({rows:1},stage);
+console.log('Topology undo after session restore PASSED');
