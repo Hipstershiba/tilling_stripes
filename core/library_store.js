@@ -331,7 +331,12 @@
       }
 
       if (getIndexedDBSafe()) {
-        saveToLibraryIDB(envelope).catch(() => {});
+        saveToLibraryIDB(envelope).catch((err) => {
+          console.error('[LibraryStore] Falha ao persistir biblioteca:', err);
+          if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('library-persistence-error'));
+          }
+        });
       }
     }
 

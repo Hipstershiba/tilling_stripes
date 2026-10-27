@@ -233,11 +233,27 @@ async function testBootPrecedence() {
   console.log('✓ Boot precedence verified: localStorage cache never overwrites rich IndexedDB history.');
 }
 
+async function testLegacyDatabaseMigration() {
+  const factory = createMockIndexedDB();
+  const db = await StatePersistence.openIndexedDB(factory, 'tiling_stripes_studio_db', 'studio_state_store');
+  const legacy = {version: 3, timestamp: 50, history: [{seed: 17}, {seed: 18}], editHistory: []};
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(['studio_state_store'], 'readwrite');
+    const req = tx.objectStore('studio_state_store').put(legacy, StatePersistence.IDB_KEY_CURRENT);
+    req.onsuccess = resolve; req.onerror = reject;
+  });
+  const result = await StatePersistence.resolveBootState({getItem: () => null}, undefined, factory);
+  assert.deepStrictEqual(result.payload, legacy);
+  assert.deepStrictEqual(await StatePersistence.loadFromIndexedDB(undefined, factory), legacy);
+  console.log('✓ Legacy database preserved and migrated to canonical database.');
+}
+
 async function run() {
   await testUnavailable();
   await testSaveAndLoad();
   await testMigration();
   await testBootPrecedence();
+  await testLegacyDatabaseMigration();
   console.log('--- ALL INDEXEDDB PERSISTENCE CHECKS PASSED PERFECTLY! ---');
 }
 

@@ -43,7 +43,7 @@ if (uniqueKeys.has('tiling_stripes_studio_v2_state')) {
   throw new Error('Found deprecated diverging key "tiling_stripes_studio_v2_state" in production code');
 }
 
-if (!uniqueKeys.has('tiling_stripes_studio_state_v2')) {
+if (!uniqueKeys.has('tiling_stripes_studio_v3_state')) {
   throw new Error('Expected canonical key "tiling_stripes_studio_state_v2" not found');
 }
 
@@ -55,9 +55,9 @@ if (sketchContent.includes("'tiling_stripes_studio_state_v2'") || sketchContent.
 
 // Check StatePersistence exports canonical key
 const StatePersistence = require(path.join(baseDir, 'core/state_persistence.js'));
-if (StatePersistence.STORAGE_KEY_STUDIO_STATE !== 'tiling_stripes_studio_state_v2') {
+if (StatePersistence.STORAGE_KEY_STUDIO_STATE !== 'tiling_stripes_studio_v3_state') {
   throw new Error(`StatePersistence.STORAGE_KEY_STUDIO_STATE is "${StatePersistence.STORAGE_KEY_STUDIO_STATE}", expected "tiling_stripes_studio_state_v2"`);
 }
 
-console.log('✓ Exactly one canonical storage key exists in production code ("tiling_stripes_studio_state_v2").');
+console.log('✓ Canonical v3 key exists alongside the read-only v2 migration key.');
 console.log('--- ALL STORAGE KEY CHECKS PASSED PERFECTLY! ---');

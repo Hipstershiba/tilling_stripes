@@ -5,7 +5,8 @@
  */
 
 (function () {
-  const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_state_v2';
+  const STORAGE_KEY_STUDIO_STATE = 'tiling_stripes_studio_v3_state';
+  const LEGACY_STORAGE_KEY = 'tiling_stripes_studio_state_v2';
   const STORAGE_VERSION = 3;
   const MAX_GENERATION_HISTORY = 30;
   const MAX_EDIT_HISTORY = 25;
@@ -234,8 +235,8 @@
     }
   }
 
-  const IDB_DATABASE_NAME = 'tiling_stripes_studio_db';
-  const IDB_STORE_NAME = 'studio_state_store';
+  const IDB_DATABASE_NAME = 'TilingStripesDB_v1';
+  const IDB_STORE_NAME = 'studio_state';
   const IDB_VERSION = 1;
   const IDB_KEY_CURRENT = 'current_studio_state';
   const IDB_MAX_GENERATION_HISTORY = 256;
@@ -245,7 +246,7 @@
    * Opens the Tiling Stripes IndexedDB instance.
    * Accepts an optional customFactory for Node/unit-testing environments.
    */
-  function openIndexedDB(customFactory) {
+  function openIndexedDB(customFactory, databaseName = IDB_DATABASE_NAME, storeName = IDB_STORE_NAME) {
     const factory = customFactory || (typeof indexedDB !== 'undefined' ? indexedDB : null);
     if (!factory) {
       return Promise.reject(new Error('IndexedDB not supported or unavailable'));
@@ -254,14 +255,14 @@
     return new Promise((resolve, reject) => {
       let req;
       try {
-        req = factory.open(IDB_DATABASE_NAME, IDB_VERSION);
+        req = factory.open(databaseName, IDB_VERSION);
       } catch (err) {
         return reject(err);
       }
       req.onupgradeneeded = (e) => {
         const db = e.target ? e.target.result : req.result;
-        if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
-          db.createObjectStore(IDB_STORE_NAME);
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName);
         }
       };
       req.onsuccess = (e) => {
@@ -307,12 +308,13 @@
   /**
    * Loads a state payload from IndexedDB asynchronously.
    */
-  function loadFromIndexedDB(key = IDB_KEY_CURRENT, customFactory) {
-    return openIndexedDB(customFactory).then((db) => {
+  function loadFromIndexedDB(key = IDB_KEY_CURRENT, customFactory, legacy = false) {
+    const storeName = legacy ? 'studio_state_store' : IDB_STORE_NAME;
+    return openIndexedDB(customFactory, legacy ? 'tiling_stripes_studio_db' : IDB_DATABASE_NAME, storeName).then((db) => {
       return new Promise((resolve, reject) => {
         try {
-          const tx = db.transaction([IDB_STORE_NAME], 'readonly');
-          const store = tx.objectStore(IDB_STORE_NAME);
+          const tx = db.transaction([storeName], 'readonly');
+          const store = tx.objectStore(storeName);
           const req = store.get(key);
           req.onsuccess = () => {
             resolve(req.result || null);
@@ -331,6 +333,11 @@
           reject(err);
         }
       });
+    }).then(async payload => {
+      if (payload || legacy) return payload;
+      const oldPayload = await loadFromIndexedDB(key, customFactory, true).catch(() => null);
+      if (oldPayload) await saveToIndexedDB(key, oldPayload, customFactory).catch(() => {});
+      return oldPayload;
     });
   }
 
@@ -367,7 +374,8 @@
     }
     let parsed;
     try {
-      const raw = storage.getItem(storageKey);
+      const raw = storage.getItem(storageKey) ||
+          (storageKey === STORAGE_KEY_STUDIO_STATE ? storage.getItem(LEGACY_STORAGE_KEY) : null);
       if (!raw) return Promise.resolve(false);
       parsed = JSON.parse(raw);
       if (!parsed || typeof parsed !== 'object') return Promise.resolve(false);
@@ -394,7 +402,8 @@
     let localParsed = null;
     if (storage && typeof storage.getItem === 'function') {
       try {
-        const raw = storage.getItem(storageKey);
+        const raw = storage.getItem(storageKey) ||
+          (storageKey === STORAGE_KEY_STUDIO_STATE ? storage.getItem(LEGACY_STORAGE_KEY) : null);
         if (raw) {
           const obj = JSON.parse(raw);
           if (obj && typeof obj === 'object') localParsed = obj;

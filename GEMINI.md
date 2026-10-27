@@ -23,7 +23,7 @@ Este arquivo define as diretrizes arquiteturais, matemáticas e de engenharia qu
 ---
 
 ## 3. Persistência e Snapshots de Documento
-- Chave canônica de localStorage: `tiling_stripes_studio_v3_state`. NUNCA use chave legada v2.
+- Chave canônica de localStorage: `tiling_stripes_studio_v3_state`. A chave legada v2 é aceita apenas para leitura e migração; não apague os saves antigos.
 - Banco IndexedDB: `TilingStripesDB_v1` / store `studio_state`.
 - Snapshots de undo entre gerações DEVEM utilizar `DocumentSnapshot.collectParams` e `DocumentSnapshot.attachDocument` para garantir que o desfazer restaure parâmetros e células sincronizadamente.
 - As 8 funções puras de persistência (`isQuotaError`, `getMaxEditHistoryForMosaic`, `trimHistoryOnPush`, `migratePayloadHistories`, `buildMinimalEmergencyPayload`, `saveWithQuotaFallback`, `createSaveScheduler`, `validatePayloadVersion`) são contratos públicos e devem permanecer exportadas.
@@ -48,6 +48,6 @@ Este arquivo define as diretrizes arquiteturais, matemáticas e de engenharia qu
 ---
 
 ## 6. Suíte de Testes e Documentação
-- Todas as 36 suítes de teste em `tests/run_all.js` DEVEM passar com código de saída 0 antes de qualquer entrega ou commit.
+- Todas as 45 suítes de teste em `tests/run_all.js` DEVEM passar com código de saída 0 antes de qualquer entrega ou commit.
 - A documentação viva (`README.md`, `docs/MANUAL_MANUTENCAO.md`) DEVE ser mantida sincronizada com qualquer alteração de funcionalidade, assinaturas de funções ou atalhos.
 - `tests/test_docs_consistency.js` valida continuamente a integridade documental e deve permanecer verde.
