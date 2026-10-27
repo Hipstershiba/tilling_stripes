@@ -186,10 +186,58 @@ async function testMigration() {
   console.log('✓ Legacy localStorage data migrated cleanly to IndexedDB.');
 }
 
+// 6. Test Boot Precedence: Rich IndexedDB MUST NOT be overwritten by truncated or fallback-minimal localStorage
+async function testBootPrecedence() {
+  const mockIDB = createMockIndexedDB();
+  const storageMap = new Map();
+  const localStorageMock = {
+    getItem: (key) => storageMap.get(key) || null,
+    setItem: (key, val) => storageMap.set(key, String(val))
+  };
+
+  const ts = 1700000000000;
+  const richPayload = {
+    version: 3,
+    timestamp: ts,
+    seed: 77777,
+    rows: 4,
+    cols: 4,
+    history: Array.from({ length: 60 }, (_, i) => ({ seed: i })),
+    editHistory: Array.from({ length: 45 }, (_, i) => ({ editId: i }))
+  };
+
+  // Simulate normal dual-save: IDB gets 60/45, localStorage gets clamped 30/25
+  await StatePersistence.saveToIndexedDB(StatePersistence.IDB_KEY_CURRENT, richPayload, mockIDB);
+  StatePersistence.saveWithQuotaFallback(localStorageMock, StatePersistence.STORAGE_KEY_STUDIO_STATE, richPayload, { rows: 4, cols: 4, subtilesPerSide: 4 });
+
+  const resolved1 = await StatePersistence.resolveBootState(
+    localStorageMock,
+    StatePersistence.STORAGE_KEY_STUDIO_STATE,
+    mockIDB
+  );
+  assert.strictEqual(resolved1.source, 'indexeddb', 'Boot must prefer rich IndexedDB over clamped localStorage');
+  assert.strictEqual(resolved1.payload.history.length, 60, 'All 60 generation snapshots must survive reload');
+  assert.strictEqual(resolved1.payload.editHistory.length, 45, 'All 45 edit snapshots must survive reload');
+
+  // Simulate emergency quota fallback (0/0 histories in localStorage with same timestamp)
+  const minimal = StatePersistence.buildMinimalEmergencyPayload(richPayload);
+  localStorageMock.setItem(StatePersistence.STORAGE_KEY_STUDIO_STATE, JSON.stringify(minimal));
+
+  const resolved2 = await StatePersistence.resolveBootState(
+    localStorageMock,
+    StatePersistence.STORAGE_KEY_STUDIO_STATE,
+    mockIDB
+  );
+  assert.strictEqual(resolved2.source, 'indexeddb', 'Emergency minimal localStorage must NOT overwrite IndexedDB');
+  assert.strictEqual(resolved2.payload.history.length, 60, 'Rich history in IndexedDB must remain intact after fallback');
+  console.log('✓ Boot precedence verified: localStorage cache never overwrites rich IndexedDB history.');
+}
+
 async function run() {
   await testUnavailable();
   await testSaveAndLoad();
   await testMigration();
+  await testBootPrecedence();
   console.log('--- ALL INDEXEDDB PERSISTENCE CHECKS PASSED PERFECTLY! ---');
 }
 

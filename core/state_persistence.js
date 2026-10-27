@@ -335,24 +335,88 @@
   }
 
   /**
-   * Seamlessly migrates existing localStorage data into IndexedDB if found.
+   * Decides whether an existing IndexedDB payload should take precedence over a localStorage cache payload.
+   * Prevents truncated or emergency-minimal localStorage payloads from overwriting rich IndexedDB history.
+   */
+  function shouldPreferIndexedDB(idbPayload, localPayload) {
+    if (!idbPayload || typeof idbPayload !== 'object') return false;
+    if (!localPayload || typeof localPayload !== 'object') return true;
+
+    const idbTs = typeof idbPayload.timestamp === 'number' ? idbPayload.timestamp : 0;
+    const localTs = typeof localPayload.timestamp === 'number' ? localPayload.timestamp : 0;
+
+    if (localTs > idbTs) return false;
+    if (idbTs > localTs) return true;
+
+    const idbHist = (Array.isArray(idbPayload.history) ? idbPayload.history.length : 0) +
+      (Array.isArray(idbPayload.editHistory) ? idbPayload.editHistory.length : 0);
+    const localHist = (Array.isArray(localPayload.history) ? localPayload.history.length : 0) +
+      (Array.isArray(localPayload.editHistory) ? localPayload.editHistory.length : 0);
+
+    return idbHist >= localHist;
+  }
+
+  /**
+   * Seamlessly migrates existing localStorage data into IndexedDB ONLY if IndexedDB
+   * is empty or strictly older than localStorage. Never overwrites rich IDB history
+   * with a truncated or fallback-minimal localStorage cache.
    */
   function migrateLocalStorageToIndexedDB(storage, storageKey = STORAGE_KEY_STUDIO_STATE, customFactory) {
     if (!storage || typeof storage.getItem !== 'function') {
       return Promise.resolve(false);
     }
+    let parsed;
     try {
       const raw = storage.getItem(storageKey);
       if (!raw) return Promise.resolve(false);
-      const parsed = JSON.parse(raw);
+      parsed = JSON.parse(raw);
       if (!parsed || typeof parsed !== 'object') return Promise.resolve(false);
-
-      return saveToIndexedDB(IDB_KEY_CURRENT, parsed, customFactory)
-        .then(() => true)
-        .catch(() => false);
     } catch (_) {
       return Promise.resolve(false);
     }
+
+    return loadFromIndexedDB(IDB_KEY_CURRENT, customFactory)
+      .catch(() => null)
+      .then((existingIDB) => {
+        if (shouldPreferIndexedDB(existingIDB, parsed)) {
+          return false;
+        }
+        return saveToIndexedDB(IDB_KEY_CURRENT, parsed, customFactory)
+          .then(() => true)
+          .catch(() => false);
+      });
+  }
+
+  /**
+   * Resolves the authoritative state on boot between IndexedDB and localStorage.
+   */
+  function resolveBootState(storage, storageKey = STORAGE_KEY_STUDIO_STATE, customFactory) {
+    let localParsed = null;
+    if (storage && typeof storage.getItem === 'function') {
+      try {
+        const raw = storage.getItem(storageKey);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === 'object') localParsed = obj;
+        }
+      } catch (_) {}
+    }
+
+    return migrateLocalStorageToIndexedDB(storage, storageKey, customFactory)
+      .then(() => loadFromIndexedDB(IDB_KEY_CURRENT, customFactory))
+      .then((idbParsed) => {
+        if (shouldPreferIndexedDB(idbParsed, localParsed)) {
+          return { source: 'indexeddb', payload: idbParsed };
+        }
+        if (localParsed) {
+          return { source: 'localstorage', payload: localParsed };
+        }
+        return { source: 'none', payload: null };
+      })
+      .catch(() => ({
+        source: localParsed ? 'localstorage' : 'none',
+        payload: localParsed
+      }));
   }
 
   const StatePersistence = {
@@ -377,7 +441,9 @@
     openIndexedDB,
     saveToIndexedDB,
     loadFromIndexedDB,
-    migrateLocalStorageToIndexedDB
+    shouldPreferIndexedDB,
+    migrateLocalStorageToIndexedDB,
+    resolveBootState
   };
 
   if (typeof window !== 'undefined') {

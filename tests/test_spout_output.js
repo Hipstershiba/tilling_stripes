@@ -73,7 +73,8 @@ assert.notStrictEqual(artSig, Spout.artifactSignature(rotated, layout), 'a rotat
 assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, fgColor: '#ffffff' }), 'color change invalidates');
 assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, margin: 30 }), 'margin change invalidates');
 assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, width: 800 }), 'artboard change invalidates');
-console.log('✓ Artwork signature follows the mosaic, not the viewport.');
+assert.notStrictEqual(artSig, Spout.artifactSignature(mosaic, { ...layout, libraryRevision: 1 }), 'live tile library edit invalidates');
+console.log('✓ Artwork signature follows the mosaic and tile library revision, not the viewport.');
 
 // 5. The bridge file exists and documents the same port
 const fs = require('fs');

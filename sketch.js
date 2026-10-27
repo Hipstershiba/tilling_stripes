@@ -360,6 +360,9 @@ function saveStudioStateToStorage() {
 function applySavedStudioState(saved) {
   if (!saved || typeof saved !== 'object') return false;
 
+  if (typeof saved.timestamp === 'number') {
+    StudioState.loadedTimestamp = saved.timestamp;
+  }
   const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
 
   // Artboard
@@ -682,13 +685,37 @@ function setup() {
     regenerateMosaic(true);
   }
 
-  // Asynchronous IndexedDB migration & hydration
-  if (typeof window !== 'undefined' && window.StatePersistence && typeof indexedDB !== 'undefined') {
-    const persistence = window.StatePersistence;
-    persistence.migrateLocalStorageToIndexedDB(localStorage, STORAGE_KEY_STUDIO_STATE).then(() => {
-      if (!hasSavedState) {
-        persistence.loadFromIndexedDB().then((idbState) => {
-          if (idbState && typeof idbState === 'object') {
+  if (window.LibraryStore && typeof window.LibraryStore.onChange === 'function') {
+    window.LibraryStore.onChange((evt) => {
+      if (evt && evt.hasRemapChanges) {
+        window.LibraryStore.remapStudioState(StudioState, evt.idRemap, evt.maxValidTileId);
+      }
+      buildTileThumbnails();
+      renderSwatchesPanel();
+      renderEditBrushPalette();
+      renderSupertileBuilderCanvas();
+      redraw();
+    });
+  }
+
+  // Asynchronous IndexedDB migration & hydration (LibraryStore first so custom tile IDs exist before mosaic hydration)
+  const libraryHydrationPromise = (typeof window !== 'undefined' && window.LibraryStore && typeof indexedDB !== 'undefined')
+    ? window.LibraryStore.hydrateFromIndexedDB().catch(() => null)
+    : Promise.resolve(null);
+
+  libraryHydrationPromise.then(() => {
+    if (typeof window !== 'undefined' && window.StatePersistence && typeof indexedDB !== 'undefined') {
+      const persistence = window.StatePersistence;
+      return persistence.resolveBootState(localStorage, STORAGE_KEY_STUDIO_STATE).then((resolved) => {
+        if (resolved && resolved.source === 'indexeddb' && resolved.payload) {
+          const idbState = resolved.payload;
+          const idbHistCount = (Array.isArray(idbState.history) ? idbState.history.length : 0) +
+            (Array.isArray(idbState.editHistory) ? idbState.editHistory.length : 0);
+          const curHistCount = (Array.isArray(StudioState.history) ? StudioState.history.length : 0) +
+            (Array.isArray(StudioState.editHistory) ? StudioState.editHistory.length : 0);
+          const isNewer = (typeof idbState.timestamp === 'number' && idbState.timestamp > (StudioState.loadedTimestamp || 0));
+
+          if (!hasSavedState || isNewer || idbHistCount > curHistCount) {
             const restored = applySavedStudioState(idbState);
             if (restored) {
               restoreMosaicFromSavedState();
@@ -697,10 +724,11 @@ function setup() {
               redraw();
             }
           }
-        }).catch(() => {});
-      }
-    }).catch(() => {});
-  }
+        }
+      });
+    }
+    return null;
+  }).catch(() => {});
 
   window.addEventListener('beforeunload', flushSaveStudioStateToStorage);
 
@@ -1095,7 +1123,8 @@ function spoutArtSignature() {
     margin: StudioState.margin,
     paddingRatio: StudioState.paddingRatio,
     fgColor: StudioState.fgColor,
-    bgColor: StudioState.bgColor
+    bgColor: StudioState.bgColor,
+    libraryRevision: (window.TileRegistry && window.TileRegistry.libraryRevision) || 0
   });
 }
 

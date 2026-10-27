@@ -40,14 +40,19 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 ```
 ├── core/
 │   ├── d4_symmetry.js         # Álgebra do grupo D4, transformações, estabilizadores e resolução de órbitas
-│   ├── tile_registry.js       # Catálogo dos 85 tiles vetoriais procedurais organizados em 31 famílias
+│   ├── vector_renderer.js     # Renderizador normalizado [-0.5, 0.5] para formas vetoriais JSON (p5 & SimpleSVG)
+│   ├── d4_detect.js           # Detector headless de subgrupos estabilizadores D4 (órbitas de 1, 2, 4 e 8 variantes)
+│   ├── tile_library.js        # Biblioteca canônica JSON v1 (6 grupos e 31 mestres built-in = 85 subtiles)
+│   ├── library_compiler.js    # Compilador determinístico de mestres JSON em catálogos D4 e tabelas de remap
+│   ├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
+│   ├── tile_registry.js       # Fachada reativa do catálogo de tiles, famílias e mapas D4 (libraryRevision)
 │   ├── mosaic_engine.js       # Geração macro/micro, escopos de edição, render e snapshots de células
 │   ├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
 │   ├── history_nav.js         # Navegação preguiçosa no histórico de geração, orçamento e snapshots
 │   ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 │   ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 │   └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-├── tests/                     # Suíte com 36 testes automatizados em Node.js puro
+├── tests/                     # Suíte com 41 testes automatizados em Node.js puro
 ├── tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ├── ui_info.js                 # Motor de divulgação progressiva (13 tópicos, popovers e tooltips acessíveis)
 ├── libraries/                 # Bibliotecas p5.min.js e simple-svg.js
@@ -180,14 +185,14 @@ A interface adota a taxonomia de quatro superfícies estritas com responsabilida
 
 ## Testes Automatizados
 
-O projeto conta com **36 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **41 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 36 suítes de teste:
+# Executar todas as 41 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 36 Suítes:
+### Cobertura das 41 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
@@ -229,8 +234,14 @@ node tests/run_all.js
    - `test_freeze_state.js`: Serialização e restauração do conjunto de células travadas.
    - `test_freeze_undo.js`: Histórico de desfazer e refazer para operações de congelamento.
    - `test_freeze_ui_contract.js`: Contrato visual dos botões e controles de trava.
-7. **Saída em Tempo Real**:
-   - `test_spout_output.js`: Sanitização de nomes de canal Spout, cálculo de assinatura de arte e contrato de comunicação via WebSocket.
+7. **Saída em Tempo Real & Exportação Vetorial SVG**:
+   - `test_spout_output.js`: Sanitização de nomes de canal Spout, cálculo de assinatura de arte (incluindo `libraryRevision`) e contrato de comunicação via WebSocket.
+   - `test_simple_svg_paths.js`: Exportação de curvas Bezier cúbicas, retângulos arredondados, caminhos compostos com furos (`evenodd`) e `<clipPath>` em `SimpleSVG`.
+8. **Motor Vetorial de Subtiles, Detecção D4 & Biblioteca JSON**:
+   - `test_vector_renderer.js`: Primitivas normalizadas em `[-0.5, 0.5]`, lei de composição algébrica $D_4$ nos 64 pares $(g_1, g_2)$ e compatibilidade p5/`SimpleSVG`.
+   - `test_d4_detect.js`: Classificação exata dos 10 subgrupos de $D_4$ (órbitas de 1, 2, 4 e 8 variantes) em estêncil diádico $64 \times 64$.
+   - `test_library_compiler.js`: Paridade regressiva 1:1 dos 85 tiles built-in (`0..84`, `#84` Vazio blindado) e geração `mandala_d4` com famílias quirais de 8 variantes.
+   - `test_library_store_crud.js`: CRUD persistente de grupos e famílias, duplicação de built-ins, remapeamento de IDs e *tombstone* $\to$ `#84`, import/export `.json` e hidratação assíncrona IndexedDB.
 
 ---
 

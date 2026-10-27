@@ -52,8 +52,15 @@ const testSuites = [
   'test_freeze_undo.js',
   'test_freeze_ui_contract.js',
 
-  // 7. Output
-  'test_spout_output.js'
+  // 7. Output & Vector SVG
+  'test_spout_output.js',
+  'test_simple_svg_paths.js',
+
+  // 8. Vector Subtile Library, D4 Detection & Compiler
+  'test_vector_renderer.js',
+  'test_d4_detect.js',
+  'test_library_compiler.js',
+  'test_library_store_crud.js'
 ];
 
 console.log('====================================================');

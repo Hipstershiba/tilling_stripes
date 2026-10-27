@@ -62,8 +62,9 @@
 
   /**
    * Signature of the *artwork* (not of the screen): mosaic cells plus the layout parameters
-   * that change the clean render. Used to re-render the Spout buffer only when the art changes,
-   * ignoring pans, zooms, guide toggles and hover, which never reach the output.
+   * that change the clean render (including libraryRevision when custom tiles are edited live).
+   * Used to re-render the Spout buffer only when the art changes, ignoring pans, zooms,
+   * guide toggles and hover, which never reach the output.
    */
   function artifactSignature(mosaicData, layout) {
     const params = layout || {};
@@ -83,6 +84,9 @@
     mix(Math.round((Number(params.paddingRatio) || 0) * 1000));
     mixString(params.fgColor);
     mixString(params.bgColor);
+    if (params.libraryRevision) {
+      mix(params.libraryRevision);
+    }
 
     if (!mosaicData || !mosaicData.grid) return hash;
 

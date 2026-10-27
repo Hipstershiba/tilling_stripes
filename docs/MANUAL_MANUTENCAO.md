@@ -11,7 +11,12 @@ O Tiling Stripes Studio é implementado em vanilla JavaScript (ES6+) e p5.js sem
 ```
 core/
 ├── d4_symmetry.js         # Álgebra do grupo D4, transformações, estabilizadores e resolução de órbitas
-├── tile_registry.js       # Catálogo estático de 85 renderers vetoriais organizados em 31 famílias
+├── vector_renderer.js     # Renderizador normalizado [-0.5, 0.5] para primitivas e curvas vetoriais JSON
+├── d4_detect.js           # Detector analítico headless dos 10 subgrupos de D4 (1, 2, 4 e 8 variantes)
+├── tile_library.js        # Biblioteca canônica JSON v1 com os 6 grupos e 31 mestres built-in (85 subtiles)
+├── library_compiler.js    # Compilador determinístico de mestres JSON em catálogos D4 e tabelas de remap
+├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
+├── tile_registry.js       # Fachada reativa do catálogo de renderers, famílias e mapas D4 (libraryRevision)
 ├── mosaic_engine.js       # Motor de geração determinística, propagação por escopo, render e snapshots
 ├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
 ├── history_nav.js         # Navegação preguiçosa no histórico de geração, orçamento e snapshots
@@ -22,7 +27,7 @@ ui_info.js                 # Motor de divulgação progressiva (13 tópicos, pop
 sketch.js                  # Controlador principal da UI, eventos de canvas, histórico, atalhos e Spout
 style.css                  # Regras visuais, tema Adobe Illustrator CC Dark e visibilidade (.hidden)
 index.html                 # Shell estrutural, superfícies de controle e ordem estrita de carga
-tests/                     # Suíte com 36 testes automatizados executáveis com Node.js puro
+tests/                     # Suíte com 41 testes automatizados executáveis com Node.js puro
 tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ```
 
@@ -32,6 +37,11 @@ tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_
 <script src="libraries/p5.min.js"></script>
 <script src="libraries/simple-svg.js"></script>
 <script src="core/d4_symmetry.js"></script>
+<script src="core/vector_renderer.js"></script>
+<script src="core/d4_detect.js"></script>
+<script src="core/tile_library.js"></script>
+<script src="core/library_compiler.js"></script>
+<script src="core/library_store.js"></script>
 <script src="core/tile_registry.js"></script>
 <script src="core/mosaic_engine.js"></script>
 <script src="core/state_persistence.js"></script>
@@ -77,13 +87,14 @@ $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 
 ---
 
-## 3. Catálogo de Tiles (`core/tile_registry.js`)
+## 3. Motor Vetorial JSON e Catálogo de Tiles (`core/tile_library.js`, `core/library_compiler.js`, `core/library_store.js` e `core/tile_registry.js`)
 
-O catálogo é a fonte de verdade para a renderização vetorial:
-- 85 renderers procedurais (`TILE_RENDERERS`), indexados de 0 a 84.
-- 31 famílias fechadas sob a ação de $D_4$ (`TILE_FAMILIES_META`).
-- `TILE_D4_MAP`: Tabela $85 \times 8$ que define para cada tile e transformação em $D_4$ o tile resultante dentro da mesma família.
-- Tiles totalmente simétricos (invariantes sob todas as 8 transformações de $D_4$): IDs `#6, #37, #54, #79, #80, #81, #84`.
+O catálogo vetorial é compilado deterministicamente a partir de mestres JSON normalizados em `[-0.5, 0.5]^2`:
+- **85 subtiles built-in canônicos** (`TILE_RENDERERS`, indexados de `0` a `84`) gerados a partir das **31 famílias built-in** em **6 grupos** (`TILE_FAMILIES_META`), seguidos dinamicamente por famílias customizadas (`>= 85`).
+- **Detecção automática de simetria $D_4$ (`core/d4_detect.js`)**: Classifica qualquer mestre em um dos 10 subgrupos estabilizadores de $D_4$, gerando `1`, `2`, `4` ou `8` variantes e preenchendo `TILE_D4_MAP` com fechamento algébrico exato.
+- **Mutação in-place e `libraryRevision`**: `TileRegistry` sincroniza `TILE_RENDERERS`, `TILE_NAMES`, `TILE_FAMILIES_META` e `TILE_D4_MAP` in-place e incrementa `libraryRevision` (integrado ao `artifactSignature` do Spout).
+- **Persistência e Remapeamento (`core/library_store.js`)**: Persiste bibliotecas customizadas em `IndexedDB` (`tiling_stripes_library_db` / `tile_library_store`) com cache síncrono em `localStorage` (`tiling_stripes_tile_library_v1`), remapeando IDs em memória e convertendo famílias excluídas em *tombstone* para `#84`.
+- Tiles built-in totalmente simétricos (invariantes sob todas as 8 transformações de $D_4$): IDs `#6, #37, #54, #79, #80, #81, #84`.
 
 > **Regra de Manutenção:** Não altere a numeração dos 85 IDs existentes sem migração de versão do storage, pois saves de usuários usam esses índices diretamente. O tile `#84` é reservado como o Tile Nulo / Vazio oficial do sistema.
 
@@ -156,7 +167,7 @@ A persistência do estúdio opera em arquitetura híbrida de duas camadas:
 ### 1. Camada Primária: IndexedDB (`TilingStripesDB_v1`)
 - Opera de forma assíncrona com capacidade ampla de armazenamento.
 - Armazena histórico rico de até 256 gerações (`IDB_MAX_GENERATION_HISTORY`) e até 100 etapas de desfazer/refazer edições (`IDB_MAX_EDIT_HISTORY`).
-- Funções exportadas: `openIndexedDB`, `saveToIndexedDB`, `loadFromIndexedDB`, `migrateLocalStorageToIndexedDB`.
+- Funções exportadas: `openIndexedDB`, `saveToIndexedDB`, `loadFromIndexedDB`, `migrateLocalStorageToIndexedDB`, `shouldPreferIndexedDB`, `resolveBootState` (garante que estados mais ricos/recentes no IndexedDB nunca sejam sobrescritos por caches truncados no boot).
 
 ### 2. Camada Secundária de Boot: `localStorage` (`tiling_stripes_studio_v3_state`)
 - Cache síncrono para inicialização imediata e recuperação sem travamento.
@@ -198,19 +209,20 @@ python -m http.server 8765
 npx serve -l 8765
 ```
 
-### Execução de Todas as 36 Suítes Automatizadas
+### Execução de Todas as 41 Suítes Automatizadas
 ```powershell
 node tests/run_all.js
 ```
 
-As 36 suítes cobrem:
+As 41 suítes cobrem:
 1. Álgebra D4 e axiomas de grupo (`test_tile_registry.js`, `test_d4_invariance.js`, `test_d4_block_combinations.js`, `test_d4_editor.js`, `test_d4_badge_state.js`).
 2. Motor de mosaico e renderização vetorial (`test_mosaic_engine.js`).
 3. Persistência de estado híbrida, IndexedDB, quotas e limites (`test_state_persistence.js`, `test_indexeddb_persistence.js`, `test_save_scheduler.js`, `test_storage_key.js`, `test_payload_version.js`, `test_history_limits.js`, `test_persistence_quota.js`, `test_history_nav.js`, `test_history_edit_preservation.js`, `test_document_snapshot.js`, `test_regeneration_capture.js`, `test_multistep_undo.js`, `test_dirty_guard.js`).
 4. UI, acessibilidade, navegação e contratos estruturais (`test_scope_chip.js`, `test_info_scopes_source.js`, `test_info_aria.js`, `test_editor_ui_state.js`, `test_info_ui_state.js`, `test_viewport_pan_zoom.js`, `test_brush_sizing_snap.js`, `test_ui_control_registry.js`, `test_ui_layout_contract.js`).
 5. Consistência e fidelidade da documentação (`test_docs_consistency.js`).
 6. Sistema de trava de subtiles e persistência sob regeneração (`test_freeze_subtiles.js`, `test_freeze_generation.js`, `test_freeze_wiring.js`, `test_freeze_state.js`, `test_freeze_undo.js`, `test_freeze_ui_contract.js`).
-7. Pipeline Spout e WebSocket bridge (`test_spout_output.js`).
+7. Pipeline Spout, WebSocket bridge e exportação SVG avançada (`test_spout_output.js`, `test_simple_svg_paths.js`).
+8. Motor vetorial de subtiles, detecção $D_4$, compilador JSON e CRUD de biblioteca (`test_vector_renderer.js`, `test_d4_detect.js`, `test_library_compiler.js`, `test_library_store_crud.js`).
 
 ---
 
