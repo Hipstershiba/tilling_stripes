@@ -46,15 +46,16 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── library_compiler.js    # Compilador determinístico de mestres JSON em catálogos D4 e tabelas de remap
 │   ├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
 │   ├── tile_registry.js       # Fachada reativa do catálogo de tiles, famílias e mapas D4 (libraryRevision)
+│   ├── subtile_studio_ui.js   # Modo Estúdio de Subtiles (data-studio-mode="tiles"), grupos/famílias e preview D4
 │   ├── mosaic_engine.js       # Geração macro/micro, escopos de edição, render e snapshots de células
 │   ├── state_persistence.js   # Lógica pura de persistência (IndexedDB + localStorage), quotas e histórico
 │   ├── history_nav.js         # Navegação preguiçosa no histórico de geração, orçamento e snapshots
 │   ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 │   ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 │   └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-├── tests/                     # Suíte com 41 testes automatizados em Node.js puro
+├── tests/                     # Suíte com 42 testes automatizados em Node.js puro
 ├── tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
-├── ui_info.js                 # Motor de divulgação progressiva (13 tópicos, popovers e tooltips acessíveis)
+├── ui_info.js                 # Motor de divulgação progressiva (15 tópicos, popovers e tooltips acessíveis)
 ├── libraries/                 # Bibliotecas p5.min.js e simple-svg.js
 ├── index.html                 # Estrutura do shell e superfícies de controle
 ├── style.css                  # Tema Adobe Illustrator CC Dark e regras visuais responsivas
@@ -87,6 +88,12 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 - **✋ Mão / Pan (`H`)**: Move o artboard no pasteboard (também acessível mantendo pressionada a barra de `Espaço` ou com `Alt + Arrasto`).
 - **🔎 Zoom (`Z`)**: Aproxima e afasta o canvas com precisão (ou através de `Ctrl + Roda do Mouse`).
 - **Controle de Cores Estilo Illustrator**: Swatches sobrepostos de Primeiro Plano e Fundo localizados na barra lateral esquerda (`#left-toolbar`), com botão de inversão rápida (`⇄`) e atalho de teclado `X`.
+
+### 3. Modo Estúdio de Subtiles & Gestão de Famílias (`Subtiles` / `Ctrl+E`)
+Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 4 superfícies da UI e mantendo a saída Spout do mosaico ao vivo:
+- **Prancheta Normalizada `[-0.5, 0.5]` & Preview de Continuidade**: Modos de visualização `1×1`, `3×3` (8 vizinhos fantasmas), `Espelhos 2×2` (`mandala_d4`) e `Giro C4 2×2` (`rotational_c4`), com guias de grade `1/6`, eixos $D_4$, portas de fita (`±1/6` e centro) e margem de respiro (`#paddingInput` compartilhado).
+- **Painel de Órbita & Variantes $D_4$ ao Vivo**: Exibe estabilizador $H$, compatibilidade axial/diagonal/central e miniaturas das variantes geradas (`1`, `2`, `4` ou `8`), com duplo-clique para pintar diretamente no mosaico.
+- **Gerenciador de Grupos e Famílias**: Criação, renomeação inline, reordenação via *Drag-and-Drop* ou setas `↑`/`↓`, movimentação entre grupos, **Duplicar p/ Editar** em 1 clique sobre mestres built-in protegidos (`#0..#84`), higienização automática para `#84` ao excluir famílias em uso, backup `.json` (`merge` ou `replace`) e **Restaurar Padrão**.
 
 ---
 
@@ -185,14 +192,14 @@ A interface adota a taxonomia de quatro superfícies estritas com responsabilida
 
 ## Testes Automatizados
 
-O projeto conta com **41 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **42 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 41 suítes de teste:
+# Executar todas as 42 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 41 Suítes:
+### Cobertura das 42 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
@@ -242,12 +249,14 @@ node tests/run_all.js
    - `test_d4_detect.js`: Classificação exata dos 10 subgrupos de $D_4$ (órbitas de 1, 2, 4 e 8 variantes) em estêncil diádico $64 \times 64$.
    - `test_library_compiler.js`: Paridade regressiva 1:1 dos 85 tiles built-in (`0..84`, `#84` Vazio blindado) e geração `mandala_d4` com famílias quirais de 8 variantes.
    - `test_library_store_crud.js`: CRUD persistente de grupos e famílias, duplicação de built-ins, remapeamento de IDs e *tombstone* $\to$ `#84`, import/export `.json` e hidratação assíncrona IndexedDB.
+   - `test_tile_studio_ui_contract.js`: Chaveamento `data-studio-mode="mosaic|tiles"`, ordenação reativa de grupos/famílias (`getOrderedGroupedFamilies`), auto-matrícula em `allowedTiles`, sanitização `#84`, preview $D_4$ e isolamento de atalhos.
 
 ---
 
 ## Atalhos de Teclado
 
 ### Ferramentas e Modos
+- `Ctrl + E`: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias (`Escape` retorna ao Mosaico)
 - `V`: Ferramenta Inspecionar (abre configurações de Geração no dock)
 - `B`: Ferramenta Pincel (se o tile ativo era borracha, restaura o tile anterior)
 - `E`: Borracha (alterna entre o tile anterior e o Tile Vazio #84)

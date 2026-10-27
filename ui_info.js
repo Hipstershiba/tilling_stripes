@@ -134,6 +134,7 @@
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
+        'Ctrl+E: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias.',
         'Tab (no Gerador): Mostrar / Ocultar Painéis Direitos.'
       ]
     },
@@ -145,6 +146,17 @@
         'Coordenadas de Bloco (L, C) e Subtile interno.',
         'ID do azulejo, nome da família e transformação geométrica ativa (0°, 90°, espelho).',
         'Identificador da órbita de simetria correspondente.'
+      ]
+    },
+    'subtile-library': {
+      title: 'Biblioteca de Subtiles e Famílias D4',
+      subtitle: '1 Mestre Vetorial = 1 Família Fechada em D4',
+      body: [
+        'Cada família possui 1 desenho mestre normalizado em [-0.5, 0.5] e gera automaticamente 1, 2, 4 ou 8 variantes segundo sua simetria D4.',
+        'Os 31 mestres originais (IDs #0 a #84) são protegidos para preservar saves; clique em "Duplicar p/ Editar" para criar uma cópia editável.',
+        'O Tile Vazio (#84) é o respiro matemático oficial de Mandala D4 e da Borracha.',
+        'Ao excluir uma família customizada em uso, suas células no mosaico convertem-se com segurança para o Tile Vazio (#84).',
+        'Arraste famílias e grupos para reordenar ou use Exportar/Importar (.json) para backups.'
       ]
     }
   };

@@ -10,7 +10,7 @@
   <script src="libraries/simple-svg.js"></script>
 </head>
 
-<body>
+<body data-studio-mode="mosaic">
   <div id="app-shell">
 
     <!-- ==================== TOP CONTROL BAR (Adobe Illustrator Control Strip) ==================== -->
@@ -23,7 +23,7 @@
       <div class="bar-divider"></div>
 
       <!-- Artboard / Canvas Dimensions -->
-      <div class="bar-group" aria-label="Dimensões do Artboard">
+      <div class="bar-group mosaic-mode-only" aria-label="Dimensões do Artboard">
         <span class="bar-group-label">Artboard</span>
         <div class="input-chip" title="Largura do Canvas (px)">
           <span class="chip-prefix">W</span>
@@ -55,12 +55,12 @@
         <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção do Artboard à Grade"><span class="btn-full-text">Ajustar</span><span class="btn-short-text">Ajustar</span></button>
       </div>
 
-      <div class="bar-divider"></div>
+      <div class="bar-divider mosaic-mode-only"></div>
 
       <!-- Grid Dimensions (Rows x Cols & Margin) -->
       <div class="bar-group" aria-label="Configuração da Grade">
-        <span class="bar-group-label">Grade</span>
-        <div class="input-chip chip-compact" title="Linhas de Blocos (Rows)">
+        <span class="bar-group-label mosaic-mode-only">Grade</span>
+        <div class="input-chip chip-compact mosaic-mode-only" title="Linhas de Blocos (Rows)">
           <span class="chip-prefix">L</span>
           <input type="number" id="gridRows" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
@@ -70,8 +70,8 @@
               title="Menos Linhas">▾</button>
           </div>
         </div>
-        <button id="btnSwapGridSize" class="icon-btn" title="Inverter Linhas e Colunas">⇄</button>
-        <div class="input-chip chip-compact" title="Colunas de Blocos (Cols)">
+        <button id="btnSwapGridSize" class="icon-btn mosaic-mode-only" title="Inverter Linhas e Colunas">⇄</button>
+        <div class="input-chip chip-compact mosaic-mode-only" title="Colunas de Blocos (Cols)">
           <span class="chip-prefix">C</span>
           <input type="number" id="gridCols" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
@@ -81,14 +81,14 @@
               title="Menos Colunas">▾</button>
           </div>
         </div>
-        <button id="btnLockGridRatio" class="icon-btn" title="Travar Proporção da Grade">
+        <button id="btnLockGridRatio" class="icon-btn mosaic-mode-only" title="Travar Proporção da Grade">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
         </button>
-        <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas"><span class="btn-full-text">1:1</span><span class="btn-short-text">1:1</span></button>
-        <div class="input-chip chip-medium" title="Margem externa do Artboard (px)">
+        <button id="btnSquareGrid" class="bar-action-btn mosaic-mode-only" title="Tornar células quadradas"><span class="btn-full-text">1:1</span><span class="btn-short-text">1:1</span></button>
+        <div class="input-chip chip-medium mosaic-mode-only" title="Margem externa do Artboard (px)">
           <span class="chip-prefix"><span class="chip-label-full">Margem</span><span class="chip-label-short">M</span></span>
           <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
           <div class="chip-steppers">
@@ -109,11 +109,38 @@
         </div>
       </div>
 
-
+      <!-- Subtile Studio Contextual Top Strip (Visible only in data-studio-mode="tiles") -->
+      <div id="topBarTilesControls" class="bar-group tiles-mode-only" aria-label="Controles da Prancheta de Subtiles">
+        <div class="bar-divider"></div>
+        <span id="tileStudioActiveBadge" class="tile-studio-origin-badge">Padrão #0</span>
+        <span id="tileStudioActiveName" class="tile-studio-active-name">Arco de Fita</span>
+        <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn" title="Criar cópia editável desta família (Ctrl+D)">
+          <span>⧉ Duplicar p/ Editar</span>
+        </button>
+        <div class="bar-divider"></div>
+        <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
+          <button type="button" class="tile-prev-btn" data-tile-preview="single" aria-pressed="false" title="Célula Mestre 1×1 isolada">1×1</button>
+          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Mestre cercado por 8 vizinhos fantasmas (3×3)">3×3 Vizinhos</button>
+          <button type="button" class="tile-prev-btn" data-tile-preview="mandala_d4" aria-pressed="false" title="Prévia em bloco 2×2 espelhado (D2/D4)">Espelhos 2×2</button>
+          <button type="button" class="tile-prev-btn" data-tile-preview="rotational_c4" aria-pressed="false" title="Prévia em cata-vento rotacional 2×2 (C4)">Giro C4</button>
+        </div>
+        <button type="button" id="btnTileClipToggle" class="bar-action-btn" aria-pressed="false" title="Recortar geometria nos limites [-0.5, 0.5] do subtile">Clip</button>
+        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn" title="Enviar variante ativa para o Pincel e pintar no Mosaico">Pintar no Mosaico</button>
+      </div>
 
       <div class="bar-spacer"></div>
 
-      <!-- Export moved to the status bar (Round 6) -->
+      <!-- Studio Mode Action Button (Mosaic <-> Subtile Creator & Library Manager) -->
+      <button type="button" id="btnStudioTilesMode" class="studio-mode-btn" aria-pressed="false" title="Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <path d="M14 17.5h7M17.5 14v7"></path>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span class="studio-mode-btn-label">Subtiles</span>
+        <kbd class="studio-mode-kbd">Ctrl+E</kbd>
+      </button>
     </header>
 
     <!-- Floating Seed History Popover (Retained for backwards compatibility) -->
@@ -140,13 +167,54 @@
       </div>
     </div>
 
+    <!-- Modal de Confirmação da Biblioteca de Subtiles (Exclusão / Reset com Tombstone #84) -->
+    <div id="subtileConfirmDialog" class="modal-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="subtileConfirmTitle" aria-describedby="subtileConfirmDesc">
+      <div class="modal-dialog-card">
+        <h3 id="subtileConfirmTitle" class="modal-dialog-title">Confirmar Ação</h3>
+        <p id="subtileConfirmDesc" class="modal-dialog-desc"></p>
+        <div class="modal-dialog-actions">
+          <button type="button" id="btnSubtileConfirmCancel" class="btn-dialog-secondary">Cancelar</button>
+          <button type="button" id="btnSubtileConfirmOk" class="btn-dialog-primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Importação de Biblioteca (.json) -->
+    <div id="subtileImportDialog" class="modal-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="subtileImportTitle" aria-describedby="subtileImportSummary">
+      <div class="modal-dialog-card">
+        <h3 id="subtileImportTitle" class="modal-dialog-title">Importar Biblioteca de Subtiles (.json)</h3>
+        <p id="subtileImportSummary" class="modal-dialog-desc"></p>
+        <div class="subtile-import-options">
+          <label class="subtile-radio-row">
+            <input type="radio" name="subtileImportMode" value="merge" checked>
+            <span><strong>Mesclar</strong> — mantém seus subtiles atuais e adiciona os novos do arquivo</span>
+          </label>
+          <label class="subtile-radio-row">
+            <input type="radio" name="subtileImportMode" value="replace">
+            <span><strong>Substituir</strong> — usa apenas os subtiles customizados do arquivo (mantendo os 31 padrão)</span>
+          </label>
+          <div id="subtileImportConflictRow" class="subtile-conflict-row">
+            <label for="subtileImportConflictSelect">Se um ID customizado já existir:</label>
+            <select id="subtileImportConflictSelect" class="subtile-select">
+              <option value="overwrite" selected>Atualizar existente</option>
+              <option value="duplicate">Importar como cópia</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-dialog-actions">
+          <button type="button" id="btnSubtileImportCancel" class="btn-dialog-secondary">Cancelar</button>
+          <button type="button" id="btnSubtileImportConfirm" class="btn-dialog-primary">Importar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
     <div id="workspace-body">
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
         <!-- Ferramentas de Edição em 2 Colunas -->
-        <div class="sidebar-section" aria-label="Ferramentas de Inspeção e Edição">
+        <div class="sidebar-section mosaic-mode-only" aria-label="Ferramentas de Inspeção e Edição">
           <div class="sidebar-section-title">Ferramentas</div>
           <div class="tools-grid-2col">
             <button id="toolInspect" class="tool-btn tool-grid-btn active" data-tool="inspect"
@@ -224,10 +292,10 @@
           </div>
         </div>
 
-        <div class="tool-divider"></div>
+        <div class="tool-divider mosaic-mode-only"></div>
 
         <!-- Guias Visuais em 2 Colunas -->
-        <div class="sidebar-section" aria-label="Guias Visuais">
+        <div class="sidebar-section mosaic-mode-only" aria-label="Guias Visuais">
           <div class="sidebar-section-title">Guias Visuais</div>
           <div class="tools-grid-2col">
             <button id="toggleGuideAxes" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Eixos de Simetria (Tecla A)" aria-pressed="false">
@@ -268,9 +336,9 @@
           </div>
         </div>
 
-        <div class="tool-divider"></div>
+        <div class="tool-divider mosaic-mode-only"></div>
 
-        <!-- Cores (Ajuste Minimalista com Rótulos) -->
+        <!-- Cores (Ajuste Minimalista com Rótulos — Visível em ambos os modos) -->
         <div class="sidebar-section" aria-label="Esquema de Cores">
           <div class="sidebar-section-title">Cores</div>
           <div class="illustrator-color-widget">
@@ -292,10 +360,10 @@
           </div>
         </div>
 
-        <div class="tool-divider"></div>
+        <div class="tool-divider mosaic-mode-only"></div>
 
         <!-- Gerador de Mosaico & Sementes -->
-        <div class="sidebar-section sidebar-gen-section" aria-label="Geração e Sementes">
+        <div class="sidebar-section sidebar-gen-section mosaic-mode-only" aria-label="Geração e Sementes">
           <div class="sidebar-section-title">Gerador</div>
           <button type="button" id="btnRandomize" class="sidebar-gen-btn" title="Sortear nova Seed (Tecla G)" aria-label="Gerar Mosaico (G)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -319,10 +387,10 @@
           </div>
         </div>
 
-        <div class="tool-divider"></div>
+        <div class="tool-divider mosaic-mode-only"></div>
 
         <!-- Histórico de Mosaicos -->
-        <div class="sidebar-section sidebar-history-container" aria-label="Histórico de Gerações">
+        <div class="sidebar-section sidebar-history-container mosaic-mode-only" aria-label="Histórico de Gerações">
           <div class="sidebar-section-title">
             <span>Histórico</span>
             <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="true">▾</button>
@@ -330,10 +398,10 @@
           <div id="seedHistoryList" class="sidebar-history-list"></div>
         </div>
 
-        <div class="tool-divider"></div>
+        <div class="tool-divider mosaic-mode-only"></div>
 
         <!-- Exportar Mosaico (Abaixo do Histórico) -->
-        <div class="sidebar-section sidebar-export-section" aria-label="Exportar Mosaico">
+        <div class="sidebar-section sidebar-export-section mosaic-mode-only" aria-label="Exportar Mosaico">
           <div class="sidebar-section-title">Exportar</div>
           <div class="sidebar-export-row">
             <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
@@ -347,6 +415,74 @@
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
               <span>Exportar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Painel Lateral Esquerdo do Estúdio de Subtiles (Visível em data-studio-mode="tiles") -->
+        <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ações e Guias de Subtiles">
+          <div class="tool-divider"></div>
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Subtiles</div>
+            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary" title="Criar nova família customizada">
+              <span>+ Novo Subtile</span>
+            </button>
+            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn" title="Duplicar família selecionada para editar (Ctrl+D)">
+              <span>⧉ Duplicar Atual</span>
+            </button>
+            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn" title="Criar nova pasta de grupo">
+              <span>+ Novo Grupo</span>
+            </button>
+          </div>
+
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Guias da Célula</div>
+            <div class="tools-grid-2col">
+              <button type="button" id="toggleTileGuideGrid" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar grade fracionária 1/3 e 1/6">
+                <span>Grade</span>
+              </button>
+              <button type="button" id="toggleTileGuideAxes" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar eixos e diagonais D4">
+                <span>Eixos D4</span>
+              </button>
+              <button type="button" id="toggleTileGuidePorts" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar portas de encaixe (1/3 e centro)">
+                <span>Portas</span>
+              </button>
+              <button type="button" id="toggleTileGuidePadding" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar margem de Padding">
+                <span>Margem</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Prancheta</div>
+            <div class="tools-grid-2col">
+              <button type="button" id="btnTileViewPan" class="subtile-rail-btn" title="Mover prancheta (Tecla H ou Espaço)">
+                <span>Pan (H)</span>
+              </button>
+              <button type="button" id="btnTileViewReset" class="subtile-rail-btn" title="Centralizar prancheta em 100% (Tecla 1)">
+                <span>1:1 (1)</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="subtile-left-spacer"></div>
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Backup (.json)</div>
+            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn" title="Baixar backup completo da biblioteca (.json)">
+              <span>↓ Exportar .json</span>
+            </button>
+            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn" title="Importar pacote ou backup de subtiles (.json)">
+              <span>↑ Importar .json</span>
+            </button>
+            <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
+            <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger" title="Restaurar biblioteca para os 31 mestres originais">
+              <span>↺ Restaurar Padrão</span>
             </button>
           </div>
         </div>
@@ -542,8 +678,12 @@
 
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
               <div class="swatches-toolbar">
-                <input type="search" id="tileSearchInput" class="swatch-search"
-                  placeholder="Filtrar família ou tile...">
+                <div class="swatches-search-row">
+                  <input type="search" id="tileSearchInput" class="swatch-search"
+                    placeholder="Filtrar família ou tile...">
+                  <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut"
+                    title="Abrir Estúdio de Subtiles e Gestão de Famílias (Ctrl+E)">+ Subtile</button>
+                </div>
                 <div class="swatch-bulk-actions">
                   <button type="button" id="btnSelectAllTiles" class="mini-btn"
                     title="Ativar todos os tiles">Todos</button>
@@ -822,6 +962,108 @@
 
         </div>
 
+        <!-- ================================================================
+             WORKSPACE 3: ESTÚDIO DE SUBTILES & GESTÃO DE FAMÍLIAS (Fase B)
+             ================================================================ -->
+        <div id="dock-workspace-tiles" class="dock-workspace-pane hidden">
+
+          <!-- TILES PANEL 1: VARIANTES D4 AO VIVO & METADADOS DA FAMÍLIA -->
+          <section class="dock-panel" id="panel-tile-d4-live">
+            <header class="panel-header" data-collapse-target="panelTileD4LiveBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileD4LiveBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <line x1="12" y1="3" x2="12" y2="21"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                </svg>
+                <span>Órbita &amp; Variantes D4</span>
+              </div>
+              <span id="tileLiveOrbitCountBadge" class="panel-counter-pill">4 variantes</span>
+              <span class="panel-chevron">▾</span>
+            </header>
+
+            <div class="panel-body" id="panelTileD4LiveBody">
+              <div class="prop-section">
+                <div class="prop-label-row">
+                  <div class="prop-label-with-info">
+                    <span id="tileLiveOrbitLabel" class="prop-label">Borda Reflexiva (4v)</span>
+                    <button type="button" class="info-btn" data-info-topic="subtile-library" aria-label="Saiba mais sobre biblioteca de subtiles e simetria D4" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                  <code id="tileLiveStabilizerCode" class="tile-stabilizer-code">H = {id}</code>
+                </div>
+
+                <div id="tileLiveCompatRow" class="d4-compat-row">
+                  <!-- Populated by SubtileStudioUI -->
+                </div>
+
+                <div id="tileLiveVariantsGrid" class="tile-live-variants-grid">
+                  <!-- Populated by SubtileStudioUI -->
+                </div>
+
+                <!-- Read-only notice for canonical built-in masters (#0..#84) -->
+                <div id="tileReadOnlyNotice" class="tile-readonly-banner">
+                  <span id="tileReadOnlyText">Família canônica protegida (slots 0..84).</span>
+                  <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent">⧉ Duplicar p/ Editar</button>
+                </div>
+
+                <!-- Editable metadata card for custom families (>= 85) -->
+                <div id="tileCustomMetaBox" class="tile-custom-meta-box hidden">
+                  <div class="tile-meta-field-row">
+                    <label for="tileActiveFamilyNameInput">Nome</label>
+                    <input type="text" id="tileActiveFamilyNameInput" class="subtile-text-input" maxlength="48" placeholder="Nome da família...">
+                  </div>
+                  <div class="tile-meta-field-row">
+                    <label for="tileActiveFamilyGroupSelect">Grupo</label>
+                    <select id="tileActiveFamilyGroupSelect" class="subtile-select"></select>
+                  </div>
+                  <div class="tile-custom-actions-row">
+                    <span id="tileActiveShapeCountBadge" class="prop-badge secondary">1 forma</span>
+                    <button type="button" id="btnUseActiveInBrush" class="mini-btn accent" title="Usar variante selecionada no Pincel do Mosaico">Pintar</button>
+                    <button type="button" id="btnSoloActiveInMosaic" class="mini-btn" title="Isolar apenas esta família e gerar no Mosaico">SOLO</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TILES PANEL 2: GERENCIADOR DE GRUPOS E FAMÍLIAS -->
+          <section class="dock-panel dock-panel-flex" id="panel-tile-library-mgr">
+            <header class="panel-header" data-collapse-target="panelTileLibraryMgrBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLibraryMgrBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Grupos &amp; Famílias</span>
+              </div>
+              <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
+              <span class="panel-chevron">▾</span>
+            </header>
+
+            <div class="panel-body swatches-panel-body" id="panelTileLibraryMgrBody">
+              <div class="swatches-toolbar lib-mgr-toolbar">
+                <input type="search" id="libMgrSearchInput" class="swatch-search" placeholder="Buscar grupo, família ou #id...">
+                <div class="lib-mgr-filter-row">
+                  <div id="libMgrFilterControl" class="segmented-control" style="grid-template-columns: repeat(3, 1fr);">
+                    <button type="button" class="seg-btn active" data-lib-filter="all" aria-pressed="true">Todos</button>
+                    <button type="button" class="seg-btn" data-lib-filter="custom" aria-pressed="false">Custom</button>
+                    <button type="button" class="seg-btn" data-lib-filter="builtin" aria-pressed="false">Padrão</button>
+                  </div>
+                </div>
+                <div class="swatch-bulk-actions lib-mgr-actions-bar">
+                  <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent" title="Criar novo subtile customizado">+ Subtile</button>
+                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn" title="Criar novo grupo">+ Grupo</button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn" title="Exportar apenas subtiles customizados (.json)">Exportar Custom</button>
+                </div>
+              </div>
+
+              <div id="libMgrTreeContainer" class="families-swatch-scroll lib-mgr-tree-scroll">
+                <!-- Populated by SubtileStudioUI -->
+              </div>
+            </div>
+          </section>
+
+        </div>
+
       </aside>
     </div>
   </div>
@@ -841,6 +1083,7 @@
   <script src="core/spout_output.js"></script>
   <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
+  <script src="core/subtile_studio_ui.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>
   <!-- Progressive Disclosure Popover and Accessible Tooltip -->

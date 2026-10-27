@@ -4,8 +4,9 @@
  */
 
 const StudioState = {
-  // Workspace Context ('generate' | 'edit')
+  // Workspace Context ('generate' | 'edit') & Studio Surface Mode ('mosaic' | 'tiles')
   workspace: 'generate',
+  studioMode: 'mosaic',
 
   // Artboard / Canvas
   width: 600,
@@ -685,15 +686,33 @@ function setup() {
     regenerateMosaic(true);
   }
 
+  let knownLibraryVariantKeys = new Set(
+    window.LibraryStore && window.LibraryStore.getCompiled()?.variantKeyToId instanceof Map
+      ? window.LibraryStore.getCompiled().variantKeyToId.keys()
+      : []
+  );
+
   if (window.LibraryStore && typeof window.LibraryStore.onChange === 'function') {
     window.LibraryStore.onChange((evt) => {
-      if (evt && evt.hasRemapChanges) {
+      let shouldPersistStudio = false;
+      if (window.SubtileStudioUI && typeof window.SubtileStudioUI.syncStudioStateWithLibraryEvent === 'function') {
+        const syncRes = window.SubtileStudioUI.syncStudioStateWithLibraryEvent(StudioState, evt, knownLibraryVariantKeys);
+        knownLibraryVariantKeys = syncRes.variantKeys;
+        shouldPersistStudio = Boolean(syncRes.remapped || syncRes.enrolledTileIds.length > 0);
+      } else if (evt && evt.hasRemapChanges) {
         window.LibraryStore.remapStudioState(StudioState, evt.idRemap, evt.maxValidTileId);
+        shouldPersistStudio = true;
       }
+
       buildTileThumbnails();
       renderSwatchesPanel();
       renderEditBrushPalette();
       renderSupertileBuilderCanvas();
+      window.SubtileStudioUI?.refresh();
+      syncEditWorkspaceUI();
+      if (shouldPersistStudio) {
+        saveStudioStateToStorage();
+      }
       redraw();
     });
   }
@@ -855,6 +874,11 @@ function draw() {
   const zoomScale = (StudioState.zoomPercent || 100) / 100;
   push();
   scale(zoomScale);
+  if (StudioState.studioMode === 'tiles' && window.SubtileStudioUI) {
+    window.SubtileStudioUI.renderViewport(window, StudioState);
+    pop();
+    return;
+  }
   window.MosaicEngine.renderMosaicToContext(window, StudioState.mosaicData, layoutConfig);
   const isEditTool = (StudioState.workspace === 'edit' && (
     StudioState.activeTool === 'paint' ||
@@ -1476,122 +1500,140 @@ function renderSwatchesPanel() {
   }
 
   const query = (StudioState.searchQuery || '').trim().toLowerCase();
-  const families = window.TileRegistry.TILE_FAMILIES_META;
+  const grouped = (window.TileRegistry && typeof window.TileRegistry.getOrderedGroupedFamilies === 'function')
+    ? window.TileRegistry.getOrderedGroupedFamilies()
+    : [{ id: 'all', name: '', families: window.TileRegistry.TILE_FAMILIES_META }];
   const tileNames = window.TileRegistry.TILE_NAMES;
 
   container.innerHTML = '';
 
-  let currentGroup = null;
-  for (const fam of families) {
-    const matchingTiles = fam.tileIds.filter((id) => {
-      if (!query) return true;
-      const tName = (tileNames[id] || '').toLowerCase();
-      const gName = (fam.group || '').toLowerCase();
-      return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
-    });
+  for (const grp of grouped) {
+    let groupHeaderAppended = false;
+    for (const fam of grp.families) {
+      const groupLabel = grp.name || fam.group || '';
+      const matchingTiles = fam.tileIds.filter((id) => {
+        if (!query) return true;
+        const tName = (tileNames[id] || '').toLowerCase();
+        const gName = groupLabel.toLowerCase();
+        return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
+      });
 
-    if (matchingTiles.length === 0) continue;
+      if (matchingTiles.length === 0) continue;
 
-    if (fam.group && fam.group !== currentGroup) {
-      currentGroup = fam.group;
-      const groupHeading = document.createElement('div');
-      groupHeading.className = 'swatches-group-heading';
-      groupHeading.textContent = currentGroup;
-      container.appendChild(groupHeading);
-    }
-
-    const selectedInFam = fam.tileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
-    const allSelected = selectedInFam === fam.tileIds.length;
-    const noneSelected = selectedInFam === 0;
-
-    const card = document.createElement('div');
-    card.className = 'family-swatch-card ' +
-      (allSelected ? 'family-all' : noneSelected ? 'family-none' : 'family-partial');
-
-    const header = document.createElement('div');
-    header.className = 'family-card-header';
-
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = 'family-toggle-btn';
-    toggleBtn.title = allSelected ? 'Desativar família inteira' : 'Ativar família inteira';
-    toggleBtn.innerHTML = `
-      <span class="family-check-indicator">${allSelected ? '✓' : (!noneSelected ? '–' : '')}</span>
-      <span>${fam.name}</span>
-    `;
-    toggleBtn.addEventListener('click', () => {
-      if (allSelected) {
-        fam.tileIds.forEach((id) => StudioState.allowedTiles.delete(id));
-      } else {
-        fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
+      if (groupLabel && !groupHeaderAppended) {
+        groupHeaderAppended = true;
+        const groupHeading = document.createElement('div');
+        groupHeading.className = 'swatches-group-heading';
+        groupHeading.textContent = groupLabel;
+        container.appendChild(groupHeading);
       }
-      renderSwatchesPanel();
-      regenerateMosaic(true);
-    });
 
-    const rightWrap = document.createElement('div');
-    rightWrap.className = 'family-actions-right';
+      const selectedInFam = fam.tileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
+      const allSelected = selectedInFam === fam.tileIds.length;
+      const noneSelected = selectedInFam === 0;
 
-    const countTag = document.createElement('span');
-    countTag.className = 'family-count-tag';
-    countTag.textContent = `${selectedInFam}/${fam.tileIds.length}`;
+      const card = document.createElement('div');
+      card.className = 'family-swatch-card ' +
+        (allSelected ? 'family-all' : noneSelected ? 'family-none' : 'family-partial');
 
-    const soloBtn = document.createElement('button');
-    soloBtn.type = 'button';
-    soloBtn.className = 'family-solo-btn';
-    soloBtn.textContent = 'SOLO';
-    soloBtn.title = `Isolar apenas a família "${fam.name}" para testar no mosaico`;
-    soloBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      StudioState.allowedTiles.clear();
-      fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
-      renderSwatchesPanel();
-      regenerateMosaic(true);
-    });
+      const header = document.createElement('div');
+      header.className = 'family-card-header';
 
-    rightWrap.appendChild(countTag);
-    rightWrap.appendChild(soloBtn);
-
-    header.appendChild(toggleBtn);
-    header.appendChild(rightWrap);
-    card.appendChild(header);
-
-    const grid = document.createElement('div');
-    grid.className = 'family-tiles-grid';
-
-    for (const tileId of matchingTiles) {
-      const isSelected = StudioState.allowedTiles.has(tileId);
-      const swatch = document.createElement('button');
-      swatch.type = 'button';
-      swatch.className = 'tile-swatch-btn' + (isSelected ? ' selected' : '');
-      swatch.title = `#${tileId}: ${tileNames[tileId] || 'Tile'}`;
-
-      const img = document.createElement('img');
-      img.src = StudioState.thumbnailCache.get(tileId) || '';
-      img.alt = tileNames[tileId] || `Tile ${tileId}`;
-
-      const idBadge = document.createElement('span');
-      idBadge.className = 'tile-swatch-id';
-      idBadge.textContent = tileId;
-
-      swatch.appendChild(img);
-      swatch.appendChild(idBadge);
-
-      swatch.addEventListener('click', () => {
-        if (StudioState.allowedTiles.has(tileId)) {
-          StudioState.allowedTiles.delete(tileId);
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'family-toggle-btn';
+      toggleBtn.title = allSelected ? 'Desativar família inteira' : 'Ativar família inteira';
+      toggleBtn.innerHTML = `
+        <span class="family-check-indicator">${allSelected ? '✓' : (!noneSelected ? '–' : '')}</span>
+        <span>${fam.name}</span>
+      `;
+      toggleBtn.addEventListener('click', () => {
+        if (allSelected) {
+          fam.tileIds.forEach((id) => StudioState.allowedTiles.delete(id));
         } else {
-          StudioState.allowedTiles.add(tileId);
+          fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
         }
         renderSwatchesPanel();
         regenerateMosaic(true);
       });
 
-      grid.appendChild(swatch);
-    }
+      const rightWrap = document.createElement('div');
+      rightWrap.className = 'family-actions-right';
 
-    card.appendChild(grid);
-    container.appendChild(card);
+      const countTag = document.createElement('span');
+      countTag.className = 'family-count-tag';
+      countTag.textContent = `${selectedInFam}/${fam.tileIds.length}`;
+
+      const studioJumpBtn = document.createElement('button');
+      studioJumpBtn.type = 'button';
+      studioJumpBtn.className = 'family-studio-jump-btn';
+      studioJumpBtn.textContent = fam.builtIn ? '⧉' : '✎';
+      studioJumpBtn.title = fam.builtIn
+        ? `Inspecionar / Duplicar "${fam.name}" no Estúdio de Subtiles`
+        : `Abrir "${fam.name}" no Estúdio de Subtiles`;
+      studioJumpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.SubtileStudioUI?.openTilesStudio(fam.id);
+      });
+
+      const soloBtn = document.createElement('button');
+      soloBtn.type = 'button';
+      soloBtn.className = 'family-solo-btn';
+      soloBtn.textContent = 'SOLO';
+      soloBtn.title = `Isolar apenas a família "${fam.name}" para testar no mosaico`;
+      soloBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        StudioState.allowedTiles.clear();
+        fam.tileIds.forEach((id) => StudioState.allowedTiles.add(id));
+        renderSwatchesPanel();
+        regenerateMosaic(true);
+      });
+
+      rightWrap.appendChild(countTag);
+      rightWrap.appendChild(studioJumpBtn);
+      rightWrap.appendChild(soloBtn);
+
+      header.appendChild(toggleBtn);
+      header.appendChild(rightWrap);
+      card.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'family-tiles-grid';
+
+      for (const tileId of matchingTiles) {
+        const isSelected = StudioState.allowedTiles.has(tileId);
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'tile-swatch-btn' + (isSelected ? ' selected' : '');
+        swatch.title = `#${tileId}: ${tileNames[tileId] || 'Tile'}`;
+
+        const img = document.createElement('img');
+        img.src = StudioState.thumbnailCache.get(tileId) || '';
+        img.alt = tileNames[tileId] || `Tile ${tileId}`;
+
+        const idBadge = document.createElement('span');
+        idBadge.className = 'tile-swatch-id';
+        idBadge.textContent = tileId;
+
+        swatch.appendChild(img);
+        swatch.appendChild(idBadge);
+
+        swatch.addEventListener('click', () => {
+          if (StudioState.allowedTiles.has(tileId)) {
+            StudioState.allowedTiles.delete(tileId);
+          } else {
+            StudioState.allowedTiles.add(tileId);
+          }
+          renderSwatchesPanel();
+          regenerateMosaic(true);
+        });
+
+        grid.appendChild(swatch);
+      }
+
+      card.appendChild(grid);
+      container.appendChild(card);
+    }
   }
 }
 
@@ -1989,6 +2031,10 @@ function clearFrozenCells() {
 }
 
 function mouseMoved() {
+  if (StudioState.studioMode === 'tiles') {
+    window.SubtileStudioUI?.handleViewportMouseMoved(mouseX, mouseY, StudioState);
+    return;
+  }
   const hit = getCanvasHitCell(mouseX, mouseY);
   const prev = StudioState.hoveredCell;
   const changed = (!prev && hit) || (prev && !hit) ||
@@ -2242,6 +2288,9 @@ function cycleActiveToolSize(direction) {
 }
 
 function mouseDragged() {
+  if (StudioState.studioMode === 'tiles') {
+    return;
+  }
   const hit = getCanvasHitCell(mouseX, mouseY);
   const prev = StudioState.hoveredCell;
   const changed = (!prev && hit) || (prev && !hit) ||
@@ -2343,6 +2392,9 @@ function startCanvasRegionCaptureDrag(hit) {
 }
 
 function handleCanvasMouseDown(e) {
+  if (StudioState.studioMode === 'tiles') {
+    return;
+  }
   if (
     StudioState.activeTool === 'pan' ||
     StudioState.activeTool === 'zoom' ||
@@ -2713,76 +2765,105 @@ function renderEditBrushPalette() {
   if (!container) return;
 
   const query = (StudioState.editBrushSearchQuery || '').trim().toLowerCase();
-  const families = window.TileRegistry.TILE_FAMILIES_META;
+  const grouped = (window.TileRegistry && typeof window.TileRegistry.getOrderedGroupedFamilies === 'function')
+    ? window.TileRegistry.getOrderedGroupedFamilies()
+    : [{ id: 'all', name: '', families: window.TileRegistry.TILE_FAMILIES_META }];
   const tileNames = window.TileRegistry.TILE_NAMES;
 
   container.innerHTML = '';
 
-  let currentGroup = null;
-  for (const fam of families) {
-    const matchingTiles = fam.tileIds.filter((id) => {
-      if (!query) return true;
-      const tName = (tileNames[id] || '').toLowerCase();
-      const gName = (fam.group || '').toLowerCase();
-      return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
-    });
-
-    if (matchingTiles.length === 0) continue;
-
-    if (fam.group && fam.group !== currentGroup) {
-      currentGroup = fam.group;
-      const groupHeading = document.createElement('div');
-      groupHeading.className = 'swatches-group-heading';
-      groupHeading.textContent = currentGroup;
-      container.appendChild(groupHeading);
-    }
-
-    const card = document.createElement('div');
-    card.className = 'family-swatch-card family-all';
-
-    const header = document.createElement('div');
-    header.className = 'family-card-header';
-    header.innerHTML = `
-      <span style="font-size:10.5px;font-weight:600;color:var(--text-secondary);">${fam.name}</span>
-      <span class="family-count-tag">${matchingTiles.length}</span>
-    `;
-    card.appendChild(header);
-
-    const grid = document.createElement('div');
-    grid.className = 'family-tiles-grid';
-
-    for (const tileId of matchingTiles) {
-      const isBrushActive = StudioState.editBrushTileId === tileId;
-      const swatch = document.createElement('button');
-      swatch.type = 'button';
-      swatch.className = 'tile-swatch-btn' + (isBrushActive ? ' brush-active' : ' available');
-      swatch.setAttribute('aria-pressed', isBrushActive ? 'true' : 'false');
-      swatch.title = `#${tileId} • ${tileNames[tileId] || 'Tile'}`;
-
-      const img = document.createElement('img');
-      img.src = StudioState.thumbnailCache.get(tileId) || '';
-      img.alt = tileNames[tileId] || `Tile ${tileId}`;
-
-
-      const idBadge = document.createElement('span');
-      idBadge.className = 'tile-swatch-id';
-      idBadge.textContent = tileId;
-
-      swatch.appendChild(img);
-      swatch.appendChild(idBadge);
-
-      swatch.addEventListener('click', () => {
-        if (tileId !== 84) {
-          StudioState.previousBrushTileId = tileId;
-        }
-        selectBrushTile(tileId);
+  for (const grp of grouped) {
+    let groupHeaderAppended = false;
+    for (const fam of grp.families) {
+      const groupLabel = grp.name || fam.group || '';
+      const matchingTiles = fam.tileIds.filter((id) => {
+        if (!query) return true;
+        const tName = (tileNames[id] || '').toLowerCase();
+        const gName = groupLabel.toLowerCase();
+        return fam.name.toLowerCase().includes(query) || gName.includes(query) || tName.includes(query) || `#${id}` === query;
       });
 
-      grid.appendChild(swatch);
-    }
+      if (matchingTiles.length === 0) continue;
 
-    card.appendChild(grid);
-    container.appendChild(card);
+      if (groupLabel && !groupHeaderAppended) {
+        groupHeaderAppended = true;
+        const groupHeading = document.createElement('div');
+        groupHeading.className = 'swatches-group-heading';
+        groupHeading.textContent = groupLabel;
+        container.appendChild(groupHeading);
+      }
+
+      const card = document.createElement('div');
+      card.className = 'family-swatch-card family-all';
+
+      const header = document.createElement('div');
+      header.className = 'family-card-header';
+
+      const titleSpan = document.createElement('span');
+      titleSpan.style.cssText = 'font-size:10.5px;font-weight:600;color:var(--text-secondary);';
+      titleSpan.textContent = fam.name;
+
+      const rightMeta = document.createElement('div');
+      rightMeta.className = 'family-actions-right';
+
+      const jumpBtn = document.createElement('button');
+      jumpBtn.type = 'button';
+      jumpBtn.className = 'family-studio-jump-btn';
+      jumpBtn.textContent = fam.builtIn ? '⧉' : '✎';
+      jumpBtn.title = fam.builtIn
+        ? `Inspecionar / Duplicar "${fam.name}" no Estúdio de Subtiles`
+        : `Abrir "${fam.name}" no Estúdio de Subtiles`;
+      jumpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.SubtileStudioUI?.openTilesStudio(fam.id);
+      });
+
+      const countSpan = document.createElement('span');
+      countSpan.className = 'family-count-tag';
+      countSpan.textContent = String(matchingTiles.length);
+
+      rightMeta.appendChild(jumpBtn);
+      rightMeta.appendChild(countSpan);
+
+      header.appendChild(titleSpan);
+      header.appendChild(rightMeta);
+      card.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'family-tiles-grid';
+
+      for (const tileId of matchingTiles) {
+        const isBrushActive = StudioState.editBrushTileId === tileId;
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'tile-swatch-btn' + (isBrushActive ? ' brush-active' : ' available');
+        swatch.setAttribute('aria-pressed', isBrushActive ? 'true' : 'false');
+        swatch.title = `#${tileId} • ${tileNames[tileId] || 'Tile'}`;
+
+        const img = document.createElement('img');
+        img.src = StudioState.thumbnailCache.get(tileId) || '';
+        img.alt = tileNames[tileId] || `Tile ${tileId}`;
+
+        const idBadge = document.createElement('span');
+        idBadge.className = 'tile-swatch-id';
+        idBadge.textContent = tileId;
+
+        swatch.appendChild(img);
+        swatch.appendChild(idBadge);
+
+        swatch.addEventListener('click', () => {
+          if (tileId !== 84) {
+            StudioState.previousBrushTileId = tileId;
+          }
+          selectBrushTile(tileId);
+        });
+
+        grid.appendChild(swatch);
+      }
+
+      card.appendChild(grid);
+      container.appendChild(card);
+    }
   }
 
   requestAnimationFrame(() => {
@@ -2925,13 +3006,16 @@ const TOOL_CONTEXT_LABELS = {
 };
 
 function syncContextPanel() {
-  const isGenerator = StudioState.workspace === 'generate';
   const title = document.getElementById('ctxPanelTitle');
-  if (title) {
-    title.textContent = isGenerator
-      ? 'Geração'
-      : (TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
+  if (!title) return;
+  if (StudioState.studioMode === 'tiles') {
+    title.textContent = 'Subtiles & Famílias';
+    return;
   }
+  const isGenerator = StudioState.workspace === 'generate';
+  title.textContent = isGenerator
+    ? 'Geração'
+    : (TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
 }
 
 function syncEditWorkspaceUI() {
@@ -2939,15 +3023,21 @@ function syncEditWorkspaceUI() {
   syncContextPanel();
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
+  document.body.dataset.studioMode = StudioState.studioMode === 'tiles' ? 'tiles' : 'mosaic';
 
   // 1. Workspace panes — driven by the tool: inspect shows generation, edit tools show their options.
 
   // 2. Right Dock Workspace Panes
+  const inTilesMode = StudioState.studioMode === 'tiles';
   const genPane = document.getElementById('dock-workspace-generate');
   const editPane = document.getElementById('dock-workspace-edit');
+  const tilesPane = document.getElementById('dock-workspace-tiles');
   if (genPane && editPane) {
-    genPane.classList.toggle('hidden', StudioState.workspace !== 'generate');
-    editPane.classList.toggle('hidden', StudioState.workspace !== 'edit');
+    genPane.classList.toggle('hidden', inTilesMode || StudioState.workspace !== 'generate');
+    editPane.classList.toggle('hidden', inTilesMode || StudioState.workspace !== 'edit');
+  }
+  if (tilesPane) {
+    tilesPane.classList.toggle('hidden', !inTilesMode);
   }
 
   // 3. Left Toolbar Active Tool Highlight
@@ -3105,6 +3195,12 @@ function updateHoverStatusText() {
   const el = document.getElementById('statusHoverInspector');
   if (!el) return;
 
+  if (StudioState.studioMode === 'tiles' && window.SubtileStudioUI) {
+    const texts = window.SubtileStudioUI.getStatusBarTexts(StudioState);
+    el.innerHTML = texts.hover;
+    return;
+  }
+
   const hit = StudioState.hoveredCell;
   if (!hit || !StudioState.mosaicData) {
     if (StudioState.activeTool === 'freeze') {
@@ -3145,6 +3241,15 @@ function updateHoverStatusText() {
 function updateStatusBar() {
   const artEl = document.getElementById('statusArtboardInfo');
   const gridEl = document.getElementById('statusGridInfo');
+
+  if (StudioState.studioMode === 'tiles' && window.SubtileStudioUI) {
+    const texts = window.SubtileStudioUI.getStatusBarTexts(StudioState);
+    if (artEl) artEl.textContent = texts.artboard;
+    if (gridEl) gridEl.textContent = texts.grid;
+    const hoverEl = document.getElementById('statusHoverInspector');
+    if (hoverEl) hoverEl.innerHTML = texts.hover;
+    return;
+  }
 
   if (artEl) {
     artEl.textContent = `${StudioState.width} × ${StudioState.height} px (${StudioState.zoomPercent}%)`;
@@ -3568,6 +3673,20 @@ function initStudioUI() {
 
   // Round 6: inspect is the generation context — no separate context button any more.
 
+  window.SubtileStudioUI?.init({
+    studioState: StudioState,
+    redraw: () => redraw(),
+    showToast: showEditorToast,
+    selectBrushTile,
+    setActiveTool,
+    regenerateMosaic,
+    saveStudioState: saveStudioStateToStorage,
+    syncEditWorkspaceUI,
+    updateStatusBar,
+    renderSwatchesPanel,
+    renderEditBrushPalette
+  });
+
 
 
   const btnClearFrozen = document.getElementById('btnClearFrozen');
@@ -3908,7 +4027,7 @@ function initStudioUI() {
       StudioState.activeTool === 'rotate' ||
       StudioState.activeTool === 'freeze';
 
-    if (isEditTool) {
+    if (isEditTool && StudioState.studioMode !== 'tiles') {
       e.preventDefault();
       wheelDeltaAccumulator += e.deltaY;
       if (Math.abs(wheelDeltaAccumulator) >= WHEEL_STEP_THRESHOLD) {
@@ -4070,6 +4189,10 @@ function initStudioUI() {
     if (e.key === '?') {
       e.preventDefault();
       window.InfoUI?.showPopover('shortcuts', document.getElementById('btnHelp'));
+      return;
+    }
+
+    if (window.SubtileStudioUI && window.SubtileStudioUI.handleKeyDown(e, StudioState)) {
       return;
     }
 

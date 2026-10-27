@@ -71,6 +71,7 @@
     getFamilyForTile,
     getFamilyById,
     getNextTileInFamily,
+    getOrderedGroupedFamilies,
     rebuildRegistry,
     onRegistryChange
   };
@@ -178,6 +179,44 @@
     if (idx === -1) return tileId;
     const len = fam.tileIds.length;
     return fam.tileIds[(idx + step + len * 10) % len];
+  }
+
+  /**
+   * Returns groups in their configured UI order with each group's families sorted by `uiOrder`,
+   * while keeping `TILE_FAMILIES_META` itself sequentially indexed 0..N-1.
+   */
+  function getOrderedGroupedFamilies() {
+    const { store } = resolveDependencies();
+    const groups = store ? store.getGroups() : [];
+    if (!groups.length) {
+      const fallback = new Map();
+      for (const fam of TILE_FAMILIES_META) {
+        const gName = fam.group || 'Outros';
+        if (!fallback.has(gName)) {
+          fallback.set(gName, { id: fam.groupId || gName, name: gName, builtIn: true, families: [] });
+        }
+        fallback.get(gName).families.push(fam);
+      }
+      return Array.from(fallback.values());
+    }
+
+    const buckets = new Map(groups.map((g) => [g.id, { ...g, families: [] }]));
+    const orphans = [];
+    for (const fam of TILE_FAMILIES_META) {
+      const bucket = buckets.get(fam.groupId);
+      if (bucket) bucket.families.push(fam);
+      else orphans.push(fam);
+    }
+    for (const bucket of buckets.values()) {
+      bucket.families.sort((a, b) => (Number(a.uiOrder) || 0) - (Number(b.uiOrder) || 0));
+    }
+
+    const ordered = Array.from(buckets.values());
+    if (orphans.length > 0) {
+      orphans.sort((a, b) => (Number(a.uiOrder) || 0) - (Number(b.uiOrder) || 0));
+      ordered.push({ id: 'grp-orphans', name: 'Outros', builtIn: false, families: orphans });
+    }
+    return ordered;
   }
 
   // Initial synchronous compilation at boot

@@ -60,7 +60,8 @@ const testSuites = [
   'test_vector_renderer.js',
   'test_d4_detect.js',
   'test_library_compiler.js',
-  'test_library_store_crud.js'
+  'test_library_store_crud.js',
+  'test_tile_studio_ui_contract.js'
 ];
 
 console.log('====================================================');
