@@ -250,6 +250,8 @@
   let popoverBodyEl = null;
   let popoverCloseBtn = null;
   let tooltipEl = null;
+  let tooltipTrigger = null;
+  let tooltipDescription = null;
   let activeTriggerEl = null;
   let isPopoverOpen = false;
 
@@ -397,22 +399,27 @@
   }
 
   function handleTooltipEnter(e) {
-    const el = e.target.closest?.('[data-tooltip]');
+    const el = e.target.closest?.('[data-tooltip], [title]');
     if (!el || el.closest('#infoPopover')) return;
-    const text = el.dataset.tooltip;
+    const text = el.dataset.tooltip || el.getAttribute('title');
     if (!text) return;
     showTooltip(text, el);
   }
 
   function handleTooltipLeave(e) {
-    const el = e.target.closest?.('[data-tooltip]');
-    if (el) {
+    if (tooltipTrigger?.contains(e.target) && !tooltipTrigger.contains(e.relatedTarget)) {
       hideTooltip();
     }
   }
 
   function showTooltip(text, triggerEl) {
     if (!tooltipEl || isPopoverOpen) return;
+    if (tooltipTrigger !== triggerEl) {
+      hideTooltip();
+      tooltipTrigger = triggerEl;
+      tooltipDescription = triggerEl.getAttribute('aria-describedby');
+      triggerEl.setAttribute('aria-describedby', [tooltipDescription, 'uiTooltip'].filter(Boolean).join(' '));
+    }
     tooltipEl.textContent = text;
     tooltipEl.classList.remove('hidden');
 
@@ -429,12 +436,18 @@
     }
 
     tooltipEl.style.left = `${Math.round(left)}px`;
-    tooltipEl.style.top = `${Math.round(top)}px`;
+    tooltipEl.style.top = `${Math.round(Math.max(padding, Math.min(window.innerHeight - tipRect.height - padding, top)))}px`;
   }
 
   function hideTooltip() {
     if (!tooltipEl) return;
     tooltipEl.classList.add('hidden');
+    if (tooltipTrigger) {
+      if (tooltipDescription) tooltipTrigger.setAttribute('aria-describedby', tooltipDescription);
+      else tooltipTrigger.removeAttribute('aria-describedby');
+      tooltipTrigger = null;
+      tooltipDescription = null;
+    }
   }
 
   const InfoUI = {

@@ -8,6 +8,8 @@
 (function () {
   const commands = (typeof window !== 'undefined' && window.StudioCommands) ||
     (typeof require === 'function' ? require('./studio_commands.js') : null);
+  const uiFormat = (typeof window !== 'undefined' && window.UiFormat) ||
+    (typeof require === 'function' ? require('./ui_format.js') : null);
   function resolveDeps() {
     const win = (typeof window !== 'undefined' && window) ||
       (typeof global !== 'undefined' && global.window) ||
@@ -1544,8 +1546,9 @@
       const chevronBtn = document.createElement('button');
       chevronBtn.type = 'button';
       chevronBtn.className = 'lib-group-chevron';
-      chevronBtn.textContent = isCollapsed ? '▸' : '▾';
+      chevronBtn.innerHTML = uiFormat.icon(isCollapsed ? 'chevronRight' : 'chevronDown');
       chevronBtn.title = isCollapsed ? 'Expandir grupo' : 'Recolher grupo';
+      chevronBtn.setAttribute('aria-label', chevronBtn.title);
       chevronBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (uiState.collapsedGroups.has(grp.id)) uiState.collapsedGroups.delete(grp.id);
@@ -1619,9 +1622,10 @@
       const upGrpBtn = document.createElement('button');
       upGrpBtn.type = 'button';
       upGrpBtn.className = 'lib-mini-icon-btn';
-      upGrpBtn.textContent = '↑';
+      upGrpBtn.innerHTML = uiFormat.icon('up');
       upGrpBtn.disabled = grpIdx === 0;
       upGrpBtn.title = 'Mover grupo para cima';
+      upGrpBtn.setAttribute('aria-label', upGrpBtn.title);
       upGrpBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         moveGroupByDelta(grp.id, -1);
@@ -1630,9 +1634,10 @@
       const downGrpBtn = document.createElement('button');
       downGrpBtn.type = 'button';
       downGrpBtn.className = 'lib-mini-icon-btn';
-      downGrpBtn.textContent = '↓';
+      downGrpBtn.innerHTML = uiFormat.icon('down');
       downGrpBtn.disabled = grpIdx === grouped.length - 1;
       downGrpBtn.title = 'Mover grupo para baixo';
+      downGrpBtn.setAttribute('aria-label', downGrpBtn.title);
       downGrpBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         moveGroupByDelta(grp.id, 1);
@@ -1641,8 +1646,9 @@
       const renGrpBtn = document.createElement('button');
       renGrpBtn.type = 'button';
       renGrpBtn.className = 'lib-mini-icon-btn';
-      renGrpBtn.textContent = '✎';
+      renGrpBtn.innerHTML = uiFormat.icon('edit');
       renGrpBtn.title = 'Renomear grupo';
+      renGrpBtn.setAttribute('aria-label', renGrpBtn.title);
       renGrpBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         uiState.editingGroupId = grp.id;
@@ -1657,8 +1663,9 @@
         const delGrpBtn = document.createElement('button');
         delGrpBtn.type = 'button';
         delGrpBtn.className = 'lib-mini-icon-btn danger';
-        delGrpBtn.textContent = '×';
+        delGrpBtn.innerHTML = uiFormat.icon('trash');
         delGrpBtn.title = 'Excluir grupo customizado';
+        delGrpBtn.setAttribute('aria-label', delGrpBtn.title);
         delGrpBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           handleDeleteGroup(grp.id);
@@ -1816,9 +1823,10 @@
             const upBtn = document.createElement('button');
             upBtn.type = 'button';
             upBtn.className = 'lib-mini-icon-btn';
-            upBtn.textContent = '↑';
+            upBtn.innerHTML = uiFormat.icon('up');
             upBtn.disabled = famIdx === 0;
             upBtn.title = 'Subir na lista';
+            upBtn.setAttribute('aria-label', upBtn.title);
             upBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               moveFamilyWithinGroupByDelta(grp.id, fam.id, -1);
@@ -1827,9 +1835,10 @@
             const downBtn = document.createElement('button');
             downBtn.type = 'button';
             downBtn.className = 'lib-mini-icon-btn';
-            downBtn.textContent = '↓';
+            downBtn.innerHTML = uiFormat.icon('down');
             downBtn.disabled = famIdx === filteredFams.length - 1;
             downBtn.title = 'Descer na lista';
+            downBtn.setAttribute('aria-label', downBtn.title);
             downBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               moveFamilyWithinGroupByDelta(grp.id, fam.id, 1);
@@ -1842,8 +1851,9 @@
           const dupBtn = document.createElement('button');
           dupBtn.type = 'button';
           dupBtn.className = 'lib-mini-icon-btn accent';
-          dupBtn.textContent = '⧉';
+          dupBtn.innerHTML = uiFormat.icon('copy');
           dupBtn.title = fam.builtIn ? 'Duplicar mestre padrão para editar' : 'Duplicar família';
+          dupBtn.setAttribute('aria-label', dupBtn.title);
           dupBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             handleDuplicateFamily(fam.id);
@@ -1854,8 +1864,9 @@
             const renBtn = document.createElement('button');
             renBtn.type = 'button';
             renBtn.className = 'lib-mini-icon-btn';
-            renBtn.textContent = '✎';
+            renBtn.innerHTML = uiFormat.icon('edit');
             renBtn.title = 'Renomear família';
+            renBtn.setAttribute('aria-label', renBtn.title);
             renBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               uiState.editingFamilyId = fam.id;
@@ -1865,8 +1876,9 @@
             const delBtn = document.createElement('button');
             delBtn.type = 'button';
             delBtn.className = 'lib-mini-icon-btn danger';
-            delBtn.textContent = '×';
+            delBtn.innerHTML = uiFormat.icon('trash');
             delBtn.title = 'Excluir família customizada';
+            delBtn.setAttribute('aria-label', delBtn.title);
             delBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               handleDeleteFamily(fam.id);
@@ -2082,12 +2094,12 @@
     alignBlock.innerHTML = `
       <div class="vec-subblock-title"><span>Alinhar à Célula [-0.5, +0.5]</span></div>
       <div class="vec-align-strip">
-        <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à Borda Esquerda (-0.5)" ${!hasSel ? 'disabled' : ''}>⇤</button>
-        <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar Horizontalmente (0)" ${!hasSel ? 'disabled' : ''}>⇹</button>
-        <button type="button" class="vec-align-btn" data-align="right" title="Alinhar à Borda Direita (+0.5)" ${!hasSel ? 'disabled' : ''}>⇥</button>
-        <button type="button" class="vec-align-btn" data-align="top" title="Alinhar ao Topo (-0.5)" ${!hasSel ? 'disabled' : ''}>⤒</button>
-        <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar Verticalmente (0)" ${!hasSel ? 'disabled' : ''}>⇳</button>
-        <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à Base (+0.5)" ${!hasSel ? 'disabled' : ''}>⤓</button>
+        <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à Borda Esquerda (-0.5)" aria-label="Alinhar à Borda Esquerda (-0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignLeft')}</button>
+        <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar Horizontalmente (0)" aria-label="Centralizar Horizontalmente (0)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterX')}</button>
+        <button type="button" class="vec-align-btn" data-align="right" title="Alinhar à Borda Direita (+0.5)" aria-label="Alinhar à Borda Direita (+0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignRight')}</button>
+        <button type="button" class="vec-align-btn" data-align="top" title="Alinhar ao Topo (-0.5)" aria-label="Alinhar ao Topo (-0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignTop')}</button>
+        <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar Verticalmente (0)" aria-label="Centralizar Verticalmente (0)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterY')}</button>
+        <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à Base (+0.5)" aria-label="Alinhar à Base (+0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignBottom')}</button>
       </div>
       ${selected.length >= 3 ? `
         <div class="vec-inline-actions" style="margin-top:3px;">
@@ -2745,7 +2757,8 @@
         btnUp.type = 'button';
         btnUp.className = 'tile-layer-icon-btn';
         btnUp.title = 'Subir camada (Ctrl+])';
-        btnUp.textContent = '↑';
+        btnUp.setAttribute('aria-label', btnUp.title);
+        btnUp.innerHTML = uiFormat.icon('up');
         btnUp.disabled = idx === shapes.length - 1;
         btnUp.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -2757,7 +2770,8 @@
         btnDown.type = 'button';
         btnDown.className = 'tile-layer-icon-btn';
         btnDown.title = 'Descer camada (Ctrl+[)';
-        btnDown.textContent = '↓';
+        btnDown.setAttribute('aria-label', btnDown.title);
+        btnDown.innerHTML = uiFormat.icon('down');
         btnDown.disabled = idx === 0;
         btnDown.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -2801,7 +2815,8 @@
         btnDel.type = 'button';
         btnDel.className = 'tile-layer-icon-btn danger';
         btnDel.title = 'Excluir forma';
-        btnDel.textContent = '×';
+        btnDel.setAttribute('aria-label', btnDel.title);
+        btnDel.innerHTML = uiFormat.icon('trash');
         btnDel.addEventListener('click', (e) => {
           e.stopPropagation();
           const nextShapes = shapes.filter((item) => item && item.id !== sh.id);

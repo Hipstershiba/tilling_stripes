@@ -31,6 +31,7 @@ const testSuites = [
   'test_multistep_undo.js',
   'test_document_edit_transactions.js',
   'test_studio_commands.js',
+  'test_visual_tokens.js',
   'test_dirty_guard.js',
 
   // 4. UI Architecture & Accessibility

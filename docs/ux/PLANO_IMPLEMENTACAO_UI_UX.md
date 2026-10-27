@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T06 concluídas, T07–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T07 concluídas, T08–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -640,7 +640,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T04 | Concluída em 27/10/2026 | `test_save_status.js`: matriz de armazenamentos, revisões de documento/biblioteca, falhas/abort e recuperação, filas A/B e recarga de B, fallback e boot tardio. No navegador: falha total, dock recolhido, biblioteca falhando e Tentar salvar após recuperação. |
 | T05 | Concluída em 27/10/2026 | `test_document_edit_transactions.js`: handlers reais de aparência, 30 eventos em uma etapa, no-op/cancelamento com redo, dimensões sem regeneração, pintura/geração, recarga legada e recorte de família. Navegador: cor, X, espaçamento, largura, Escape e geração com undo/redo. 47/47 suítes aprovadas. |
 | T06 | Concluída em 27/10/2026 | Catálogo de comandos por ambiente, glossário, Ctrl+D exclusivo para formas e Caneta Enter/Escape. `test_studio_commands.js` e navegador validam atalhos, botões, ajuda e retorno ao mosaico. 48/48 suítes aprovadas. |
-| T07 | Planejada | Tokens resolvidos, contraste e estados visuais. |
+| T07 | Concluída em 27/10/2026 | Tokens CSS/inline resolvidos, pele comum, texto 12/13 px, alvos 28/32 px, SVGs e tooltip com quebra/foco. Contraste automatizado e computado; capturas antes/depois em 1440×900/100%. 49/49 suítes aprovadas. |
 | T08 | Planejada | Nomes acessíveis, foco e campos inválidos. |
 | T09 | Planejada | Fluxo de gerar sem abrir matemática avançada. |
 | T10 | Planejada | Matriz de ferramentas/preview/alcance. |
@@ -728,3 +728,27 @@ Ctrl+D duplica somente formas. Em peça protegida, anuncia e focaliza Criar cóp
 Teste novo executa o controlador real com biblioteca e editor vetorial: proteção, duplicação de formas, cancelamento e conclusão da Caneta, troca de ferramenta, mouseup tardio após cancelamento, modificadores, undo/redo e retorno ao mosaico. Catálogo confrontado com títulos/ajuda/callbacks. Navegador em origem isolada `127.0.0.1:8874`: Ctrl+D protegido focalizou cópia sem criar família; cópia explícita; Ctrl+D vazio anunciou seleção; G/A contextuais; Caneta com dois pontos → Escape manteve 1 forma, Enter criou a segunda; Ctrl+D criou terceira forma e undo removeu; ajuda exibiu o comando correto; Ctrl+E voltou ao pincel com largura 900, espaçamento 12 e histórico 5/5 preservados. A sessão Zen em `5500` não foi alterada.
 
 Gate completo: 48/48 suítes. README/manual e conhecimento sincronizados. Capturas e fixture em `_local/t06`, ignoradas pelo Git. Hierarquia visual, consolidação das ações redundantes e layout responsivo continuam nas etapas T07–T14; nenhuma alteração estrutural de painel foi antecipada.
+
+
+### Registro da T07 — 27/10/2026
+
+Consolidados tokens e pele dos controles na origem, retirando declarações concorrentes dos componentes afetados. Os papéis sem definição `--border-light`, `--text-tertiary`, `--bg-hover`, `--bg-surface` e `--bg-card` foram substituídos; `--font-mono` foi definido. A varredura inclui CSS e estilos inline do HTML/controladores. Texto funcional de 12 px e valores de 13 px, controles de 32 px e ações de lista de 28×28 px. As setas dos campos numéricos passaram a ficar lado a lado, com alvo de 28×30 px medido. Barra esquerda de 216 px/status de 36 px acomodam a escala sem mudar a ordem dos painéis. Guias têm estado ligado neutro com marca lateral; a ferramenta ativa conserva acento. Pasteboard sem pontos. Opacidade baixa não é mais a única apresentação dos botões desabilitados; linhas ocultas mantêm texto legível e usam texto riscado.
+
+SVGs compartilhados em `UiFormat.icon` substituem glifos nos comandos de alinhamento, biblioteca/camadas, undo/redo e controles pequenos, preservando nomes acessíveis. Tooltips quebram linha, usam largura limitada à viewport e funcionam por foco também para títulos de controles dinâmicos; descrições acessíveis anteriores são restauradas ao fechar. Transições dos controles não animam o contorno de foco. Mensagens de aviso/erro e menus usam a mesma escala.
+
+**Contraste calculado dos pares finais:**
+
+| Par | Cores | Razão |
+|---|---|---|
+| Texto principal / painel | `#eceef2` / `#242529` | 13,18:1 |
+| Texto secundário / painel | `#b8bec9` / `#242529` | 8,20:1 |
+| Texto discreto / painel | `#a5adbb` / `#242529` | 6,78:1 |
+| Texto discreto / selecionado | `#a5adbb` / `#263d5b` | 4,89:1 |
+| Borda funcional / selecionado | `#818a99` / `#263d5b` | 3,17:1 |
+| Foco / selecionado | `#79adff` / `#263d5b` | 4,86:1 |
+| Aviso / fundo de aviso | `#e5bd70` / `#352e20` | 7,58:1 |
+| Erro / fundo de erro | `#ff9292` / `#382427` | 6,74:1 |
+
+Verificação real em origem isolada `127.0.0.1:8874`, sem alterar a sessão Zen em `5500`: capturas antes/depois do gerador, pincel, biblioteca e propriedades em **1440×900, zoom 100%**. Biblioteca: botões de 19×19→28×28 px, fonte 10,5→12 px; mini-botões 24→32 px e ferramentas vetoriais 26→32 px. Alinhamento: seis SVGs com nome acessível e altura 32 px. Campo vetorial: valor de 13 px dentro da superfície de 32 px. Tooltip de Preservar mostrou a instrução e Shift+F completos, com quebra em 360×41 px e sem overflow. Foco computado: 2 px, deslocamento 2 px, cor `#79adff`. Na viewport de referência, corpo e barra superior mediram 1440 px, sem overflow horizontal. Amostras de texto computado com composição dos fundos: gerador 338 elementos (mínimo 4,86:1), biblioteca 121 (mínimo 4,61:1), inspetor 90/93 (mínimo 4,86:1), sem pares abaixo de 4,5:1 nas amostras. Elementos sem texto, separadores decorativos e controles desabilitados foram excluídos dessa amostra; ícones/bordas usam o teste próprio de indicadores.
+
+Fixture local de estados confirmou hover, seleção, desabilitado opaco, campo inválido com borda de erro, menu, aviso e toast. `test_visual_tokens.js` valida os limites matemáticos e os handlers reais de tooltip (texto integral, limites e restauração ARIA). Gate completo: **49/49 suítes**. Evidências/fixtures/medições em `_local/t07` permanecem ignoradas. README, manual e conhecimento sincronizados. Validação detalhada de rótulos/campos inválidos segue na T08; matriz ampla de tamanhos e zoom segue na T14. Não foi feita avaliação por leitor de tela nem teste de Spout real nesta tarefa.

@@ -1645,7 +1645,7 @@ function renderSwatchesPanel() {
       const studioJumpBtn = document.createElement('button');
       studioJumpBtn.type = 'button';
       studioJumpBtn.className = 'family-studio-jump-btn';
-      studioJumpBtn.textContent = fam.builtIn ? '⧉' : '✎';
+      studioJumpBtn.innerHTML = window.UiFormat.icon(fam.builtIn ? 'copy' : 'edit');
       studioJumpBtn.title = fam.builtIn
         ? `Inspecionar / Duplicar "${fam.name}" no Estúdio de Subtiles`
         : `Abrir "${fam.name}" no Estúdio de Subtiles`;
@@ -3342,7 +3342,7 @@ function renderEditBrushPalette() {
       header.className = 'family-card-header';
 
       const titleSpan = document.createElement('span');
-      titleSpan.style.cssText = 'font-size:10.5px;font-weight:600;color:var(--text-secondary);';
+      titleSpan.style.cssText = 'font-size:var(--font-ui);font-weight:600;color:var(--text-secondary);';
       titleSpan.textContent = fam.name;
 
       const rightMeta = document.createElement('div');
@@ -3351,7 +3351,7 @@ function renderEditBrushPalette() {
       const jumpBtn = document.createElement('button');
       jumpBtn.type = 'button';
       jumpBtn.className = 'family-studio-jump-btn';
-      jumpBtn.textContent = fam.builtIn ? '⧉' : '✎';
+      jumpBtn.innerHTML = window.UiFormat.icon(fam.builtIn ? 'copy' : 'edit');
       jumpBtn.title = fam.builtIn
         ? `Inspecionar / Duplicar "${fam.name}" no Estúdio de Subtiles`
         : `Abrir "${fam.name}" no Estúdio de Subtiles`;
@@ -4121,7 +4121,7 @@ function initStudioUI() {
     if (historyList) {
       const isCollapsed = historyList.classList.toggle('collapsed');
       if (historyContainer) historyContainer.classList.toggle('is-collapsed', isCollapsed);
-      btnToggleHistory.textContent = isCollapsed ? '▸' : '▾';
+      btnToggleHistory.innerHTML = window.UiFormat.icon(isCollapsed ? 'chevronRight' : 'chevronDown');
       btnToggleHistory.setAttribute('aria-expanded', String(!isCollapsed));
       btnToggleHistory.title = isCollapsed ? 'Expandir Histórico' : 'Recolher Histórico';
     }
@@ -4600,7 +4600,7 @@ function initStudioUI() {
       const iconSpan = btnToggleDock.querySelector('.dock-toggle-icon');
       if (iconSpan) {
         // The arrow points where the panel goes: » to collapse, « to bring it back.
-        iconSpan.textContent = isCollapsed ? '«' : '»';
+        iconSpan.innerHTML = window.UiFormat.icon(isCollapsed ? 'left' : 'right');
       }
     }
   };

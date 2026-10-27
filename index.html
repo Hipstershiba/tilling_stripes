@@ -31,20 +31,20 @@
           <input type="number" id="canvasW" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
-              title="Aumentar Largura">▴</button>
+              title="Aumentar Largura" aria-label="Aumentar Largura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
             <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Largura">▾</button>
+              title="Diminuir Largura" aria-label="Diminuir Largura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
-        <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)">⇄</button>
+        <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
         <div class="input-chip" title="Altura do Canvas (px)">
           <span class="chip-prefix">Alt.</span>
           <input type="number" id="canvasH" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
-              title="Aumentar Altura">▴</button>
+              title="Aumentar Altura" aria-label="Aumentar Altura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
             <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Altura">▾</button>
+              title="Diminuir Altura" aria-label="Diminuir Altura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
         <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção da Prancheta">
@@ -66,20 +66,20 @@
           <input type="number" id="gridRows" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
-              title="Mais Linhas">▴</button>
+              title="Mais Linhas" aria-label="Mais Linhas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
             <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1"
-              title="Menos Linhas">▾</button>
+              title="Menos Linhas" aria-label="Menos Linhas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
-        <button id="btnSwapGridSize" class="icon-btn mosaic-mode-only" title="Inverter Linhas e Colunas">⇄</button>
+        <button id="btnSwapGridSize" class="icon-btn mosaic-mode-only" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
         <div class="input-chip chip-compact mosaic-mode-only" title="Colunas de Blocos (Cols)">
           <span class="chip-prefix">Colunas</span>
           <input type="number" id="gridCols" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
-              title="Mais Colunas">▴</button>
+              title="Mais Colunas" aria-label="Mais Colunas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
             <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1"
-              title="Menos Colunas">▾</button>
+              title="Menos Colunas" aria-label="Menos Colunas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
         <button id="btnLockGridRatio" class="icon-btn mosaic-mode-only" title="Travar Proporção da Grade">
@@ -94,9 +94,9 @@
           <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
-              title="Aumentar Margem">▴</button>
+              title="Aumentar Margem" aria-label="Aumentar Margem"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
             <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Margem">▾</button>
+              title="Diminuir Margem" aria-label="Diminuir Margem"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
         <div class="input-chip chip-medium mosaic-mode-only" title="Espaçamento interno dos azulejos (%)">
@@ -104,8 +104,8 @@
           <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
           <span class="chip-suffix">%</span>
           <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento">▴</button>
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Espaçamento">▾</button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento" aria-label="Aumentar Espaçamento"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
+            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Espaçamento" aria-label="Diminuir Espaçamento"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 14 6 6 6-6M12 4v16"/></svg></button>
           </div>
         </div>
       </div>
@@ -119,8 +119,8 @@
           <span>⧉ Criar cópia editável</span>
         </button>
         <div class="vec-undo-group" role="group" aria-label="Desfazer e Refazer no Subtile">
-          <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled>↶</button>
-          <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled>↷</button>
+          <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled aria-label="Desfazer no Subtile (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg></button>
+          <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled aria-label="Refazer no Subtile (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg></button>
         </div>
         <div class="bar-divider"></div>
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
@@ -389,7 +389,7 @@
                   <input type="color" id="fgColorPicker" value="#e2e0dc" aria-label="Cor dos Tiles">
                 </div>
               </label>
-              <button type="button" id="btnSwapColors" class="sidebar-color-swap-btn" title="Inverter Cores (Tecla X)" aria-label="Inverter Cores (Tecla X)">⇄</button>
+              <button type="button" id="btnSwapColors" class="sidebar-color-swap-btn" title="Inverter Cores (Tecla X)" aria-label="Inverter Cores (Tecla X)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
               <label class="sidebar-color-chip" title="Cor do Fundo">
                 <span class="color-chip-tag">Fundo</span>
                 <div class="color-preview-wrap">
@@ -419,12 +419,12 @@
             <kbd class="sidebar-kbd">G</kbd>
           </button>
           <div class="sidebar-seed-row" title="Navegação de Seeds">
-            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled>◀</button>
+            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 6-6 6 6 6"/></svg></button>
             <div class="sidebar-seed-chip" title="Semente atual">
               <span class="sidebar-seed-hash">#</span>
               <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
             </div>
-            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled>▶</button>
+            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m10 6 6 6-6 6"/></svg></button>
           </div>
         </div>
 
@@ -434,7 +434,7 @@
         <div class="sidebar-section sidebar-history-container is-collapsed mosaic-mode-only" aria-label="Histórico de Gerações">
           <div class="sidebar-section-title">
             <span>Histórico</span>
-            <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="false">▸</button>
+            <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="false"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7"/></svg></button>
           </div>
           <div id="seedHistoryList" class="sidebar-history-list collapsed"></div>
         </div>
@@ -609,7 +609,7 @@
         <footer id="status-bar">
           <div class="status-left">
             <div class="zoom-widget">
-              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom">−</button>
+              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
               <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom" aria-label="Nível de Zoom">
                 <option value="fit">Ajustar à Tela</option>
                 <option value="25">25%</option>
@@ -622,7 +622,7 @@
                 <option value="300">300%</option>
                 <option value="400">400%</option>
               </select>
-              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom">+</button>
+              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
               <button id="btnFitArtboard" class="status-reset-zoom-btn" title="Ajustar à janela (0)" aria-label="Ajustar à Janela">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:middle;">
                   <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -825,9 +825,9 @@
                 <span>Edição &amp; Simetria</span>
               </div>
               <div class="edit-undo-bar" onclick="event.stopPropagation();">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled>↶</button>
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg></button>
                 <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled>↷</button>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg></button>
               </div>
               <span class="panel-chevron">▾</span>
             </header>
@@ -886,12 +886,12 @@
                   </div>
                 </div>
                 <div class="brush-size-display-row" data-size-tool="rotate" role="group" aria-label="Tamanho da área de giro">
-                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)">−</button>
+                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
                   <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
                     <span class="brush-size-val" data-size-value>1×1</span>
                     <span class="brush-size-sub" data-size-detail>subtiles (linhas × colunas)</span>
                   </div>
-                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)">+</button>
+                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="tool-size-hint">− / + ou roda sobre o canvas</div>
                 <div class="tool-size-snap" id="rotateSizeControl">
@@ -945,12 +945,12 @@
                   <label class="prop-label">Tamanho da Trava</label>
                 </div>
                 <div class="brush-size-display-row" data-size-tool="freeze" role="group" aria-label="Tamanho da área de trava">
-                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de trava" title="Diminuir (− ou roda para baixo)">−</button>
+                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de trava" title="Diminuir (− ou roda para baixo)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
                   <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
                     <span class="brush-size-val" data-size-value>1×1</span>
                     <span class="brush-size-sub" data-size-detail>subtiles (linhas × colunas)</span>
                   </div>
-                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)">+</button>
+                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="tool-size-hint">− / + ou roda sobre o canvas</div>
                 <div class="tool-size-snap" id="freezeSizeControl">
@@ -964,7 +964,7 @@
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                     <span>Descongelar Tudo</span>
-                    <kbd style="font-size: 10px; opacity: 0.7; margin-left: 4px;">⇧F</kbd>
+                    <kbd style="font-size:var(--font-ui); opacity: 0.7; margin-left: 4px;">⇧F</kbd>
                   </button>
                 </div>
               </div>
@@ -1005,15 +1005,15 @@
                     <label class="prop-label">Tamanho do Pincel</label>
                     <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Padrão de pincel" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span class="prop-hint" style="font-size: 10px; color: var(--text-tertiary);">− / + ou roda sobre o canvas</span>
+                  <span class="prop-hint" style="font-size:var(--font-ui); color: var(--text-muted);">− / + ou roda sobre o canvas</span>
                 </div>
                 <div class="brush-size-display-row" id="brushSizeControl">
-                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)">−</button>
+                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
                   <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
                     <span class="brush-size-val" id="brushSizeValueText">1×1</span>
                     <span class="brush-size-sub" id="brushSizeSubText">subtiles (linhas × colunas)</span>
                   </div>
-                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)">+</button>
+                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="brush-snap-row" id="brushSnapRow">
                   <button type="button" class="brush-snap-toggle-btn" id="btnToggleBrushSnap" title="Encaixar nos blocos (Ctrl+U alterna; Shift inverte temporariamente)">
@@ -1152,8 +1152,8 @@
                 <div class="tile-layers-toolbar">
                   <button type="button" id="btnLayersImportSvg" class="mini-btn accent" title="Importar formas editáveis de um arquivo .svg">↑ Importar SVG</button>
                   <button type="button" id="btnLayersExportSvg" class="mini-btn" title="Baixar este subtile como arquivo .svg limpo">↓ Exportar .SVG</button>
-                  <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])">⤒</button>
-                  <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)">⤓</button>
+                  <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])" aria-label="Trazer forma selecionada para o topo (Ctrl+Shift+])"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 3h16M12 7v14m-6-8 6-6 6 6"/></svg></button>
+                  <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)" aria-label="Enviar forma selecionada para trás (Ctrl+Shift+[)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21h16M12 3v14m-6-6 6 6 6-6"/></svg></button>
                 </div>
                 <div id="tileLayersListContainer" class="tile-layers-list">
                   <!-- Populated dynamically by SubtileStudioUI -->
@@ -1299,7 +1299,7 @@
   <div id="infoPopover" class="info-popover hidden" role="dialog" aria-modal="false" aria-labelledby="infoPopoverTitle">
     <div class="info-popover-header">
       <h3 id="infoPopoverTitle"></h3>
-      <button type="button" id="infoPopoverClose" aria-label="Fechar ajuda">×</button>
+      <button type="button" id="infoPopoverClose" aria-label="Fechar ajuda"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
     </div>
     <div id="infoPopoverBody" class="info-popover-body"></div>
   </div>
