@@ -11,15 +11,29 @@ assets/uploads/
 tmp/uploads/
 tmp/
 temp/
+scratch/
+dumps/
+recordings/
 *.tiles-backup.json
 
 # Local artifacts directory (purely local dumps, test outputs and scratch scripts)
 _local/*
 !_local/README.md
 
-# Headless browser profiles and execution traces
+# Headless browser profiles, test artifacts and execution traces
 .tmp-edge*
+test-results/
+playwright-report/
+blob-report/
+.cdp/
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # OS generated files
 .DS_Store
@@ -27,14 +41,24 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
-# IDE and Editor configurations
+# IDE, Editor configurations & temporary backups
 .vscode/
 .idea/
+.history/
 *.swp
 *.swo
 *~
+*.bak
+*.tmp
+*.orig
+*.rej
+*.patch
+*.diff
+*.sublime-workspace
+*.sublime-project
+.obsidian/
 
-# Python Virtual Environments & Bytecode
+# Python Virtual Environments, Bytecode & Testing
 .venv/
 venv/
 env/
@@ -43,6 +67,17 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+.tox/
+*.egg-info/
+
+# Local Environment configs
+.env
+.env.local
+.env.*.local
 
 # Graphify Knowledge Graph artifacts & local caches
 graphify-out/
@@ -50,12 +85,15 @@ graphify-out/
 
 # Node / Package dependencies
 node_modules/
-npm-debug.log*
+.pnpm-store/
 
 # Local AI / Tooling configurations
 .codex/
 
-# Generated visual evidence and audit execution artifacts
+# Generated visual evidence, recordings and audit execution artifacts
 *.png
+*.mp4
+*.mov
+*.webm
 /docs/ux/evidencias/
 /docs/relatorios/assets/
