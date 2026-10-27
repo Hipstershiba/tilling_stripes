@@ -9,7 +9,7 @@
   const LEGACY_STORAGE_KEY = 'tiling_stripes_studio_state_v2';
   const STORAGE_VERSION = 3;
   const MAX_GENERATION_HISTORY = 30;
-  const MAX_EDIT_HISTORY = 25;
+  const MAX_EDIT_HISTORY = 256;
   const STORAGE_BUDGET_BYTES = 3.2 * 1024 * 1024; // ~3.2 MB target to stay safely within 5 MB browser quota
 
   /**
@@ -242,7 +242,7 @@
   const IDB_VERSION = 1;
   const IDB_KEY_CURRENT = 'current_studio_state';
   const IDB_MAX_GENERATION_HISTORY = 256;
-  const IDB_MAX_EDIT_HISTORY = 100;
+  const IDB_MAX_EDIT_HISTORY = 256;
 
   /**
    * Opens the Tiling Stripes IndexedDB instance.

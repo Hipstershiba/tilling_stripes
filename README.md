@@ -144,7 +144,7 @@ A arquitetura de armazenamento opera em duas camadas coordenadas:
 
 1. **IndexedDB (`TilingStripesDB_v1`)**:
    - Camada primária assíncrona com capacidade ampla para sessões criativas longas.
-   - Preserva até 256 gerações e até 100 etapas de desfazer/refazer edições manuais.
+   - Preserva até 256 gerações e até 256 etapas de desfazer/refazer edições manuais.
 
 2. **`localStorage` (`tiling_stripes_studio_v3_state`)**:
    - Cache síncrono ultrarrápido para carregamento instantâneo no boot.
@@ -376,3 +376,5 @@ Falhas permanecem visíveis acima da área de trabalho, inclusive com o dock rec
 `core/save_status.js` acompanha resultados por revisão e serializa pedidos. Os escritores de IndexedDB também ordenam gravações por destino, copiam o payload antes de enfileirar, aguardam `transaction.oncomplete` e recusam sobrescrever um timestamp mais recente. Erro/abort da transação não confirma o pedido. A abertura restaura primeiro o documento persistido antes de salvar o canvas inicial; restauração atrasada não substitui edição feita depois de abrir. Chaves, schema v3, limites e funções puras de persistência permanecem compatíveis.
 
 A suíte `tests/test_save_status.js` cobre a matriz dos dois armazenamentos, fallback reduzido, rejeições reais, falha da biblioteca com mosaico salvo, recuperação, getters bloqueados, abort após sucesso do pedido, ordem A/B com recarga de B e restauração tardia. A lista completa de testes vem de `tests/run_all.js`.
+
+O histórico de undo/redo do mosaico, das famílias e do editor ampliado de pincel tem limite de 256 estados. A cópia de segurança em localStorage pode reduzir o histórico conforme o orçamento/quota; IndexedDB preserva até 256 estados de edição.

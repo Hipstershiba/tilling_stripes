@@ -157,3 +157,18 @@ familyContext.handleVecUndo(); assert.equal(family.clipToTile, false);
 familyContext.handleVecRedo(); assert.equal(family.clipToTile, true);
 family.protected = true; clipButton.fire('click'); assert.equal(family.clipToTile, true);
 console.log('✓ Production family clip button and undo/redo restore clipToTile and respect protection.');
+
+// Memory history keeps all 256 states even without an IndexedDB browser API.
+state.frozenCells.clear(); context.resetEditHistoryWithInitialSnapshot();
+for (let i = 0; i < 300; i++) {
+  context.beginDocumentEdit('limit'); state.margin = 100 + i; context.commitDocumentEdit();
+}
+assert.equal(state.editHistory.length, 256);
+for (let i = 0; i < 255; i++) context.undoMosaicEdit();
+assert.equal(state.margin, 144);
+for (let i = 0; i < 255; i++) context.redoMosaicEdit();
+assert.equal(state.margin, 399);
+// Regeneration uses the same cap rather than localStorage's smaller byte budget.
+for (let i = 0; i < 4; i++) { state.seed++; context.regenerateMosaic(true); }
+assert.equal(state.editHistory.length, 256);
+console.log('✓ 256 document states survive undo/redo and generation without IndexedDB.');

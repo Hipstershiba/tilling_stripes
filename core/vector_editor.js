@@ -18,7 +18,7 @@
   const TWO_PI = Math.PI * 2;
   const HALF_PI = Math.PI / 2;
   const KAPPA = (4 / 3) * (Math.SQRT2 - 1);
-  const MAX_HISTORY_PER_FAMILY = 80;
+  const MAX_HISTORY_PER_FAMILY = 256;
 
   const GRID_DIVISIONS = [0, 2, 3, 4, 6, 8, 12, 16];
 

@@ -17,8 +17,8 @@ assert.strictEqual(typeof StatePersistence.IDB_DATABASE_NAME, 'string', 'IDB_DAT
 assert.strictEqual(typeof StatePersistence.IDB_STORE_NAME, 'string', 'IDB_STORE_NAME must be exported');
 assert.strictEqual(typeof StatePersistence.IDB_KEY_CURRENT, 'string', 'IDB_KEY_CURRENT must be exported');
 assert.strictEqual(StatePersistence.IDB_MAX_GENERATION_HISTORY, 256, 'IDB_MAX_GENERATION_HISTORY must be 256');
-assert.strictEqual(StatePersistence.IDB_MAX_EDIT_HISTORY, 100, 'IDB_MAX_EDIT_HISTORY must be 100');
-console.log('✓ IndexedDB function exports and expanded 256/100 constants verified.');
+assert.strictEqual(StatePersistence.IDB_MAX_EDIT_HISTORY, 256, 'IDB_MAX_EDIT_HISTORY must be 256');
+console.log('✓ IndexedDB function exports and expanded 256/256 constants verified.');
 
 // 2. Test graceful rejection when IndexedDB is unavailable
 async function testUnavailable() {
@@ -120,7 +120,7 @@ function createMockIndexedDB() {
 async function testSaveAndLoad() {
   const mockIDB = createMockIndexedDB();
   const history256 = Array.from({ length: 256 }, (_, i) => ({ seed: 1000 + i, rows: 4, cols: 4 }));
-  const edits100 = Array.from({ length: 100 }, (_, i) => ({ editId: i, rows: 4, cols: 4 }));
+  const edits256 = Array.from({ length: 256 }, (_, i) => ({ editId: i, rows: 4, cols: 4 }));
 
   const testPayload = {
     version: 3,
@@ -129,7 +129,7 @@ async function testSaveAndLoad() {
     cols: 4,
     gridSymmetryMode: 'mandala_d4',
     history: history256,
-    editHistory: edits100,
+    editHistory: edits256,
     cellsSnapshot: { gridSnap: [[{ tileId: 4 }]] }
   };
 
@@ -147,9 +147,9 @@ async function testSaveAndLoad() {
   assert.ok(loaded, 'loadFromIndexedDB must retrieve saved payload');
   assert.strictEqual(loaded.seed, 42000);
   assert.strictEqual(loaded.history.length, 256, 'All 256 generation snapshots must be preserved');
-  assert.strictEqual(loaded.editHistory.length, 100, 'All 100 edit snapshots must be preserved');
+  assert.strictEqual(loaded.editHistory.length, 256, 'All 256 edit snapshots must be preserved');
   assert.deepStrictEqual(loaded.cellsSnapshot, testPayload.cellsSnapshot);
-  console.log('✓ IndexedDB save & load round-trip succeeded with 256 generation and 100 edit history items.');
+  console.log('✓ IndexedDB save & load round-trip succeeded with 256 generation and 256 edit history items.');
 }
 
 // 5. Test localStorage to IndexedDB Migration

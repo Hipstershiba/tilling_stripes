@@ -203,9 +203,9 @@ function hidePersistenceWarning() {
 
 
 const MAX_GENERATION_HISTORY = 30;
-const MAX_EDIT_HISTORY = 25;
+const MAX_EDIT_HISTORY = 256;
 const IDB_MAX_GENERATION_HISTORY = 256;
-const IDB_MAX_EDIT_HISTORY = 100;
+const IDB_MAX_EDIT_HISTORY = 256;
 
 const baseSaveScheduler = (typeof window !== 'undefined' && window.StatePersistence && typeof window.StatePersistence.createSaveScheduler === 'function')
   ? window.StatePersistence.createSaveScheduler({
@@ -239,7 +239,7 @@ function isQuotaError(err) {
 }
 
 function getMaxEditHistoryForMosaic(mosaicData) {
-  return window.StatePersistence ? window.StatePersistence.getMaxEditHistoryForMosaic(mosaicData) : 25;
+  return window.StatePersistence ? window.StatePersistence.getMaxEditHistoryForMosaic(mosaicData) : MAX_EDIT_HISTORY;
 }
 
 function buildStudioStatePayload(includeHistories = true) {
@@ -1038,7 +1038,7 @@ function regenerateMosaic(recordHistory = true) {
     const freshDocSnap = buildDocumentSnapshot(currentParams);
     if (freshDocSnap) {
       StudioState.editHistory.push(freshDocSnap);
-      const maxAllowedEdits = getMaxEditHistoryForMosaic(StudioState.mosaicData);
+      const maxAllowedEdits = window.StatePersistence?.IDB_MAX_EDIT_HISTORY || 256;
       while (StudioState.editHistory.length > maxAllowedEdits) {
         StudioState.editHistory.shift();
       }
@@ -2433,7 +2433,7 @@ function recordBrushEditorUndo() {
   const snapshot = currentBrushSession();
   const previous = brushEditorPortal.undo[brushEditorPortal.undo.length - 1];
   if (!previous || JSON.stringify(previous) !== JSON.stringify(snapshot)) brushEditorPortal.undo.push(snapshot);
-  if (brushEditorPortal.undo.length > 40) brushEditorPortal.undo.shift();
+  if (brushEditorPortal.undo.length > 256) brushEditorPortal.undo.shift();
   brushEditorPortal.redo.length = 0;
 }
 function stepBrushEditorHistory(direction) {
@@ -3184,9 +3184,7 @@ function pushEditHistorySnapshot() {
   }
 
   StudioState.editHistory.push(snap);
-  const maxAllowedEdits = (typeof indexedDB !== 'undefined' && window.StatePersistence && window.StatePersistence.IDB_MAX_EDIT_HISTORY)
-    ? window.StatePersistence.IDB_MAX_EDIT_HISTORY
-    : getMaxEditHistoryForMosaic(StudioState.mosaicData);
+  const maxAllowedEdits = window.StatePersistence?.IDB_MAX_EDIT_HISTORY || 256;
   while (StudioState.editHistory.length > maxAllowedEdits) {
     StudioState.editHistory.shift();
   }

@@ -34,17 +34,17 @@ console.log('✓ Generation history trim-on-push verified.');
 let editHistory = [];
 let editIndex = -1;
 
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < 300; i++) {
   editHistory.push({ editId: i });
   const trimmed = trimHistoryOnPush(editHistory, MAX_EDIT_HISTORY, editHistory.length - 1);
   editHistory = trimmed.history;
   editIndex = trimmed.index;
 }
 
-assert.strictEqual(editHistory.length, MAX_EDIT_HISTORY, 'Edit history length should be capped at 25');
+assert.strictEqual(editHistory.length, MAX_EDIT_HISTORY, 'Edit history length should be capped at 256');
 assert.strictEqual(editIndex, MAX_EDIT_HISTORY - 1, 'Edit index should be last item');
-assert.strictEqual(editHistory[0].editId, 15, 'First item should be edit 15');
-assert.strictEqual(editHistory[editHistory.length - 1].editId, 39, 'Last item should be edit 39');
+assert.strictEqual(editHistory[0].editId, 44, 'First item should be edit 44');
+assert.strictEqual(editHistory[editHistory.length - 1].editId, 299, 'Last item should be edit 299');
 console.log('✓ Edit history trim-on-push verified.');
 
 // 3. Dynamic Edit History Budget for large mosaics
@@ -54,7 +54,7 @@ const largeMosaic = { rows: 8, cols: 8, subtilesPerSide: 8 }; // 4096 subtiles
 const smallCap = getMaxEditHistoryForMosaic(smallMosaic);
 const largeCap = getMaxEditHistoryForMosaic(largeMosaic);
 
-assert.strictEqual(smallCap, MAX_EDIT_HISTORY, 'Small mosaic should get full 25 edit snapshots');
+assert.strictEqual(smallCap, MAX_EDIT_HISTORY, 'Small mosaic should get full 256 edit snapshots');
 assert.ok(largeCap < MAX_EDIT_HISTORY, 'Large mosaic should have budget clamped');
 assert.ok(largeCap >= 2, 'Large mosaic should have at least 2 edit snapshots');
 console.log(`✓ Dynamic budget verified: small=${smallCap}, large=${largeCap}.`);
@@ -84,7 +84,7 @@ const rewoundPayload = {
   version: 2,
   history: Array.from({ length: 50 }, (_, i) => ({ seed: i })),
   historyIndex: 5, // Dropping first 20 items shifts index 5 to 0
-  editHistory: Array.from({ length: 40 }, (_, i) => ({ step: i })),
+  editHistory: Array.from({ length: 300 }, (_, i) => ({ step: i })),
   editHistoryIndex: 3
 };
 

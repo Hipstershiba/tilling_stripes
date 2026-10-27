@@ -712,3 +712,8 @@ Cor (incluindo X), margem, espaçamento e tamanho da prancheta entram no histór
 Verificação: nova suíte com handlers de produção e motor real, incluindo 30 eventos de cor, pintura após aparência, geração após edição e primeira geração após recarga legada. Gate completo: 47/47 suítes. No navegador, em origem isolada `127.0.0.1:8874`, confirmados cor → undo/redo, X → undo, espaçamento → undo/redo, largura 600→900 → undo/redo com tamanho real do canvas, Escape com redo preservado e geração → undo/redo mantendo aparência e dimensões. A sessão do usuário no Zen em `5500` foi preservada. Bridge Spout real não foi exercitado nesta tarefa.
 
 Arquivos funcionais: `core/document_snapshot.js` e `sketch.js`. Regressões: `test_document_edit_transactions.js`, runner e ajuste da dependência do harness de pincel. README e manual atualizados. Evidências locais em `_local/t05` permanecem ignoradas. Conhecimento sincronizado com `scripts/sync_knowledge.ps1` antes do commit.
+
+
+### Ajuste solicitado após T05 — 27/10/2026
+
+Limite de undo/redo ampliado para 256 estados no mosaico, nas famílias e no editor ampliado de pincel. Geração mantém o mesmo limite da edição, inclusive sem IndexedDB. A cópia localStorage continua respeitando orçamento/quota; a cópia IndexedDB admite 256 estados. Regressões verificam 300 edições com poda e undo/redo dos 256 estados retidos, seguida de geração, além do round-trip IndexedDB com 256 edições. Alteração separada do T06.
