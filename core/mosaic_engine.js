@@ -395,10 +395,10 @@
 
     p.push();
 
-    // 1. Subtile internal grid lines (subtle cyan)
+    // 1. Subtile guides match the major block guides in opacity and line weight.
     if (guideOptions.showSubtileGrid) {
-      p.stroke(0, 210, 255, 38);
-      p.strokeWeight(1);
+      p.stroke(0, 210, 255, 165);
+      p.strokeWeight(1.5);
       for (let r = 0; r <= mosaicData.rows * N; r++) {
         const y = margin + r * subH;
         p.line(margin, y, margin + drawW, y);
@@ -412,7 +412,7 @@
     // 2. Quadrant & Block boundaries
     if (guideOptions.showBlockGrid) {
       // Quadrant midlines inside each block (dashed feel via lower alpha)
-      p.stroke(0, 210, 255, 70);
+      p.stroke(170, 140, 255, 70);
       p.strokeWeight(1);
       for (let r = 0; r < mosaicData.rows; r++) {
         const midY = margin + (r + 0.5) * blockH;
@@ -424,7 +424,7 @@
       }
 
       // Major Block (Supertile) boundaries
-      p.stroke(0, 210, 255, 165);
+      p.stroke(170, 140, 255, 165);
       p.strokeWeight(1.5);
       p.noFill();
       p.rect(margin, margin, drawW, drawH);

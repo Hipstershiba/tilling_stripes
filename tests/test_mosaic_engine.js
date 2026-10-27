@@ -68,3 +68,17 @@ for (const symMode of ['mandala_d4', 'rotational_c4', 'bilateral_d2']) {
 }
 
 console.log('All MosaicEngine integration checks passed!');
+
+// Visual guides remain optional and cover every subtile boundary once.
+const assert = require('assert');
+const guideLines = [];
+const guideCtx = {push() {}, pop() {}, stroke() {}, strokeWeight() {}, line(...coords) {guideLines.push(coords);} };
+const guideMosaic = {rows: 2, cols: 3, subtilesPerSide: 4};
+const guideLayout = {width: 600, height: 400, margin: 20};
+window.MosaicEngine.renderGuidesAndOverlays(guideCtx, guideMosaic, guideLayout, {showSubtileGrid: false}, null);
+assert.strictEqual(guideLines.length, 0, 'Disabled subtile guides must draw nothing');
+window.MosaicEngine.renderGuidesAndOverlays(guideCtx, guideMosaic, guideLayout, {showSubtileGrid: true}, null);
+assert.strictEqual(guideLines.length, 22);
+assert.deepStrictEqual(guideLines[0], [20, 20, 580, 20]);
+assert.deepStrictEqual(guideLines[21], [580, 20, 580, 380]);
+console.log('Subtile guide toggle and geometry verified.');
