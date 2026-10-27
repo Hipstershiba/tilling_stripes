@@ -117,15 +117,19 @@
         <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn" title="Criar cópia editável desta família (Ctrl+D)">
           <span>⧉ Duplicar p/ Editar</span>
         </button>
+        <div class="vec-undo-group" role="group" aria-label="Desfazer e Refazer no Subtile">
+          <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled>↶</button>
+          <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled>↷</button>
+        </div>
         <div class="bar-divider"></div>
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
           <button type="button" class="tile-prev-btn" data-tile-preview="single" aria-pressed="false" title="Célula Mestre 1×1 isolada">1×1</button>
-          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Mestre cercado por 8 vizinhos fantasmas (3×3)">3×3 Vizinhos</button>
-          <button type="button" class="tile-prev-btn" data-tile-preview="mandala_d4" aria-pressed="false" title="Prévia em bloco 2×2 espelhado (D2/D4)">Espelhos 2×2</button>
+          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Mestre cercado por 8 vizinhos fantasmas (3×3)">3×3</button>
+          <button type="button" class="tile-prev-btn" data-tile-preview="mandala_d4" aria-pressed="false" title="Prévia em bloco 2×2 espelhado (D2/D4)">Espelhos</button>
           <button type="button" class="tile-prev-btn" data-tile-preview="rotational_c4" aria-pressed="false" title="Prévia em cata-vento rotacional 2×2 (C4)">Giro C4</button>
         </div>
         <button type="button" id="btnTileClipToggle" class="bar-action-btn" aria-pressed="false" title="Recortar geometria nos limites [-0.5, 0.5] do subtile">Clip</button>
-        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn" title="Enviar variante ativa para o Pincel e pintar no Mosaico">Pintar no Mosaico</button>
+        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn" title="Enviar variante ativa para o Pincel e pintar no Mosaico">Pintar</button>
       </div>
 
       <div class="bar-spacer"></div>
@@ -420,27 +424,59 @@
         </div>
 
         <!-- Painel Lateral Esquerdo do Estúdio de Subtiles (Visível em data-studio-mode="tiles") -->
-        <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ações e Guias de Subtiles">
+        <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ferramentas Vetoriais e Guias de Subtiles">
           <div class="tool-divider"></div>
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Subtiles</div>
-            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary" title="Criar nova família customizada">
-              <span>+ Novo Subtile</span>
-            </button>
-            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn" title="Duplicar família selecionada para editar (Ctrl+D)">
-              <span>⧉ Duplicar Atual</span>
-            </button>
-            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn" title="Criar nova pasta de grupo">
-              <span>+ Novo Grupo</span>
-            </button>
+            <div class="sidebar-section-title">Vetor</div>
+            <div class="tools-grid-2col" id="vecToolsGrid">
+              <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active" data-vec-tool="select" aria-pressed="true" title="Seleção e Transformação BBox (Tecla V)">
+                <span>Seleção</span>
+              </button>
+              <button type="button" id="vecToolDirect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="direct" aria-pressed="false" title="Seleção Direta de Nós e Alças Bezier (Tecla A)">
+                <span>Nós (A)</span>
+              </button>
+              <button type="button" id="vecToolPen" class="subtile-rail-btn vec-tool-btn" data-vec-tool="pen" aria-pressed="false" title="Caneta Bezier — Clique p/ canto, Arraste p/ curva (Tecla P)">
+                <span>Caneta</span>
+              </button>
+              <button type="button" id="vecToolRect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="rect" aria-pressed="false" title="Retângulo / Quadrado (Tecla M • Shift=1:1, Alt=Centro)">
+                <span>Retâng.</span>
+              </button>
+              <button type="button" id="vecToolEllipse" class="subtile-rail-btn vec-tool-btn" data-vec-tool="ellipse" aria-pressed="false" title="Elipse / Círculo (Tecla L • Shift=1:1, Alt=Centro)">
+                <span>Elipse</span>
+              </button>
+              <button type="button" id="vecToolPolygon" class="subtile-rail-btn vec-tool-btn" data-vec-tool="polygon" aria-pressed="false" title="Polígono Regular / Estrela (Tecla G)">
+                <span>Polígono</span>
+              </button>
+              <button type="button" id="vecToolArc" class="subtile-rail-btn vec-tool-btn" data-vec-tool="arc" aria-pressed="false" title="Arco / Setor Anular de Fita (Tecla U)">
+                <span>Arco/Fita</span>
+              </button>
+              <button type="button" id="vecToolLine" class="subtile-rail-btn vec-tool-btn" data-vec-tool="line" aria-pressed="false" title="Linha / Haste (Tecla \)">
+                <span>Linha</span>
+              </button>
+            </div>
           </div>
 
           <div class="tool-divider"></div>
 
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Guias da Célula</div>
+            <div class="sidebar-section-title">Ímã &amp; Guias</div>
+            <div class="vec-snap-row">
+              <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active" aria-pressed="true" title="Ativar/Desativar Snap Magnético (Tecla ;)">
+                <span>Ímã</span>
+              </button>
+              <select id="tileGridDivSelect" class="subtile-grid-select" title="Subdivisão da Grade Magnética" aria-label="Subdivisão da Grade Magnética">
+                <option value="0">Off</option>
+                <option value="2">1/2</option>
+                <option value="3">1/3</option>
+                <option value="4">1/4</option>
+                <option value="6" selected>1/6</option>
+                <option value="8">1/8</option>
+                <option value="12">1/12</option>
+                <option value="16">1/16</option>
+              </select>
+            </div>
             <div class="tools-grid-2col">
-              <button type="button" id="toggleTileGuideGrid" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar grade fracionária 1/3 e 1/6">
+              <button type="button" id="toggleTileGuideGrid" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar grade fracionária">
                 <span>Grade</span>
               </button>
               <button type="button" id="toggleTileGuideAxes" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar eixos e diagonais D4">
@@ -453,13 +489,7 @@
                 <span>Margem</span>
               </button>
             </div>
-          </div>
-
-          <div class="tool-divider"></div>
-
-          <div class="sidebar-section">
-            <div class="sidebar-section-title">Prancheta</div>
-            <div class="tools-grid-2col">
+            <div class="tools-grid-2col" style="margin-top: 4px;">
               <button type="button" id="btnTileViewPan" class="subtile-rail-btn" title="Mover prancheta (Tecla H ou Espaço)">
                 <span>Pan (H)</span>
               </button>
@@ -467,6 +497,21 @@
                 <span>1:1 (1)</span>
               </button>
             </div>
+          </div>
+
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Biblioteca</div>
+            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary" title="Criar nova família customizada">
+              <span>+ Novo Subtile</span>
+            </button>
+            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn" title="Duplicar família selecionada para editar">
+              <span>⧉ Duplicar Família</span>
+            </button>
+            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn" title="Criar nova pasta de grupo">
+              <span>+ Novo Grupo</span>
+            </button>
           </div>
 
           <div class="subtile-left-spacer"></div>
@@ -963,9 +1008,39 @@
         </div>
 
         <!-- ================================================================
-             WORKSPACE 3: ESTÚDIO DE SUBTILES & GESTÃO DE FAMÍLIAS (Fase B)
+             WORKSPACE 3: ESTÚDIO DE SUBTILES & GESTÃO DE FAMÍLIAS (Fases B & C)
              ================================================================ -->
         <div id="dock-workspace-tiles" class="dock-workspace-pane hidden">
+
+          <!-- TILES PANEL 0: PROPRIEDADES & ALINHAMENTO DO EDITOR VETORIAL (Fase C) -->
+          <section class="dock-panel" id="panel-tile-shape-props">
+            <header class="panel-header" data-collapse-target="panelTileShapePropsBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileShapePropsBody">
+              <div class="panel-title-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <span>Propriedades &amp; Forma</span>
+              </div>
+              <span id="vecSelectionBadge" class="panel-counter-pill">Nenhuma</span>
+              <span class="panel-chevron">▾</span>
+            </header>
+
+            <div class="panel-body" id="panelTileShapePropsBody">
+              <div class="prop-section">
+                <div class="prop-label-row" style="margin-bottom: 6px;">
+                  <div class="prop-label-with-info">
+                    <span id="vecToolContextLabel" class="prop-label">Seleção (V)</span>
+                    <button type="button" class="info-btn" data-info-topic="vector-editor" aria-label="Saiba mais sobre o Editor Vetorial de Subtiles" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                  <span id="vecSnapStatusBadge" class="prop-badge secondary">Ímã 1/6</span>
+                </div>
+                <div id="vecPropsContainer" class="vec-props-container">
+                  <!-- Populated dynamically by SubtileStudioUI -->
+                </div>
+              </div>
+            </div>
+          </section>
 
           <!-- TILES PANEL 1: VARIANTES D4 AO VIVO & METADADOS DA FAMÍLIA -->
           <section class="dock-panel" id="panel-tile-d4-live">
@@ -1083,6 +1158,7 @@
   <script src="core/spout_output.js"></script>
   <script src="core/ui_format.js"></script>
   <script src="ui_info.js"></script>
+  <script src="core/vector_editor.js"></script>
   <script src="core/subtile_studio_ui.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>

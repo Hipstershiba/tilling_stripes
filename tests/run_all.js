@@ -61,7 +61,8 @@ const testSuites = [
   'test_d4_detect.js',
   'test_library_compiler.js',
   'test_library_store_crud.js',
-  'test_tile_studio_ui_contract.js'
+  'test_tile_studio_ui_contract.js',
+  'test_vector_editor_ops.js'
 ];
 
 console.log('====================================================');

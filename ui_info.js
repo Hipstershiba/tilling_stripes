@@ -135,6 +135,7 @@
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
         'Ctrl+E: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias.',
+        'No Estúdio de Subtiles: V (Seleção) | A (Nós) | P (Caneta) | M (Retângulo) | L (Elipse) | G (Polígono) | U (Arco/Fita) | \\ (Linha) | ; (Snap).',
         'Tab (no Gerador): Mostrar / Ocultar Painéis Direitos.'
       ]
     },
@@ -157,6 +158,17 @@
         'O Tile Vazio (#84) é o respiro matemático oficial de Mandala D4 e da Borracha.',
         'Ao excluir uma família customizada em uso, suas células no mosaico convertem-se com segurança para o Tile Vazio (#84).',
         'Arraste famílias e grupos para reordenar ou use Exportar/Importar (.json) para backups.'
+      ]
+    },
+    'vector-editor': {
+      title: 'Editor Vetorial de Subtiles',
+      subtitle: 'Desenho normalizado em [-0.5, 0.5] com continuidade D4',
+      body: [
+        'Seleção (V): Move, redimensiona pelas 8 alças e gira formas (Shift mantém proporção / ângulos de 15°; Alt escala pelo centro).',
+        'Seleção Direta (A): Edita nós e alças Bezier (Alt quebra simetria da alça; duplo-clique alterna Canto/Suave; Alt+Clique cria nó no segmento).',
+        'Caneta (P): Clique cria canto reto; clique e arraste puxa curvas Bezier; clique no 1º nó fecha o contorno (Enter finaliza aberto).',
+        'Primitivas: Retângulo (M), Elipse (L), Polígono/Estrela (G), Arco/Setor Anular de Fita (U) e Linha (\\).',
+        'Ímã e Grade (1/2 a 1/16): A divisão 1/6 alinha exatamente bordas (±0.5), centro (0) e portas de fita Truchet (±1/6 e ±1/3).'
       ]
     }
   };

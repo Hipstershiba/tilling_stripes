@@ -18,6 +18,7 @@
     let compiler = win && win.LibraryCompiler;
     let store = win && win.LibraryStore;
     let reg = win && win.TileRegistry;
+    let ve = win && win.VectorEditor;
 
     if (typeof require === 'function') {
       if (!d4) {
@@ -30,9 +31,10 @@
       if (!compiler) compiler = require('./library_compiler.js');
       if (!store) store = require('./library_store.js');
       if (!reg) reg = require('./tile_registry.js');
+      if (!ve) ve = require('./vector_editor.js');
     }
 
-    return { win, d4, vr, det, lib, compiler, store, reg };
+    return { win, d4, vr, det, lib, compiler, store, reg, ve };
   }
 
   const ORBIT_LABELS_PT = {
@@ -463,13 +465,97 @@
   }
 
   function selectFamily(familyId, variantIndex = 0) {
-    const { reg } = resolveDeps();
+    const { reg, ve } = resolveDeps();
     if (!reg || !reg.getFamilyById(familyId)) return;
+    if (ve) ve.resetTransientForFamilySwitch(familyId);
     uiState.selectedFamilyId = familyId;
     uiState.selectedVariantIndex = variantIndex;
     ensureValidSelection();
     refresh();
     requestHostRedraw();
+  }
+
+  function setVectorTool(toolId) {
+    const { ve } = resolveDeps();
+    if (!ve) return;
+    const famDoc = getSelectedFamilyDoc();
+    if (ve.state.penSession && toolId !== 'pen' && famDoc && !famDoc.builtIn) {
+      const committed = ve.finalizePenPath(famDoc, false);
+      if (committed) {
+        commitFamilyShapes(famDoc.id, committed);
+      }
+    }
+    ve.state.activeTool = toolId;
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.dataset.vecTool = toolId;
+    }
+    renderLeftPaneState();
+    renderShapePropsPanel(true);
+    if (hostCtx && typeof hostCtx.updateStatusBar === 'function') {
+      hostCtx.updateStatusBar();
+    }
+    requestHostRedraw();
+  }
+
+  function commitFamilyShapes(familyId, nextShapes, options = {}) {
+    const { store, ve } = resolveDeps();
+    if (!store || !familyId || !Array.isArray(nextShapes)) return false;
+    const currentDoc = store.getFamilyById(familyId);
+    if (!currentDoc || currentDoc.builtIn || currentDoc.protected) return false;
+
+    if (ve) {
+      ve.ensureFamilyHistory(familyId, currentDoc);
+    }
+
+    const patch = { shapes: nextShapes };
+    if (options.clipToTile !== undefined) {
+      patch.clipToTile = Boolean(options.clipToTile);
+    }
+    const res = store.updateFamily(familyId, patch);
+    if (ve && options.recordUndo !== false && res && res.family) {
+      ve.recordFamilySnapshot(familyId, res.family.shapes, res.family.clipToTile);
+    }
+    refresh();
+    requestHostRedraw();
+    return true;
+  }
+
+  function handleVecUndo() {
+    const { store, ve } = resolveDeps();
+    const famDoc = getSelectedFamilyDoc();
+    if (!store || !ve || !famDoc || famDoc.builtIn || famDoc.protected) return false;
+    const snap = ve.stepUndo(famDoc.id, famDoc);
+    if (!snap) return false;
+
+    store.updateFamily(famDoc.id, {
+      shapes: snap.shapes,
+      clipToTile: Boolean(snap.clipToTile)
+    });
+    const validIds = new Set((snap.shapes || []).map((s) => s.id));
+    ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => validIds.has(id));
+    ve.state.selectedNodes = [];
+    refresh();
+    requestHostRedraw();
+    return true;
+  }
+
+  function handleVecRedo() {
+    const { store, ve } = resolveDeps();
+    const famDoc = getSelectedFamilyDoc();
+    if (!store || !ve || !famDoc || famDoc.builtIn || famDoc.protected) return false;
+    const snap = ve.stepRedo(famDoc.id, famDoc);
+    if (!snap) return false;
+
+    store.updateFamily(famDoc.id, {
+      shapes: snap.shapes,
+      clipToTile: Boolean(snap.clipToTile)
+    });
+    const validIds = new Set((snap.shapes || []).map((s) => s.id));
+    ve.state.selectedShapeIds = ve.state.selectedShapeIds.filter((id) => validIds.has(id));
+    ve.state.selectedNodes = [];
+    refresh();
+    requestHostRedraw();
+    return true;
   }
 
   // ==========================================================================
@@ -635,6 +721,14 @@
       groupId: targetGrp || undefined
     });
 
+    const { ve } = resolveDeps();
+    if (ve) {
+      ve.resetTransientForFamilySwitch(res.family.id);
+      ve.ensureFamilyHistory(res.family.id, res.family);
+      if (res.family.shapes && res.family.shapes[0]) {
+        ve.state.selectedShapeIds = [res.family.shapes[0].id];
+      }
+    }
     uiState.selectedFamilyId = res.family.id;
     uiState.selectedVariantIndex = 0;
     uiState.collapsedGroups.delete(res.family.groupId);
@@ -672,6 +766,12 @@
       : {};
 
     const res = store.duplicateFamily(targetId, overrides);
+    const { ve } = resolveDeps();
+    if (ve) {
+      ve.resetTransientForFamilySwitch(res.family.id);
+      ve.ensureFamilyHistory(res.family.id, res.family);
+      ve.state.selectedShapeIds = res.family.shapes && res.family.shapes[0] ? [res.family.shapes[0].id] : [];
+    }
     uiState.selectedFamilyId = res.family.id;
     uiState.selectedVariantIndex = 0;
     uiState.collapsedGroups.delete(res.family.groupId);
@@ -826,13 +926,17 @@
 
   function renderTopBarControls() {
     if (typeof document === 'undefined') return;
+    const { ve } = resolveDeps();
     const fam = ensureValidSelection();
     if (!fam) return;
 
+    const famDoc = getSelectedFamilyDoc();
     const badgeEl = document.getElementById('tileStudioActiveBadge');
     const nameEl = document.getElementById('tileStudioActiveName');
     const dupBtn = document.getElementById('btnTileTopDuplicate');
     const clipBtn = document.getElementById('btnTileClipToggle');
+    const undoBtn = document.getElementById('btnVecUndo');
+    const redoBtn = document.getElementById('btnVecRedo');
 
     const activeTileId = fam.tileIds[uiState.selectedVariantIndex] ?? fam.tileIds[0];
 
@@ -847,8 +951,12 @@
     if (dupBtn) {
       dupBtn.classList.toggle('hidden', !fam.builtIn);
     }
+    if (undoBtn && redoBtn) {
+      const editable = Boolean(famDoc && !fam.builtIn && !fam.protected && ve);
+      undoBtn.disabled = !editable || !ve.canUndo(fam.id, famDoc);
+      redoBtn.disabled = !editable || !ve.canRedo(fam.id, famDoc);
+    }
     if (clipBtn) {
-      const famDoc = getSelectedFamilyDoc();
       const isClipped = Boolean(famDoc && famDoc.clipToTile);
       clipBtn.classList.toggle('active', isClipped);
       clipBtn.setAttribute('aria-pressed', isClipped ? 'true' : 'false');
@@ -867,6 +975,7 @@
 
   function renderLeftPaneState() {
     if (typeof document === 'undefined') return;
+    const { ve } = resolveDeps();
     const map = [
       ['toggleTileGuideGrid', 'showGrid'],
       ['toggleTileGuideAxes', 'showAxes'],
@@ -879,6 +988,27 @@
       const on = Boolean(uiState.guides[key]);
       btn.classList.toggle('active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    if (ve) {
+      if (document.body) {
+        document.body.dataset.vecTool = ve.state.activeTool;
+      }
+      document.querySelectorAll('#vecToolsGrid [data-vec-tool]').forEach((btn) => {
+        const active = btn.dataset.vecTool === ve.state.activeTool;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      const snapBtn = document.getElementById('btnTileSnapToggle');
+      if (snapBtn) {
+        snapBtn.classList.toggle('active', Boolean(ve.state.snapEnabled));
+        snapBtn.setAttribute('aria-pressed', ve.state.snapEnabled ? 'true' : 'false');
+      }
+      const gridSel = document.getElementById('tileGridDivSelect');
+      if (gridSel && String(gridSel.value) !== String(ve.state.gridDiv)) {
+        gridSel.value = String(ve.state.gridDiv);
+      }
     }
   }
 
@@ -1444,21 +1574,577 @@
     });
   }
 
+  let lastLiveD4Timestamp = 0;
+
+  function updateLiveDragD4Preview(workingShapes, clipToTile) {
+    if (typeof document === 'undefined') return;
+    const now = Date.now();
+    if (now - lastLiveD4Timestamp < 70) return;
+    lastLiveD4Timestamp = now;
+
+    const { det } = resolveDeps();
+    if (!det || typeof det.detectMasterD4 !== 'function') return;
+
+    const info = det.detectMasterD4({ shapes: workingShapes || [], clipToTile: Boolean(clipToTile) });
+    if (!info) return;
+
+    const countBadge = document.getElementById('tileLiveOrbitCountBadge');
+    const orbitLabelEl = document.getElementById('tileLiveOrbitLabel');
+    const stabCodeEl = document.getElementById('tileLiveStabilizerCode');
+    const compatRow = document.getElementById('tileLiveCompatRow');
+
+    if (countBadge) {
+      const n = info.orbitSize;
+      countBadge.textContent = `${n} ${n === 1 ? 'variante' : 'variantes'} (ao vivo)`;
+    }
+    if (orbitLabelEl) {
+      orbitLabelEl.textContent = ORBIT_LABELS_PT[info.orbitType] || info.orbitType;
+    }
+    if (stabCodeEl) {
+      const stab = Array.isArray(info.stabilizer) && info.stabilizer.length > 0
+        ? info.stabilizer.join(', ')
+        : 'id';
+      stabCodeEl.textContent = `H = {${stab}}`;
+    }
+    if (compatRow) {
+      const axisOk = Boolean(info.isAxisInvariant);
+      const diagOk = Boolean(info.isDiagInvariant);
+      const centerOk = info.orbitSize === 1;
+      compatRow.innerHTML = `
+        <span class="d4-compat-pill ${axisOk ? 'ok' : 'neutral'}">Eixos X/Y: ${axisOk ? 'Sim' : 'Não'}</span>
+        <span class="d4-compat-pill ${diagOk ? 'ok' : 'neutral'}">Diagonais: ${diagOk ? 'Sim' : 'Não'}</span>
+        <span class="d4-compat-pill ${centerOk ? 'ok' : 'neutral'}">Centro D4: ${centerOk ? 'Sim' : 'Não'}</span>
+      `;
+    }
+  }
+
+  function renderShapePropsPanel(forceRebuild = false) {
+    if (typeof document === 'undefined') return;
+    const { ve } = resolveDeps();
+    const container = document.getElementById('vecPropsContainer');
+    const selBadge = document.getElementById('vecSelectionBadge');
+    const toolLabelEl = document.getElementById('vecToolContextLabel');
+    const snapBadgeEl = document.getElementById('vecSnapStatusBadge');
+    if (!container || !ve) return;
+
+    const toolMeta = ve.VECTOR_TOOLS.find((t) => t.id === ve.state.activeTool) || ve.VECTOR_TOOLS[0];
+    if (toolLabelEl) {
+      toolLabelEl.textContent = `${toolMeta.label} (${toolMeta.shortcut})`;
+    }
+    if (snapBadgeEl) {
+      snapBadgeEl.textContent = ve.state.snapEnabled
+        ? (ve.state.gridDiv > 0 ? `Ímã 1/${ve.state.gridDiv}` : 'Ímã Bordas')
+        : 'Ímã Off';
+    }
+
+    const fam = ensureValidSelection();
+    const famDoc = getSelectedFamilyDoc();
+    if (!fam || !famDoc) return;
+
+    // Avoid destroying active input focus inside #vecPropsContainer unless forced
+    if (!forceRebuild && container.contains(document.activeElement) &&
+      (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+      return;
+    }
+
+    if (fam.builtIn || fam.protected) {
+      if (selBadge) selBadge.textContent = 'Somente Leitura';
+      container.innerHTML = `
+        <div class="vec-empty-hint">
+          Este subtile pertence aos <strong>31 mestres canônicos</strong>. Crie uma cópia editável para desenhar, alinhar e esculpir curvas Bezier.
+        </div>
+        <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
+          ⧉ Duplicar p/ Editar (Ctrl+D)
+        </button>
+      `;
+      document.getElementById('btnPropsDuplicateBuiltIn')?.addEventListener('click', () => {
+        handleDuplicateFamily(fam.id);
+      });
+      return;
+    }
+
+    const shapes = famDoc.shapes || [];
+    const selSet = new Set(ve.state.selectedShapeIds);
+    const selected = shapes.filter((s) => s && selSet.has(s.id));
+
+    if (selBadge) {
+      if (selected.length === 0) {
+        selBadge.textContent = `${shapes.length} ${shapes.length === 1 ? 'forma' : 'formas'}`;
+      } else if (selected.length === 1) {
+        const typeNames = {
+          rect: 'Retângulo',
+          ellipse: 'Elipse',
+          polygon: 'Polígono',
+          arc: 'Arco/Fita',
+          line: 'Linha',
+          path: 'Caminho'
+        };
+        selBadge.textContent = typeNames[selected[0].type] || selected[0].type;
+      } else {
+        selBadge.textContent = `${selected.length} selecionadas`;
+      }
+    }
+
+    container.innerHTML = '';
+
+    // 0. Active Pen Construction Banner
+    if (ve.state.penSession && ve.state.penSession.familyId === famDoc.id) {
+      const penBlock = document.createElement('div');
+      penBlock.className = 'vec-props-subblock';
+      const nPts = ve.state.penSession.nodes.length;
+      penBlock.innerHTML = `
+        <div class="vec-subblock-title">Caneta Ativa (${nPts} ${nPts === 1 ? 'nó' : 'nós'})</div>
+        <div class="vec-inline-actions">
+          <button type="button" class="mini-btn accent" data-pen-act="close" ${nPts < 3 ? 'disabled' : ''}>Fechar Contorno</button>
+          <button type="button" class="mini-btn" data-pen-act="open" ${nPts < 2 ? 'disabled' : ''}>Finalizar Aberto</button>
+          <button type="button" class="mini-btn danger" data-pen-act="cancel">Cancelar</button>
+        </div>
+      `;
+      penBlock.querySelectorAll('[data-pen-act]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const act = btn.dataset.penAct;
+          if (act === 'cancel') {
+            ve.state.penSession = null;
+            ve.state.workingShapes = null;
+            ve.state.workingFamilyId = null;
+            renderShapePropsPanel(true);
+            requestHostRedraw();
+            return;
+          }
+          const committed = ve.finalizePenPath(famDoc, act === 'close');
+          if (committed) commitFamilyShapes(famDoc.id, committed);
+        });
+      });
+      container.appendChild(penBlock);
+    }
+
+    // 1. Quick 1/3 Ribbon Presets Block
+    const presetBlock = document.createElement('div');
+    presetBlock.className = 'vec-props-subblock';
+    presetBlock.innerHTML = `
+      <div class="vec-subblock-title"><span>Inserir Base de Fita (1/3)</span></div>
+      <div class="vec-preset-chips">
+        <button type="button" class="vec-preset-btn" data-preset="stripe-h-1-3" title="Adicionar faixa horizontal central de largura 1/3">+ Faixa H 1/3</button>
+        <button type="button" class="vec-preset-btn" data-preset="stripe-v-1-3" title="Adicionar faixa vertical central de largura 1/3">+ Faixa V 1/3</button>
+        <button type="button" class="vec-preset-btn" data-preset="curve-tl-1-3" title="Adicionar arco anular Truchet 90° de largura 1/3">+ Curva 90° 1/3</button>
+        <button type="button" class="vec-preset-btn" data-preset="quarter-pie-tl" title="Adicionar quarto de círculo sólido no canto">+ Quarto Sólido</button>
+      </div>
+    `;
+    presetBlock.querySelectorAll('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const created = ve.createRibbonPreset(btn.dataset.preset);
+        if (!created) return;
+        const nextShapes = [...shapes.map((s) => JSON.parse(JSON.stringify(s))), created];
+        ve.state.selectedShapeIds = [created.id];
+        ve.state.selectedNodes = [];
+        commitFamilyShapes(famDoc.id, nextShapes);
+      });
+    });
+    container.appendChild(presetBlock);
+
+    // 2. Align & Selection Quick Actions
+    const hasSel = selected.length > 0;
+    const alignBlock = document.createElement('div');
+    alignBlock.className = 'vec-props-subblock';
+    alignBlock.innerHTML = `
+      <div class="vec-subblock-title"><span>Alinhar à Célula [-0.5, +0.5]</span></div>
+      <div class="vec-align-strip">
+        <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à Borda Esquerda (-0.5)" ${!hasSel ? 'disabled' : ''}>⇤</button>
+        <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar Horizontalmente (0)" ${!hasSel ? 'disabled' : ''}>⇹</button>
+        <button type="button" class="vec-align-btn" data-align="right" title="Alinhar à Borda Direita (+0.5)" ${!hasSel ? 'disabled' : ''}>⇥</button>
+        <button type="button" class="vec-align-btn" data-align="top" title="Alinhar ao Topo (-0.5)" ${!hasSel ? 'disabled' : ''}>⤒</button>
+        <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar Verticalmente (0)" ${!hasSel ? 'disabled' : ''}>⇳</button>
+        <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à Base (+0.5)" ${!hasSel ? 'disabled' : ''}>⤓</button>
+      </div>
+      ${selected.length >= 3 ? `
+        <div class="vec-inline-actions" style="margin-top:3px;">
+          <button type="button" class="mini-btn" data-distrib="horizontal">Distribuir H</button>
+          <button type="button" class="mini-btn" data-distrib="vertical">Distribuir V</button>
+        </div>
+      ` : ''}
+      ${hasSel ? `
+        <div class="vec-inline-actions" style="margin-top:3px;">
+          <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">⧉ Duplicar</button>
+          ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Virar Caminho</button>' : ''}
+          <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">✕ Excluir</button>
+        </div>
+      ` : ''}
+    `;
+
+    alignBlock.querySelectorAll('[data-align]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextShapes = ve.alignShapesToCell(shapes, ve.state.selectedShapeIds, btn.dataset.align);
+        commitFamilyShapes(famDoc.id, nextShapes);
+      });
+    });
+    alignBlock.querySelectorAll('[data-distrib]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextShapes = ve.distributeShapes(shapes, ve.state.selectedShapeIds, btn.dataset.distrib);
+        commitFamilyShapes(famDoc.id, nextShapes);
+      });
+    });
+    alignBlock.querySelector('#btnVecPropDuplicate')?.addEventListener('click', () => {
+      const res = ve.duplicateSelectedShapes(shapes, ve.state.selectedShapeIds);
+      if (res.newIds.length > 0) {
+        ve.state.selectedShapeIds = res.newIds;
+        commitFamilyShapes(famDoc.id, res.shapes);
+      }
+    });
+    alignBlock.querySelector('#btnVecPropToPath')?.addEventListener('click', () => {
+      const nextShapes = shapes.map((s) => (s && selSet.has(s.id) ? ve.convertShapeToPath(s) : JSON.parse(JSON.stringify(s))));
+      ve.state.activeTool = 'direct';
+      commitFamilyShapes(famDoc.id, nextShapes);
+    });
+    alignBlock.querySelector('#btnVecPropDelete')?.addEventListener('click', () => {
+      const nextShapes = shapes.filter((s) => s && !selSet.has(s.id));
+      ve.state.selectedShapeIds = [];
+      ve.state.selectedNodes = [];
+      commitFamilyShapes(famDoc.id, nextShapes);
+    });
+    container.appendChild(alignBlock);
+
+    // 3. When NO shape is selected: show active drawing tool defaults
+    if (selected.length === 0) {
+      const tool = ve.state.activeTool;
+      const defs = ve.state.toolDefaults;
+      if (tool === 'rect' || tool === 'polygon' || tool === 'arc' || tool === 'line') {
+        const defBlock = document.createElement('div');
+        defBlock.className = 'vec-props-subblock';
+        let fieldsHTML = '';
+        if (tool === 'rect') {
+          fieldsHTML = `
+            <div class="vec-prop-field"><label>Raio</label><input type="number" step="0.02" min="0" max="0.5" data-tdef="rectRadius" value="${defs.rectRadius}"></div>
+          `;
+        } else if (tool === 'polygon') {
+          fieldsHTML = `
+            <div class="vec-prop-field"><label>Lados</label><input type="number" step="1" min="3" max="16" data-tdef="polygonSides" value="${defs.polygonSides}"></div>
+            <div class="vec-prop-field"><label>Estrela</label><input type="number" step="0.05" min="0" max="0.9" data-tdef="polygonStarRatio" value="${defs.polygonStarRatio}"></div>
+          `;
+        } else if (tool === 'arc') {
+          fieldsHTML = `
+            <div class="vec-prop-field"><label>Furo</label><input type="number" step="0.05" min="0" max="0.95" data-tdef="arcInnerRatio" value="${defs.arcInnerRatio}"></div>
+            <div class="vec-prop-field"><label>Modo</label>
+              <select data-tdef="arcMode">
+                <option value="pie" ${defs.arcMode === 'pie' ? 'selected' : ''}>Setor</option>
+                <option value="chord" ${defs.arcMode === 'chord' ? 'selected' : ''}>Corda</option>
+                <option value="open" ${defs.arcMode === 'open' ? 'selected' : ''}>Aberto</option>
+              </select>
+            </div>
+          `;
+        } else if (tool === 'line') {
+          fieldsHTML = `
+            <div class="vec-prop-field"><label>Espess.</label><input type="number" step="0.02" min="0.01" max="1" data-tdef="lineWeight" value="${defs.lineWeight}"></div>
+          `;
+        }
+        defBlock.innerHTML = `
+          <div class="vec-subblock-title">Opções da Ferramenta</div>
+          <div class="vec-props-grid">${fieldsHTML}</div>
+        `;
+        defBlock.querySelectorAll('[data-tdef]').forEach((inp) => {
+          inp.addEventListener('change', () => {
+            const k = inp.dataset.tdef;
+            if (inp.tagName === 'SELECT') defs[k] = inp.value;
+            else defs[k] = parseFloat(inp.value) || 0;
+          });
+        });
+        container.appendChild(defBlock);
+      } else {
+        const hint = document.createElement('div');
+        hint.className = 'vec-empty-hint';
+        hint.textContent = shapes.length === 0
+          ? 'Prancheta vazia: desenhe com Retângulo (M), Arco/Fita (U) ou Caneta (P), ou insira uma Base de Fita acima.'
+          : 'Clique numa forma no canvas para inspecionar e editar estilo, medidas ou nós Bezier.';
+        container.appendChild(hint);
+      }
+      return;
+    }
+
+    // 4. Style Controls (Fill, Stroke, Weight, Cap, FillRule) for Selected Shape(s)
+    const primary = selected[0];
+    const styleBlock = document.createElement('div');
+    styleBlock.className = 'vec-props-subblock';
+    const hasFill = primary.fill !== false;
+    const hasStroke = Boolean(primary.stroke);
+    const weightVal = Number((Number(primary.strokeWeight) || 0.08).toFixed(4));
+    const capVal = primary.strokeCap || 'round';
+    const ruleVal = primary.fillRule || 'evenodd';
+
+    styleBlock.innerHTML = `
+      <div class="vec-subblock-title"><span>Preenchimento &amp; Traço</span></div>
+      <div class="vec-style-toggles">
+        <label class="vec-check-chip"><input type="checkbox" id="vecPropFillChk" ${hasFill ? 'checked' : ''}><span>Preencher</span></label>
+        <label class="vec-check-chip"><input type="checkbox" id="vecPropStrokeChk" ${hasStroke ? 'checked' : ''}><span>Traço</span></label>
+      </div>
+      ${hasStroke ? `
+        <div class="vec-props-grid" style="margin-top:3px;">
+          <div class="vec-prop-field">
+            <label>Espess.</label>
+            <input type="number" id="vecPropStrokeW" step="0.02" min="0.01" max="1" value="${weightVal}">
+          </div>
+          <div class="vec-prop-field">
+            <label>Ponta</label>
+            <select id="vecPropStrokeCap">
+              <option value="butt" ${capVal === 'butt' ? 'selected' : ''}>Reta</option>
+              <option value="round" ${capVal === 'round' ? 'selected' : ''}>Redonda</option>
+              <option value="square" ${capVal === 'square' ? 'selected' : ''}>Quadrada</option>
+            </select>
+          </div>
+        </div>
+        <div class="vec-inline-actions" style="margin-top:2px;">
+          <button type="button" class="mini-btn" data-sw-preset="${(1 / 6).toFixed(6)}">Espess. 1/6</button>
+          <button type="button" class="mini-btn" data-sw-preset="${(1 / 3).toFixed(6)}">Espess. 1/3</button>
+        </div>
+      ` : ''}
+      ${primary.type === 'path' && hasFill ? `
+        <div class="vec-prop-field" style="margin-top:3px;">
+          <label>Regra</label>
+          <select id="vecPropFillRule">
+            <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''}>Par-Ímpar (Furos)</option>
+            <option value="nonzero" ${ruleVal === 'nonzero' ? 'selected' : ''}>Não-Zero</option>
+          </select>
+        </div>
+      ` : ''}
+    `;
+
+    const patchSelectedStyle = (patch) => {
+      const nextShapes = shapes.map((s) => {
+        if (!s || !selSet.has(s.id)) return JSON.parse(JSON.stringify(s));
+        return { ...JSON.parse(JSON.stringify(s)), ...patch };
+      });
+      commitFamilyShapes(famDoc.id, nextShapes);
+    };
+
+    styleBlock.querySelector('#vecPropFillChk')?.addEventListener('change', (e) => {
+      const fillOn = Boolean(e.target.checked);
+      patchSelectedStyle(fillOn ? { fill: true } : { fill: false, stroke: true });
+    });
+    styleBlock.querySelector('#vecPropStrokeChk')?.addEventListener('change', (e) => {
+      const strokeOn = Boolean(e.target.checked);
+      patchSelectedStyle(strokeOn ? { stroke: true } : { stroke: false, fill: true });
+    });
+    styleBlock.querySelector('#vecPropStrokeW')?.addEventListener('change', (e) => {
+      const w = Math.max(0.005, Math.min(1, parseFloat(e.target.value) || 0.08));
+      patchSelectedStyle({ strokeWeight: w });
+    });
+    styleBlock.querySelector('#vecPropStrokeCap')?.addEventListener('change', (e) => {
+      patchSelectedStyle({ strokeCap: e.target.value });
+    });
+    styleBlock.querySelector('#vecPropFillRule')?.addEventListener('change', (e) => {
+      patchSelectedStyle({ fillRule: e.target.value });
+    });
+    styleBlock.querySelectorAll('[data-sw-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        patchSelectedStyle({ stroke: true, strokeWeight: parseFloat(btn.dataset.swPreset) });
+      });
+    });
+    container.appendChild(styleBlock);
+
+    // 5. Contextual Geometry Inspector for Single Selected Shape
+    if (selected.length === 1) {
+      const sh = primary;
+      const geoBlock = document.createElement('div');
+      geoBlock.className = 'vec-props-subblock';
+      const deg = (rad) => Number((((Number(rad) || 0) * 180) / Math.PI).toFixed(1));
+      const fmt = (n) => Number((Number(n) || 0).toFixed(4));
+
+      if (sh.type === 'rect') {
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title">Geometria • Retângulo</div>
+          <div class="vec-props-grid">
+            <div class="vec-prop-field"><label>X</label><input type="number" step="0.05" data-sprop="x" value="${fmt(sh.x)}"></div>
+            <div class="vec-prop-field"><label>Y</label><input type="number" step="0.05" data-sprop="y" value="${fmt(sh.y)}"></div>
+            <div class="vec-prop-field"><label>L (W)</label><input type="number" step="0.05" min="0.01" data-sprop="w" value="${fmt(sh.w)}"></div>
+            <div class="vec-prop-field"><label>A (H)</label><input type="number" step="0.05" min="0.01" data-sprop="h" value="${fmt(sh.h)}"></div>
+            <div class="vec-prop-field"><label>Raio</label><input type="number" step="0.02" min="0" data-sprop="radius" value="${fmt(sh.radius)}"></div>
+            <div class="vec-prop-field"><label>Giro°</label><input type="number" step="15" data-sdeg="rotation" value="${deg(sh.rotation)}"></div>
+          </div>
+        `;
+      } else if (sh.type === 'ellipse') {
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title">Geometria • Elipse</div>
+          <div class="vec-props-grid">
+            <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
+            <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
+            <div class="vec-prop-field"><label>RX</label><input type="number" step="0.05" min="0.01" data-sprop="rx" value="${fmt(sh.rx)}"></div>
+            <div class="vec-prop-field"><label>RY</label><input type="number" step="0.05" min="0.01" data-sprop="ry" value="${fmt(sh.ry ?? sh.rx)}"></div>
+            <div class="vec-prop-field"><label>Giro°</label><input type="number" step="15" data-sdeg="rotation" value="${deg(sh.rotation)}"></div>
+          </div>
+        `;
+      } else if (sh.type === 'polygon') {
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title">Geometria • Polígono / Estrela</div>
+          <div class="vec-props-grid">
+            <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
+            <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
+            <div class="vec-prop-field"><label>RX</label><input type="number" step="0.05" min="0.01" data-sprop="rx" value="${fmt(sh.rx)}"></div>
+            <div class="vec-prop-field"><label>RY</label><input type="number" step="0.05" min="0.01" data-sprop="ry" value="${fmt(sh.ry ?? sh.rx)}"></div>
+            <div class="vec-prop-field"><label>Lados</label><input type="number" step="1" min="3" max="16" data-sint="sides" value="${sh.sides || 5}"></div>
+            <div class="vec-prop-field"><label>Estrela</label><input type="number" step="0.05" min="0" max="0.95" data-sprop="starRatio" value="${fmt(sh.starRatio)}"></div>
+            <div class="vec-prop-field"><label>Giro°</label><input type="number" step="15" data-sdeg="rotation" value="${deg(sh.rotation)}"></div>
+          </div>
+        `;
+      } else if (sh.type === 'arc') {
+        const modeVal = sh.mode || 'pie';
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title">Geometria • Arco / Fita Anular</div>
+          <div class="vec-props-grid">
+            <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
+            <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
+            <div class="vec-prop-field"><label>RX</label><input type="number" step="0.05" min="0.01" data-sprop="rx" value="${fmt(sh.rx)}"></div>
+            <div class="vec-prop-field"><label>RY</label><input type="number" step="0.05" min="0.01" data-sprop="ry" value="${fmt(sh.ry ?? sh.rx)}"></div>
+            <div class="vec-prop-field"><label>Furo</label><input type="number" step="0.05" min="0" max="0.95" data-sprop="innerRatio" value="${fmt(sh.innerRatio)}"></div>
+            <div class="vec-prop-field"><label>Modo</label>
+              <select data-sstr="mode">
+                <option value="pie" ${modeVal === 'pie' ? 'selected' : ''}>Setor</option>
+                <option value="chord" ${modeVal === 'chord' ? 'selected' : ''}>Corda</option>
+                <option value="open" ${modeVal === 'open' ? 'selected' : ''}>Aberto</option>
+              </select>
+            </div>
+            <div class="vec-prop-field"><label>Início°</label><input type="number" step="15" data-sdeg="start" value="${deg(sh.start)}"></div>
+            <div class="vec-prop-field"><label>Fim°</label><input type="number" step="15" data-sdeg="end" value="${deg(sh.end)}"></div>
+          </div>
+        `;
+      } else if (sh.type === 'line') {
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title">Geometria • Linha</div>
+          <div class="vec-props-grid">
+            <div class="vec-prop-field"><label>X1</label><input type="number" step="0.05" data-sprop="x1" value="${fmt(sh.x1)}"></div>
+            <div class="vec-prop-field"><label>Y1</label><input type="number" step="0.05" data-sprop="y1" value="${fmt(sh.y1)}"></div>
+            <div class="vec-prop-field"><label>X2</label><input type="number" step="0.05" data-sprop="x2" value="${fmt(sh.x2)}"></div>
+            <div class="vec-prop-field"><label>Y2</label><input type="number" step="0.05" data-sprop="y2" value="${fmt(sh.y2)}"></div>
+          </div>
+        `;
+      } else if (sh.type === 'path') {
+        const contours = Array.isArray(sh.contours) ? sh.contours : (Array.isArray(sh.nodes) ? [sh.nodes] : []);
+        const totalNodes = contours.reduce((acc, c) => acc + c.length, 0);
+        const selNode = ve.state.selectedNodes.find((r) => r.shapeId === sh.id);
+        const ndObj = selNode && contours[selNode.contourIdx] ? contours[selNode.contourIdx][selNode.nodeIdx] : null;
+
+        geoBlock.innerHTML = `
+          <div class="vec-subblock-title"><span>Caminho Bezier (${totalNodes} nós)</span></div>
+          <div class="vec-style-toggles">
+            <label class="vec-check-chip"><input type="checkbox" id="vecPropPathClosed" ${sh.closed !== false ? 'checked' : ''}><span>Contorno Fechado</span></label>
+          </div>
+          ${ndObj ? `
+            <div class="vec-props-grid" style="margin-top:3px;">
+              <div class="vec-prop-field"><label>Nó X</label><input type="number" step="0.02" id="vecPropNodeX" value="${fmt(ndObj.x)}"></div>
+              <div class="vec-prop-field"><label>Nó Y</label><input type="number" step="0.02" id="vecPropNodeY" value="${fmt(ndObj.y)}"></div>
+            </div>
+            <div class="vec-inline-actions" style="margin-top:3px;">
+              <button type="button" class="mini-btn" id="btnVecToggleSmooth">Alternar Canto/Suave</button>
+              <button type="button" class="mini-btn" id="btnVecSubdivideSeg">+ Subdividir</button>
+            </div>
+          ` : '<div class="vec-empty-hint">Use Nós (A) para arrastar vértices, alças Bezier ou Alt+Clique para inserir nós.</div>'}
+        `;
+
+        geoBlock.querySelector('#vecPropPathClosed')?.addEventListener('change', (e) => {
+          const closedOn = Boolean(e.target.checked);
+          patchSelectedStyle(closedOn ? { closed: true } : { closed: false, fill: false, stroke: true });
+        });
+        if (ndObj && selNode) {
+          const updateNodeCoord = () => {
+            const nx = parseFloat(geoBlock.querySelector('#vecPropNodeX')?.value);
+            const ny = parseFloat(geoBlock.querySelector('#vecPropNodeY')?.value);
+            if (Number.isNaN(nx) || Number.isNaN(ny)) return;
+            const nextShapes = shapes.map((item) => {
+              if (!item || item.id !== sh.id) return JSON.parse(JSON.stringify(item));
+              const clone = JSON.parse(JSON.stringify(item));
+              if (!Array.isArray(clone.contours) && Array.isArray(clone.nodes)) {
+                clone.contours = [clone.nodes];
+                delete clone.nodes;
+              }
+              if (clone.contours[selNode.contourIdx] && clone.contours[selNode.contourIdx][selNode.nodeIdx]) {
+                clone.contours[selNode.contourIdx][selNode.nodeIdx].x = nx;
+                clone.contours[selNode.contourIdx][selNode.nodeIdx].y = ny;
+              }
+              return clone;
+            });
+            commitFamilyShapes(famDoc.id, nextShapes);
+          };
+          geoBlock.querySelector('#vecPropNodeX')?.addEventListener('change', updateNodeCoord);
+          geoBlock.querySelector('#vecPropNodeY')?.addEventListener('change', updateNodeCoord);
+
+          geoBlock.querySelector('#btnVecToggleSmooth')?.addEventListener('click', () => {
+            const nextShapes = shapes.map((item) =>
+              (item && item.id === sh.id)
+                ? ve.togglePathNodeSmooth(item, selNode.contourIdx, selNode.nodeIdx)
+                : JSON.parse(JSON.stringify(item))
+            );
+            commitFamilyShapes(famDoc.id, nextShapes);
+          });
+          geoBlock.querySelector('#btnVecSubdivideSeg')?.addEventListener('click', () => {
+            const nextShapes = shapes.map((item) =>
+              (item && item.id === sh.id)
+                ? ve.subdividePathSegment(item, selNode.contourIdx, selNode.nodeIdx, 0.5)
+                : JSON.parse(JSON.stringify(item))
+            );
+            commitFamilyShapes(famDoc.id, nextShapes);
+          });
+        }
+      }
+
+      const applyGeoField = (inp) => {
+        const patch = {};
+        if (inp.dataset.sprop) {
+          const val = parseFloat(inp.value);
+          if (Number.isNaN(val)) return;
+          if (inp.dataset.sprop === 'starRatio' && val <= 0) {
+            patch.starRatio = undefined;
+          } else {
+            patch[inp.dataset.sprop] = val;
+          }
+        } else if (inp.dataset.sint) {
+          patch[inp.dataset.sint] = Math.max(3, Math.min(16, parseInt(inp.value, 10) || 3));
+        } else if (inp.dataset.sdeg) {
+          const degVal = parseFloat(inp.value) || 0;
+          patch[inp.dataset.sdeg] = (degVal * Math.PI) / 180;
+        } else if (inp.dataset.sstr) {
+          patch[inp.dataset.sstr] = inp.value;
+          if (inp.dataset.sstr === 'mode' && inp.value === 'open') {
+            patch.fill = false;
+            patch.stroke = true;
+          }
+        }
+        const nextShapes = shapes.map((item) => {
+          if (!item || item.id !== sh.id) return JSON.parse(JSON.stringify(item));
+          const updated = { ...JSON.parse(JSON.stringify(item)), ...patch };
+          if (sh.type === 'polygon' && (patch.sides !== undefined || patch.starRatio !== undefined || patch.rx !== undefined || patch.ry !== undefined)) {
+            delete updated.points;
+          }
+          if (patch.starRatio === undefined && inp.dataset.sprop === 'starRatio') {
+            delete updated.starRatio;
+          }
+          return updated;
+        });
+        commitFamilyShapes(famDoc.id, nextShapes);
+      };
+
+      geoBlock.querySelectorAll('[data-sprop],[data-sint],[data-sdeg],[data-sstr]').forEach((inp) => {
+        inp.addEventListener('change', () => applyGeoField(inp));
+      });
+
+      if (geoBlock.innerHTML.trim()) {
+        container.appendChild(geoBlock);
+      }
+    }
+  }
+
   function refresh() {
     if (typeof document === 'undefined') return;
     ensureValidSelection();
     renderTopBarControls();
     renderLeftPaneState();
+    renderShapePropsPanel();
     renderD4LivePanel();
     renderLibraryManagerTree();
   }
 
   // ==========================================================================
-  // Viewport Master & Ghost Neighbors Canvas Renderer
+  // Viewport Master & Ghost Neighbors Canvas Renderer + Interactive Pointer Map
   // ==========================================================================
 
   function renderViewport(p, studioState) {
-    const { reg, d4, vr } = resolveDeps();
+    const { reg, d4, vr, ve } = resolveDeps();
     if (!p || !studioState || !reg) return;
 
     const W = studioState.width || p.width || 800;
@@ -1483,6 +2169,7 @@
     const startX = (W - gridW) / 2;
     const startY = (H - gridH) / 2;
     const padPx = cellSide * (studioState.paddingRatio || 0);
+    const innerSide = Math.max(1, cellSide - padPx * 2);
 
     // Artboard surface fill using user's BG color
     p.push();
@@ -1491,31 +2178,33 @@
     p.rect(startX, startY, gridW, gridH);
     p.pop();
 
-    const fgBase = p.color(studioState.fgColor || '#e2e0dc');
+    const hasColorFn = typeof p.color === 'function';
+    const fgBase = hasColorFn ? p.color(studioState.fgColor || '#e2e0dc') : (studioState.fgColor || '#e2e0dc');
     let fgGhost;
-    if (typeof p.red === 'function' && typeof p.green === 'function' && typeof p.blue === 'function') {
+    if (hasColorFn && typeof p.red === 'function' && typeof p.green === 'function' && typeof p.blue === 'function') {
       fgGhost = p.color(p.red(fgBase), p.green(fgBase), p.blue(fgBase), 84);
     } else {
       const hex = String(studioState.fgColor || '#e2e0dc').replace('#', '');
       const r = parseInt(hex.slice(0, 2), 16) || 226;
       const g = parseInt(hex.slice(2, 4), 16) || 224;
       const b = parseInt(hex.slice(4, 6), 16) || 220;
-      fgGhost = p.color(r, g, b, 84);
+      fgGhost = hasColorFn ? p.color(r, g, b, 84) : `rgba(${r}, ${g}, ${b}, 0.33)`;
     }
 
+    const activeShapes = ve ? ve.getActiveShapesForFamily(famDoc) : (famDoc.shapes || []);
     let masterRect = null;
 
-    // Render each preview cell
+    // Render each preview cell (including live draft shapes across all 3x3 / 2x2 ghost neighbors!)
     for (const cell of layout.cells) {
       const cx = startX + (cell.col + 0.5) * cellSide;
       const cy = startY + (cell.row + 0.5) * cellSide;
 
       if (cell.isMaster) {
-        masterRect = { cx, cy, side: cellSide };
+        masterRect = { cx, cy, side: cellSide, innerSide, transform: selectedTransform };
       }
 
       if (!fam.isCanonicalEmpty && vr && typeof vr.renderNormalizedShapes === 'function') {
-        const visibleShapes = (famDoc.shapes || []).filter((s) => s && s.visible !== false);
+        const visibleShapes = (activeShapes || []).filter((s) => s && s.visible !== false);
         p.push();
         p.translate(cx, cy);
         if (d4 && typeof d4.applyD4ToContext === 'function') {
@@ -1551,28 +2240,29 @@
 
     uiState.lastMasterCellRect = masterRect;
 
-    // Guides & overlays on the active master cell
+    // Guides & interactive VectorEditor overlays on the active master cell
     if (masterRect) {
       const { cx, cy, side } = masterRect;
       const half = side / 2;
-      const innerSide = Math.max(0, side - padPx * 2);
       const innerHalf = innerSide / 2;
+      const gridDiv = ve ? ve.state.gridDiv : 6;
 
       p.push();
       p.translate(cx, cy);
       p.noFill();
 
-      // 1. Subtile Normalized Grid (1/6 & 1/4 divisions inside drawable area)
-      if (uiState.guides.showGrid && innerSide > 12) {
+      // 1. Subtile Normalized Magnetic Grid (dynamic division 2/3/4/6/8/12/16)
+      if (uiState.guides.showGrid && innerSide > 12 && gridDiv >= 2) {
         p.stroke(148, 163, 184, 34);
         p.strokeWeight(0.8);
-        for (let k = -2; k <= 2; k++) {
-          if (k === 0) continue;
-          const pos6 = (k / 6) * innerSide;
-          p.line(pos6, -innerHalf, pos6, innerHalf);
-          p.line(-innerHalf, pos6, innerHalf, pos6);
+        for (let k = 1; k < gridDiv; k++) {
+          const frac = -0.5 + k / gridDiv;
+          if (Math.abs(frac) < 1e-6) continue;
+          const pos = frac * innerSide;
+          p.line(pos, -innerHalf, pos, innerHalf);
+          p.line(-innerHalf, pos, innerHalf, pos);
         }
-        p.stroke(56, 189, 248, 45);
+        p.stroke(56, 189, 248, 42);
         for (const frac of [-1 / 6, 1 / 6]) {
           const pos3 = frac * innerSide;
           p.line(pos3, -innerHalf, pos3, innerHalf);
@@ -1619,12 +2309,11 @@
         for (const off of portOffsets) {
           const d = off * innerSide;
           const isCenter = off === 0;
-          p.stroke(isCenter ? p.color(52, 211, 153, 210) : p.color(56, 189, 248, 210));
+          if (isCenter) p.stroke(52, 211, 153, 210);
+          else p.stroke(56, 189, 248, 210);
           p.strokeWeight(isCenter ? 2 : 1.6);
-          // Top & Bottom edges
           p.line(d, -innerHalf - tickLen * 0.5, d, -innerHalf + tickLen * 0.5);
           p.line(d, innerHalf - tickLen * 0.5, d, innerHalf + tickLen * 0.5);
-          // Left & Right edges
           p.line(-innerHalf - tickLen * 0.5, d, -innerHalf + tickLen * 0.5, d);
           p.line(innerHalf - tickLen * 0.5, d, innerHalf + tickLen * 0.5, d);
         }
@@ -1635,24 +2324,157 @@
       p.strokeWeight(1.6);
       p.rect(-half, -half, side, side);
 
+      // 6. Interactive Vector Editor Overlay (BBox handles, Bezier nodes/tangents, Pen & Snap crosshairs)
+      if (ve && typeof ve.renderEditorOverlay === 'function') {
+        p.push();
+        if (d4 && typeof d4.applyD4ToContext === 'function') {
+          d4.applyD4ToContext(p, selectedTransform);
+        }
+        ve.renderEditorOverlay(p, innerSide, activeShapes, Boolean(fam.builtIn || fam.protected));
+        p.pop();
+      }
+
       p.pop();
     }
   }
 
-  function handleViewportMouseMoved(mx, my, studioState) {
-    if (!isTilesMode(studioState) || !uiState.lastMasterCellRect) return false;
+  function screenToNormalizedMaster(mx, my, studioState) {
+    const { d4, vr } = resolveDeps();
+    if (!uiState.lastMasterCellRect) return null;
     const scale = (studioState.zoomPercent || 100) / 100;
     const lx = mx / scale;
     const ly = my / scale;
-    const { cx, cy, side } = uiState.lastMasterCellRect;
-    const half = side / 2;
+    const { cx, cy, side, innerSide, transform } = uiState.lastMasterCellRect;
+    const effInner = innerSide || side;
 
-    if (lx >= cx - half && lx <= cx + half && ly >= cy - half && ly <= cy + half) {
-      const nx = (lx - cx) / Math.max(1, side);
-      const ny = (ly - cy) / Math.max(1, side);
-      uiState.hoverNorm = { nx, ny };
+    const rawU = (lx - cx) / Math.max(1, effInner);
+    const rawV = (ly - cy) / Math.max(1, effInner);
+    const invT = (d4 && d4.INVERSE_MAP && d4.INVERSE_MAP[transform]) || 'id';
+    const [u, v] = vr && typeof vr.transformPointD4 === 'function'
+      ? vr.transformPointD4(rawU, rawV, invT)
+      : [rawU, rawV];
+
+    const half = side / 2;
+    const insideCell = lx >= cx - half && lx <= cx + half && ly >= cy - half && ly <= cy + half;
+    const hitRadiusNorm = Math.max(0.018, Math.min(0.045, 9 / Math.max(80, effInner * scale)));
+
+    return { u, v, insideCell, hitRadiusNorm };
+  }
+
+  function handleViewportMouseDown(mx, my, e, studioState) {
+    const { ve } = resolveDeps();
+    if (!isTilesMode(studioState) || !ve || (e && e.button !== 0)) return false;
+
+    const mapped = screenToNormalizedMaster(mx, my, studioState);
+    if (!mapped) return false;
+
+    const famDoc = getSelectedFamilyDoc();
+    if (!famDoc) return false;
+
+    const mods = {
+      shiftKey: Boolean(e && e.shiftKey),
+      altKey: Boolean(e && e.altKey),
+      ctrlKey: Boolean(e && e.ctrlKey),
+      metaKey: Boolean(e && e.metaKey)
+    };
+
+    const res = ve.onPointerDown(mapped.u, mapped.v, mods, famDoc, mapped.hitRadiusNorm);
+    if (res.readOnlyBlocked) {
+      if (mapped.insideCell && ve.state.activeTool !== 'select') {
+        notifyToast('Família padrão protegida — clique em "Duplicar p/ Editar" (Ctrl+D) para desenhar.', 'info');
+      }
+      return true;
+    }
+
+    if (res.commitShapes) {
+      commitFamilyShapes(famDoc.id, res.commitShapes);
     } else {
-      uiState.hoverNorm = null;
+      renderShapePropsPanel(true);
+      requestHostRedraw();
+    }
+    return Boolean(res.handled);
+  }
+
+  function handleViewportMouseDragged(mx, my, studioState) {
+    const { ve } = resolveDeps();
+    if (!isTilesMode(studioState) || !ve) return false;
+
+    const mapped = screenToNormalizedMaster(mx, my, studioState);
+    if (!mapped) return false;
+
+    uiState.hoverNorm = mapped.insideCell ? { nx: mapped.u, ny: mapped.v } : null;
+    const famDoc = getSelectedFamilyDoc();
+    if (!famDoc) return false;
+
+    const mods = {
+      shiftKey: Boolean(studioState.isShiftDown),
+      altKey: Boolean(studioState.isAltDown || (typeof window !== 'undefined' && window.keyIsDown && window.keyIsDown(18))),
+      metaKey: false
+    };
+
+    const changed = ve.onPointerMove(mapped.u, mapped.v, mods, famDoc, mapped.hitRadiusNorm);
+    if (changed) {
+      if (ve.state.workingShapes) {
+        updateLiveDragD4Preview(ve.state.workingShapes, famDoc.clipToTile);
+      }
+      if (hostCtx && typeof hostCtx.updateStatusBar === 'function') {
+        hostCtx.updateStatusBar();
+      }
+      requestHostRedraw();
+    }
+    return changed;
+  }
+
+  function handleViewportMouseUp(_mx, _my, _e, studioState) {
+    const { ve } = resolveDeps();
+    if (!isTilesMode(studioState) || !ve) return false;
+    const famDoc = getSelectedFamilyDoc();
+    if (!famDoc) return false;
+
+    const res = ve.onPointerUp(famDoc);
+    if (res.commitShapes) {
+      commitFamilyShapes(famDoc.id, res.commitShapes);
+      return true;
+    }
+    renderShapePropsPanel(true);
+    renderD4LivePanel();
+    requestHostRedraw();
+    return false;
+  }
+
+  function handleViewportDoubleClick(mx, my, studioState) {
+    const { ve } = resolveDeps();
+    if (!isTilesMode(studioState) || !ve) return false;
+    const mapped = screenToNormalizedMaster(mx, my, studioState);
+    if (!mapped || !mapped.insideCell) return false;
+
+    const famDoc = getSelectedFamilyDoc();
+    if (!famDoc || famDoc.builtIn || famDoc.protected) return false;
+
+    const res = ve.onDoubleClick(mapped.u, mapped.v, famDoc, mapped.hitRadiusNorm);
+    if (res.switchedTool) {
+      setVectorTool(res.switchedTool);
+      return true;
+    }
+    if (res.commitShapes) {
+      commitFamilyShapes(famDoc.id, res.commitShapes);
+      return true;
+    }
+    return false;
+  }
+
+  function handleViewportMouseMoved(mx, my, studioState) {
+    const { ve } = resolveDeps();
+    if (!isTilesMode(studioState) || !uiState.lastMasterCellRect) return false;
+    const mapped = screenToNormalizedMaster(mx, my, studioState);
+    if (!mapped) return false;
+
+    uiState.hoverNorm = mapped.insideCell ? { nx: mapped.u, ny: mapped.v } : null;
+
+    const famDoc = getSelectedFamilyDoc();
+    if (ve && famDoc && !famDoc.builtIn && ve.state.activeTool === 'pen' && ve.state.penSession) {
+      ve.onPointerMove(mapped.u, mapped.v, { shiftKey: Boolean(studioState.isShiftDown) }, famDoc, mapped.hitRadiusNorm);
+      requestHostRedraw();
     }
 
     if (hostCtx && typeof hostCtx.updateStatusBar === 'function') {
@@ -1662,7 +2484,7 @@
   }
 
   function getStatusBarTexts(studioState) {
-    const { reg } = resolveDeps();
+    const { reg, ve } = resolveDeps();
     const fam = ensureValidSelection();
     if (!fam || !reg) {
       return {
@@ -1688,11 +2510,12 @@
     if (uiState.hoverNorm) {
       const xStr = uiState.hoverNorm.nx >= 0 ? `+${uiState.hoverNorm.nx.toFixed(3)}` : uiState.hoverNorm.nx.toFixed(3);
       const yStr = uiState.hoverNorm.ny >= 0 ? `+${uiState.hoverNorm.ny.toFixed(3)}` : uiState.hoverNorm.ny.toFixed(3);
-      hover = `Coordenada Normalizada: <strong>(${xStr}, ${yStr})</strong> • Duplo-clique numa variante D4 para pintar no Mosaico`;
+      const toolTag = ve ? ` • Ferramenta: <strong>${ve.state.activeTool.toUpperCase()}</strong>` : '';
+      hover = `Coordenada Normalizada: <strong>(${xStr}, ${yStr})</strong>${toolTag} • Duplo-clique numa variante D4 para pintar no Mosaico`;
     } else if (fam.builtIn) {
-      hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Duplicar p/ Editar</strong> para criar versão customizada`;
+      hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Duplicar p/ Editar</strong> (Ctrl+D) para desenhar livremente`;
     } else {
-      hover = `Família customizada editável • Arraste grupos/famílias à direita para organizar ou exporte em <strong>.json</strong>`;
+      hover = `Editor Vetorial ativo • V Seleção | A Nós | P Caneta | M Retâng. | L Elipse | G Polígono | U Arco/Fita | \\ Linha`;
     }
 
     return { artboard, grid, hover };
@@ -1711,7 +2534,7 @@
     }
     uiState.initialized = true;
 
-    const { store } = resolveDeps();
+    const { store, ve } = resolveDeps();
 
     // Mode toggle buttons
     document.getElementById('btnStudioTilesMode')?.addEventListener('click', () => {
@@ -1724,6 +2547,12 @@
     // Top bar controls in Tiles Mode
     document.getElementById('btnTileTopDuplicate')?.addEventListener('click', () => {
       handleDuplicateFamily(uiState.selectedFamilyId);
+    });
+    document.getElementById('btnVecUndo')?.addEventListener('click', () => {
+      handleVecUndo();
+    });
+    document.getElementById('btnVecRedo')?.addEventListener('click', () => {
+      handleVecRedo();
     });
 
     document.querySelectorAll('#tilePreviewModeGroup [data-tile-preview]').forEach((btn) => {
@@ -1741,7 +2570,12 @@
       const fam = getSelectedFamilyMeta();
       const famDoc = getSelectedFamilyDoc();
       if (!fam || !famDoc || fam.builtIn || fam.protected || !store) return;
-      store.updateFamily(fam.id, { clipToTile: !famDoc.clipToTile });
+      if (ve) ve.ensureFamilyHistory(fam.id, famDoc);
+      const nextClip = !famDoc.clipToTile;
+      const res = store.updateFamily(fam.id, { clipToTile: nextClip });
+      if (ve && res && res.family) {
+        ve.recordFamilySnapshot(fam.id, res.family.shapes, res.family.clipToTile);
+      }
       refresh();
       requestHostRedraw();
     });
@@ -1751,6 +2585,29 @@
       if (!fam) return;
       const tid = fam.tileIds[uiState.selectedVariantIndex] ?? fam.tileIds[0];
       closeTilesStudio({ paintWithTileId: tid });
+    });
+
+    // Vector Tool Buttons & Magnetic Snap Controls in Left Pane
+    document.querySelectorAll('#vecToolsGrid [data-vec-tool]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setVectorTool(btn.dataset.vecTool || 'select');
+      });
+    });
+
+    document.getElementById('btnTileSnapToggle')?.addEventListener('click', () => {
+      if (!ve) return;
+      ve.state.snapEnabled = !ve.state.snapEnabled;
+      renderLeftPaneState();
+      renderShapePropsPanel(true);
+      notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
+    });
+
+    document.getElementById('tileGridDivSelect')?.addEventListener('change', (e) => {
+      if (!ve) return;
+      ve.state.gridDiv = parseInt(e.target.value, 10) || 0;
+      renderLeftPaneState();
+      renderShapePropsPanel(true);
+      requestHostRedraw();
     });
 
     // Left rail quick actions & guide toggles in Tiles Mode
@@ -1941,26 +2798,100 @@
       return false;
     }
 
-    // Inside Tiles Studio Mode: allow viewport pan/zoom & Escape, isolate Mosaic-mutating shortcuts!
+    const { ve } = resolveDeps();
+    const famDoc = getSelectedFamilyDoc();
+    const isEditable = Boolean(famDoc && !famDoc.builtIn && !famDoc.protected && ve);
+
+    // Enter commits an active open Pen path
+    if (e.key === 'Enter' && isEditable && ve.state.penSession) {
+      e.preventDefault();
+      const committed = ve.finalizePenPath(famDoc, false);
+      if (committed) commitFamilyShapes(famDoc.id, committed);
+      return true;
+    }
+
+    // Progressive Escape: 1) finish/cancel Pen -> 2) clear vector selection -> 3) return to Mosaic
     if (e.key === 'Escape') {
       e.preventDefault();
+      if (isEditable && ve.state.penSession) {
+        const committed = ve.finalizePenPath(famDoc, false);
+        if (committed) commitFamilyShapes(famDoc.id, committed);
+        else {
+          renderShapePropsPanel(true);
+          requestHostRedraw();
+        }
+        return true;
+      }
+      if (ve && (ve.state.selectedShapeIds.length > 0 || ve.state.selectedNodes.length > 0)) {
+        ve.state.selectedShapeIds = [];
+        ve.state.selectedNodes = [];
+        renderShapePropsPanel(true);
+        requestHostRedraw();
+        return true;
+      }
       closeTilesStudio();
       return true;
     }
 
+    // Ctrl / Cmd shortcuts inside Subtile Studio
     if (e.ctrlKey || e.metaKey) {
       const k = e.key.toLowerCase();
       if (k === '1' || k === '0') {
         return false; // Let sketch.js handle zoom 100% / fit to window
       }
-      if (k === 'd') {
+      if (k === 'z' && !e.shiftKey) {
         e.preventDefault();
-        handleDuplicateFamily(uiState.selectedFamilyId);
+        handleVecUndo();
         return true;
       }
-      // Block Mosaic Ctrl+Z / Ctrl+Y / Ctrl+U while in Tiles Studio (Fase C wires VectorEditor Undo/Redo here)
-      if (k === 'z' || k === 'y' || k === 'u') {
+      if (k === 'y' || (k === 'z' && e.shiftKey)) {
         e.preventDefault();
+        handleVecRedo();
+        return true;
+      }
+      if (k === 'c' && isEditable) {
+        e.preventDefault();
+        const copied = ve.copySelectedShapes(famDoc.shapes || [], ve.state.selectedShapeIds);
+        if (copied.length > 0) notifyToast(`${copied.length} forma(s) copiada(s).`);
+        return true;
+      }
+      if (k === 'v' && isEditable) {
+        e.preventDefault();
+        const pasted = ve.pasteFromClipboard(famDoc.shapes || []);
+        if (pasted.newIds.length > 0) {
+          ve.state.selectedShapeIds = pasted.newIds;
+          commitFamilyShapes(famDoc.id, pasted.shapes);
+        }
+        return true;
+      }
+      if (k === 'd') {
+        e.preventDefault();
+        if (isEditable && ve.state.selectedShapeIds.length > 0) {
+          const dup = ve.duplicateSelectedShapes(famDoc.shapes || [], ve.state.selectedShapeIds);
+          if (dup.newIds.length > 0) {
+            ve.state.selectedShapeIds = dup.newIds;
+            commitFamilyShapes(famDoc.id, dup.shapes);
+          }
+        } else {
+          handleDuplicateFamily(uiState.selectedFamilyId);
+        }
+        return true;
+      }
+      if (k === 'a' && isEditable) {
+        e.preventDefault();
+        ve.state.selectedShapeIds = (famDoc.shapes || [])
+          .filter((s) => s && !s.locked && s.visible !== false)
+          .map((s) => s.id);
+        renderShapePropsPanel(true);
+        requestHostRedraw();
+        return true;
+      }
+      if (k === 'u' && ve) {
+        e.preventDefault();
+        ve.state.snapEnabled = !ve.state.snapEnabled;
+        renderLeftPaneState();
+        renderShapePropsPanel(true);
+        notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
         return true;
       }
       return false;
@@ -1974,6 +2905,106 @@
     // Allow H (pan), Z (zoom), 0 (fit), 1 (100%) to pass through to sketch.js viewport helpers
     if (k === 'h' || k === 'z' || k === '0' || k === '1' || e.code === 'Digit0' || e.code === 'Digit1') {
       return false;
+    }
+
+    // Vector Tool Single-Key Shortcuts (V, A, P, M, L, G, U, \, ;)
+    if (ve) {
+      const toolKeyMap = {
+        v: 'select',
+        a: 'direct',
+        p: 'pen',
+        m: 'rect',
+        l: 'ellipse',
+        g: 'polygon',
+        u: 'arc',
+        '\\': 'line'
+      };
+      if (toolKeyMap[k]) {
+        e.preventDefault();
+        setVectorTool(toolKeyMap[k]);
+        return true;
+      }
+      if (e.key === ';') {
+        e.preventDefault();
+        ve.state.snapEnabled = !ve.state.snapEnabled;
+        renderLeftPaneState();
+        renderShapePropsPanel(true);
+        notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
+        return true;
+      }
+    }
+
+    // Delete / Backspace removes selected nodes (direct) or selected shapes (select)
+    if ((e.key === 'Delete' || e.key === 'Backspace') && isEditable) {
+      e.preventDefault();
+      if (ve.state.penSession && ve.state.penSession.nodes.length > 0) {
+        ve.state.penSession.nodes.pop();
+        if (ve.state.penSession.nodes.length === 0) {
+          ve.state.penSession = null;
+          ve.state.workingShapes = null;
+          ve.state.workingFamilyId = null;
+        }
+        renderShapePropsPanel(true);
+        requestHostRedraw();
+        return true;
+      }
+      if (ve.state.activeTool === 'direct' && ve.state.selectedNodes.length > 0) {
+        const byShape = new Map();
+        for (const ref of ve.state.selectedNodes) {
+          if (!byShape.has(ref.shapeId)) byShape.set(ref.shapeId, []);
+          byShape.get(ref.shapeId).push(ref);
+        }
+        const nextShapes = [];
+        for (const sh of (famDoc.shapes || [])) {
+          if (!sh || !byShape.has(sh.id)) {
+            nextShapes.push(JSON.parse(JSON.stringify(sh)));
+          } else {
+            const updated = ve.deletePathNodes(sh, byShape.get(sh.id));
+            if (updated) nextShapes.push(updated);
+          }
+        }
+        ve.state.selectedNodes = [];
+        commitFamilyShapes(famDoc.id, nextShapes);
+        return true;
+      }
+      if (ve.state.selectedShapeIds.length > 0) {
+        const sel = new Set(ve.state.selectedShapeIds);
+        const nextShapes = (famDoc.shapes || []).filter((s) => s && !sel.has(s.id));
+        ve.state.selectedShapeIds = [];
+        ve.state.selectedNodes = [];
+        commitFamilyShapes(famDoc.id, nextShapes);
+      }
+      return true;
+    }
+
+    // Arrow key precision nudging in normalized coordinates
+    if (isEditable && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      const baseStep = ve.state.gridDiv > 0 ? (1 / (ve.state.gridDiv * 4)) : 0.01;
+      const step = e.shiftKey ? baseStep * 4 : baseStep;
+      const du = e.key === 'ArrowLeft' ? -step : (e.key === 'ArrowRight' ? step : 0);
+      const dv = e.key === 'ArrowUp' ? -step : (e.key === 'ArrowDown' ? step : 0);
+
+      if (ve.state.activeTool === 'direct' && ve.state.selectedNodes.length > 0) {
+        const byShape = new Map();
+        for (const ref of ve.state.selectedNodes) {
+          if (!byShape.has(ref.shapeId)) byShape.set(ref.shapeId, []);
+          byShape.get(ref.shapeId).push(ref);
+        }
+        const nextShapes = (famDoc.shapes || []).map((sh) =>
+          (sh && byShape.has(sh.id)) ? ve.movePathNodes(sh, byShape.get(sh.id), du, dv) : JSON.parse(JSON.stringify(sh))
+        );
+        commitFamilyShapes(famDoc.id, nextShapes);
+        return true;
+      }
+      if (ve.state.selectedShapeIds.length > 0) {
+        const sel = new Set(ve.state.selectedShapeIds);
+        const nextShapes = (famDoc.shapes || []).map((sh) =>
+          (sh && sel.has(sh.id) && !sh.locked) ? ve.translateShape(sh, du, dv) : JSON.parse(JSON.stringify(sh))
+        );
+        commitFamilyShapes(famDoc.id, nextShapes);
+      }
+      return true;
     }
 
     // Cycle variants within the selected family with [ and ]
@@ -1991,7 +3022,7 @@
       return true;
     }
 
-    // Suppress Mosaic-only single-key shortcuts (G, B, E, F, R, S, V, Q, Tab, ArrowLeft/Right, Delete)
+    // Suppress Mosaic-only single-key shortcuts (B, E, F, R, S, Q, Tab, etc.)
     return true;
   }
 
@@ -2004,7 +3035,16 @@
     closeTilesStudio,
     toggleTilesStudio,
     selectFamily,
+    setVectorTool,
+    commitFamilyShapes,
+    handleVecUndo,
+    handleVecRedo,
     renderViewport,
+    screenToNormalizedMaster,
+    handleViewportMouseDown,
+    handleViewportMouseDragged,
+    handleViewportMouseUp,
+    handleViewportDoubleClick,
     handleViewportMouseMoved,
     getStatusBarTexts,
     handleKeyDown,

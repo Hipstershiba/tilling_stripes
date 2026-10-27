@@ -659,6 +659,12 @@ function setup() {
   // Prevent right-click menu on canvas and bind direct canvas editing
   cnv.elt.addEventListener('contextmenu', (e) => e.preventDefault());
   cnv.elt.addEventListener('mousedown', handleCanvasMouseDown);
+  cnv.elt.addEventListener('dblclick', (e) => {
+    if (StudioState.studioMode === 'tiles' && StudioState.activeTool !== 'pan' && !StudioState.isSpaceDown) {
+      e.preventDefault();
+      window.SubtileStudioUI?.handleViewportDoubleClick(mouseX, mouseY, StudioState);
+    }
+  });
 
   const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
   if (!hasSavedState || StudioState.allowedTiles.size === 0) {
@@ -2289,6 +2295,14 @@ function cycleActiveToolSize(direction) {
 
 function mouseDragged() {
   if (StudioState.studioMode === 'tiles') {
+    if (
+      !StudioState.isPanning &&
+      StudioState.activeTool !== 'pan' &&
+      StudioState.activeTool !== 'zoom' &&
+      !StudioState.isSpaceDown
+    ) {
+      window.SubtileStudioUI?.handleViewportMouseDragged(mouseX, mouseY, StudioState);
+    }
     return;
   }
   const hit = getCanvasHitCell(mouseX, mouseY);
@@ -2393,6 +2407,14 @@ function startCanvasRegionCaptureDrag(hit) {
 
 function handleCanvasMouseDown(e) {
   if (StudioState.studioMode === 'tiles') {
+    if (
+      StudioState.activeTool !== 'pan' &&
+      StudioState.activeTool !== 'zoom' &&
+      !StudioState.isSpaceDown &&
+      e.button === 0
+    ) {
+      window.SubtileStudioUI?.handleViewportMouseDown(mouseX, mouseY, e, StudioState);
+    }
     return;
   }
   if (
@@ -4080,13 +4102,20 @@ function initStudioUI() {
     applyPanTransform();
   });
 
-  window.addEventListener('mouseup', () => {
+  window.addEventListener('mouseup', (e) => {
+    const wasPanning = StudioState.isPanning;
     if (StudioState.isPanning) {
       StudioState.isPanning = false;
       document.body.classList.remove('is-panning');
       if (StudioState.activeTool !== 'pan' && !StudioState.isSpaceDown) {
         pasteboard?.classList.remove('panning');
       }
+    }
+    if (StudioState.studioMode === 'tiles') {
+      if (!wasPanning) {
+        window.SubtileStudioUI?.handleViewportMouseUp(mouseX, mouseY, e, StudioState);
+      }
+      return;
     }
     StudioState.isPaintingMiniBuilder = false;
     if (StudioState.isFreezingDrag) {
@@ -4150,6 +4179,7 @@ function initStudioUI() {
   // --- Illustrator & Editor Keyboard Shortcuts ---
   window.addEventListener('keydown', (e) => {
     StudioState.isShiftDown = Boolean(e.shiftKey);
+    StudioState.isAltDown = Boolean(e.altKey);
     if (e.key === 'Shift') redraw();
     const tag = e.target?.tagName;
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
@@ -4352,6 +4382,10 @@ function initStudioUI() {
 
   window.addEventListener('keyup', (e) => {
     StudioState.isShiftDown = Boolean(e.shiftKey);
+    StudioState.isAltDown = Boolean(e.altKey);
+    if (e.key === 'Alt') {
+      StudioState.isAltDown = false;
+    }
     if (e.key === 'Shift') {
       StudioState.isShiftDown = false;
       redraw();

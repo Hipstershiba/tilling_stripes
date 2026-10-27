@@ -4079,3 +4079,255 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
   min-width: 155px;
 }
 
+/* ==========================================================================
+   FASE C — VECTOR EDITOR TOOLS, SNAP BAR & CONTEXTUAL PROPERTIES PANEL
+   ========================================================================== */
+
+.vec-undo-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.vec-tool-btn.active {
+  background: var(--accent-blue-soft) !important;
+  border-color: var(--accent-blue) !important;
+  color: #93c5fd !important;
+  font-weight: 600;
+}
+
+.vec-snap-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.subtile-grid-select {
+  height: 26px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 10.5px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  padding: 0 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.subtile-grid-select:focus {
+  border-color: var(--accent-cyan);
+}
+
+/* Vector Tool Cursors inside Subtile Studio */
+body[data-studio-mode="tiles"][data-vec-tool="pen"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="rect"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="ellipse"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="polygon"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="arc"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="line"] #canvas-stage canvas {
+  cursor: crosshair;
+}
+
+body[data-studio-mode="tiles"][data-vec-tool="select"] #canvas-stage canvas,
+body[data-studio-mode="tiles"][data-vec-tool="direct"] #canvas-stage canvas {
+  cursor: default;
+}
+
+/* Properties Panel Layout */
+.vec-props-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vec-props-subblock {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.vec-props-subblock:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.vec-subblock-title {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vec-align-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.vec-align-btn {
+  height: 24px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.vec-align-btn:hover:not(:disabled) {
+  background: var(--bg-control-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.vec-align-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.vec-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vec-inline-actions .mini-btn {
+  flex: 1 1 auto;
+  font-size: 10.5px;
+  padding: 3px 6px;
+}
+
+.vec-inline-actions .mini-btn.danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.vec-inline-actions .mini-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fecaca;
+}
+
+.vec-props-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px 6px;
+}
+
+.vec-props-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.vec-prop-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 2px 6px;
+  min-height: 24px;
+}
+
+.vec-prop-field label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.vec-prop-field input[type="number"] {
+  width: 58px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 10.5px;
+  text-align: right;
+  outline: none;
+}
+
+.vec-prop-field select {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 10.5px;
+  outline: none;
+  cursor: pointer;
+  max-width: 90px;
+}
+
+.vec-style-toggles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vec-check-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 2px 7px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vec-check-chip input {
+  margin: 0;
+}
+
+.vec-preset-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.vec-preset-btn {
+  height: 24px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  border-radius: 4px;
+  color: #bae6fd;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.1s ease;
+}
+
+.vec-preset-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #fff;
+}
+
+.vec-empty-hint {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  line-height: 1.38;
+  padding: 4px 2px;
+}
+
+
