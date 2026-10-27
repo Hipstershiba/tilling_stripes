@@ -187,3 +187,14 @@ if (!(inspectIdx > -1 && fgColorIdx > inspectIdx && randomizeIdx > fgColorIdx &&
 console.log('✓ Left toolbar sections ordered: tools → visual guides → colors → generator → history → export.');
 
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');
+
+const workspace = getElementBounds(html, 'workspace-body');
+const status = getElementBounds(html, 'status-bar');
+const shell = getElementBounds(html, 'app-shell');
+if (!(status.startIndex > workspace.endIndex && status.endIndex < shell.endIndex)) {
+  throw new Error('Status controls must span the application below the workspace, outside the canvas column.');
+}
+const pasteboard = getElementBounds(html, 'artboard-pasteboard');
+if (!pasteboard.content.includes('id="editorToast"')) {
+  throw new Error('Editor messages must stay inside the artboard area above the status bar.');
+}

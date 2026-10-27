@@ -70,3 +70,35 @@ assert.equal(tooltip.style.left, '1072px'); assert.equal(tooltip.style.top, '794
 context.handleTooltipLeave({target: trigger, relatedTarget: null});
 assert.equal(hidden, true); assert.equal(attributes['aria-describedby'], 'existingHint');
 console.log('✓ Tooltip title/focus path preserves full text, viewport bounds and prior accessible descriptions.');
+
+// Render the production help and exercise a context change before document dismissal.
+class HelpNode {
+  constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.attributes = {}; this.listeners = {}; }
+  set innerHTML(value) { this.children = []; }
+  appendChild(node) { this.children.push(node); return node; }
+  setAttribute(key, value) { this.attributes[key] = value; }
+  addEventListener(type, callback) { this.listeners[type] = callback; }
+  focus() { this.focused = true; }
+  querySelector(selector) { return this.children.find(node => selector.includes(`"${node.dataset.helpContext}"`)); }
+}
+const helpBody = new HelpNode('body');
+const helpContext = { document: {createElement: tag => new HelpNode(tag)}, popoverBodyEl: helpBody,
+  commands: require('../core/studio_commands.js') };
+vm.createContext(helpContext);
+const helpStart = source.indexOf('  function renderShortcutHelp(');
+vm.runInContext(source.slice(helpStart, source.indexOf('\n  }', helpStart) + 4), helpContext);
+helpContext.renderShortcutHelp('mosaic');
+const flatten = node => [node, ...node.children.flatMap(flatten)];
+let nodes = flatten(helpBody);
+assert(nodes.some(node => node.tag === 'dd' && node.textContent === 'Pincel'));
+assert(!nodes.some(node => node.tag === 'dd' && node.textContent === 'Caneta'));
+let stopped = false;
+helpBody.children[0].children[1].listeners.click({stopPropagation() { stopped = true; }});
+nodes = flatten(helpBody);
+assert(stopped, 'Replacing a context button must not trigger outside-click dismissal');
+assert(nodes.some(node => node.tag === 'dd' && node.textContent === 'Caneta'));
+assert(!nodes.some(node => node.tag === 'dd' && node.textContent === 'Pincel'));
+assert(helpBody.children[0].children[1].focused, 'Focus follows the replacement context button');
+assert.equal(helpBody.children[0].children[1].attributes['aria-pressed'], 'true');
+assert.equal(helpBody.scrollTop, 0);
+console.log('✓ Help separates catalog contexts and keeps the popover open and focused when switching.');

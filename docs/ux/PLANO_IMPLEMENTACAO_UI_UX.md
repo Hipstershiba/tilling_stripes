@@ -752,3 +752,16 @@ SVGs compartilhados em `UiFormat.icon` substituem glifos nos comandos de alinham
 Verificação real em origem isolada `127.0.0.1:8874`, sem alterar a sessão Zen em `5500`: capturas antes/depois do gerador, pincel, biblioteca e propriedades em **1440×900, zoom 100%**. Biblioteca: botões de 19×19→28×28 px, fonte 10,5→12 px; mini-botões 24→32 px e ferramentas vetoriais 26→32 px. Alinhamento: seis SVGs com nome acessível e altura 32 px. Campo vetorial: valor de 13 px dentro da superfície de 32 px. Tooltip de Preservar mostrou a instrução e Shift+F completos, com quebra em 360×41 px e sem overflow. Foco computado: 2 px, deslocamento 2 px, cor `#79adff`. Na viewport de referência, corpo e barra superior mediram 1440 px, sem overflow horizontal. Amostras de texto computado com composição dos fundos: gerador 338 elementos (mínimo 4,86:1), biblioteca 121 (mínimo 4,61:1), inspetor 90/93 (mínimo 4,86:1), sem pares abaixo de 4,5:1 nas amostras. Elementos sem texto, separadores decorativos e controles desabilitados foram excluídos dessa amostra; ícones/bordas usam o teste próprio de indicadores.
 
 Fixture local de estados confirmou hover, seleção, desabilitado opaco, campo inválido com borda de erro, menu, aviso e toast. `test_visual_tokens.js` valida os limites matemáticos e os handlers reais de tooltip (texto integral, limites e restauração ARIA). Gate completo: **49/49 suítes**. Evidências/fixtures/medições em `_local/t07` permanecem ignoradas. README, manual e conhecimento sincronizados. Validação detalhada de rótulos/campos inválidos segue na T08; matriz ampla de tamanhos e zoom segue na T14. Não foi feita avaliação por leitor de tela nem teste de Spout real nesta tarefa.
+
+### Correção da T07 após revisão do usuário — 27/10/2026
+
+A validação inicial não detectou regressões de composição: tamanho mínimo global deformava o Spout, a ajuda misturava ambientes em uma lista extensa e o rodapé ficava comprimido pelo painel lateral. A etapa T08 continua pendente.
+
+- [x] Remover tamanho global de botões e definir geometria por componente; reduzir bordas e manter campos distinguíveis.
+- [x] Corrigir Spout, marcas informativas, espaçamento de importar/exportar e cabeçalhos que precisam quebrar linha.
+- [x] Levar o rodapé para toda a largura; manter mensagens na área de trabalho e barra superior sem corte em janelas menores.
+- [x] Organizar ajuda por ambiente e ferramentas/ações; rolagem apenas no corpo; preservar foco na troca.
+- [x] Revisar gerador, pincel/construtor ampliado, camadas, propriedades, biblioteca, variantes e ajuda em origem isolada. Amostras visuais em 900×768, 1024×768, 1280×800 e 1440×900; controles superiores/inferiores sem corte horizontal na amostra de 900 px.
+- [x] Gate completo: 49/49 suítes; AST e vault sincronizados; correção registrada em commit separado.
+
+Evidências locais em `_local/revisao-t07`, ignoradas pelo Git. A sessão Zen em 5500 foi preservada. Esta revisão não substitui a matriz de zoom/responsividade da T14 nem teste de leitor de tela ou Spout real.

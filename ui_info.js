@@ -314,17 +314,20 @@
 
     const data = INFO_TOPICS[topicKey];
     popoverTitleEl.textContent = data.title;
+    popoverEl.dataset.topic = topicKey;
 
     // Render body bullets safely
     popoverBodyEl.innerHTML = '';
-    if (data.subtitle) {
+    if (topicKey === 'shortcuts' && commands) {
+      renderShortcutHelp(document.body.dataset.studioMode === 'tiles' ? 'tiles' : 'mosaic');
+    } else if (data.subtitle) {
       const sub = document.createElement('p');
       sub.className = 'info-popover-sub';
       sub.textContent = data.subtitle;
       popoverBodyEl.appendChild(sub);
     }
 
-    if (Array.isArray(data.body) && data.body.length > 0) {
+    if (topicKey !== 'shortcuts' && Array.isArray(data.body) && data.body.length > 0) {
       const ul = document.createElement('ul');
       ul.className = 'info-popover-list';
       for (const item of data.body) {
@@ -352,10 +355,55 @@
     popoverCloseBtn?.focus();
   }
 
+  function renderShortcutHelp(context, restoreFocus = false) {
+    popoverBodyEl.innerHTML = '';
+    const choices = document.createElement('div');
+    choices.className = 'help-contexts';
+    for (const [id, label] of [['mosaic', 'Mosaico'], ['tiles', 'Editor de peças']]) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'help-context-button';
+      button.textContent = label; button.dataset.helpContext = id;
+      button.setAttribute('aria-pressed', String(id === context));
+      button.addEventListener('click', event => {
+        event.stopPropagation(); // The context redraw replaces the clicked node before document dismissal.
+        renderShortcutHelp(id, true);
+      });
+      choices.appendChild(button);
+    }
+    popoverBodyEl.appendChild(choices);
+    const toolIds = new Set(commands.tools[context].map(tool => tool[0]));
+    for (const [label, tools] of [['Ferramentas', true], ['Ações', false]]) {
+      const section = document.createElement('section'); section.className = 'help-command-section';
+      const heading = document.createElement('h4'); heading.textContent = label; section.appendChild(heading);
+      const list = document.createElement('dl'); list.className = 'help-command-list';
+      for (const command of commands.definitions.filter(item => item.context === context && item.shortcut && toolIds.has(item.id) === tools)) {
+        const key = document.createElement('dt'); const kbd = document.createElement('kbd');
+        kbd.textContent = command.shortcut; key.appendChild(kbd);
+        const text = document.createElement('dd'); text.textContent = command.name;
+        list.appendChild(key); list.appendChild(text);
+      }
+      section.appendChild(list); popoverBodyEl.appendChild(section);
+    }
+    const notes = document.createElement('div'); notes.className = 'help-gesture-notes';
+    const lines = context === 'mosaic' ? [
+      'Alt+arraste captura. Shift inverte o encaixe; Ctrl+U alterna o encaixe nos blocos.',
+      'Q ou Tab no canvas percorre os escopos; Shift inverte a ordem.',
+      'Espaço move a vista. Ctrl+roda dá zoom; 0 ajusta e 1 retorna a 100%.'
+    ] : [
+      'Enter conclui a Caneta. Escape cancela o gesto ou limpa a seleção.',
+      'Ctrl+D duplica formas selecionadas. Peça protegida: use Criar cópia editável.',
+      'Shift mantém proporção; Alt desenha pelo centro. Ctrl+E volta ao mosaico.'
+    ];
+    for (const line of lines) { const p = document.createElement('p'); p.textContent = line; notes.appendChild(p); }
+    popoverBodyEl.appendChild(notes);
+    popoverBodyEl.scrollTop = 0;
+    if (restoreFocus) choices.querySelector(`[data-help-context="${context}"]`)?.focus();
+  }
+
   function positionPopover(triggerEl) {
     if (!popoverEl) return;
     const padding = 10;
-    const popWidth = Math.min(320, window.innerWidth - padding * 2);
+    const popWidth = Math.min(popoverEl.dataset.topic === 'shortcuts' ? 440 : 360, window.innerWidth - padding * 2);
     popoverEl.style.width = `${popWidth}px`;
 
     if (!triggerEl) {

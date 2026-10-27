@@ -603,60 +603,11 @@
           <div id="canvas-stage" tabindex="0" role="region" aria-label="Área de trabalho: mosaico ou peça">
             <!-- p5.js canvas mounts here -->
           </div>
+          <div id="editorToast" class="editor-toast hidden" role="status" aria-live="polite"></div>
         </div>
 
         <!-- BOTTOM STATUS BAR (A Barra da Visão) -->
-        <footer id="status-bar">
-          <div class="status-left">
-            <div class="zoom-widget">
-              <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
-              <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom" aria-label="Nível de Zoom">
-                <option value="fit">Ajustar à Tela</option>
-                <option value="25">25%</option>
-                <option value="50">50%</option>
-                <option value="75">75%</option>
-                <option value="100" selected>100%</option>
-                <option value="125">125%</option>
-                <option value="150">150%</option>
-                <option value="200">200%</option>
-                <option value="300">300%</option>
-                <option value="400">400%</option>
-              </select>
-              <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
-              <button id="btnFitArtboard" class="status-reset-zoom-btn" title="Ajustar à janela (0)" aria-label="Ajustar à Janela">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:middle;">
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                </svg><span>Ajustar</span>
-              </button>
-              <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Zoom 1:1 e Centralizar (Tecla 1 ou Ctrl+1)" aria-label="Zoom 100%">1:1</button>
-            </div>
-          </div>
 
-          <div class="status-center">
-            <span id="statusArtboardInfo" class="status-item">600 × 600 px</span>
-            <span class="status-sep">|</span>
-            <span id="statusGridInfo" class="status-item">Grade 3 × 3 • 3 Órbitas</span>
-            <span class="status-sep">|</span>
-            <div id="statusHoverInspector" class="status-hover-text">Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria</div>
-          </div>
-
-          <div id="status-right" class="status-right">
-            <span id="saveStatusText" role="status" aria-live="polite">Salvando…</span>
-            <div class="status-spout" aria-label="Saída Spout">
-              <label for="spoutToggle" class="status-spout-label" title="Ligar/desligar a saída Spout">Spout</label>
-              <button type="button" id="spoutToggle" class="switch" role="switch" aria-checked="false"
-                aria-label="Ligar ou desligar a saída Spout" title="Ligar/desligar a saída Spout">
-                <span class="switch-knob"></span>
-              </button>
-              <input type="text" id="spoutName" class="status-spout-name" value="Tiling Stripes"
-                maxlength="60" spellcheck="false" aria-label="Nome da saída Spout"
-                title="Nome do sender Spout">
-              <span id="spoutStatus" class="spout-status" data-state="off"
-                title="Ponte: tools\spout_bridge.cmd">Desligado</span>
-            </div>
-            <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
-          </div>
-        </footer>
       </main>
 
       <!-- RIGHT DOCK PANELS (contextual: generation vs. active tool) -->
@@ -1271,6 +1222,58 @@
 
       </aside>
     </div>
+    <!-- Application-wide view and output status -->
+    <footer id="status-bar">
+      <div class="status-left">
+        <div class="zoom-widget">
+          <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
+          <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom" aria-label="Nível de Zoom">
+            <option value="fit">Ajustar à Tela</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100" selected>100%</option>
+            <option value="125">125%</option>
+            <option value="150">150%</option>
+            <option value="200">200%</option>
+            <option value="300">300%</option>
+            <option value="400">400%</option>
+          </select>
+          <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
+          <button id="btnFitArtboard" class="status-reset-zoom-btn" title="Ajustar à janela (0)" aria-label="Ajustar à Janela">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:middle;">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg><span>Ajustar</span>
+          </button>
+          <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Zoom 1:1 e Centralizar (Tecla 1 ou Ctrl+1)" aria-label="Zoom 100%">1:1</button>
+        </div>
+      </div>
+
+      <div class="status-center">
+        <span id="statusArtboardInfo" class="status-item">600 × 600 px</span>
+        <span class="status-sep">|</span>
+        <span id="statusGridInfo" class="status-item">Grade 3 × 3 • 3 Órbitas</span>
+        <span class="status-sep">|</span>
+        <div id="statusHoverInspector" class="status-hover-text">Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria</div>
+      </div>
+
+      <div id="status-right" class="status-right">
+        <span id="saveStatusText" role="status" aria-live="polite">Salvando…</span>
+        <div class="status-spout" aria-label="Saída Spout">
+          <label for="spoutToggle" class="status-spout-label" title="Ligar/desligar a saída Spout">Spout</label>
+          <button type="button" id="spoutToggle" class="switch" role="switch" aria-checked="false"
+            aria-label="Ligar ou desligar a saída Spout" title="Ligar/desligar a saída Spout">
+            <span class="switch-knob"></span>
+          </button>
+          <input type="text" id="spoutName" class="status-spout-name" value="Tiling Stripes"
+            maxlength="60" spellcheck="false" aria-label="Nome da saída Spout"
+            title="Nome do sender Spout">
+          <span id="spoutStatus" class="spout-status" data-state="off"
+            title="Ponte: tools\spout_bridge.cmd">Desligado</span>
+        </div>
+        <button type="button" id="btnHelp" class="status-help-btn" data-info-topic="shortcuts" data-tooltip="Ajuda e atalhos de teclado (?)" aria-label="Ajuda e atalhos" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">?</button>
+      </div>
+    </footer>
   </div>
 
   <!-- Core Modules -->
@@ -1304,7 +1307,6 @@
     <div id="infoPopoverBody" class="info-popover-body"></div>
   </div>
   <div id="uiTooltip" class="ui-tooltip hidden" role="tooltip"></div>
-  <div id="editorToast" class="editor-toast hidden" role="status" aria-live="polite"></div>
 </body>
 
 </html>
