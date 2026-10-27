@@ -481,6 +481,7 @@ const end = source.indexOf("\n  window.addEventListener('keyup'",begin);
 let keyboard;
 global.addEventListener = (type,fn) => { if(type==='keydown') keyboard=fn; };
 global.setActiveTool=window.activateStudioTool;
+global.mosaicCommandContext = {selectTool: window.activateStudioTool, eraser: window.activateEraser};
 vm.runInThisContext(source.slice(begin,end));
 const press = key => keyboard({key,target:document.getElementById('canvas-stage'),preventDefault(){}});
 window.activateStudioTool('paint');window.selectBrushTile(40);window.setBrushSizeMode('2');

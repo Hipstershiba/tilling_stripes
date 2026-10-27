@@ -247,13 +247,13 @@ Arquivos anteriores da versão 1 (`subtile.js`, `tiles.js`, `supertile.js`, `svg
 
 O dock de Subtiles permite rolagem vertical do conjunto; a biblioteca tem uma lista de 280 px e os grupos não encolhem. Selecionar uma ferramenta vetorial encerra Pan/Zoom; sair do Estúdio restaura a ferramenta anterior do mosaico. A seleção e as sessões temporárias são limpas ao trocar de família.
 
-SVG unitário usa margem zero por padrão, independente do respiro do mosaico. Famílias e camadas aceitam Enter/Espaço; os modais retêm Tab/Shift+Tab e restauram o foco. A importação começa em Mesclar, pede confirmação adicional para Substituir e baixa backup JSON antes de importar/restaurar. SOLO usa a proteção de documento alterado. Miniaturas são reutilizadas enquanto a geometria da família permanece igual.
+SVG unitário usa margem zero por padrão, independente do respiro do mosaico. Famílias e camadas aceitam Enter/Espaço; os modais retêm Tab/Shift+Tab e restauram o foco. A importação começa em Mesclar, pede confirmação adicional para Substituir e baixa backup JSON antes de importar/restaurar. Isolar usa a proteção de documento alterado. Miniaturas são reutilizadas enquanto a geometria da família permanece igual.
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
 Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 45 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
-O botão **Criar subtiles** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
+O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 
 As ferramentas do mosaico usam pares de mesma largura: Inspecionar/Subtiles, Pintar/Girar, Carimbo/Travar e Pan/Zoom. Na edição, grades e eixos globais aparecem apenas pelos botões de Guias Visuais; a prévia mantém a geometria fantasma e o contorno da área de ação, sem uma malha automática sobre as réplicas simétricas.
 
@@ -328,3 +328,12 @@ Falhas permanecem visíveis acima da área de trabalho, inclusive com o dock rec
 A suíte `tests/test_save_status.js` cobre a matriz dos dois armazenamentos, fallback reduzido, rejeições reais, falha da biblioteca com mosaico salvo, recuperação, getters bloqueados, abort após sucesso do pedido, ordem A/B com recarga de B e restauração tardia. A lista completa de testes vem de `tests/run_all.js`.
 
 O histórico de undo/redo do mosaico, das famílias e do editor ampliado de pincel tem limite de 256 estados. A cópia de segurança em localStorage pode reduzir o histórico conforme o orçamento/quota; IndexedDB preserva até 256 estados de edição.
+
+
+### Comandos compartilhados e contextos (T06)
+
+`core/studio_commands.js` reúne nomes, atalhos, contexto, disponibilidade e execução das ações principais. Botões, teclado e ajuda usam o catálogo; os adaptadores em `sketch.js` e `core/subtile_studio_ui.js` fornecem as operações do ambiente. O catálogo deve ser carregado antes de `ui_info.js` e dos controladores. A suíte `test_studio_commands.js` valida os handlers reais e sua concordância com títulos e ajuda.
+
+No editor de peças, **Ctrl+D duplica apenas formas selecionadas**. Sem seleção, o aviso pede selecionar formas; em peças protegidas, aponta para **Criar cópia editável**, ação explícita sem Ctrl+D. **Enter conclui a Caneta**; **Escape cancela Caneta/arrasto provisório ou limpa a seleção**, sem sair do editor nem criar undo. Trocar ferramenta conclui um caminho válido já solto; um arrasto em andamento é descartado. Ctrl+E e Voltar ao mosaico restauram a ferramenta e o padrão de pincel do mosaico. G continua Polígono e A continua Editar pontos no editor de peças.
+
+Termos da interface: Prancheta, Espaçamento, Peças permitidas, Editar peças, Grade de peças, Bloco, Padrão de pincel, Semente, Carimbo, Preservar, Mão, Encaixe, Isolar e Recortar aos limites da peça. IDs internos, nomes de famílias e desenhos do usuário permanecem inalterados. No mosaico, Alt+arraste captura e Shift inverte temporariamente o encaixe; H/Espaço move a visualização. Undo/refazer indica seu alvo: mosaico, peça ou pincel.

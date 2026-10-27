@@ -6,6 +6,8 @@
  */
 
 (function () {
+  const commands = (typeof window !== 'undefined' && window.StudioCommands) ||
+    (typeof require === 'function' ? require('./studio_commands.js') : null);
   function resolveDeps() {
     const win = (typeof window !== 'undefined' && window) ||
       (typeof global !== 'undefined' && global.window) ||
@@ -383,11 +385,11 @@
       btnMode.setAttribute('aria-pressed', inTiles ? 'true' : 'false');
       const labelEl = btnMode.querySelector('.studio-mode-btn-label');
       if (labelEl) {
-        labelEl.textContent = inTiles ? 'Voltar ao mosaico' : 'Subtiles';
+        labelEl.textContent = inTiles ? 'Voltar ao mosaico' : 'Editar peças';
       }
       btnMode.title = inTiles
-        ? 'Voltar ao Mosaico (Atalho: Ctrl+E ou Esc)'
-        : 'Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)';
+        ? 'Voltar ao mosaico (Ctrl+E)'
+        : 'Editar peças (Ctrl+E)';
     }
 
     const tilesDock = document.getElementById('dock-workspace-tiles');
@@ -399,7 +401,7 @@
       tilesDock?.classList.remove('hidden');
       genDock?.classList.add('hidden');
       editDock?.classList.add('hidden');
-      if (ctxTitle) ctxTitle.textContent = 'Subtiles & Famílias';
+      if (ctxTitle) ctxTitle.textContent = 'Peças e famílias';
     } else {
       tilesDock?.classList.add('hidden');
       if (hostCtx && typeof hostCtx.syncEditWorkspaceUI === 'function') {
@@ -445,6 +447,7 @@
 
   function closeTilesStudio(options = {}) {
     if (!hostCtx || !hostCtx.studioState) return;
+    cancelVectorPreview();
     hostCtx.studioState.studioMode = 'mosaic';
     hostCtx.setActiveTool?.(uiState.previousMosaicTool || 'inspect');
     uiState.hoverNorm = null;
@@ -500,7 +503,8 @@
     const { ve } = resolveDeps();
     if (!ve) return;
     const famDoc = getSelectedFamilyDoc();
-    if (ve.state.penSession && toolId !== 'pen' && famDoc && !famDoc.builtIn) {
+    if (ve.state.dragOp) cancelVectorPreview();
+    if (ve.state.penSession && toolId !== 'pen' && famDoc && !famDoc.builtIn && !famDoc.protected) {
       const committed = ve.finalizePenPath(famDoc, false);
       if (committed) {
         commitFamilyShapes(famDoc.id, committed);
@@ -519,6 +523,60 @@
     }
     requestHostRedraw();
   }
+
+  function cancelVectorPreview() {
+    const { ve } = resolveDeps();
+    if (!ve) return;
+    ve.state.penSession = null;
+    ve.state.dragOp = null;
+    ve.state.workingShapes = null;
+    ve.state.workingFamilyId = null;
+    ve.state.activeSnapGuides = { guideX: null, guideY: null };
+  }
+
+  function tileCommandContext() {
+    const { ve } = resolveDeps();
+    const famDoc = getSelectedFamilyDoc();
+    const editable = Boolean(ve && famDoc && !famDoc.builtIn && !famDoc.protected);
+    return {
+      hasTools: Boolean(ve), selectTool: setVectorTool, toggle: toggleTilesStudio,
+      undo: handleVecUndo, redo: handleVecRedo,
+      canUndo: () => editable && ve.canUndo(famDoc.id, famDoc),
+      canRedo: () => editable && ve.canRedo(famDoc.id, famDoc),
+      canDuplicate: () => editable && (famDoc.shapes || []).some(shape => ve.state.selectedShapeIds.includes(shape.id)),
+      duplicate() {
+        const dup = ve.duplicateSelectedShapes(famDoc.shapes || [], ve.state.selectedShapeIds);
+        if (dup.newIds.length) { ve.state.selectedShapeIds = dup.newIds; commitFamilyShapes(famDoc.id, dup.shapes); }
+      },
+      duplicateUnavailable() {
+        if (editable) notifyToast('Selecione formas para duplicar.');
+        else {
+          notifyToast('Peça protegida. Use Criar cópia editável.');
+          if (typeof document !== 'undefined') {
+            const button = document.getElementById('btnTileTopDuplicate');
+            button?.focus();
+          }
+        }
+      },
+      copyEditable: () => handleDuplicateFamily(uiState.selectedFamilyId),
+      canFinish: () => editable && Boolean(ve.state.penSession),
+      finish() {
+        if (ve.state.dragOp) cancelVectorPreview();
+        else {
+          const shapes = ve.finalizePenPath(famDoc, false);
+          if (shapes) commitFamilyShapes(famDoc.id, shapes);
+        }
+        renderShapePropsPanel(true); requestHostRedraw();
+      },
+      cancel() {
+        if (ve?.state.penSession || ve?.state.dragOp) cancelVectorPreview();
+        else if (ve) { ve.state.selectedShapeIds = []; ve.state.selectedNodes = []; }
+        renderShapePropsPanel(true); renderLayersPanel(); renderD4LivePanel(); requestHostRedraw();
+      }
+    };
+  }
+
+  function runTileCommand(id) { return commands.run('tiles', id, tileCommandContext()); }
 
   function commitFamilyShapes(familyId, nextShapes, options = {}) {
     const { store, ve } = resolveDeps();
@@ -1182,7 +1240,7 @@
       nameEl.title = `${fam.name} (${fam.group})`;
     }
     if (dupBtn) {
-      dupBtn.classList.toggle('hidden', !fam.builtIn);
+      dupBtn.classList.toggle('hidden', !fam.builtIn && !fam.protected);
     }
     if (undoBtn && redoBtn) {
       const editable = Boolean(famDoc && !fam.builtIn && !fam.protected && ve);
@@ -1195,8 +1253,8 @@
       clipBtn.setAttribute('aria-pressed', isClipped ? 'true' : 'false');
       clipBtn.disabled = Boolean(fam.builtIn || fam.protected);
       clipBtn.title = fam.builtIn
-        ? 'Duplique este mestre padrão para alterar o recorte (Clip)'
-        : 'Recortar geometria nos limites [-0.5, 0.5] do subtile';
+        ? 'Crie uma cópia editável para alterar o recorte aos limites da peça'
+        : 'Recortar aos limites da peça na renderização e exportação, sem apagar formas';
     }
 
     document.querySelectorAll('#tilePreviewModeGroup [data-tile-preview]').forEach((btn) => {
@@ -1894,12 +1952,12 @@
 
     const toolMeta = ve.VECTOR_TOOLS.find((t) => t.id === ve.state.activeTool) || ve.VECTOR_TOOLS[0];
     if (toolLabelEl) {
-      toolLabelEl.textContent = `${toolMeta.label} (${toolMeta.shortcut})`;
+      toolLabelEl.textContent = `${commands.get('tiles', ve.state.activeTool)?.name || toolMeta.label} (${toolMeta.shortcut})`;
     }
     if (snapBadgeEl) {
       snapBadgeEl.textContent = ve.state.snapEnabled
-        ? (ve.state.gridDiv > 0 ? `Ímã 1/${ve.state.gridDiv}` : 'Ímã Bordas')
-        : 'Ímã Off';
+        ? (ve.state.gridDiv > 0 ? `Encaixe 1/${ve.state.gridDiv}` : 'Encaixe nas bordas')
+        : 'Encaixe desligado';
     }
 
     const fam = ensureValidSelection();
@@ -1928,11 +1986,11 @@
           Este subtile pertence aos <strong>31 mestres canônicos</strong>. Crie uma cópia editável para desenhar, alinhar e esculpir curvas Bezier.
         </div>
         <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
-          ⧉ Duplicar p/ Editar (Ctrl+D)
+          ⧉ Criar cópia editável
         </button>
       `;
       document.getElementById('btnPropsDuplicateBuiltIn')?.addEventListener('click', () => {
-        handleDuplicateFamily(fam.id);
+        runTileCommand('copyEditable');
       });
       return;
     }
@@ -2072,13 +2130,7 @@
         commitFamilyShapes(famDoc.id, nextShapes);
       });
     });
-    alignBlock.querySelector('#btnVecPropDuplicate')?.addEventListener('click', () => {
-      const res = ve.duplicateSelectedShapes(shapes, ve.state.selectedShapeIds);
-      if (res.newIds.length > 0) {
-        ve.state.selectedShapeIds = res.newIds;
-        commitFamilyShapes(famDoc.id, res.shapes);
-      }
-    });
+    alignBlock.querySelector('#btnVecPropDuplicate')?.addEventListener('click', () => runTileCommand('duplicate'));
     alignBlock.querySelector('#btnVecPropToPath')?.addEventListener('click', () => {
       const nextShapes = shapes.map((s) => (s && selSet.has(s.id) ? ve.convertShapeToPath(s) : JSON.parse(JSON.stringify(s))));
       ve.state.activeTool = 'direct';
@@ -2788,6 +2840,7 @@
     renderLibraryManagerTree();
     setInspectorPanel(uiState.inspectorPanel);
     hostCtx?.updateStatusBar?.();
+    if (typeof document !== 'undefined') commands.applyLabels(document, isTilesMode() ? 'tiles' : 'mosaic');
   }
 
   function setInspectorPanel(panel, focusTab = false) {
@@ -3065,7 +3118,7 @@
     const res = ve.onPointerDown(mapped.u, mapped.v, mods, famDoc, mapped.hitRadiusNorm);
     if (res.readOnlyBlocked) {
       if (mapped.insideCell && ve.state.activeTool !== 'select') {
-        notifyToast('Família padrão protegida — clique em "Duplicar p/ Editar" (Ctrl+D) para desenhar.', 'info');
+        notifyToast('Peça protegida — clique em "Criar cópia editável" para desenhar.', 'info');
       }
       return true;
     }
@@ -3202,7 +3255,7 @@
       const toolTag = ve ? ` • Ferramenta: <strong>${ve.state.activeTool.toUpperCase()}</strong>` : '';
       hover = `Coordenada Normalizada: <strong>(${xStr}, ${yStr})</strong>${toolTag} • Duplo-clique numa variante D4 para pintar no Mosaico`;
     } else if (fam.builtIn) {
-      hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Duplicar p/ Editar</strong> (Ctrl+D) para desenhar livremente`;
+      hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Criar cópia editável</strong> para desenhar livremente`;
     } else {
       hover = `Editor Vetorial ativo • V Seleção | A Nós | P Caneta | M Retâng. | L Elipse | G Polígono | U Arco/Fita | \\ Linha`;
     }
@@ -3269,7 +3322,7 @@
 
     // Mode toggle buttons
     document.getElementById('btnStudioTilesMode')?.addEventListener('click', () => {
-      toggleTilesStudio();
+      runTileCommand('toggle');
     });
     document.getElementById('btnSwatchesManageTiles')?.addEventListener('click', () => {
       openTilesStudio();
@@ -3277,13 +3330,13 @@
 
     // Top bar controls in Tiles Mode
     document.getElementById('btnTileTopDuplicate')?.addEventListener('click', () => {
-      handleDuplicateFamily(uiState.selectedFamilyId);
+      runTileCommand('copyEditable');
     });
     document.getElementById('btnVecUndo')?.addEventListener('click', () => {
-      handleVecUndo();
+      runTileCommand('undo');
     });
     document.getElementById('btnVecRedo')?.addEventListener('click', () => {
-      handleVecRedo();
+      runTileCommand('redo');
     });
 
     document.querySelectorAll('#tilePreviewModeGroup [data-tile-preview]').forEach((btn) => {
@@ -3321,7 +3374,7 @@
     // Vector Tool Buttons & Magnetic Snap Controls in Left Pane
     document.querySelectorAll('#vecToolsGrid [data-vec-tool]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        setVectorTool(btn.dataset.vecTool || 'select');
+        runTileCommand(btn.dataset.vecTool || 'select');
       });
     });
 
@@ -3330,7 +3383,7 @@
       ve.state.snapEnabled = !ve.state.snapEnabled;
       renderLeftPaneState();
       renderShapePropsPanel(true);
-      notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
+      notifyToast(ve.state.snapEnabled ? 'Encaixe na grade: Ativado' : 'Encaixe na grade: Desativado');
     });
 
     document.getElementById('tileGridDivSelect')?.addEventListener('change', (e) => {
@@ -3452,7 +3505,7 @@
 
     // D4 Live Panel inline metadata controls
     document.getElementById('btnNoticeDuplicateToEdit')?.addEventListener('click', () => {
-      handleDuplicateFamily(uiState.selectedFamilyId);
+      runTileCommand('copyEditable');
     });
 
     const activeNameInput = document.getElementById('tileActiveFamilyNameInput');
@@ -3496,7 +3549,7 @@
       if (typeof hostCtx.regenerateMosaic === 'function') hostCtx.regenerateMosaic(true);
       if (typeof hostCtx.setActiveTool === 'function') hostCtx.setActiveTool('inspect');
       closeTilesStudio();
-      notifyToast(`Família "${fam.name}" isolada (SOLO) no mosaico.`);
+      notifyToast(`Família "${fam.name}" isolada no mosaico.`);
       };
       if (typeof hostCtx.requestParamChangeWithGuard === 'function') {
         hostCtx.requestParamChangeWithGuard(document.getElementById('btnSoloActiveInMosaic'), () => {}, applySolo);
@@ -3550,6 +3603,7 @@
    * Returns `true` if the event was handled or suppressed to protect Mosaic state.
    */
   function handleKeyDown(e, studioState) {
+    if (e.defaultPrevented || e.isComposing || e.repeat || e.altKey) return false;
     if (typeof document !== 'undefined') {
       const confirmDlg = document.getElementById('subtileConfirmDialog');
       if (e.key === 'Escape' && confirmDlg && !confirmDlg.classList.contains('hidden')) {
@@ -3568,7 +3622,7 @@
     // Global Ctrl+E toggles between Mosaic and Subtile Studio from anywhere (outside inputs)
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'e') {
       e.preventDefault();
-      toggleTilesStudio();
+      commands.run(isTilesMode(studioState) ? 'tiles' : 'mosaic', 'toggle', {toggle: toggleTilesStudio});
       return true;
     }
 
@@ -3580,37 +3634,7 @@
     const famDoc = getSelectedFamilyDoc();
     const isEditable = Boolean(famDoc && !famDoc.builtIn && !famDoc.protected && ve);
 
-    // Enter commits an active open Pen path
-    if (e.key === 'Enter' && isEditable && ve.state.penSession) {
-      e.preventDefault();
-      const committed = ve.finalizePenPath(famDoc, false);
-      if (committed) commitFamilyShapes(famDoc.id, committed);
-      return true;
-    }
-
-    // Progressive Escape: 1) finish/cancel Pen -> 2) clear vector selection -> 3) return to Mosaic
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      if (isEditable && ve.state.penSession) {
-        const committed = ve.finalizePenPath(famDoc, false);
-        if (committed) commitFamilyShapes(famDoc.id, committed);
-        else {
-          renderShapePropsPanel(true);
-          requestHostRedraw();
-        }
-        return true;
-      }
-      if (ve && (ve.state.selectedShapeIds.length > 0 || ve.state.selectedNodes.length > 0)) {
-        ve.state.selectedShapeIds = [];
-        ve.state.selectedNodes = [];
-        renderShapePropsPanel(true);
-        renderLayersPanel();
-        requestHostRedraw();
-        return true;
-      }
-      closeTilesStudio();
-      return true;
-    }
+    if (commands.dispatch('tiles', e, tileCommandContext())) return true;
 
     // Ctrl / Cmd shortcuts inside Subtile Studio
     if (e.ctrlKey || e.metaKey) {
@@ -3618,16 +3642,7 @@
       if (k === '1' || k === '0') {
         return false; // Let sketch.js handle zoom 100% / fit to window
       }
-      if (k === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        handleVecUndo();
-        return true;
-      }
-      if (k === 'y' || (k === 'z' && e.shiftKey)) {
-        e.preventDefault();
-        handleVecRedo();
-        return true;
-      }
+      if (e.shiftKey && !['BracketRight', 'BracketLeft'].includes(e.code) && ![']', '[', '}', '{'].includes(e.key)) return true;
       if (k === 'c' && isEditable) {
         e.preventDefault();
         const copied = ve.copySelectedShapes(famDoc.shapes || [], ve.state.selectedShapeIds);
@@ -3640,19 +3655,6 @@
         if (pasted.newIds.length > 0) {
           ve.state.selectedShapeIds = pasted.newIds;
           commitFamilyShapes(famDoc.id, pasted.shapes);
-        }
-        return true;
-      }
-      if (k === 'd') {
-        e.preventDefault();
-        if (isEditable && ve.state.selectedShapeIds.length > 0) {
-          const dup = ve.duplicateSelectedShapes(famDoc.shapes || [], ve.state.selectedShapeIds);
-          if (dup.newIds.length > 0) {
-            ve.state.selectedShapeIds = dup.newIds;
-            commitFamilyShapes(famDoc.id, dup.shapes);
-          }
-        } else {
-          handleDuplicateFamily(uiState.selectedFamilyId);
         }
         return true;
       }
@@ -3681,7 +3683,7 @@
         ve.state.snapEnabled = !ve.state.snapEnabled;
         renderLeftPaneState();
         renderShapePropsPanel(true);
-        notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
+        notifyToast(ve.state.snapEnabled ? 'Encaixe na grade: Ativado' : 'Encaixe na grade: Desativado');
         return true;
       }
       return false;
@@ -3699,27 +3701,12 @@
 
     // Vector Tool Single-Key Shortcuts (V, A, P, M, L, G, U, \, ;)
     if (ve) {
-      const toolKeyMap = {
-        v: 'select',
-        a: 'direct',
-        p: 'pen',
-        m: 'rect',
-        l: 'ellipse',
-        g: 'polygon',
-        u: 'arc',
-        '\\': 'line'
-      };
-      if (toolKeyMap[k]) {
-        e.preventDefault();
-        setVectorTool(toolKeyMap[k]);
-        return true;
-      }
       if (e.key === ';') {
         e.preventDefault();
         ve.state.snapEnabled = !ve.state.snapEnabled;
         renderLeftPaneState();
         renderShapePropsPanel(true);
-        notifyToast(ve.state.snapEnabled ? 'Ímã Magnético: Ativado' : 'Ímã Magnético: Desativado');
+        notifyToast(ve.state.snapEnabled ? 'Encaixe na grade: Ativado' : 'Encaixe na grade: Desativado');
         return true;
       }
     }

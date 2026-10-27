@@ -87,7 +87,7 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 - **↻ Girar (`R`)**: Clique esquerdo gira a área em +90°; clique direito gira em -90°. Suporta rotação geométrica D4 ou ciclar variações da mesma família.
 - **⧉ Clonar / Carimbo (`S`)**: Arraste para capturar uma região do mosaico e clique para colar com a simetria ativa (tecla `C` troca para modo de captura).
 - **🔒 Travar Subtiles (`F`)**: Congela subtiles do mosaico para torná-los imunes a novas gerações ou sorteios de semente (`G`). Ação monotônica com modos de congelar e descongelar. Tecla `Shift+F` limpa as travas ativas.
-- **✋ Mão / Pan (`H`)**: Move o artboard no pasteboard (também acessível mantendo pressionada a barra de `Espaço` ou com `Alt + Arrasto`).
+- **✋ Mão (`H`)**: Move a visualização da prancheta por arrasto. Segurar `Espaço` ativa a Mão temporariamente; Alt+arrasto captura no mosaico.
 - **🔎 Zoom (`Z`)**: Aproxima e afasta o canvas com precisão (ou através de `Ctrl + Roda do Mouse`).
 - **Controle de Cores Estilo Illustrator**: Swatches sobrepostos de Primeiro Plano e Fundo localizados na barra lateral esquerda (`#left-toolbar`), com botão de inversão rápida (`⇄`) e atalho de teclado `X`.
 
@@ -98,7 +98,7 @@ Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 4
 - **Pathfinder, Transformações $D_4$ & Camadas (`core/vector_boolean.js`)**: Operações booleanas **Unir**, **Subtrair**, **Interseção** e **Excluir (XOR)** via Paper.js headless local (`libraries/paper-core.min.js`), preservando curvas Bezier cúbicas e gerando caminhos compostos com furos (`fillRule: evenodd`); giro `+90°`/`-90°` e espelhos `H`/`V` sobre a seleção; painel **Camadas (Formas)** com reordenação de Z-index por *Drag-and-Drop*, setas e atalhos (`Ctrl+]`/`Ctrl+[`, `Ctrl+Shift+]`/`Ctrl+Shift+[`), renomeação inline (duplo-clique), visibilidade e trava por forma.
 - **Importar / Exportar SVG**: `importSVGToShapes` converte `<path>` (incl. arcos `A`), `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>` e `<line>` com `<g transform>` aninhados, normalizando o `viewBox` para `[-0.5, 0.5]` como formas editáveis (sobre mestre built-in, cria automaticamente uma família customizada); `exportFamilyToSVG` gera um `.svg` unitário limpo da variante ativa.
 - **Painel de Órbita & Variantes $D_4$ ao Vivo**: Exibe estabilizador $H$ (atualizado em tempo real durante o arrasto), compatibilidade axial/diagonal/central e miniaturas das variantes geradas (`1`, `2`, `4` ou `8`), com duplo-clique para pintar diretamente no mosaico.
-- **Gerenciador de Grupos e Famílias**: Criação, renomeação inline, reordenação via *Drag-and-Drop* ou setas `↑`/`↓`, movimentação entre grupos, **Duplicar p/ Editar** em 1 clique sobre mestres built-in protegidos (`#0..#84`), higienização automática para `#84` ao excluir famílias em uso, backup `.json` (`merge` ou `replace`) e **Restaurar Padrão**.
+- **Gerenciador de Grupos e Famílias**: Criação, renomeação inline, reordenação via *Drag-and-Drop* ou setas `↑`/`↓`, movimentação entre grupos, **Criar cópia editável** em 1 clique sobre mestres built-in protegidos (`#0..#84`), higienização automática para `#84` ao excluir famílias em uso, backup `.json` (`merge` ou `replace`) e **Restaurar Padrão**.
 
 ---
 
@@ -265,14 +265,14 @@ node tests/run_all.js
 ## Atalhos de Teclado
 
 ### Ferramentas e Modos
-- `Ctrl + E`: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias (`Escape` retorna ao Mosaico)
+- `Ctrl + E`: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias (Ctrl+E ou Voltar ao mosaico retorna; Escape cancela o gesto ou limpa seleção)
 - `V`: Ferramenta Inspecionar (abre configurações de Geração no dock)
 - `B`: Ferramenta Pincel (restaura o padrão, tamanho e encaixe do último pincel não vazio)
 - `E`: Borracha (sempre ativa o Tile Vazio #84; repetir E mantém a borracha)
 - `R`: Ferramenta Girar
-- `S`: Ferramenta Carimbo / Clonar (`C` ativa o modo de captura)
-- `F`: Ferramenta Travar / Congelar Subtiles (`Shift + F` limpa todas as travas)
-- `H`: Ferramenta Pan (Mão)
+- `S`: Ferramenta Carimbo (`C` ativa o modo de captura)
+- `F`: Ferramenta Preservar peças (`Shift + F` limpa todas as travas)
+- `H`: Ferramenta Mão
 - `Z`: Ferramenta Zoom
 - `X`: Inverter cores de Primeiro Plano e Fundo (Swatches)
 
@@ -305,13 +305,13 @@ node tests/run_all.js
 
 O dock de Subtiles permite rolagem vertical do conjunto; a biblioteca tem uma lista de 280 px e os grupos não encolhem. Selecionar uma ferramenta vetorial encerra Pan/Zoom; sair do Estúdio restaura a ferramenta anterior do mosaico. A seleção e as sessões temporárias são limpas ao trocar de família.
 
-SVG unitário usa margem zero por padrão, independente do respiro do mosaico. Famílias e camadas aceitam Enter/Espaço; os modais retêm Tab/Shift+Tab e restauram o foco. A importação começa em Mesclar, pede confirmação adicional para Substituir e baixa backup JSON antes de importar/restaurar. SOLO usa a proteção de documento alterado. Miniaturas são reutilizadas enquanto a geometria da família permanece igual.
+SVG unitário usa margem zero por padrão, independente do respiro do mosaico. Famílias e camadas aceitam Enter/Espaço; os modais retêm Tab/Shift+Tab e restauram o foco. A importação começa em Mesclar, pede confirmação adicional para Substituir e baixa backup JSON antes de importar/restaurar. Isolar usa a proteção de documento alterado. Miniaturas são reutilizadas enquanto a geometria da família permanece igual.
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
 Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 45 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
-O botão **Criar subtiles** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
+O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 
 As ferramentas do mosaico usam pares de mesma largura: Inspecionar/Subtiles, Pintar/Girar, Carimbo/Travar e Pan/Zoom. Na edição, grades e eixos globais aparecem apenas pelos botões de Guias Visuais; a prévia mantém a geometria fantasma e o contorno da área de ação, sem uma malha automática sobre as réplicas simétricas.
 
@@ -378,3 +378,12 @@ Falhas permanecem visíveis acima da área de trabalho, inclusive com o dock rec
 A suíte `tests/test_save_status.js` cobre a matriz dos dois armazenamentos, fallback reduzido, rejeições reais, falha da biblioteca com mosaico salvo, recuperação, getters bloqueados, abort após sucesso do pedido, ordem A/B com recarga de B e restauração tardia. A lista completa de testes vem de `tests/run_all.js`.
 
 O histórico de undo/redo do mosaico, das famílias e do editor ampliado de pincel tem limite de 256 estados. A cópia de segurança em localStorage pode reduzir o histórico conforme o orçamento/quota; IndexedDB preserva até 256 estados de edição.
+
+
+### Comandos compartilhados e contextos (T06)
+
+`core/studio_commands.js` reúne nomes, atalhos, contexto, disponibilidade e execução das ações principais. Botões, teclado e ajuda usam o catálogo; os adaptadores em `sketch.js` e `core/subtile_studio_ui.js` fornecem as operações do ambiente. O catálogo deve ser carregado antes de `ui_info.js` e dos controladores. A suíte `test_studio_commands.js` valida os handlers reais e sua concordância com títulos e ajuda.
+
+No editor de peças, **Ctrl+D duplica apenas formas selecionadas**. Sem seleção, o aviso pede selecionar formas; em peças protegidas, aponta para **Criar cópia editável**, ação explícita sem Ctrl+D. **Enter conclui a Caneta**; **Escape cancela Caneta/arrasto provisório ou limpa a seleção**, sem sair do editor nem criar undo. Trocar ferramenta conclui um caminho válido já solto; um arrasto em andamento é descartado. Ctrl+E e Voltar ao mosaico restauram a ferramenta e o padrão de pincel do mosaico. G continua Polígono e A continua Editar pontos no editor de peças.
+
+Termos da interface: Prancheta, Espaçamento, Peças permitidas, Editar peças, Grade de peças, Bloco, Padrão de pincel, Semente, Carimbo, Preservar, Mão, Encaixe, Isolar e Recortar aos limites da peça. IDs internos, nomes de famílias e desenhos do usuário permanecem inalterados. No mosaico, Alt+arraste captura e Shift inverte temporariamente o encaixe; H/Espaço move a visualização. Undo/refazer indica seu alvo: mosaico, peça ou pincel.

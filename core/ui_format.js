@@ -24,9 +24,16 @@
     return base;
   }
 
+  // Only product descriptions pass through this formatter; never family/user names.
+  function formatProductDescription(text) {
+    return String(text).replace(/\bsupertiles\b/gi, 'blocos').replace(/\bsupertile\b/gi, 'bloco')
+      .replace(/\bsubtiles\b/gi, 'peças').replace(/\bsubtile\b/gi, 'peça').replace(/\bcanvas\b/gi, 'prancheta');
+  }
+
   const UiFormat = {
     SCOPE_CHIP_LABELS,
-    formatScopeChip
+    formatScopeChip,
+    formatProductDescription
   };
 
   if (typeof window !== 'undefined') {

@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T05 concluídas, T06–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T06 concluídas, T07–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -639,7 +639,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T03 | Concluída em 27/10/2026 | Listener real E/S/B: captura 2×2, E repetido, retorno do pincel/carimbo, paleta #84 e cancelamento de captura. Apagamento na borda com undo em seis escopos e encaixe ligado/desligado. Navegador: captura 2×2 por arrasto, borracha, undo e restauração das duas ferramentas. |
 | T04 | Concluída em 27/10/2026 | `test_save_status.js`: matriz de armazenamentos, revisões de documento/biblioteca, falhas/abort e recuperação, filas A/B e recarga de B, fallback e boot tardio. No navegador: falha total, dock recolhido, biblioteca falhando e Tentar salvar após recuperação. |
 | T05 | Concluída em 27/10/2026 | `test_document_edit_transactions.js`: handlers reais de aparência, 30 eventos em uma etapa, no-op/cancelamento com redo, dimensões sem regeneração, pintura/geração, recarga legada e recorte de família. Navegador: cor, X, espaçamento, largura, Escape e geração com undo/redo. 47/47 suítes aprovadas. |
-| T06 | Planejada | Tabela de comandos refletida em UI/ajuda e testes. |
+| T06 | Concluída em 27/10/2026 | Catálogo de comandos por ambiente, glossário, Ctrl+D exclusivo para formas e Caneta Enter/Escape. `test_studio_commands.js` e navegador validam atalhos, botões, ajuda e retorno ao mosaico. 48/48 suítes aprovadas. |
 | T07 | Planejada | Tokens resolvidos, contraste e estados visuais. |
 | T08 | Planejada | Nomes acessíveis, foco e campos inválidos. |
 | T09 | Planejada | Fluxo de gerar sem abrir matemática avançada. |
@@ -717,3 +717,14 @@ Arquivos funcionais: `core/document_snapshot.js` e `sketch.js`. Regressões: `te
 ### Ajuste solicitado após T05 — 27/10/2026
 
 Limite de undo/redo ampliado para 256 estados no mosaico, nas famílias e no editor ampliado de pincel. Geração mantém o mesmo limite da edição, inclusive sem IndexedDB. A cópia localStorage continua respeitando orçamento/quota; a cópia IndexedDB admite 256 estados. Regressões verificam 300 edições com poda e undo/redo dos 256 estados retidos, seguida de geração, além do round-trip IndexedDB com 256 edições. Alteração separada do T06.
+
+
+### Registro da T06 — 27/10/2026
+
+`core/studio_commands.js` centraliza nome, atalho, contexto, disponibilidade e callback das ferramentas e ações principais. Botões e teclado usam os mesmos adaptadores; ajuda e títulos consomem os metadados. Glossário aplicado aos rótulos e descrições do produto, preservando IDs, nomes de famílias e dados importados. Descrições legadas de escopo passam pelo formatador de texto do produto, sem alterar metadados matemáticos.
+
+Ctrl+D duplica somente formas. Em peça protegida, anuncia e focaliza Criar cópia editável; sem seleção customizada, pede selecionar formas. Copiar família permanece uma ação explícita. Enter conclui a Caneta; Escape descarta Caneta/arrasto provisório ou limpa a seleção sem sair do editor e sem gravar uma forma. Troca de ferramenta conclui caminho válido já solto, mas descarta preview de arrasto. Ctrl+E/Voltar preservam ferramenta e padrão do mosaico. G/A permanecem Polígono/Editar pontos nas peças. Títulos de undo indicam mosaico/peça/pincel; Shift inverte encaixe e Alt+arraste captura, conforme ajuda.
+
+Teste novo executa o controlador real com biblioteca e editor vetorial: proteção, duplicação de formas, cancelamento e conclusão da Caneta, troca de ferramenta, mouseup tardio após cancelamento, modificadores, undo/redo e retorno ao mosaico. Catálogo confrontado com títulos/ajuda/callbacks. Navegador em origem isolada `127.0.0.1:8874`: Ctrl+D protegido focalizou cópia sem criar família; cópia explícita; Ctrl+D vazio anunciou seleção; G/A contextuais; Caneta com dois pontos → Escape manteve 1 forma, Enter criou a segunda; Ctrl+D criou terceira forma e undo removeu; ajuda exibiu o comando correto; Ctrl+E voltou ao pincel com largura 900, espaçamento 12 e histórico 5/5 preservados. A sessão Zen em `5500` não foi alterada.
+
+Gate completo: 48/48 suítes. README/manual e conhecimento sincronizados. Capturas e fixture em `_local/t06`, ignoradas pelo Git. Hierarquia visual, consolidação das ações redundantes e layout responsivo continuam nas etapas T07–T14; nenhuma alteração estrutural de painel foi antecipada.

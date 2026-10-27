@@ -5,6 +5,8 @@
  */
 
 (function () {
+  const commands = (typeof window !== 'undefined' && window.StudioCommands) ||
+    (typeof require === 'function' ? require('./core/studio_commands.js') : null);
   const INFO_TOPICS = {
     'grid-symmetry': {
       title: 'Simetria da Grade (Macro)',
@@ -42,12 +44,12 @@
       ]
     },
     'brush': {
-      title: 'Pincel e Supertile',
+      title: 'Pincel e padrão de pincel',
       subtitle: 'Pintura livre e construtor de carimbos',
       body: [
         'Clique Esquerdo: Pinta a célula com o tile ou supertile ativo.',
-        'Clique Direito: Gira o tile sob o cursor em 90°.',
-        'Alt + Clique: Conta-gotas (captura o tile clicado para o pincel).',
+        'Clique Direito: Gira o padrão do pincel em 90°.',
+        'Alt + Clique/Arraste: captura uma região para o pincel; H/Espaço move a visualização.',
         'Tamanho: use − / + ou a roda sobre o canvas. O ajuste para nos limites; com ajuste ao bloco, avança um bloco por vez.',
         'Reset 0°: Restaura a orientação neutra (sem rotação) do supertile.'
       ]
@@ -63,7 +65,7 @@
       ]
     },
     'stamp': {
-      title: 'Carimbo e Clonar',
+      title: 'Carimbo',
       subtitle: 'Captura e replicação de regiões',
       body: [
         'Alt + Clique/Arraste: captura uma região, como no pincel. Solte e clique para aplicar. C permanece como alternativa; Esc cancela a captura.',
@@ -73,7 +75,7 @@
       ]
     },
     'freeze': {
-      title: 'Travar Subtiles (Congelar)',
+      title: 'Preservar peças',
       subtitle: 'Proteja suas regiões favoritas durante novas gerações',
       body: [
         'Imunidade à Geração: Subtiles travados não são alterados ao gerar novos mosaicos ou sortear novas sementes (G).',
@@ -122,22 +124,9 @@
       ]
     },
     'shortcuts': {
-      title: 'Atalhos e Teclas Rápidas',
-      subtitle: 'Comandos do teclado para máxima produtividade',
-      body: [
-        'B: Pincel | E: Borracha (Tile Vazio #84) | R: Girar | S: Carimbo | F: Travar Subtiles (Shift+F: Descongelar) | V: Inspecionar.',
-        'H / Espaço: Pan 2D | Z: Zoom | 1: Zoom 100% (1:1) | 0: Centralizar e Ajustar Artboard na Janela.',
-        'Ctrl + Roda: Zoom | Alt + Roda: Pan Vertical | Shift + Roda: Pan Horizontal.',
-        'Roda livre (sem teclas): Redimensionar Pincel (números inteiros até limite do canvas, sem ciclo).',
-        'Ctrl+U / Shift: Alternar / Inverter momentaneamente o Ajuste ao Bloco (Snap to Block).',
-        'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
-        'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
-        'G: Sortear nova Seed no gerador.',
-        'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
-        'Ctrl+E: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias.',
-        'No Estúdio de Subtiles: V (Seleção) | A (Nós) | P (Caneta) | M (Retângulo) | L (Elipse) | G (Polígono) | U (Arco/Fita) | \\ (Linha) | ; (Snap).',
-        'Setas no canvas em Inspecionar: navegar gerações. Escape no canvas: cancelar gesto e voltar à ferramenta.'
-      ]
+      title: 'Atalhos e comandos por ambiente',
+      subtitle: 'Mosaico e editor de peças',
+      body: []
     },
     'inspect': {
       title: 'Inspeção do Mosaico',
@@ -154,7 +143,7 @@
       subtitle: '1 Mestre Vetorial = 1 Família Fechada em D4',
       body: [
         'Cada família possui 1 desenho mestre normalizado em [-0.5, 0.5] e gera automaticamente 1, 2, 4 ou 8 variantes segundo sua simetria D4.',
-        'Os 31 mestres originais (IDs #0 a #84) são protegidos para preservar saves; clique em "Duplicar p/ Editar" para criar uma cópia editável.',
+        'Os 31 mestres originais (IDs #0 a #84) são protegidos para preservar saves; clique em "Criar cópia editável" para criar uma cópia editável.',
         'O Tile Vazio (#84) é o respiro matemático oficial de Mandala D4 e da Borracha.',
         'Ao excluir uma família customizada em uso, suas células no mosaico convertem-se com segurança para o Tile Vazio (#84).',
         'Na aba Biblioteca, conjuntos organizam famílias. Filtre por conjunto ou por Meus subtiles, use Localizar atual e arraste famílias entre conjuntos. Exportar/Importar (.json) mantém backups.'
@@ -166,7 +155,7 @@
       body: [
         'Seleção (V): Move, redimensiona pelas 8 alças e gira formas (Shift mantém proporção / ângulos de 15°; Alt escala pelo centro).',
         'Seleção Direta (A): Edita nós e alças Bezier (Alt quebra simetria da alça; duplo-clique alterna Canto/Suave; Alt+Clique cria nó no segmento).',
-        'Caneta (P): Clique cria canto reto; clique e arraste puxa curvas Bezier; clique no 1º nó fecha o contorno (Enter finaliza aberto).',
+        'Caneta (P): clique cria canto; arraste cria curvas; clicar no primeiro ponto fecha o contorno. Enter conclui aberto; Escape cancela. Trocar ferramenta conclui um caminho válido, exceto durante arrasto provisório.',
         'Primitivas: Retângulo (M), Elipse (L), Polígono/Estrela (G), Arco/Setor Anular de Fita (U) e Linha (\\).',
         'Ímã e Grade (1/2 a 1/16): A divisão 1/6 alinha exatamente bordas (±0.5), centro (0) e portas de fita Truchet (±1/6 e ±1/3).'
       ]
@@ -220,7 +209,7 @@
     if (engine && engine.EDIT_SCOPES) {
       const scopes = Object.values(engine.EDIT_SCOPES)
         .sort((a, b) => Number(a.shortcut) - Number(b.shortcut));
-      INFO_TOPICS.scopes.body = scopes.map((s) => `${s.name} (${s.shortcut}): ${s.description}`);
+      INFO_TOPICS.scopes.body = scopes.map((s) => `${s.name} (${s.shortcut}): ${window.UiFormat?.formatProductDescription(s.description) || s.description}`);
 
       const names = scopes.map(s => `${s.name} (${s.shortcut})`).join(', ');
       const scIndex = INFO_TOPICS.shortcuts.body.findIndex(l => l.includes('1 a 6') || l.includes('1-6') || l.includes('1–6'));
@@ -236,7 +225,24 @@
     }
   }
 
+  function syncCommandTopics() {
+    if (!commands) return;
+    INFO_TOPICS.shortcuts.body = [
+      'No mosaico:', ...commands.help('mosaic'),
+      'Espaço: Mão temporária. 1: Zoom 100%; 0: Ajustar à janela.',
+      'Roda no canvas: tamanho da ferramenta de edição; Ctrl+roda: zoom; Shift+roda: mover horizontalmente; Alt+roda: mover verticalmente.',
+      'Ctrl+U alterna o encaixe nos blocos; Shift inverte momentaneamente o encaixe ao editar.',
+      'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
+      'Setas no canvas em Inspecionar: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
+      'No editor de peças:', ...commands.help('tiles'),
+      'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia editável.',
+      'Escape cancela Caneta/arrasto ou limpa a seleção, sem sair do editor. Ctrl+E ou Voltar ao mosaico muda de ambiente.',
+      '; ou Ctrl+U: alternar encaixe na grade. H/Espaço: Mão; Z: Zoom.'
+    ];
+  }
+
   // Initial sync upon module evaluation
+  syncCommandTopics();
   syncScopeTopics();
 
   let popoverEl = null;
@@ -248,6 +254,7 @@
   let isPopoverOpen = false;
 
   function init() {
+    syncCommandTopics();
     syncScopeTopics();
     popoverEl = document.getElementById('infoPopover');
     popoverTitleEl = document.getElementById('infoPopoverTitle');

@@ -1154,7 +1154,7 @@ function syncSpoutUI() {
   if (nameInput && document.activeElement !== nameInput) {
     nameInput.value = StudioState.spoutName;
   }
-  if (!StudioState.spoutEnabled) setSpoutStatus('off', 'off', 'Saída Spout desligada');
+  if (!StudioState.spoutEnabled) setSpoutStatus('Desligado', 'off', 'Saída Spout desligada');
 }
 
 // ---------------------------------------------------------------------------
@@ -1294,7 +1294,7 @@ function startSpoutOutput() {
     if (StudioState.spoutEnabled) {
       scheduleSpoutRetry();   // keep the switch on and keep trying
     } else {
-      setSpoutStatus('off', 'off', 'Saída Spout desligada');
+      setSpoutStatus('Desligado', 'off', 'Saída Spout desligada');
     }
   };
 }
@@ -1310,7 +1310,7 @@ function stopSpoutOutput() {
   }
   spoutFrameInfo = null;
   spoutLastSignature = null;
-  setSpoutStatus('off', 'off', 'Saída Spout desligada');
+  setSpoutStatus('Desligado', 'off', 'Saída Spout desligada');
 }
 
 function pushGenerationHistory() {
@@ -1591,7 +1591,7 @@ function renderSwatchesPanel() {
         const groupSolo = document.createElement('button');
         groupSolo.type = 'button';
         groupSolo.className = 'family-solo-btn';
-        groupSolo.textContent = 'SOLO';
+        groupSolo.textContent = 'Isolar';
         groupSolo.setAttribute('aria-label', `Isolar conjunto ${groupLabel}`);
         groupSolo.title = `Gerar apenas com as famílias de ${groupLabel}`;
         groupSolo.addEventListener('click', () => {
@@ -1657,7 +1657,7 @@ function renderSwatchesPanel() {
       const soloBtn = document.createElement('button');
       soloBtn.type = 'button';
       soloBtn.className = 'family-solo-btn';
-      soloBtn.textContent = 'SOLO';
+      soloBtn.textContent = 'Isolar';
       soloBtn.title = `Isolar apenas a família "${fam.name}" para testar no mosaico`;
       soloBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -3273,7 +3273,7 @@ function buildEditWorkspaceUI() {
     btn.type = 'button';
     btn.className = 'edit-scope-card';
     btn.dataset.scope = s.id;
-    btn.title = `${s.name} — ${s.description} (Q/Tab: próximo escopo; Shift: anterior)`;
+    btn.title = `${window.UiFormat?.formatProductDescription(`${s.name} — ${s.description}`) || `${s.name} — ${s.description}`} (Q/Tab: próximo escopo; Shift: anterior)`;
     btn.innerHTML = `
       <span class="edit-scope-icon">${EDIT_SCOPE_ICONS[s.id] || '•'}</span>
       <span class="edit-scope-title">${shortNames[s.id] || s.name}</span>
@@ -3556,9 +3556,9 @@ const TOOL_CONTEXT_LABELS = {
   inspect: 'Inspeção',
   paint: 'Pincel',
   rotate: 'Girar',
-  stamp: 'Clonar',
-  freeze: 'Trava',
-  pan: 'Pan',
+  stamp: 'Carimbo',
+  freeze: 'Preservar',
+  pan: 'Mão',
   zoom: 'Zoom'
 };
 
@@ -3566,13 +3566,13 @@ function syncContextPanel() {
   const title = document.getElementById('ctxPanelTitle');
   if (!title) return;
   if (StudioState.studioMode === 'tiles') {
-    title.textContent = 'Subtiles & Famílias';
+    title.textContent = 'Peças e famílias';
     return;
   }
   const isGenerator = StudioState.workspace === 'generate';
   title.textContent = isGenerator
     ? 'Geração'
-    : (StudioState.activeTool === 'paint' && isEraserPattern() ? 'Borracha' : TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
+    : (StudioState.activeTool === 'paint' && isEraserPattern() ? 'Borracha' : window.StudioCommands?.get('mosaic', StudioState.activeTool)?.name || TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
 }
 
 function syncEditWorkspaceUI() {
@@ -3778,7 +3778,7 @@ function syncEditWorkspaceUI() {
     if (brushD4El) brushD4El.textContent = `${cMeta.label} ${cMeta.arrow}`;
     if (brushBadgeEl) brushBadgeEl.textContent = `1×1 • #${c0.baseTileId}`;
   } else {
-    if (brushNameEl) brushNameEl.textContent = `Supertile ${pat.rows}×${pat.cols}`;
+    if (brushNameEl) brushNameEl.textContent = `Padrão de pincel ${pat.rows}×${pat.cols}`;
     if (brushD4El) brushD4El.textContent = `${d4Meta.label} ${d4Meta.arrow}`;
     if (brushBadgeEl) brushBadgeEl.textContent = `${pat.rows}×${pat.cols}`;
   }
@@ -3812,7 +3812,7 @@ function updateHoverStatusText() {
   if (!hit || !StudioState.mosaicData) {
     if (StudioState.activeTool === 'freeze') {
       const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
-      el.innerHTML = `<strong>Travar Subtiles (F):</strong> Clique para aplicar a trava • Clique direito inverte a ação • Escopo: <strong>${StudioState.editScope}</strong> • Travados: <strong>${count}</strong>`;
+      el.innerHTML = `<strong>Preservar (F):</strong> Clique para preservar na próxima geração • Clique direito inverte a ação • Escopo: <strong>${StudioState.editScope}</strong> • Preservados: <strong>${count}</strong>`;
       return;
     }
     if (StudioState.workspace === 'edit') {
@@ -3820,8 +3820,8 @@ function updateHoverStatusText() {
         el.innerHTML = '<strong>Girar (R):</strong> Clique Esq gira +90° • Clique Dir gira -90° • C captura uma região';
       } else if (StudioState.activeTool === 'stamp') {
         el.innerHTML = StudioState.stampInteractionMode === 'select'
-          ? '<strong>Clonar (S):</strong> Arraste e solte para capturar • Esc cancela'
-          : '<strong>Clonar (S):</strong> Alt+arraste captura • Clique/arraste aplica • Clique direito gira';
+          ? '<strong>Carimbo (S):</strong> Arraste e solte para capturar • Esc cancela'
+          : '<strong>Carimbo (S):</strong> Alt+arraste captura • Clique/arraste aplica • Clique direito gira';
       } else if (StudioState.activeTool === 'paint' && isEraserPattern()) {
         el.innerHTML = '<strong>Borracha (E):</strong> Clique/arraste para apagar • B restaura o pincel • S restaura o carimbo';
       } else {
@@ -3840,7 +3840,7 @@ function updateHoverStatusText() {
   const subCell = block.cells[hit.subRow]?.[hit.subCol];
   const tileName = subCell ? (window.TileRegistry.TILE_NAMES[subCell.tileId] || `Tile #${subCell.tileId}`) : '';
   const isCellFrozen = StudioState.frozenCells && StudioState.frozenCells.has(`${hit.row},${hit.col},${hit.subRow},${hit.subCol}`);
-  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>TRAVADO</span>' : '';
+  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>PRESERVADO</span>' : '';
 
   el.innerHTML =
     `Bloco <strong>[L${hit.row + 1}, C${hit.col + 1}]</strong> • ` +
@@ -4101,7 +4101,16 @@ function initStudioUI() {
     regenerateMosaic(true);
   };
 
-  btnRandomize?.addEventListener('click', triggerRandomSeed);
+  const mosaicCommandContext = {
+    selectTool: activateStudioTool, eraser: activateEraser, generate: triggerRandomSeed,
+    undo: undoMosaicEdit, redo: redoMosaicEdit, swap: swapStudioColors,
+    toggle: () => window.SubtileStudioUI.toggleTilesStudio(),
+    canUndo: () => StudioState.editHistoryIndex > 0,
+    canRedo: () => StudioState.editHistoryIndex < StudioState.editHistory.length - 1
+  };
+  const runMosaicCommand = id => window.StudioCommands.run('mosaic', id, mosaicCommandContext);
+  window.StudioCommands.applyLabels(document, 'mosaic');
+  btnRandomize?.addEventListener('click', () => runMosaicCommand('generate'));
   btnPrevSeed?.addEventListener('click', () => restoreGenerationHistory(StudioState.historyIndex - 1));
   btnNextSeed?.addEventListener('click', () => restoreGenerationHistory(StudioState.historyIndex + 1));
 
@@ -4223,7 +4232,7 @@ function initStudioUI() {
     saveScheduler.schedule();
     redraw();
   });
-  document.getElementById('btnSwapColors')?.addEventListener('click', swapStudioColors);
+  document.getElementById('btnSwapColors')?.addEventListener('click', () => runMosaicCommand('swap'));
   [marginInput, paddingInput, fgPicker, bgPicker].forEach(bindDocumentEditField);
 
   // --- Swatches Bulk Controls ---
@@ -4323,7 +4332,7 @@ function initStudioUI() {
   }
 
   document.querySelectorAll('#left-toolbar .tool-btn[data-tool]').forEach((btn) => {
-    btn.addEventListener('click', () => setActiveTool(btn.dataset.tool));
+    btn.addEventListener('click', () => runMosaicCommand(btn.dataset.tool));
   });
 
   document.querySelectorAll('#editToolSegmented .seg-btn[data-edit-tool]').forEach((btn) => {
@@ -4331,8 +4340,8 @@ function initStudioUI() {
   });
 
   // --- Stage 2: Edit Undo/Redo, Canvas Center Sym, Rotate Options & Supertile Builder ---
-  document.getElementById('btnEditUndo')?.addEventListener('click', undoMosaicEdit);
-  document.getElementById('btnEditRedo')?.addEventListener('click', redoMosaicEdit);
+  document.getElementById('btnEditUndo')?.addEventListener('click', () => runMosaicCommand('undo'));
+  document.getElementById('btnEditRedo')?.addEventListener('click', () => runMosaicCommand('redo'));
 
   // Canvas Center Global Symmetry Sub-selector
   document.querySelectorAll('#canvasCenterSymControl .seg-btn[data-center-sym]').forEach((btn) => {
@@ -4779,8 +4788,11 @@ function initStudioUI() {
       return;
     }
 
-    if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'x') {
-      e.preventDefault(); swapStudioColors(); return;
+    if (StudioState.studioMode !== 'tiles' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'x') {
+      e.preventDefault();
+      if (window.StudioCommands) runMosaicCommand('swap');
+      else swapStudioColors();
+      return;
     }
 
     // Shortcut: ? opens shortcuts help popover
@@ -4793,6 +4805,7 @@ function initStudioUI() {
     if (window.SubtileStudioUI && window.SubtileStudioUI.handleKeyDown(e, StudioState)) {
       return;
     }
+    if (StudioState.studioMode !== 'tiles' && window.StudioCommands?.dispatch('mosaic', e, mosaicCommandContext)) return;
 
     // Undo / Redo Mosaic Edits (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
     if (e.ctrlKey || e.metaKey) {

@@ -13,6 +13,7 @@ const uiInfoContent = fs.readFileSync(uiInfoPath, 'utf8');
 
 // Mock window and execute ui_info.js
 global.window = {};
+window.StudioCommands = require('../core/studio_commands.js');
 global.document = {
   getElementById: () => null,
   addEventListener: () => {}
