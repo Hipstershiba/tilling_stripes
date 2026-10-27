@@ -192,9 +192,12 @@ A persistência do estúdio opera em arquitetura híbrida de duas camadas:
   - `validatePayloadVersion(payload)`: Validador semântico de integridade e versão do schema salvo (versão 3).
 
 ### 3. Snapshots de Documento (`core/document_snapshot.js`)
-- `collectParams(state)`: Coleta parâmetros macro do documento (seed, linhas, colunas, subdivisão, simetrias, margem, respiro e tiles permitidos).
+- `collectParams(state)`: Coleta parâmetros do documento (seed, linhas, colunas, subdivisão, simetrias, margem, respiro, tiles permitidos, largura/altura e cores). Campos ausentes são opcionais: `applyParams` conserva os valores atuais ao restaurar snapshots antigos.
 - `attachDocument(cellsSnapshot, documentParams)`: Vincula o registro de parâmetros ao snapshot de células.
-- Permite que o comando `Ctrl+Z` / `Ctrl+Y` atravesse regenerações destrutivas mantendo o estado de parâmetros sincronizado com as células.
+- `Ctrl+Z` / `Ctrl+Shift+Z` atravessa gerações e edições mantendo células, preservações, parâmetros, campos e tamanho do canvas sincronizados.
+- `beginDocumentEdit` captura antes do primeiro evento de aparência; `commitDocumentEdit` confirma no `change`/`blur`, inclusive ao sair da página, e `cancelDocumentEdit` restaura com Escape. Preview de cor, margem ou espaçamento não cria uma etapa por evento. No-op/cancelamento preserva redo; edição real o invalida.
+- Dimensões da prancheta, troca de cores (`X`) e cada gesto de pintura entram no mesmo histórico, respeitando os limites existentes. Alterar largura/altura não regenera células. Navegação, zoom, filtros e foco ficam fora do histórico do documento. O botão de recorte `clipToTile` já grava/restaura no histórico da família, independente do mosaico.
+- Regressões comportamentais em `test_document_edit_transactions.js`: handlers reais, 30 eventos em uma etapa, cancelamento/no-op, aparência seguida de pintura/geração, campos/canvas, dados antigos e botão de recorte com undo/redo.
 
 ---
 

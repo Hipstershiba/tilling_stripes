@@ -154,6 +154,8 @@ A arquitetura de armazenamento opera em duas camadas coordenadas:
 
 3. **Snapshots de Documento (`core/document_snapshot.js`)**:
    - Associa parâmetros macro a cada snapshot de célula, permitindo que o `Ctrl+Z` atravesse regenerações destrutivas com integridade matemática.
+   - Desfazer/refazer inclui cores (também `X`), largura/altura, margem e espaçamento. Cada gesto contínuo confirma uma etapa ao concluir o campo; `Escape` cancela o preview, sem descartar redo. Valores sem alteração não criam etapas.
+   - Redimensionar a prancheta preserva células e travas. Campos opcionais ausentes em snapshots antigos conservam o estado atual. Zoom, navegação, foco e filtros não entram nesse histórico; o recorte `clipToTile` usa o histórico independente da família.
 
 ---
 

@@ -652,9 +652,14 @@ function restoreMosaicFromSavedState() {
   renderSupertileBuilderCanvas();
 
   // If editHistory wasn't restored or is empty, initialize it
+  StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
   if (!Array.isArray(StudioState.editHistory) || StudioState.editHistory.length === 0) {
     resetEditHistoryWithInitialSnapshot();
   } else {
+    const currentEntry = StudioState.editHistory[StudioState.editHistoryIndex];
+    if (currentEntry && !currentEntry.document) {
+      window.DocumentSnapshot.attachDocument(currentEntry, StudioState.lastDocumentParams);
+    }
     syncEditUndoUI();
   }
 
@@ -759,7 +764,10 @@ function setup() {
   } catch (_) {}
   hydrateStudioStorage(hasSavedState, libraryHydrationPromise, bootDocumentRevision);
 
-  window.addEventListener('beforeunload', flushSaveStudioStateToStorage);
+  window.addEventListener('beforeunload', () => {
+    commitDocumentEdit();
+    flushSaveStudioStateToStorage();
+  });
 
   requestAnimationFrame(() => {
     syncZoomUI();
@@ -1080,6 +1088,8 @@ function restoreDocumentSnapshot(snap) {
   if (!doc) return false;
 
   window.DocumentSnapshot.applyParams(StudioState, doc);
+  StudioState.canvasRatio = StudioState.width / Math.max(1, StudioState.height);
+  StudioState.gridRatio = StudioState.cols / Math.max(1, StudioState.rows);
 
   randomSeed(StudioState.seed);
   const allowedArray = Array.from(StudioState.allowedTiles).sort((a, b) => a - b);
@@ -1104,6 +1114,8 @@ function restoreDocumentSnapshot(snap) {
   StudioState.lastDocumentParams = window.DocumentSnapshot.collectParams(StudioState);
 
   if (typeof syncAllInputsFromState === 'function') syncAllInputsFromState();
+  if (typeof applyZoomTransform === 'function') applyZoomTransform();
+  if (typeof renderEditBrushPalette === 'function') renderEditBrushPalette();
   if (typeof renderSwatchesPanel === 'function') renderSwatchesPanel();
   if (typeof syncSymmetryPanelUI === 'function') syncSymmetryPanelUI();
   if (typeof syncEditWorkspaceUI === 'function') syncEditWorkspaceUI();
@@ -1728,6 +1740,7 @@ function buildSymmetryPanelUI() {
         </div>
       `;
       btn.addEventListener('click', () => {
+        if (StudioState.gridSymmetryMode === m.id) return;
         StudioState.gridSymmetryMode = m.id;
         if (StudioState.syncBlockSymmetry) {
           StudioState.blockSymmetryMode = m.id;
@@ -1786,6 +1799,8 @@ function buildSymmetryPanelUI() {
         </div>
       `;
       btn.addEventListener('click', () => {
+        if (opt.key === 'sync' ? StudioState.syncBlockSymmetry :
+          !StudioState.syncBlockSymmetry && StudioState.blockSymmetryMode === opt.key) return;
         if (opt.key === 'sync') {
           StudioState.syncBlockSymmetry = true;
           StudioState.blockSymmetryMode = StudioState.gridSymmetryMode;
@@ -3088,6 +3103,8 @@ function requestTopologyChange(next, trigger) {
 }
 
 function swapStudioColors() {
+  commitDocumentEdit();
+  beginDocumentEdit('swap');
   [StudioState.fgColor, StudioState.bgColor] = [StudioState.bgColor, StudioState.fgColor];
   const fg = document.getElementById('fgColorPicker'), bg = document.getElementById('bgColorPicker');
   if (fg) fg.value = StudioState.fgColor;
@@ -3096,6 +3113,46 @@ function swapStudioColors() {
   renderSupertileBuilderCanvas();
   flushSaveStudioStateToStorage();
   redraw();
+  commitDocumentEdit();
+}
+
+// Appearance previews share one transaction until change/blur. No-op and
+// cancelled previews leave both the undo stack and its redo branch untouched.
+let documentEditTransaction = null;
+
+function beginDocumentEdit(owner) {
+  if (documentEditTransaction?.owner === owner) return;
+  commitDocumentEdit();
+  documentEditTransaction = { owner, before: buildDocumentSnapshot(window.DocumentSnapshot.collectParams(StudioState)) };
+}
+
+function commitDocumentEdit() {
+  const transaction = documentEditTransaction;
+  if (!transaction) return;
+  documentEditTransaction = null;
+  const current = window.DocumentSnapshot.collectParams(StudioState);
+  if (!transaction.before || JSON.stringify(current) === JSON.stringify(transaction.before.document)) return;
+  const entry = StudioState.editHistory[StudioState.editHistoryIndex];
+  if (entry) window.DocumentSnapshot.attachDocument(entry, transaction.before.document);
+  pushEditHistorySnapshot();
+}
+
+function cancelDocumentEdit() {
+  const transaction = documentEditTransaction;
+  if (!transaction) return;
+  documentEditTransaction = null;
+  restoreDocumentSnapshot(transaction.before);
+}
+
+function bindDocumentEditField(field) {
+  field?.addEventListener('change', commitDocumentEdit);
+  field?.addEventListener('blur', commitDocumentEdit);
+  field?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || documentEditTransaction?.owner !== field.id) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancelDocumentEdit();
+  });
 }
 
 function resetEditHistoryWithInitialSnapshot() {
@@ -3115,6 +3172,12 @@ function pushEditHistorySnapshot() {
   if (!StudioState.mosaicData) return;
   const snap = window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData, StudioState.frozenCells);
   if (!snap) return;
+  if (window.DocumentSnapshot) {
+    const params = window.DocumentSnapshot.collectParams(StudioState);
+    window.DocumentSnapshot.attachDocument(snap, params);
+    StudioState.lastDocumentParams = params;
+  }
+  if (JSON.stringify(snap) === JSON.stringify(StudioState.editHistory[StudioState.editHistoryIndex])) return;
 
   if (StudioState.editHistoryIndex < StudioState.editHistory.length - 1) {
     StudioState.editHistory = StudioState.editHistory.slice(0, StudioState.editHistoryIndex + 1);
@@ -3133,6 +3196,7 @@ function pushEditHistorySnapshot() {
 }
 
 function undoMosaicEdit() {
+  commitDocumentEdit();
   if (StudioState.editHistoryIndex <= 0) return;
   StudioState.editHistoryIndex--;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
@@ -3152,6 +3216,7 @@ function undoMosaicEdit() {
 }
 
 function redoMosaicEdit() {
+  commitDocumentEdit();
   if (StudioState.editHistoryIndex >= StudioState.editHistory.length - 1) return;
   StudioState.editHistoryIndex++;
   const snap = StudioState.editHistory[StudioState.editHistoryIndex];
@@ -3878,12 +3943,15 @@ function initStudioUI() {
   const btnFitCanvasToGrid = document.getElementById('btnFitCanvasToGrid');
 
   const applyCanvasDimensions = (newW, newH) => {
+    commitDocumentEdit();
+    beginDocumentEdit('dimensions');
     StudioState.width = Math.max(100, Math.min(4096, Math.round(newW)));
     StudioState.height = Math.max(100, Math.min(4096, Math.round(newH)));
     if (wInput) wInput.value = StudioState.width;
     if (hInput) hInput.value = StudioState.height;
     applyZoomTransform();
-    regenerateMosaic(true);
+    renderSupertileBuilderCanvas();
+    commitDocumentEdit();
   };
 
   wInput?.addEventListener('change', () => {
@@ -3972,6 +4040,7 @@ function initStudioUI() {
   });
 
   marginInput?.addEventListener('input', () => {
+    beginDocumentEdit(marginInput.id);
     StudioState.margin = Math.max(0, parseInt(marginInput.value, 10) || 0);
     saveScheduler.schedule();
     redraw();
@@ -4022,7 +4091,9 @@ function initStudioUI() {
 
   seedInput?.addEventListener('change', () => {
     const val = parseInt(seedInput.value, 10);
-    StudioState.seed = Number.isNaN(val) ? 0 : val;
+    const nextSeed = Number.isNaN(val) ? 0 : val;
+    if (nextSeed === StudioState.seed) return;
+    StudioState.seed = nextSeed;
     regenerateMosaic(true);
   });
 
@@ -4103,6 +4174,7 @@ function initStudioUI() {
 
   const paddingInput = document.getElementById('paddingInput');
   const applyPaddingValue = (raw) => {
+    beginDocumentEdit(paddingInput.id);
     const pct = Math.max(0, Math.min(25, parseInt(raw, 10) || 0));
     StudioState.paddingRatio = pct / 100;
     if (paddingInput && String(paddingInput.value) !== String(pct)) paddingInput.value = pct;
@@ -4140,18 +4212,21 @@ function initStudioUI() {
   const fgPicker = document.getElementById('fgColorPicker');
   const bgPicker = document.getElementById('bgColorPicker');
   fgPicker?.addEventListener('input', () => {
+    beginDocumentEdit(fgPicker.id);
     StudioState.fgColor = fgPicker.value;
     renderSupertileBuilderCanvas();
     saveScheduler.schedule();
     redraw();
   });
   bgPicker?.addEventListener('input', () => {
+    beginDocumentEdit(bgPicker.id);
     StudioState.bgColor = bgPicker.value;
     renderSupertileBuilderCanvas();
     saveScheduler.schedule();
     redraw();
   });
   document.getElementById('btnSwapColors')?.addEventListener('click', swapStudioColors);
+  [marginInput, paddingInput, fgPicker, bgPicker].forEach(bindDocumentEditField);
 
   // --- Swatches Bulk Controls ---
   document.getElementById('tileSearchInput')?.addEventListener('input', (e) => {

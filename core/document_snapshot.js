@@ -18,7 +18,11 @@
     'blockSymmetryMode',
     'syncBlockSymmetry',
     'margin',
-    'paddingRatio'
+    'paddingRatio',
+    'width',
+    'height',
+    'fgColor',
+    'bgColor'
   ];
 
   /**
@@ -28,7 +32,7 @@
     if (!state) return null;
     const params = {};
     for (const field of PARAM_FIELDS) {
-      params[field] = state[field];
+      if (state[field] !== undefined) params[field] = state[field];
     }
 
     if (state.allowedTiles instanceof Set) {

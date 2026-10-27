@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T04 concluídas, T05–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T05 concluídas, T06–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -638,7 +638,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T02 | Concluída em 27/10/2026 | `test_dirty_guard.js`: listener real, modificadores, repetição, IME, campos editáveis e foco modal. No navegador: dirty guard bloqueou X/G/undo/Ctrl+E; Tab cíclico, Escape e retorno ao campo; editor ampliado e confirmação da biblioteca retornaram ao acionador. 45/45 suítes aprovadas. |
 | T03 | Concluída em 27/10/2026 | Listener real E/S/B: captura 2×2, E repetido, retorno do pincel/carimbo, paleta #84 e cancelamento de captura. Apagamento na borda com undo em seis escopos e encaixe ligado/desligado. Navegador: captura 2×2 por arrasto, borracha, undo e restauração das duas ferramentas. |
 | T04 | Concluída em 27/10/2026 | `test_save_status.js`: matriz de armazenamentos, revisões de documento/biblioteca, falhas/abort e recuperação, filas A/B e recarga de B, fallback e boot tardio. No navegador: falha total, dock recolhido, biblioteca falhando e Tentar salvar após recuperação. |
-| T05 | Planejada | Undo por gesto, snapshot antigo e geração. |
+| T05 | Concluída em 27/10/2026 | `test_document_edit_transactions.js`: handlers reais de aparência, 30 eventos em uma etapa, no-op/cancelamento com redo, dimensões sem regeneração, pintura/geração, recarga legada e recorte de família. Navegador: cor, X, espaçamento, largura, Escape e geração com undo/redo. 47/47 suítes aprovadas. |
 | T06 | Planejada | Tabela de comandos refletida em UI/ajuda e testes. |
 | T07 | Planejada | Tokens resolvidos, contraste e estados visuais. |
 | T08 | Planejada | Nomes acessíveis, foco e campos inválidos. |
@@ -701,3 +701,14 @@ Testes novos exercitam controllers reais e Promises rejeitadas, transações abo
 Teste de navegador com fixture local em `_local/t04/failure.html`, storage em memória e IDB bloqueado, sem modificar a biblioteca criativa: falha do mosaico visível com dock recolhido; criar cópia de família adicionou falha da biblioteca e ação de backup; Tentar salvar manteve erro com a falha ativa; após liberar gravação em memória, confirmou Salvo neste navegador e retirou o aviso. Fixture e capturas permanecem locais e ignoradas pelo Git.
 
 Gate T04: `node tests/run_all.js` aprovou 46/46 suítes. O percurso saudável também confirmou Salvo neste navegador sem aviso, na abertura e após uma alteração. Evidência de falha em `_local/t04/falha-salvamento.jpg`, fora do Git.
+
+
+### Registro da T05 — 27/10/2026
+
+Snapshots de documento agora incluem opcionalmente largura, altura e cores. Cada etapa de células recebe os parâmetros atuais, evitando que desfazer uma pincelada também reverta a aparência. Restauração atualiza campos, geometria do canvas, prévias e parâmetros usados pelas saídas limpas. Snapshots antigos conservam campos ausentes; a entrada corrente de uma sessão legada recebe seus parâmetros antes da primeira geração.
+
+Cor (incluindo X), margem, espaçamento e tamanho da prancheta entram no histórico existente. Previews contínuos confirmam no `change`/`blur`; Escape cancela e conserva o ramo de redo, assim como no-op. Alterações reais invalidam redo. Alterar dimensões preserva células e travas, sem regenerar o desenho. Seed e simetria já selecionadas não criam geração redundante. Zoom, navegação, seleção, foco e filtros ficam fora do histórico do documento. O recorte `clipToTile` já estava na transação da família; o teste novo executa seu botão e os handlers reais de undo/redo, sem duplicar entradas.
+
+Verificação: nova suíte com handlers de produção e motor real, incluindo 30 eventos de cor, pintura após aparência, geração após edição e primeira geração após recarga legada. Gate completo: 47/47 suítes. No navegador, em origem isolada `127.0.0.1:8874`, confirmados cor → undo/redo, X → undo, espaçamento → undo/redo, largura 600→900 → undo/redo com tamanho real do canvas, Escape com redo preservado e geração → undo/redo mantendo aparência e dimensões. A sessão do usuário no Zen em `5500` foi preservada. Bridge Spout real não foi exercitado nesta tarefa.
+
+Arquivos funcionais: `core/document_snapshot.js` e `sketch.js`. Regressões: `test_document_edit_transactions.js`, runner e ajuste da dependência do harness de pincel. README e manual atualizados. Evidências locais em `_local/t05` permanecem ignoradas. Conhecimento sincronizado com `scripts/sync_knowledge.ps1` antes do commit.

@@ -522,8 +522,8 @@ console.log('✓ E/S/B, repeated E, palette action, all six scopes, snap and res
 // Apply actual eraser strokes at the edge, with production undo restoring their cells.
 const undoStart=source.indexOf('function undoMosaicEdit()');
 const undoEnd=source.indexOf('function redoMosaicEdit()',undoStart);
-const undo = new Function('StudioState','window','syncFreezeUI','syncEditUndoUI','syncD4Badge','saveStudioStateToStorage','redraw',
-  'return ('+source.slice(undoStart,undoEnd).trim()+')')(StudioState,window,()=>{},()=>{},()=>{},()=>{},()=>{});
+const undo = new Function('StudioState','window','syncFreezeUI','syncEditUndoUI','syncD4Badge','saveStudioStateToStorage','redraw','commitDocumentEdit',
+  'return ('+source.slice(undoStart,undoEnd).trim()+')')(StudioState,window,()=>{},()=>{},()=>{},()=>{},()=>{},()=>{});
 for(const scope of ['canvas_center','orbit_sym','block_sym','all_blocks','single','same_tile']) {
  for(const snap of [false,true]) {
   window.activateStudioTool('paint');window.selectBrushTile(40);window.setBrushSizeMode(scope==='same_tile'?'1':'2');
