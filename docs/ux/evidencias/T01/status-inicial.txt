@@ -1,0 +1,18 @@
+ M README.md
+ M core/mosaic_engine.js
+ M core/spout_output.js
+ M core/subtile_studio_ui.js
+ M core/vector_editor.js
+ M docs/MANUAL_MANUTENCAO.md
+ M docs/README.md
+ M index.html
+ M sketch.js
+ M style.css
+ M tests/test_mosaic_engine.js
+ M tests/test_spout_output.js
+ M tests/test_subtile_review_regressions.js
+ M tools/spout_bridge.py
+?? docs/relatorios/REVISAO_POS_CORRECOES.md
+?? docs/relatorios/assets/revisao_pos_correcoes/
+?? docs/ux/
+?? tests/test_spout_bridge.py
