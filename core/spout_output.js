@@ -80,31 +80,35 @@
 
     mix(params.width);
     mix(params.height);
-    mix(params.margin);
-    mix(Math.round((Number(params.paddingRatio) || 0) * 1000));
+    mixString(params.margin);
+    mixString(params.paddingRatio);
     mixString(params.fgColor);
     mixString(params.bgColor);
     if (params.libraryRevision) {
       mix(params.libraryRevision);
     }
 
-    if (!mosaicData || !mosaicData.grid) return hash;
+    if (!mosaicData) return hash;
 
     mix(mosaicData.rows);
     mix(mosaicData.cols);
     mix(mosaicData.subtilesPerSide);
 
-    for (let r = 0; r < mosaicData.rows; r++) {
-      for (let c = 0; c < mosaicData.cols; c++) {
-        const block = mosaicData.grid[r][c];
-        if (!block) continue;
-        for (let sr = 0; sr < mosaicData.subtilesPerSide; sr++) {
-          for (let sc = 0; sc < mosaicData.subtilesPerSide; sc++) {
-            const cell = block.cells[sr][sc];
-            if (!cell) continue;
-            mix(cell.tileId);
-            mixString(cell.transform);
-          }
+    // Follow the same ordered blocks as renderMosaicToContext. The grid is an
+    // index, and can temporarily differ from the render list during restoration.
+    const blocks = Array.isArray(mosaicData.blocks)
+      ? mosaicData.blocks : (mosaicData.grid || []).flat();
+    for (const block of blocks) {
+      if (!block) { mix(-1); continue; }
+      mix(block.row);
+      mix(block.col);
+      for (let sr = 0; sr < mosaicData.subtilesPerSide; sr++) {
+        for (let sc = 0; sc < mosaicData.subtilesPerSide; sc++) {
+          const cell = block.cells?.[sr]?.[sc];
+          if (!cell) { mix(-1); continue; }
+          mix(cell.tileId);
+          mix(cell.baseTileId ?? cell.tileId);
+          mixString(cell.transform);
         }
       }
     }

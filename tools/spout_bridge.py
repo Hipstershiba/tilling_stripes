@@ -93,14 +93,18 @@ class SpoutOutput:
 
 
 OUTPUT = SpoutOutput()
+OUTPUT_OWNER = None
 
 
 async def handler(ws):
+    global OUTPUT_OWNER
     peer = ws.remote_address
     print(f"[spout] cliente conectado {peer}")
     try:
         async for message in ws:
             if isinstance(message, (bytes, bytearray)):
+                if OUTPUT_OWNER is not ws:
+                    continue
                 if not OUTPUT.active:
                     await ws.send(json.dumps({"type": "error", "reason": "nenhum sender ativo"}))
                     continue
@@ -124,19 +128,25 @@ async def handler(ws):
                     continue
                 try:
                     OUTPUT.start(name, width, height)
+                    OUTPUT_OWNER = ws
                 except Exception as exc:
                     await ws.send(json.dumps({"type": "error", "reason": str(exc)}))
                     continue
                 await ws.send(json.dumps({"type": "status", "sender": name, "width": width, "height": height}))
                 print(f"[spout] sender '{name}' {width}x{height}")
             elif kind == "stop":
+                if OUTPUT_OWNER is not ws:
+                    continue
                 OUTPUT.stop()
+                OUTPUT_OWNER = None
                 await ws.send(json.dumps({"type": "status", "sender": None}))
                 print("[spout] sender encerrado")
     except Exception as exc:  # connection reset, etc.
         print(f"[spout] conexão encerrada: {exc}")
     finally:
-        OUTPUT.stop()
+        if OUTPUT_OWNER is ws:
+            OUTPUT.stop()
+            OUTPUT_OWNER = None
         print(f"[spout] cliente desconectado {peer}")
 
 
