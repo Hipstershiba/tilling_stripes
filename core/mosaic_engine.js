@@ -845,14 +845,35 @@
           gc,
           baseTileId: c.baseTileId,
           tileId: c.tileId,
-          transform: c.transform || 'id'
+          transform: c.transform || 'id',
+          sourceGR: c.sourceGR,
+          sourceGC: c.sourceGC
         });
       }
     }
 
     const cellMap = new Map();
-    const putPlacement = (gr, gc, baseTileId, transform, isAnchor) => {
+    const putPlacement = (gr, gc, baseTileId, transform, isAnchor, anchorCell, scopeTransform = 'id') => {
       if (gr < 0 || gr >= totalR || gc < 0 || gc >= totalC) return;
+      let sourcePosition = null;
+      if (options.rotateExisting && anchorCell) {
+        // Transform the source-to-destination displacement, including translated
+        // block copies. Read each replica's current cells instead of stamping
+        // the anchor's artwork over edits made in that replica.
+        const [sr, sc] = transformGridCoords(anchorCell.sourceGR, anchorCell.sourceGC, totalR, totalC, scopeTransform);
+        const [dr, dc] = transformGridCoords(anchorCell.gr, anchorCell.gc, totalR, totalC, scopeTransform);
+        const sourceGR = gr + sr - dr;
+        const sourceGC = gc + sc - dc;
+        const source = mosaicData.grid[Math.floor(sourceGR / N)]?.[Math.floor(sourceGC / N)]
+          ?.cells[sourceGR % N]?.[sourceGC % N];
+        if (!source) return;
+        sourcePosition = { sourceGR, sourceGC };
+        const familyOnly = options.rotateExisting.familyOnly;
+        baseTileId = familyOnly ? getNextTileInFamily(source.baseTileId, options.rotateExisting.step) : source.baseTileId;
+        const localRotation = composeD4(scopeTransform,
+          composeD4(options.rotateExisting.rotation, invertD4(scopeTransform)));
+        transform = familyOnly ? (source.transform || 'id') : composeD4(localRotation, source.transform || 'id');
+      }
       const key = `${gr},${gc}`;
       const existing = cellMap.get(key);
       if (existing) {
@@ -861,6 +882,7 @@
           existing.baseTileId = baseTileId;
           existing.transform = transform;
           existing.tileId = getTransformedTileId(baseTileId, transform);
+          if (sourcePosition) Object.assign(existing, sourcePosition);
         }
         return;
       }
@@ -874,13 +896,14 @@
         baseTileId,
         transform,
         tileId: getTransformedTileId(baseTileId, transform),
-        isAnchor: Boolean(isAnchor)
+        isAnchor: Boolean(isAnchor),
+        ...(sourcePosition || {})
       });
     };
 
     if (scopeMode === 'single') {
       for (const ac of anchorCells) {
-        putPlacement(ac.gr, ac.gc, ac.baseTileId, ac.transform, true);
+        putPlacement(ac.gr, ac.gc, ac.baseTileId, ac.transform, true, ac);
       }
       return { placements: Array.from(cellMap.values()), anchorBounds };
     }
@@ -900,7 +923,7 @@
                     const gr = br * N + sr;
                     const gc = bc * N + sc;
                     const isAnc = br === hitCell.row && bc === hitCell.col && sr === hitCell.subRow && sc === hitCell.subCol;
-                    putPlacement(gr, gc, ac.baseTileId, ac.transform, isAnc);
+                    putPlacement(gr, gc, ac.baseTileId, ac.transform, isAnc, ac);
                   }
                 }
               }
@@ -922,7 +945,7 @@
         for (const ac of anchorCells) {
           const [tGR, tGC] = transformGridCoords(ac.gr, ac.gc, totalR, totalC, gGlobal);
           const finalTransform = composeD4(gGlobal, ac.transform);
-          putPlacement(tGR, tGC, ac.baseTileId, finalTransform, isAnchorCopy);
+          putPlacement(tGR, tGC, ac.baseTileId, finalTransform, isAnchorCopy, ac, gGlobal);
         }
       }
       return { placements: Array.from(cellMap.values()), anchorBounds };
@@ -942,7 +965,7 @@
           const tGR = bRow * N + tr;
           const tGC = bCol * N + tc;
           const composed = composeD4(gBlock, ac.transform);
-          putPlacement(tGR, tGC, ac.baseTileId, composed, isId);
+          putPlacement(tGR, tGC, ac.baseTileId, composed, isId, ac, gBlock);
         }
       }
       return { placements: Array.from(cellMap.values()), anchorBounds };
@@ -967,7 +990,7 @@
             const tGR = br * N + tr;
             const tGC = bc * N + tc;
             const composed = composeD4(relGrid, ac.transform);
-            putPlacement(tGR, tGC, ac.baseTileId, composed, isAnchorBlk);
+            putPlacement(tGR, tGC, ac.baseTileId, composed, isAnchorBlk, ac, relGrid);
           }
         }
       }
@@ -1003,7 +1026,7 @@
 
           const [tGR, tGC] = transformGridCoords(interGR, interGC, totalR, totalC, gGrid);
           const finalTransform = composeD4(gGrid, interTransform);
-          putPlacement(tGR, tGC, ac.baseTileId, finalTransform, isAnchorCopy);
+          putPlacement(tGR, tGC, ac.baseTileId, finalTransform, isAnchorCopy, ac, composeD4(gGrid, gBlock));
         }
       }
     }
@@ -1090,7 +1113,19 @@
       };
     }
 
-    return resolveStampRegionPlacements(
+    const rigid = K > 1 && rotateGroupMode === 'group';
+    for (let r = 0; r < rotatedPattern.rows; r++) {
+      for (let c = 0; c < rotatedPattern.cols; c++) {
+        const cell = rotatedPattern.cells[r][c];
+        if (!cell) continue;
+        const [sourceR, sourceC] = rigid
+          ? transformGridCoords(r, c, rotatedPattern.rows, rotatedPattern.cols, invertD4(rotKey)) : [r, c];
+        cell.sourceGR = captured.minGlobalRow + sourceR;
+        cell.sourceGC = captured.minGlobalCol + sourceC;
+      }
+    }
+
+    const resolved = resolveStampRegionPlacements(
       mosaicData,
       rotatedPattern,
       hitCell,
@@ -1100,9 +1135,33 @@
         snapToBlock,
         canvasCenterSymmetry,
         explicitStartGR: startGR,
-        explicitStartGC: startGC
+        explicitStartGC: startGC,
+        rotateExisting: {rotation: rotKey, step, familyOnly: !rigid && rotateBehavior === 'family'}
       }
     );
+
+    // Overlapping scope copies can disagree about source cells. Keep complete
+    // permutation cycles only: partial copies must never duplicate or erase edits.
+    const byDestination = new Map(resolved.placements.map(cell => [`${cell.gr},${cell.gc}`, cell]));
+    const visited = new Set();
+    const cyclic = new Set();
+    for (const start of byDestination.keys()) {
+      const path = [], local = new Map();
+      let key = start;
+      while (byDestination.has(key) && !visited.has(key)) {
+        if (local.has(key)) {
+          for (const cycleKey of path.slice(local.get(key))) cyclic.add(cycleKey);
+          break;
+        }
+        local.set(key, path.length);
+        path.push(key);
+        const cell = byDestination.get(key);
+        key = `${cell.sourceGR},${cell.sourceGC}`;
+      }
+      path.forEach(cellKey => visited.add(cellKey));
+    }
+    resolved.placements = resolved.placements.filter(cell => cyclic.has(`${cell.gr},${cell.gc}`));
+    return resolved;
   }
 
 
@@ -1232,6 +1291,23 @@
     p.line(sx + rw - 2, sy + rh - 2 - bLen, sx + rw - 2, sy + rh - 2);
   }
 
+  // Trace only the perimeter of affected cells, including disconnected scope copies.
+  // Shared edges stay invisible so the cursor does not become an automatic grid.
+  function drawPlacementFootprint(p, placements, margin, subW, subH, strokeColor) {
+    const cells = new Map(placements.map(cell => [`${cell.gr},${cell.gc}`, cell]));
+    p.noFill();
+    p.stroke(strokeColor);
+    p.strokeWeight(1.8);
+    for (const { gr, gc } of cells.values()) {
+      const x = margin + gc * subW;
+      const y = margin + gr * subH;
+      if (!cells.has(`${gr - 1},${gc}`)) p.line(x, y, x + subW, y);
+      if (!cells.has(`${gr + 1},${gc}`)) p.line(x, y + subH, x + subW, y + subH);
+      if (!cells.has(`${gr},${gc - 1}`)) p.line(x, y, x, y + subH);
+      if (!cells.has(`${gr},${gc + 1}`)) p.line(x + subW, y, x + subW, y + subH);
+    }
+  }
+
   /**
    * Renders the interactive Edit Scope highlights and Ghost Preview onto the p5 canvas.
    */
@@ -1257,31 +1333,8 @@
 
     p.push();
 
-    // Subtle Global Canvas Center Axis Indicator when 'canvas_center' scope is active
-    if (editPreview.scopeMode === 'canvas_center') {
-      const cx = margin + drawW / 2;
-      const cy = margin + drawH / 2;
-      const sym = editPreview.canvasCenterSymmetry || 'mandala_d4';
-
-      p.noFill();
-      p.stroke(0, 210, 255, 85);
-      p.strokeWeight(1.1);
-      if (sym === 'mandala_d4' || sym === 'kaleidoscope' || sym === 'bilateral_d2' || sym === 'mirror_x' || sym === 'rotational_c4') {
-        p.line(cx, margin, cx, margin + drawH);
-      }
-      if (sym === 'mandala_d4' || sym === 'kaleidoscope' || sym === 'bilateral_d2' || sym === 'mirror_y' || sym === 'rotational_c4') {
-        p.line(margin, cy, margin + drawW, cy);
-      }
-      if ((sym === 'mandala_d4' || sym === 'kaleidoscope') && mosaicData.rows === mosaicData.cols) {
-        p.stroke(0, 210, 255, 55);
-        p.line(margin, margin, margin + drawW, margin + drawH);
-        p.line(margin + drawW, margin, margin, margin + drawH);
-      }
-      p.fill(14, 18, 24, 210);
-      p.stroke(0, 210, 255, 220);
-      p.strokeWeight(1.6);
-      p.circle(cx, cy, 10);
-    }
+    // Canvas-wide grids and axes are drawn only by renderGuidesAndOverlays,
+    // according to the user's guide toggles. The edit preview adds action feedback.
 
     // 1. Highlight captured source region with emerald corner brackets if present
     if (editPreview.stampBlock && Number.isInteger(editPreview.stampBlock.minGlobalRow)) {
@@ -1310,15 +1363,6 @@
       p.stroke(52, 211, 153, 245);
       p.strokeWeight(2);
       p.rect(sx, sy, rw, rh, 3);
-
-      // Subtile grid inside selection marquee
-      p.stroke(52, 211, 153, 120);
-      p.strokeWeight(1);
-      for (let r = minGR; r <= maxGR; r++) {
-        for (let c = minGC; c <= maxGC; c++) {
-          p.rect(margin + c * subW + 1, margin + r * subH + 1, subW - 2, subH - 2, 2);
-        }
-      }
 
       // Dimensions badge
       const selCols = maxGC - minGC + 1;
@@ -1376,6 +1420,19 @@
 
       const isRotateTool = editPreview.tool === 'rotate';
 
+      if (isRotateTool) {
+        p.noStroke();
+        p.fill(0, 210, 255, 24);
+        for (const cell of placements) {
+          p.rect(margin + cell.gc * subW, margin + cell.gr * subH, subW, subH);
+        }
+        drawPlacementFootprint(p, placements, margin, subW, subH, p.color(0, 210, 255, 210));
+        drawPlacementFootprint(p, placements.filter(cell => cell.isAnchor), margin, subW, subH,
+          p.color(255, 180, 50, 245));
+        p.pop();
+        return;
+      }
+
       for (const pl of placements) {
         const sx = margin + pl.gc * subW;
         const sy = margin + pl.gr * subH;
@@ -1399,10 +1456,15 @@
           }
         }
 
-        p.noFill();
-        p.stroke(pl.isAnchor ? p.color(255, 180, 50, 235) : p.color(0, 210, 255, 195));
-        p.strokeWeight(pl.isAnchor ? 1.8 : 1.3);
-        p.rect(sx + 1, sy + 1, subW - 2, subH - 2, 2);
+        // Mark the cursor cell, without outlining every symmetry replica.
+        const multiCellAnchor = editPreview.anchorBounds &&
+          (editPreview.anchorBounds.rows > 1 || editPreview.anchorBounds.cols > 1);
+        if (pl.isAnchor && !multiCellAnchor) {
+          p.noFill();
+          p.stroke(p.color(255, 180, 50, 235));
+          p.strokeWeight(1.8);
+          p.rect(sx + 1, sy + 1, subW - 2, subH - 2, 2);
+        }
       }
 
       if (editPreview.anchorBounds && (editPreview.anchorBounds.rows > 1 || editPreview.anchorBounds.cols > 1)) {
@@ -1472,10 +1534,6 @@
       } else if (t.isAnchor) {
         p.stroke(255, 180, 50, 255);
         p.strokeWeight(2.2);
-        p.rect(sx + 1, sy + 1, subW - 2, subH - 2, 2);
-      } else {
-        p.stroke(0, 210, 255, 205);
-        p.strokeWeight(1.4);
         p.rect(sx + 1, sy + 1, subW - 2, subH - 2, 2);
       }
     }

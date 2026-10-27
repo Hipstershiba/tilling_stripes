@@ -102,3 +102,90 @@ assert.deepStrictEqual(stabKal, ['id'], 'Permissive kaleidoscope mode has no axi
 console.log('✓ Permissive kaleidoscope mode confirmed unconstrained in editor.');
 
 console.log('--- ALL EDITOR D4 CONTRACT CHECKS PASSED PERFECTLY! ---');
+
+// The rotate cursor must cover precisely the placements used by the operation,
+// with visible replicated scope regions and no internal grid in contiguous areas.
+const engine = window.MosaicEngine;
+const layout = {width: 400, height: 400, margin: 0};
+const cellSide = 400 / totalR;
+for (const scope of Object.keys(engine.EDIT_SCOPES)) {
+  for (const size of ['1', '2', 'block']) {
+    const resolved = engine.resolveRotateRegionPlacements(mosaic,
+      {row: 0, col: 0, subRow: 1, subCol: 2},
+      {rotateSize: size, scopeMode: scope, canvasCenterSymmetry: 'mandala_d4'});
+    const rectangles = [], lines = [];
+    const context = new Proxy({}, {get: (_target, key) => {
+      if (key === 'color') return () => ({setAlpha() {}});
+      if (key === 'rect') return (...args) => rectangles.push(args);
+      if (key === 'line') return (...args) => lines.push(args);
+      return () => {};
+    }});
+    engine.renderEditScopeAndGhostOverlay(context, mosaic, layout,
+      {tool: 'rotate', scopeMode: scope, regionPlacements: resolved.placements, anchorBounds: resolved.anchorBounds});
+    const highlighted = rectangles.map(([x, y]) => `${Math.round(y / cellSide)},${Math.round(x / cellSide)}`).sort();
+    const affected = resolved.placements.map(cell => `${cell.gr},${cell.gc}`).sort();
+    assert.deepStrictEqual(highlighted, affected, `Rotate cursor must match actual ${scope}/${size} targets`);
+    if (affected.length) assert.ok(lines.length > 0, 'Affected regions must have visible boundaries');
+    if (scope === 'single' && size === '2') {
+      const sharedX = rectangles[0][0] + cellSide;
+      const sharedY = rectangles[0][1] + cellSide;
+      assert.ok(!lines.some(([x0,y0,x1,y1]) =>
+        (x0 === sharedX && x1 === sharedX) || (y0 === sharedY && y1 === sharedY)),
+        'A 2x2 cursor must not outline its internal cell boundaries');
+    }
+  }
+}
+console.log('✓ Rotate cursor matches all six scopes, size changes and block alignment without an internal grid.');
+
+// Regression: edited regions in scope replicas must rotate their own artwork,
+// instead of being overwritten with a transformed copy of the anchor region.
+const edited = JSON.parse(JSON.stringify(mosaic));
+let editId = 0;
+for (const row of edited.grid) for (const block of row) {
+  for (const cells of block.cells) for (const cell of cells) {
+    cell.baseTileId = editId++;
+    cell.transform = 'id';
+    cell.tileId = cell.baseTileId;
+  }
+}
+const readCell = (data, gr, gc) => data.grid[Math.floor(gr/N)][Math.floor(gc/N)].cells[gr%N][gc%N];
+const artwork = data => data.grid.flatMap(row => row.flatMap(block => block.cells.flat().map(cell => cell.baseTileId))).sort((a,b) => a-b);
+const beforeArtwork = artwork(edited);
+for (const scope of Object.keys(engine.EDIT_SCOPES)) {
+  for (const size of ['1', '2', '3', 'block']) for (const group of ['group', 'individual']) {
+    const data = JSON.parse(JSON.stringify(edited));
+    const hit = {row: 0, col: 0, subRow: 1, subCol: 2};
+    const options = {rotateSize: size, rotateGroupMode: group, scopeMode: scope, canvasCenterSymmetry: 'mandala_d4'};
+    const result = engine.resolveRotateRegionPlacements(data, hit, options);
+    if (!(scope === 'same_tile' && size !== '1')) assert.ok(result.placements.length > 0, `${scope}/${size}/${group} must act`);
+    for (const placement of result.placements) {
+      assert.strictEqual(placement.baseTileId, readCell(edited, placement.sourceGR, placement.sourceGC).baseTileId,
+        `${scope}/${size}/${group} must read the actual edited source in that region`);
+    }
+    engine.applyStampPlacements(data, result.placements);
+    assert.deepStrictEqual(artwork(data), beforeArtwork, `${scope}/${size}/${group} must not erase or duplicate edited tiles`);
+    const affected = new Set(result.placements.map(p => `${p.gr},${p.gc}`));
+    for (let gr=0; gr<totalR; gr++) for (let gc=0; gc<totalC; gc++) {
+      if (!affected.has(`${gr},${gc}`)) assert.deepStrictEqual(readCell(data,gr,gc), readCell(edited,gr,gc));
+    }
+    if (scope === 'single' || scope === 'all_blocks') {
+      engine.applyStampPlacements(data, engine.resolveRotateRegionPlacements(data, hit, {...options, step:-1}).placements);
+      assert.deepStrictEqual(data.grid, edited.grid, 'Inverse rotation must recover each edited region');
+    }
+  }
+}
+const localResult = engine.resolveRotateRegionPlacements(edited, {row:0,col:0,subRow:0,subCol:0},
+  {rotateSize:'2',scopeMode:'single',rotateGroupMode:'group'});
+const localData = JSON.parse(JSON.stringify(edited));
+engine.applyStampPlacements(localData, localResult.placements);
+assert.strictEqual(readCell(localData,0,0).baseTileId, readCell(edited,1,0).baseTileId);
+assert.strictEqual(readCell(localData,0,1).baseTileId, readCell(edited,0,0).baseTileId);
+assert.strictEqual(readCell(localData,1,1).baseTileId, readCell(edited,0,1).baseTileId);
+console.log('✓ Edited artwork is preserved across all rotation scopes, including overlapping regions and inverse rotations.');
+
+const mirrored = engine.resolveRotateRegionPlacements(edited, {row:0,col:0,subRow:0,subCol:0},
+  {rotateSize:'2',scopeMode:'canvas_center',rotateGroupMode:'group',canvasCenterSymmetry:'bilateral_d2'});
+const mirroredCorner = mirrored.placements.find(p => p.gr === 0 && p.gc === totalC - 1);
+assert.strictEqual(mirroredCorner.baseTileId, readCell(edited,1,totalC-1).baseTileId);
+assert.strictEqual(mirroredCorner.transform, 'r270', 'Reflected copies must conjugate the local rotation');
+console.log('✓ Mirrored scope copies rotate their edited content with the correct D4 direction.');

@@ -25,6 +25,8 @@ function createMockEl(id = '', tag = 'div') {
     style: {},
     appendChild: () => {},
     setAttribute: () => {},
+    focus() { global.document.activeElement = this; },
+    getBoundingClientRect() { return {left:0, top:0, width:this.width, height:this.height}; },
     addEventListener: () => {},
     removeEventListener: () => {},
     querySelector: () => null,
@@ -238,7 +240,7 @@ const snapStatusEl = document.getElementById('brushSnapStatusText');
 StudioState.brushSnapToBlock = false;
 window.setBrushSizeMode('3');
 assert.strictEqual(sizeValEl.textContent, '3×3', 'Display must show 3×3');
-assert.strictEqual(sizeSubEl.textContent, '3 subtiles', 'Display must show 3 subtiles');
+assert.strictEqual(sizeSubEl.textContent, 'subtiles (linhas × colunas)', 'Display must identify dimensional units');
 assert.strictEqual(snapStatusEl.textContent, 'Desativado', 'Snap status must show Desativado');
 
 StudioState.brushSnapToBlock = true;
@@ -249,3 +251,222 @@ assert.strictEqual(snapStatusEl.textContent, 'Ativado', 'Snap status must show A
 console.log('✓ Brush size value text and snap status badge render accurately.');
 
 console.log('--- ALL BRUSH SIZING, SNAP TO BLOCK, ERASER, SCOPE & UI DISPLAY TESTS PASSED! ---');
+
+// Every size gesture uses monotonic steps, including area tools and small blocks.
+StudioState.activeTool = 'rotate';
+StudioState.rotateSizeMode = '1';
+assert.strictEqual(window.cycleActiveToolSize(-1), false);
+assert.strictEqual(StudioState.rotateSizeMode, '1');
+StudioState.rotateSizeMode = 'block';
+window.cycleActiveToolSize(1);
+assert.strictEqual(StudioState.rotateSizeMode, '5');
+assert.strictEqual(StudioState.rotateSnapToBlock, false);
+window.cycleActiveToolSize(-1);
+assert.strictEqual(StudioState.rotateSizeMode, '4');
+StudioState.rotateSizeMode = '32';
+assert.strictEqual(window.cycleActiveToolSize(1), false);
+StudioState.activeTool = 'freeze';
+StudioState.freezeSize = 'block';
+assert.strictEqual(window.cycleActiveToolSize(1), false);
+window.cycleActiveToolSize(-1);
+assert.strictEqual(StudioState.freezeSize, '3');
+StudioState.freezeSize = '1';
+assert.strictEqual(window.cycleActiveToolSize(-1), false);
+StudioState.mosaicData.subtilesPerSide = 2;
+StudioState.freezeSize = '2';
+assert.strictEqual(window.cycleActiveToolSize(1), false);
+StudioState.mosaicData.subtilesPerSide = N;
+StudioState.activeTool = 'stamp';
+StudioState.brushSnapToBlock = false;
+StudioState.brushSizeMode = 'custom';
+StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(2, 5, 2, 'id');
+window.selectBrushTile(2);
+assert.strictEqual(sizeValEl.textContent, '2×5');
+assert.strictEqual(document.getElementById('activeBrushBadge').textContent, 'Aguardando captura');
+window.cycleActiveToolSize(1);
+assert.strictEqual(StudioState.brushSizeMode, '6');
+assert.strictEqual(document.getElementById('btnBrushSizeDec').disabled, false);
+window.setBrushSizeMode('1');
+assert.strictEqual(document.getElementById('btnBrushSizeDec').disabled, true);
+console.log('✓ Rotate, freeze, rectangular stamps and boundary feedback share consistent sizing.');
+
+// Regression: clone sessions and painter sessions do not overwrite one another.
+window.activateStudioTool('paint');
+window.selectBrushTile(2);
+window.setBrushSizeMode('2');
+window.activateStudioTool('stamp');
+assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+StudioState.mosaicData.grid[1][1].cells[0][0] = {baseTileId:67,tileId:67,transform:'id'};
+window.startCanvasRegionCaptureDrag({row:1,col:1,subRow:0,subCol:0});
+window.updateCaptureDragBounds({row:1,col:1,subRow:1,subCol:2});
+assert.strictEqual(window.finishCanvasRegionCapture(), true);
+assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+assert.strictEqual(StudioState.supertilePattern.rows, 2);
+assert.strictEqual(StudioState.supertilePattern.cols, 3);
+assert.strictEqual(document.getElementById('activeBrushBadge').textContent, '2×3');
+const capturedClone = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.activateStudioTool('paint');
+assert.strictEqual(StudioState.brushSizeMode, '2');
+assert.strictEqual(StudioState.supertilePattern.rows, 2);
+assert.strictEqual(StudioState.supertilePattern.cols, 2);
+window.selectBrushTile(40);
+window.activateStudioTool('stamp');
+assert.deepStrictEqual(StudioState.supertilePattern, capturedClone);
+assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+window.beginCloneCapture();
+window.startCanvasRegionCaptureDrag({row:0,col:0,subRow:0,subCol:0});
+window.cancelCloneCapture();
+assert.strictEqual(window.finishCanvasRegionCapture(), false);
+assert.deepStrictEqual(StudioState.supertilePattern, capturedClone);
+assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+// Cancelling mid-gesture by switching tools prevents a later mouseup from capturing.
+window.beginCloneCapture();
+window.startCanvasRegionCaptureDrag({row:0,col:0,subRow:0,subCol:0});
+StudioState.isPaintingDrag = true;
+window.activateStudioTool('rotate');
+assert.strictEqual(StudioState.isSelectingStampDrag, false);
+assert.strictEqual(StudioState.isPaintingDrag, false);
+assert.strictEqual(window.finishCanvasRegionCapture(), false);
+assert.strictEqual(document.body.dataset.cursorMode, 'rotate');
+window.activateStudioTool('stamp');
+assert.strictEqual(StudioState.stampInteractionMode, 'apply', 'Returning after interrupted capture should resume the existing clone');
+window.cancelCloneCapture();
+assert.deepStrictEqual(StudioState.supertilePattern, capturedClone);
+StudioState.brushSnapToBlock = true;
+window.startCanvasRegionCaptureDrag({row:2,col:3,subRow:1,subCol:1});
+window.updateCaptureDragBounds({row:0,col:1,subRow:1,subCol:1});
+assert.deepStrictEqual([StudioState.stampDragStartGR,StudioState.stampDragStartGC,
+  StudioState.stampDragCurrGR,StudioState.stampDragCurrGC],[0,4,11,15]);
+window.cancelCloneCapture();
+window.activateStudioTool('zoom');
+StudioState.isAltDown = true;
+window.syncCanvasCursor();
+assert.strictEqual(document.body.dataset.cursorMode, 'zoom-out');
+StudioState.isSpaceDown = true;
+window.syncCanvasCursor();
+assert.strictEqual(document.body.dataset.cursorMode, 'grab');
+StudioState.isSpaceDown = false; StudioState.isAltDown = false;
+window.activateStudioTool('paint');
+assert.strictEqual(StudioState.editBrushTileId, 40);
+console.log('✓ Clone capture/cancel, independent brushes, reverse block selection and cursor priorities verified.');
+
+// Small wheel events accumulate; reversing direction must not inherit old input.
+StudioState.brushSnapToBlock = false;
+window.setBrushSizeMode('2');
+assert.strictEqual(window.stepToolSizeFromWheel({deltaY:-20,timeStamp:1000}), false);
+assert.strictEqual(window.stepToolSizeFromWheel({deltaY:-25,timeStamp:1010}), true);
+assert.strictEqual(StudioState.brushSizeMode, '3');
+window.stepToolSizeFromWheel({deltaY:-20,timeStamp:1020});
+assert.strictEqual(window.stepToolSizeFromWheel({deltaY:25,timeStamp:1030}), false);
+window.stepToolSizeFromWheel({deltaY:20,timeStamp:1040});
+assert.strictEqual(StudioState.brushSizeMode, '2');
+StudioState.editScope = 'same_tile';
+window.syncCanvasCursor();
+assert.strictEqual(document.body.dataset.cursorMode, 'unavailable');
+StudioState.editScope = 'single';
+console.log('✓ Wheel normalization and unavailable-action cursor verified.');
+
+// Alt-capture enters clone before replacing the live pattern, retaining the painter.
+let storedBrushPayload = null;
+global.localStorage.setItem = (_key, value) => { storedBrushPayload = JSON.parse(value); };
+window.activateStudioTool('paint');
+window.selectBrushTile(40);
+window.setBrushSizeMode('2');
+const painterBeforeAlt = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.startCanvasRegionCaptureDrag({row:1,col:1,subRow:0,subCol:0});
+assert.strictEqual(StudioState.activeTool, 'stamp', 'Alt-style region capture must use the clone session');
+window.finishCanvasRegionCapture();
+const cloneAfterAlt = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.activateStudioTool('paint');
+assert.deepStrictEqual(StudioState.supertilePattern, painterBeforeAlt, 'Painter must not inherit the Alt capture');
+assert.strictEqual(StudioState.editBrushTileId, 40);
+assert.strictEqual(StudioState.brushSizeMode, '2');
+window.activateStudioTool('stamp');
+assert.deepStrictEqual(StudioState.supertilePattern, cloneAfterAlt);
+assert.ok(storedBrushPayload.brushToolSessions.paint && storedBrushPayload.brushToolSessions.stamp,
+  'Actual studio payload must save both brushes');
+const savedSessions = JSON.parse(JSON.stringify(storedBrushPayload.brushToolSessions));
+// A reload rebuilds the cache from persisted sessions, including while clone is active.
+window.restoreBrushToolSessions(savedSessions);
+window.activateStudioTool('paint');
+assert.deepStrictEqual(StudioState.supertilePattern, painterBeforeAlt);
+window.activateStudioTool('stamp');
+assert.deepStrictEqual(StudioState.supertilePattern, cloneAfterAlt);
+// Legacy save: it may claim paint while holding clone geometry, with no paint cache.
+window.restoreBrushToolSessions(undefined);
+StudioState.activeTool = 'paint';
+StudioState.supertilePattern = JSON.parse(JSON.stringify(cloneAfterAlt));
+StudioState.stampBlock = StudioState.supertilePattern;
+window.activateStudioTool('paint');
+assert.strictEqual(StudioState.supertilePattern.rows, 1);
+assert.strictEqual(StudioState.supertilePattern.cols, 1);
+assert.strictEqual(StudioState.editBrushTileId, 2);
+window.activateStudioTool('stamp');
+assert.deepStrictEqual(StudioState.supertilePattern, cloneAfterAlt, 'Legacy recovery must retain the captured clone');
+console.log('✓ Alt capture, persistent brush separation and legacy clone-contaminated paint saves verified.');
+
+// Real editor workflow: palette picks ink, canvas paints individual cells,
+// resize preserves artwork, local undo/redo works, Cancel restores the original.
+window.activateStudioTool('paint');
+window.selectBrushTile(2);
+window.setBrushSizeMode('2');
+const originalEditorBrush = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+const editorBody = document.getElementById('panelEditBrushBody');
+let restoredEditorBody = false;
+editorBody.parentNode = {insertBefore: () => {restoredEditorBody = true;}};
+editorBody.nextSibling = null;
+window.openBrushEditor();
+const editorCanvas = document.getElementById('supertileBuilderCanvas');
+assert.strictEqual(editorCanvas.width, 576);
+window.selectBrushTile(67);
+assert.deepStrictEqual(StudioState.supertilePattern, originalEditorBrush, 'Palette must not fill the whole editor brush');
+window.handleMiniBuilderCanvasMouse({clientX:100,clientY:100,button:0});
+assert.strictEqual(StudioState.supertilePattern.cells[0][0].baseTileId,67);
+assert.strictEqual(StudioState.supertilePattern.cells[1][1].baseTileId,2);
+const beforeSample = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.selectBrushTile(40);
+window.handleMiniBuilderCanvasMouse({clientX:100,clientY:100,button:0,altKey:true});
+assert.strictEqual(StudioState.editBrushTileId,67);
+assert.deepStrictEqual(StudioState.supertilePattern,beforeSample,'Alt sampling must not paint');
+window.resizeBrushEditorGrid(2,3);
+assert.strictEqual(StudioState.supertilePattern.cols,3);
+assert.strictEqual(StudioState.supertilePattern.cells[0][0].baseTileId,67);
+assert.strictEqual(StudioState.supertilePattern.cells[0][2].baseTileId,84);
+window.stepBrushEditorHistory(-1);
+assert.strictEqual(StudioState.supertilePattern.cols,2);
+window.stepBrushEditorHistory(-1);
+assert.deepStrictEqual(StudioState.supertilePattern, originalEditorBrush);
+window.stepBrushEditorHistory(1);
+assert.strictEqual(StudioState.supertilePattern.cells[0][0].baseTileId,67);
+window.closeBrushEditor(false);
+assert.deepStrictEqual(StudioState.supertilePattern, originalEditorBrush);
+assert.strictEqual(StudioState.editBrushTileId,2);
+assert.strictEqual(editorCanvas.width,104);
+assert.strictEqual(restoredEditorBody,true);
+window.openBrushEditor();
+window.selectBrushTile(84);
+window.handleMiniBuilderCanvasMouse({clientX:100,clientY:100,button:0});
+window.closeBrushEditor();
+assert.strictEqual(StudioState.supertilePattern.cells[0][0].baseTileId,84);
+assert.strictEqual(StudioState.supertilePattern.cells[1][1].baseTileId,2);
+console.log('✓ Expanded brush editing: ink selection, painting, rectangular resize, undo/redo, erasing and cancel/commit verified.');
+
+// Clone's ordinary click applies; Alt is the primary capture modifier.
+const paintBeforeAltGesture = JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.restoreBrushToolSessions(undefined);
+window.activateStudioTool('stamp');
+assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+global.mouseX = StudioState.margin + 20;
+global.mouseY = StudioState.margin + 20;
+window.handleCanvasMouseDown({button:0,altKey:false,preventDefault(){}});
+assert.strictEqual(StudioState.isSelectingStampDrag,false, 'A normal click must not silently enter capture');
+assert.strictEqual(document.getElementById('activeBrushBadge').textContent,'Aguardando captura');
+window.handleCanvasMouseDown({button:0,altKey:true,preventDefault(){}});
+assert.strictEqual(StudioState.isSelectingStampDrag,true);
+assert.strictEqual(document.body.dataset.cursorMode,'capture');
+window.finishCanvasRegionCapture();
+assert.strictEqual(StudioState.stampInteractionMode,'apply');
+assert.strictEqual(document.body.dataset.cursorMode,'clone');
+window.activateStudioTool('paint');
+assert.deepStrictEqual(StudioState.supertilePattern,paintBeforeAltGesture);
+console.log('✓ Clone uses Alt capture and resumes apply without replacing the painter.');
