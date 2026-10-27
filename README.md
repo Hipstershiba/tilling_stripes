@@ -83,7 +83,7 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 
 - **🔍 Inspecionar (`V`)**: Exibe coordenadas de bloco, subtile, ID do tile, transformação e órbita no inspetor de hover. Atua como o contexto para as configurações de Geração no dock lateral.
 - **✎ Pincel (`B`)**: Pinta células com o tile e rotação ativos. Suporta pincéis inteiros não-cíclicos (1×1 até dimensões de bloco) e Supertiles. Botão direito no mosaico gira o pincel em +90°.
-- **🧹 Borracha (`E`)**: Alterna rapidamente o pincel ativo para o Tile Vazio (#84), permitindo abrir respiros e apagar células preservando a rotação e o escopo de simetria.
+- **🧹 Borracha (`E`)**: Ativa sempre o pincel vazio (#84), inclusive após usar o carimbo. E repetido mantém a borracha; B restaura o último pincel não vazio e S restaura a captura do carimbo. O escopo e o encaixe continuam valendo.
 - **↻ Girar (`R`)**: Clique esquerdo gira a área em +90°; clique direito gira em -90°. Suporta rotação geométrica D4 ou ciclar variações da mesma família.
 - **⧉ Clonar / Carimbo (`S`)**: Arraste para capturar uma região do mosaico e clique para colar com a simetria ativa (tecla `C` troca para modo de captura).
 - **🔒 Travar Subtiles (`F`)**: Congela subtiles do mosaico para torná-los imunes a novas gerações ou sorteios de semente (`G`). Ação monotônica com modos de congelar e descongelar. Tecla `Shift+F` limpa as travas ativas.
@@ -265,8 +265,8 @@ node tests/run_all.js
 ### Ferramentas e Modos
 - `Ctrl + E`: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias (`Escape` retorna ao Mosaico)
 - `V`: Ferramenta Inspecionar (abre configurações de Geração no dock)
-- `B`: Ferramenta Pincel (se o tile ativo era borracha, restaura o tile anterior)
-- `E`: Borracha (alterna entre o tile anterior e o Tile Vazio #84)
+- `B`: Ferramenta Pincel (restaura o padrão, tamanho e encaixe do último pincel não vazio)
+- `E`: Borracha (sempre ativa o Tile Vazio #84; repetir E mantém a borracha)
 - `R`: Ferramenta Girar
 - `S`: Ferramenta Carimbo / Clonar (`C` ativa o modo de captura)
 - `F`: Ferramenta Travar / Congelar Subtiles (`Shift + F` limpa todas as travas)
@@ -323,13 +323,13 @@ Girar opera sobre o conteúdo atual de cada região afetada pelo escopo. Réplic
 
 O botão **Ampliar editor** abre um popup com canvas maior e paleta lado a lado; os mesmos controles do dock são movidos para ele, sem cópias independentes. O editor trabalha ao vivo; **Concluir** mantém as alterações; **Cancelar** ou `Esc` restaura o pincel da abertura e retorna ao dock. Clique/arraste pinta células e o botão direito gira a célula, inclusive em 1×1. A roda sobre o canvas ampliado e `−`/`+` seguem o mesmo controle de tamanho do mosaico.
 
-**Clone:** `S` seleciona a ferramenta; o gesto principal de captura é **Alt + clique/arraste**, seguido de aplicação com clique normal. `C` continua como alternativa para iniciar captura. Arraste e solte para capturar; a ferramenta passa automaticamente a aplicar. Clique/arraste aplica e botão direito gira o clone. `Esc` ou botão direito durante a captura cancela sem substituir o clone anterior. Capturas com ajuste ao bloco funcionam em qualquer direção de arrasto. Pincel e clone conservam padrões independentes durante a sessão; trocar ferramenta encerra o gesto anterior. Os dois padrões são salvos separadamente no campo opcional `brushToolSessions` do payload v3 e restaurados após recarregar.
+**Clone:** `S` restaura a captura anterior; sem captura, entra automaticamente em Capturar. O gesto **Alt + clique/arraste** permite recapturar, seguido de aplicação com clique normal. `C` continua como alternativa para iniciar captura. Arraste e solte para capturar; a ferramenta passa automaticamente a aplicar. Clique/arraste aplica e botão direito gira o clone. `Esc` ou botão direito durante a captura cancela sem substituir o clone anterior. Capturas com ajuste ao bloco funcionam em qualquer direção de arrasto. Pincel e clone conservam padrões independentes durante a sessão; trocar ferramenta encerra o gesto anterior. Os dois padrões são salvos separadamente no campo opcional `brushToolSessions` do payload v3 e restaurados após recarregar.
 
 **Cursores:** captura usa mira; aplicar clone usa cópia; Girar usa seta circular com ponto de ação; Borracha usa célula; Pan/Espaço usam mão aberta e fechada durante o arrasto; Zoom com Alt indica afastamento. Navegação tem prioridade sobre os cursores vetoriais. Combinações sem aplicação válida no escopo Iguais usam cursor de ação indisponível.
 
 Capturar uma região com Alt também entra na sessão de Clone antes de substituir o padrão ativo. Voltar a Pintar recupera seu tile, orientação, tamanho e ajuste ao bloco. Saves antigos sem um pincel separado retomam um pincel normal 1×1 (#2), preservando a região capturada na ferramenta Clone.
 
-O editor ampliado permite definir **Linhas e Colunas** separadamente, escolher o tile da paleta sem preencher o padrão inteiro, pintar/apagar células e desfazer/refazer com `Ctrl+Z`/`Ctrl+Shift+Z`. Redimensionar preserva as células existentes e cria células vazias. Limpar grade pode ser desfeito; Cancelar/Esc restaura o padrão anterior à abertura. No Clone sem captura, clicar normalmente apenas orienta a usar Alt; a prévia mostra “Aguardando captura”.
+O editor ampliado permite definir **Linhas e Colunas** separadamente, escolher o tile da paleta sem preencher o padrão inteiro, pintar/apagar células e desfazer/refazer com `Ctrl+Z`/`Ctrl+Shift+Z`. Redimensionar preserva as células existentes e cria células vazias. Limpar grade pode ser desfeito; Cancelar/Esc restaura o padrão anterior à abertura. No Clone sem captura, a ferramenta entra em Capturar automaticamente: arraste com o botão esquerdo para capturar. Depois da captura, o clique normal aplica; Alt+arraste ou C permitem recapturar.
 
 
 ### Criador de subtiles — seleção e organização dos painéis
@@ -358,3 +358,7 @@ Diálogos modais bloqueiam comandos externos, mantêm o foco com Tab/Shift+Tab e
 Q cicla os seis escopos. Tab é alias somente com foco na área de trabalho e ferramenta de edição do mosaico; em controles ou no gerador, navega pelo foco. Escape no canvas cancela o gesto e retorna à ferramenta. Setas navegam gerações somente no canvas com Inspecionar. Shift inverte momentaneamente o encaixe.
 
 Reduzir linhas, colunas ou subdivisão informa a quantidade de preservações fora da nova grade antes de aplicar; Cancelar conserva a topologia, e desfazer recupera a grade e as preservações anteriores. Nova semente mantém as preservações que cabem na grade.
+
+### Borracha, pincel e carimbo (T03)
+
+E ou selecionar o Tile Vazio #84 na paleta do mosaico ativa a borracha em Pintar, sem alterar a captura do carimbo. Repetir E mantém a borracha; B ou o botão Pintar restaura o último pincel não vazio, incluindo padrão, tamanho e encaixe. S ou Clonar restaura a captura; sem captura, entra em Capturar automaticamente. Trocar de ferramenta encerra o gesto temporário, sem aplicar um traço ou captura na soltura residual. O dock e o indicador do padrão identificam Borracha. Salvar durante o apagamento conserva as sessões independentes do pincel e do carimbo no payload v3 existente. No editor ampliado, #84 continua sendo tinta vazia para apagar células individuais do padrão.

@@ -2268,9 +2268,18 @@ function currentBrushSession() {
     stampMode: StudioState.stampInteractionMode, cloneReady: isCloneReady()
   };
 }
+function isEraserPattern() {
+  const pattern = StudioState.supertilePattern;
+  return brushPatternOwner === 'paint' && StudioState.editBrushTileId === 84 &&
+    pattern?.cells?.every(row => row.every(cell => cell.baseTileId === 84));
+}
+function rememberBrushSession() {
+  // Erasing is temporary; never replace the last non-empty painter with it.
+  if (!isEraserPattern() || brushEditorPortal) brushToolSessions.set(brushPatternOwner, currentBrushSession());
+}
 function collectBrushToolSessions() {
   initializeBrushPatternOwner();
-  brushToolSessions.set(brushPatternOwner, currentBrushSession());
+  rememberBrushSession();
   return {owner: brushPatternOwner, paint: brushToolSessions.get('paint'), stamp: brushToolSessions.get('stamp')};
 }
 function restoreBrushToolSessions(saved) {
@@ -2295,21 +2304,22 @@ function restoreBrushToolSessions(saved) {
   if (saved.owner === 'paint' || saved.owner === 'stamp') brushPatternOwner = saved.owner;
   if (brushPatternOwner === 'stamp') {
     cloneReady = Boolean(brushToolSessions.get('stamp')?.cloneReady);
-    if (!cloneReady && StudioState.activeTool === 'stamp') StudioState.stampInteractionMode = 'apply';
+    if (!cloneReady && StudioState.activeTool === 'stamp') StudioState.stampInteractionMode = 'select';
   }
 }
 
-function activateStudioTool(tool) {
+function activateStudioTool(tool, restorePaint = true) {
   if (!['inspect','paint','rotate','stamp','freeze','pan','zoom'].includes(tool)) return;
   const previousTool = StudioState.activeTool;
-  if (previousTool !== tool) {
+  if (previousTool !== tool || (tool === 'paint' && restorePaint && isEraserPattern())) {
     cancelToolGesture();
     StudioState.isPanning = false;
     document.body.classList.remove('is-panning');
   }
   initializeBrushPatternOwner();
-  if ((tool === 'paint' || tool === 'stamp') && brushPatternOwner !== tool) {
-    brushToolSessions.set(brushPatternOwner, currentBrushSession());
+  if ((tool === 'paint' || tool === 'stamp') &&
+      (brushPatternOwner !== tool || (tool === 'paint' && restorePaint && isEraserPattern()))) {
+    rememberBrushSession();
     const session = brushToolSessions.get(tool);
     if (session) {
       StudioState.supertilePattern = JSON.parse(JSON.stringify(session.pattern));
@@ -2320,11 +2330,11 @@ function activateStudioTool(tool) {
       StudioState.brushSnapToBlock = session.snap;
       if (tool === 'stamp') {
         cloneReady = session.cloneReady;
-        StudioState.stampInteractionMode = cloneReady ? session.stampMode : 'apply';
+        StudioState.stampInteractionMode = cloneReady ? 'apply' : 'select';
       }
     } else if (tool === 'stamp') {
       cloneReady = false;
-      StudioState.stampInteractionMode = 'apply';
+      StudioState.stampInteractionMode = 'select';
     } else {
       // Legacy saves had no independent painter snapshot. Restore a normal brush
       // and retain the captured artwork in the clone session for later use.
@@ -2340,6 +2350,7 @@ function activateStudioTool(tool) {
 
   saveScheduler.flush();
   StudioState.activeTool = tool;
+  if (tool === 'stamp' && !isCloneReady()) StudioState.stampInteractionMode = 'select';
   if (['paint','rotate','stamp','freeze'].includes(tool)) StudioState.workspace = 'edit';
   else if (tool === 'inspect') StudioState.workspace = 'generate';
   document.getElementById('artboard-pasteboard')?.classList.toggle('panning', tool === 'pan' || StudioState.isSpaceDown);
@@ -2349,6 +2360,27 @@ function activateStudioTool(tool) {
   saveStudioStateToStorage();
   redraw();
 }
+function activateEraser() {
+  if (brushEditorPortal) { selectBrushTile(84); return; }
+  cancelToolGesture();
+  activateStudioTool('paint', false);
+  if (!isEraserPattern()) {
+    rememberBrushSession();
+    StudioState.previousBrushTileId = StudioState.editBrushTileId;
+    const pattern = ensureSupertilePattern();
+    StudioState.editBrushTileId = 84;
+    StudioState.editBrushTransform = 'id';
+    StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(pattern.rows, pattern.cols, 84, 'id');
+    StudioState.stampBlock = StudioState.supertilePattern;
+  }
+  syncEditWorkspaceUI();
+  renderSupertileBuilderCanvas();
+  renderEditBrushPalette();
+  saveStudioStateToStorage();
+  showEditorToast('Borracha · pinte para apagar. B restaura o pincel; S restaura o carimbo.');
+  redraw();
+}
+
 function beginCloneCapture() {
   closeBrushEditor();
   activateStudioTool('stamp');
@@ -2471,6 +2503,8 @@ function closeBrushEditor(commit = true) {
 }
 
 function selectBrushTile(tileId) {
+  if (tileId === 84 && !brushEditorPortal) { activateEraser(); return; }
+  if (isEraserPattern() && !brushEditorPortal) cancelToolGesture();
   if (StudioState.activeTool !== 'paint' && StudioState.activeTool !== 'stamp') activateStudioTool('paint');
   StudioState.editBrushTileId = tileId;
   StudioState.editBrushTransform = 'id';
@@ -3489,7 +3523,7 @@ function syncContextPanel() {
   const isGenerator = StudioState.workspace === 'generate';
   title.textContent = isGenerator
     ? 'Geração'
-    : (TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
+    : (StudioState.activeTool === 'paint' && isEraserPattern() ? 'Borracha' : TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
 }
 
 function syncEditWorkspaceUI() {
@@ -3700,6 +3734,10 @@ function syncEditWorkspaceUI() {
     if (brushBadgeEl) brushBadgeEl.textContent = `${pat.rows}×${pat.cols}`;
   }
 
+  if (StudioState.activeTool === 'paint' && isEraserPattern() && !brushEditorPortal) {
+    if (brushNameEl) brushNameEl.textContent = 'Borracha · Tile Vazio #84';
+    if (brushBadgeEl) brushBadgeEl.textContent = `Borracha ${pat.rows}×${pat.cols}`;
+  }
   if (StudioState.activeTool === 'stamp' && !isCloneReady() && !brushEditorPortal) {
     if (brushNameEl) brushNameEl.textContent = 'Sem captura';
     if (brushD4El) brushD4El.textContent = 'Alt + arraste';
@@ -3735,6 +3773,8 @@ function updateHoverStatusText() {
         el.innerHTML = StudioState.stampInteractionMode === 'select'
           ? '<strong>Clonar (S):</strong> Arraste e solte para capturar • Esc cancela'
           : '<strong>Clonar (S):</strong> Alt+arraste captura • Clique/arraste aplica • Clique direito gira';
+      } else if (StudioState.activeTool === 'paint' && isEraserPattern()) {
+        el.innerHTML = '<strong>Borracha (E):</strong> Clique/arraste para apagar • B restaura o pincel • S restaura o carimbo';
       } else {
         el.innerHTML = '<strong>Pincel (B):</strong> Clique/arraste para pintar • Clique Dir gira o pincel (+90°) • Alt+Arraste captura área';
       }
@@ -4789,18 +4829,7 @@ function initStudioUI() {
       e.preventDefault();
       triggerRandomSeed();
     } else if (k === 'e') {
-      e.preventDefault();
-      if (StudioState.editBrushTileId === 84) {
-        const prevId = (typeof StudioState.previousBrushTileId === 'number' && StudioState.previousBrushTileId !== 84)
-          ? StudioState.previousBrushTileId
-          : 2;
-        selectBrushTile(prevId);
-        showEditorToast(`Pincel #${prevId}`);
-      } else {
-        StudioState.previousBrushTileId = StudioState.editBrushTileId;
-        selectBrushTile(84);
-        showEditorToast('Borracha (Tile Vazio #84)');
-      }
+      e.preventDefault(); activateEraser();
     } else if (k === 'f') {
       if (e.shiftKey) {
         e.preventDefault();
@@ -4815,13 +4844,6 @@ function initStudioUI() {
         document.getElementById('toggleGuideBlocks')?.click();
       } else {
         setActiveTool('paint');
-        if (StudioState.editBrushTileId === 84) {
-          const prevId = (typeof StudioState.previousBrushTileId === 'number' && StudioState.previousBrushTileId !== 84)
-            ? StudioState.previousBrushTileId
-            : 2;
-          selectBrushTile(prevId);
-          showEditorToast(`Pincel #${prevId}`);
-        }
       }
     } else if (k === 'r') {
       setActiveTool('rotate');
@@ -4906,6 +4928,7 @@ window.setBrushSizeMode = setBrushSizeMode;
 window.cycleEditScope = cycleEditScope;
 
 window.activateStudioTool = activateStudioTool;
+window.activateEraser = activateEraser;
 window.cancelToolGesture = cancelToolGesture;
 window.beginCloneCapture = beginCloneCapture;
 window.cancelCloneCapture = cancelCloneCapture;

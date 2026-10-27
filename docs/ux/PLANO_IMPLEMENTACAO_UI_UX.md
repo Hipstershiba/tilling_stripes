@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T02 concluídas, T03–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T03 concluídas, T04–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -636,7 +636,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 |---|---|---|
 | T01 | Concluída em 27/10/2026 | [Baseline, mapa, 45/45 suítes e cinco capturas 1440×900](T01_BASELINE_E_MAPA_ACOES.md). |
 | T02 | Concluída em 27/10/2026 | `test_dirty_guard.js`: listener real, modificadores, repetição, IME, campos editáveis e foco modal. No navegador: dirty guard bloqueou X/G/undo/Ctrl+E; Tab cíclico, Escape e retorno ao campo; editor ampliado e confirmação da biblioteca retornaram ao acionador. 45/45 suítes aprovadas. |
-| T03 | Planejada | Captura 2×2 → E → S e testes de edição. |
+| T03 | Concluída em 27/10/2026 | Listener real E/S/B: captura 2×2, E repetido, retorno do pincel/carimbo, paleta #84 e cancelamento de captura. Apagamento na borda com undo em seis escopos e encaixe ligado/desligado. Navegador: captura 2×2 por arrasto, borracha, undo e restauração das duas ferramentas. |
 | T04 | Planejada | Matriz de backends, ordem de callbacks e recuperação. |
 | T05 | Planejada | Undo por gesto, snapshot antigo e geração. |
 | T06 | Planejada | Tabela de comandos refletida em UI/ajuda e testes. |
@@ -675,3 +675,11 @@ Teste de navegador executado em origem separada `127.0.0.1:8874`, pois o Zen em 
 Higiene: PNGs novos e pastas de evidências ignorados; artefatos da T01 retirados somente do índice, preservados localmente. Outros PNGs históricos rastreados não foram removidos. Alterações anteriores de Spout, motor, biblioteca, navegação vetorial e layout não integram o commit funcional da T02.
 
 Complemento do aceite T02: Cancelar e Confirmar do dirty guard foram conectados (não possuíam listeners). Corrigida a captura dos parâmetros anteriores à primeira alteração de topologia após restaurar sessão. No navegador, reduzir 3×3 para 1×3 informou quatro preservações removidas; confirmar aplicou 1×3 e um desfazer restaurou 3×3 com as quatro preservações. Regressão automatizada executa a função de mudança real com `lastDocumentParams` inicialmente ausente.
+
+### Registro da T03 — 27/10/2026
+
+Reproduzido antes da correção em `127.0.0.1:8874`: após carimbo 2×2, E mantinha `stamp`, cursor de clone e título Clonar. Corrigido por uma ação compartilhada de borracha; a sessão temporária de apagamento não substitui o último pincel não vazio nem a captura. E é idempotente; B/botão Pintar restaura o pincel; S/Clonar restaura o carimbo e inicia captura se vazio. Capturas/traços temporários são encerrados ao trocar de ferramenta. Mantidos catálogo, D4, escopos, 60 IDs e schema v3.
+
+Teste de navegador na origem separada: captura 2×2 por arrasto, E duas vezes mostrou Borracha/erase, arrasto apagou, undo executou, S recuperou 2×2 em Aplicar e B recuperou o pincel #2 anterior. Testes automatizados executam o listener real e o apagamento na borda/undo para os seis escopos com encaixe ligado/desligado; também verificam sessões preservadas ao salvar durante apagamento e restaurar. Capturas e saídas de execução permanecem locais e ignoradas.
+
+Gate T03: `node tests/run_all.js` aprovou 45/45 suítes, incluindo D4, registro de controles, persistência e Spout. Evidência visual local em `_local/t03/borracha.jpg`, fora do Git.

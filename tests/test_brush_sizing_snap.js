@@ -296,7 +296,7 @@ window.activateStudioTool('paint');
 window.selectBrushTile(2);
 window.setBrushSizeMode('2');
 window.activateStudioTool('stamp');
-assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+assert.strictEqual(StudioState.stampInteractionMode, 'select');
 StudioState.mosaicData.grid[1][1].cells[0][0] = {baseTileId:67,tileId:67,transform:'id'};
 window.startCanvasRegionCaptureDrag({row:1,col:1,subRow:0,subCol:0});
 window.updateCaptureDragBounds({row:1,col:1,subRow:1,subCol:2});
@@ -452,22 +452,105 @@ assert.strictEqual(StudioState.supertilePattern.cells[0][0].baseTileId,84);
 assert.strictEqual(StudioState.supertilePattern.cells[1][1].baseTileId,2);
 console.log('✓ Expanded brush editing: ink selection, painting, rectangular resize, undo/redo, erasing and cancel/commit verified.');
 
-// Clone's ordinary click applies; Alt is the primary capture modifier.
+// A new clone offers capture on the first ordinary click; once ready, ordinary click applies.
 const paintBeforeAltGesture = JSON.parse(JSON.stringify(StudioState.supertilePattern));
 window.restoreBrushToolSessions(undefined);
 window.activateStudioTool('stamp');
-assert.strictEqual(StudioState.stampInteractionMode, 'apply');
+assert.strictEqual(StudioState.stampInteractionMode, 'select');
 global.mouseX = StudioState.margin + 20;
 global.mouseY = StudioState.margin + 20;
 window.handleCanvasMouseDown({button:0,altKey:false,preventDefault(){}});
-assert.strictEqual(StudioState.isSelectingStampDrag,false, 'A normal click must not silently enter capture');
-assert.strictEqual(document.getElementById('activeBrushBadge').textContent,'Aguardando captura');
-window.handleCanvasMouseDown({button:0,altKey:true,preventDefault(){}});
-assert.strictEqual(StudioState.isSelectingStampDrag,true);
+assert.strictEqual(StudioState.isSelectingStampDrag,true, 'Empty clone must begin capture on ordinary click');
 assert.strictEqual(document.body.dataset.cursorMode,'capture');
 window.finishCanvasRegionCapture();
 assert.strictEqual(StudioState.stampInteractionMode,'apply');
-assert.strictEqual(document.body.dataset.cursorMode,'clone');
+window.handleCanvasMouseDown({button:0,altKey:false,preventDefault(){}});
+assert.strictEqual(StudioState.isSelectingStampDrag,false, 'Ready clone must apply on ordinary click');
+window.handleCanvasMouseDown({button:0,altKey:true,preventDefault(){}});
+assert.strictEqual(StudioState.isSelectingStampDrag,true);
+window.finishCanvasRegionCapture();
 window.activateStudioTool('paint');
 assert.deepStrictEqual(StudioState.supertilePattern,paintBeforeAltGesture);
-console.log('✓ Clone uses Alt capture and resumes apply without replacing the painter.');
+console.log('✓ Empty clone captures immediately; ready clone applies and Alt recaptures.');
+
+// Exercise the actual keyboard listener through E/S/B with a captured 2×2 pattern.
+const vm = require('vm');
+const source = fs.readFileSync(path.join(__dirname,'../sketch.js'),'utf8');
+const begin = source.indexOf("  window.addEventListener('keydown', (e) => {",source.indexOf('// --- Illustrator & Editor Keyboard'));
+const end = source.indexOf("\n  window.addEventListener('keyup'",begin);
+let keyboard;
+global.addEventListener = (type,fn) => { if(type==='keydown') keyboard=fn; };
+global.setActiveTool=window.activateStudioTool;
+vm.runInThisContext(source.slice(begin,end));
+const press = key => keyboard({key,target:document.getElementById('canvas-stage'),preventDefault(){}});
+window.activateStudioTool('paint');window.selectBrushTile(40);window.setBrushSizeMode('2');
+const lastPainter=JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.beginCloneCapture();
+window.startCanvasRegionCaptureDrag({row:1,col:1,subRow:0,subCol:0});
+window.updateCaptureDragBounds({row:1,col:1,subRow:1,subCol:1});window.finishCanvasRegionCapture();
+const captured2=JSON.parse(JSON.stringify(StudioState.supertilePattern));
+assert.equal(captured2.rows,2);assert.equal(captured2.cols,2);
+for(const scope of ['canvas_center','orbit_sym','block_sym','all_blocks','single','same_tile']) {
+ for(const snap of [false,true]) {
+  StudioState.editScope=scope;
+  press('e');
+  assert.equal(StudioState.activeTool,'paint');
+  StudioState.brushSnapToBlock=snap;
+  const erased=JSON.stringify(StudioState.supertilePattern);
+  assert(StudioState.supertilePattern.cells.every(row=>row.every(cell=>cell.baseTileId===84)));
+  assert.equal(document.body.dataset.cursorMode,scope==='same_tile'?'unavailable':'erase');
+  press('e');assert.equal(JSON.stringify(StudioState.supertilePattern),erased,'Repeated E must stay eraser');
+  assert.equal(StudioState.brushSnapToBlock,snap);
+  const saved=window.collectBrushToolSessions();
+  assert.deepStrictEqual(saved.paint.pattern,lastPainter,'Saving while erasing must preserve the painter');
+  press('s');assert.deepStrictEqual(StudioState.supertilePattern,captured2,'S restores full captured artwork');
+  press('b');assert.deepStrictEqual(StudioState.supertilePattern,lastPainter,'B restores full non-empty brush');
+ }
+}
+// Switching during capture discards the temporary selection, so residual release cannot replace it.
+window.beginCloneCapture();window.startCanvasRegionCaptureDrag({row:0,col:0,subRow:0,subCol:0});
+press('e');assert.equal(StudioState.isSelectingStampDrag,false);
+assert.equal(window.finishCanvasRegionCapture(),false);
+press('s');assert.deepStrictEqual(StudioState.supertilePattern,captured2);
+// Palette #84 uses the same eraser action; the brush button restores the painter.
+window.selectBrushTile(84);assert.equal(StudioState.activeTool,'paint');
+window.activateStudioTool('paint');assert.deepStrictEqual(StudioState.supertilePattern,lastPainter);
+console.log('✓ E/S/B, repeated E, palette action, all six scopes, snap and residual capture release verified.');
+
+// Apply actual eraser strokes at the edge, with production undo restoring their cells.
+const undoStart=source.indexOf('function undoMosaicEdit()');
+const undoEnd=source.indexOf('function redoMosaicEdit()',undoStart);
+const undo = new Function('StudioState','window','syncFreezeUI','syncEditUndoUI','syncD4Badge','saveStudioStateToStorage','redraw',
+  'return ('+source.slice(undoStart,undoEnd).trim()+')')(StudioState,window,()=>{},()=>{},()=>{},()=>{},()=>{});
+for(const scope of ['canvas_center','orbit_sym','block_sym','all_blocks','single','same_tile']) {
+ for(const snap of [false,true]) {
+  window.activateStudioTool('paint');window.selectBrushTile(40);window.setBrushSizeMode(scope==='same_tile'?'1':'2');
+  window.activateEraser();StudioState.editScope=scope;StudioState.brushSnapToBlock=snap;
+  for(const row of StudioState.mosaicData.grid) for(const block of row) for(const cells of block.cells) for(const cell of cells) {
+   cell.baseTileId=cell.tileId=2;cell.transform='id';
+  }
+  StudioState.mosaicData.blockSymmetryMode='kaleidoscope';
+  const before=window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData,StudioState.frozenCells);
+  StudioState.editHistory=[before];StudioState.editHistoryIndex=0;
+  global.mouseX=StudioState.margin+1;global.mouseY=StudioState.margin+1;
+  StudioState.isShiftDown=false;StudioState.isAltDown=false;
+  window.handleCanvasMouseDown({button:0,altKey:false,preventDefault(){}});
+  assert(StudioState.mosaicData.grid.some(row=>row.some(block=>block.cells.some(cells=>cells.some(cell=>cell.baseTileId===84)))),scope+' erases');
+  window.cancelToolGesture();
+  assert.equal(StudioState.editHistoryIndex,1,'One stroke records one undo step');
+  undo();
+  assert.deepStrictEqual(window.MosaicEngine.cloneMosaicCellsSnapshot(StudioState.mosaicData,StudioState.frozenCells),before,scope+' undo restores cells');
+ }
+}
+window.activateEraser();StudioState.isPaintingDrag=true;
+press('b');assert.equal(StudioState.isPaintingDrag,false,'B ends erasing before restoring paint');
+console.log('✓ Erasing at the border and one-step undo pass for all scopes and snap settings.');
+
+// Persisting an eraser session must still allow restoring both original tools after reload.
+press('e');
+const persistedBrushes=JSON.parse(JSON.stringify(window.collectBrushToolSessions()));
+const persistedPainter=persistedBrushes.paint.pattern, persistedStamp=persistedBrushes.stamp.pattern;
+window.restoreBrushToolSessions(persistedBrushes);
+press('b');assert.deepStrictEqual(StudioState.supertilePattern,persistedPainter);
+press('s');assert.deepStrictEqual(StudioState.supertilePattern,persistedStamp);
+console.log('✓ Saving while erasing retains the independent painter and stamp after reload.');
