@@ -27,8 +27,8 @@
       <div class="bar-group mosaic-mode-only" aria-label="Dimensões da Prancheta">
         <span class="bar-group-label">Prancheta</span>
         <div class="input-chip" title="Largura do Canvas (px)">
-          <span class="chip-prefix">Larg.</span>
-          <input type="number" id="canvasW" value="600" min="100" max="4096" step="50">
+          <label class="chip-prefix" for="canvasW">Larg.</label>
+          <input type="number" id="canvasW" aria-label="Largura da prancheta em pixels" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
               title="Aumentar Largura" aria-label="Aumentar Largura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -38,8 +38,8 @@
         </div>
         <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
         <div class="input-chip" title="Altura do Canvas (px)">
-          <span class="chip-prefix">Alt.</span>
-          <input type="number" id="canvasH" value="600" min="100" max="4096" step="50">
+          <label class="chip-prefix" for="canvasH">Alt.</label>
+          <input type="number" id="canvasH" aria-label="Altura da prancheta em pixels" value="600" min="100" max="4096" step="50">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
               title="Aumentar Altura" aria-label="Aumentar Altura"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -62,8 +62,8 @@
       <div class="bar-group" aria-label="Configuração da Grade">
         <span class="bar-group-label mosaic-mode-only">Grade</span>
         <div class="input-chip chip-compact mosaic-mode-only" title="Linhas de Blocos (Rows)">
-          <span class="chip-prefix">Linhas</span>
-          <input type="number" id="gridRows" value="3" min="1" max="32" step="1">
+          <label class="chip-prefix" for="gridRows">Linhas</label>
+          <input type="number" id="gridRows" aria-label="Linhas da grade em blocos" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
               title="Mais Linhas" aria-label="Mais Linhas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -73,8 +73,8 @@
         </div>
         <button id="btnSwapGridSize" class="icon-btn mosaic-mode-only" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
         <div class="input-chip chip-compact mosaic-mode-only" title="Colunas de Blocos (Cols)">
-          <span class="chip-prefix">Colunas</span>
-          <input type="number" id="gridCols" value="3" min="1" max="32" step="1">
+          <label class="chip-prefix" for="gridCols">Colunas</label>
+          <input type="number" id="gridCols" aria-label="Colunas da grade em blocos" value="3" min="1" max="32" step="1">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
               title="Mais Colunas" aria-label="Mais Colunas"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -90,8 +90,8 @@
         </button>
         <button id="btnSquareGrid" class="bar-action-btn mosaic-mode-only" title="Tornar células quadradas"><span class="btn-full-text">1:1</span><span class="btn-short-text">1:1</span></button>
         <div class="input-chip chip-medium mosaic-mode-only" title="Margem externa da Prancheta (px)">
-          <span class="chip-prefix"><span class="chip-label-full">Margem</span><span class="chip-label-short">M</span></span>
-          <input type="number" id="gridMargin" value="24" min="0" max="500" step="4">
+          <label class="chip-prefix" for="gridMargin"><span class="chip-label-full">Margem</span><span class="chip-label-short">M</span></label>
+          <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
               title="Aumentar Margem" aria-label="Aumentar Margem"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -100,8 +100,8 @@
           </div>
         </div>
         <div class="input-chip chip-medium mosaic-mode-only" title="Espaçamento interno dos azulejos (%)">
-          <span class="chip-prefix"><span class="chip-label-full">Espaçamento</span><span class="chip-label-short">P</span></span>
-          <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
+          <label class="chip-prefix" for="paddingInput"><span class="chip-label-full">Espaçamento</span><span class="chip-label-short">P</span></label>
+          <input type="number" id="paddingInput" aria-label="Espaçamento interno em porcentagem" min="0" max="25" step="1" value="5">
           <span class="chip-suffix">%</span>
           <div class="chip-steppers">
             <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento" aria-label="Aumentar Espaçamento"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -217,8 +217,8 @@
         </header>
         <p class="brush-editor-help">Escolha um tile na paleta e pinte as células. Botão direito gira a célula. Concluir mantém as alterações; Cancelar as descarta.</p>
         <div class="brush-editor-toolbar" role="group" aria-label="Editar grade do pincel">
-          <label>Linhas <input id="brushEditorRows" type="number" min="1" step="1" value="1"></label>
-          <label>Colunas <input id="brushEditorCols" type="number" min="1" step="1" value="1"></label>
+          <label>Linhas <input id="brushEditorRows" aria-label="Linhas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
+          <label>Colunas <input id="brushEditorCols" aria-label="Colunas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
           <button type="button" id="btnBrushEditorUndo" class="mini-btn" title="Desfazer no pincel (Ctrl+Z)" disabled>Desfazer</button>
           <button type="button" id="btnBrushEditorRedo" class="mini-btn" title="Refazer no pincel (Ctrl+Shift+Z)" disabled>Refazer</button>
           <button type="button" id="btnBrushEditorErase" class="mini-btn">Borracha</button>
@@ -738,7 +738,7 @@
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
               <div class="swatches-toolbar">
                 <div class="swatches-search-row">
-                  <input type="search" id="tileSearchInput" class="swatch-search"
+                  <input type="search" id="tileSearchInput" aria-label="Buscar famílias ou peças permitidas" class="swatch-search"
                     placeholder="Filtrar família ou tile...">
                   <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut"
                     title="Abrir Estúdio de Subtiles e Gestão de Famílias (Ctrl+E)">+ Subtile</button>
@@ -1017,7 +1017,7 @@
 
               <!-- Search Filter for Brush Palette -->
               <div class="swatches-toolbar">
-                <input type="search" id="editBrushSearchInput" class="swatch-search" placeholder="Filtrar tiles...">
+                <input type="search" id="editBrushSearchInput" aria-label="Buscar peças para o pincel" class="swatch-search" placeholder="Filtrar tiles...">
               </div>
 
               <!-- Scrollable Brush Tile Palette -->
@@ -1187,7 +1187,7 @@
             <div class="panel-body swatches-panel-body" id="panelTileLibraryMgrBody">
               <div id="tileLibraryDetails" class="tile-library-details"></div>
               <div class="swatches-toolbar lib-mgr-toolbar">
-                <input type="search" id="libMgrSearchInput" class="swatch-search" placeholder="Buscar grupo, família ou #id...">
+                <input type="search" id="libMgrSearchInput" aria-label="Buscar famílias na biblioteca" class="swatch-search" placeholder="Buscar grupo, família ou #id...">
                 <div class="tile-library-navigation">
                   <select id="tileLibraryGroupFilter" class="subtile-select" aria-label="Filtrar conjunto"><option value="">Todos os conjuntos</option></select>
                   <button type="button" id="btnTileLocateFamily" class="mini-btn">Localizar atual</button>
@@ -1290,6 +1290,7 @@
   <script src="core/spout_output.js"></script>
   <script src="core/ui_format.js"></script>
   <script src="core/studio_commands.js"></script>
+  <script src="core/ui_fields.js"></script>
   <script src="ui_info.js"></script>
   <script src="core/vector_editor.js"></script>
   <script src="core/vector_boolean.js"></script>

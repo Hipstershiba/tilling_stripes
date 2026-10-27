@@ -350,3 +350,11 @@ A pele comum fica junto às regras base, com variantes junto ao componente. Evit
 Correção da T07: dimensões de controles especiais são independentes da pele comum (Spout 40×24 px, marca informativa de 16 px dentro de alvo de 28 px). Campos conservam borda funcional; ações usam superfícies discretas e espaçamento interno. A barra superior quebra por grupos até 1400 px. Mensagens ficam dentro da área de trabalho, acima do rodapé. A ajuda separa mosaico/editor e ferramentas/ações, com corpo rolável e cabeçalho fixo.
 
 Ajuda contextual: os tópicos usam títulos curtos e listas sem subtítulo técnico. Itens são filhos de uma lista semântica, com espaçamento e rolagem próprios; textos dos escopos continuam derivados de `MosaicEngine.EDIT_SCOPES`. Camadas e Biblioteca concentram instruções nos popups para evitar repetições permanentes nos painéis.
+
+### Campos acessíveis e edição numérica (T08)
+
+`core/ui_fields.js` associa os rótulos das propriedades a IDs estáveis e fornece nomes completos com unidades (pixels, porcentagem, graus ou unidades da peça). Os IDs legados são preservados. A regra final de foco mantém o contorno visível nos próprios campos, sem duplicá-lo no contêiner.
+
+Enter confirma um número válido; Escape restaura o valor anterior e cancela a prévia de margem/espaçamento sem criar undo. Valores vazios, não finitos, inteiros inválidos e valores fora dos limites do controle são bloqueados antes dos handlers do documento. O erro recebe `aria-invalid` e descrição acessível; sair de um campo inválido cancela o rascunho. O atributo step continua sendo incremento, permitindo por exemplo largura de 900 px com passo de 50.
+
+As três buscas (gerador, pincel e biblioteca) têm nome independente do placeholder, botão Limpar que retorna o foco ao campo e contador de resultados anunciado. O contador respeita os filtros existentes; não redefine a seleção de peças nem os atalhos do canvas. Os testes ficam em `tests/test_ui_fields.js`.

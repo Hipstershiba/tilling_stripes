@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T07 concluídas, T08–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T08 concluídas; T09–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -641,7 +641,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T05 | Concluída em 27/10/2026 | `test_document_edit_transactions.js`: handlers reais de aparência, 30 eventos em uma etapa, no-op/cancelamento com redo, dimensões sem regeneração, pintura/geração, recarga legada e recorte de família. Navegador: cor, X, espaçamento, largura, Escape e geração com undo/redo. 47/47 suítes aprovadas. |
 | T06 | Concluída em 27/10/2026 | Catálogo de comandos por ambiente, glossário, Ctrl+D exclusivo para formas e Caneta Enter/Escape. `test_studio_commands.js` e navegador validam atalhos, botões, ajuda e retorno ao mosaico. 48/48 suítes aprovadas. |
 | T07 | Concluída em 27/10/2026 | Tokens CSS/inline resolvidos, pele comum, texto 12/13 px, alvos 28/32 px, SVGs e tooltip com quebra/foco. Contraste automatizado e computado; capturas antes/depois em 1440×900/100%. 49/49 suítes aprovadas. |
-| T08 | Planejada | Nomes acessíveis, foco e campos inválidos. |
+| T08 | Concluída | Rótulos/unidades, foco visível, buscas com limpeza/contagem e edição numérica validada. |
 | T09 | Planejada | Fluxo de gerar sem abrir matemática avançada. |
 | T10 | Planejada | Matriz de ferramentas/preview/alcance. |
 | T11 | Planejada | Gerações editadas e quatro alvos de exportação. |
@@ -776,3 +776,16 @@ Evidências locais em `_local/revisao-t07`, ignoradas pelo Git. A sessão Zen em
 - [x] Gate completo: 49/49 suítes; conhecimento sincronizado preservando notas locais; limpeza registrada em commit separado.
 
 O conteúdo preserva avisos de exclusão, backup e quebra de simetria. Preservar usa o atalho real de refazer, Ctrl+Shift+Z. T08 permanece pendente.
+
+### Registro da T08 — 27/10/2026
+
+- [x] Associar rótulos do topo e propriedades vetoriais, com nomes acessíveis completos e unidades; preservar IDs legados.
+- [x] Gerar IDs estáveis por propriedade, incluindo opções da ferramenta e nós; verificar ausência de colisões ao trocar ferramentas.
+- [x] Corrigir a cascata de foco após os componentes, com contorno único nos campos.
+- [x] Nomear as três buscas, adicionar Limpar e anunciar quantidade de resultados sem mudar o filtro existente.
+- [x] Validar rascunhos numéricos antes dos handlers; Enter confirma, Escape cancela; valores inválidos não alcançam o documento. Cancelar prévia de margem/espaçamento preserva undo/redo.
+- [x] Gate completo: 50/50 suítes; conhecimento sincronizado; implementação registrada em commit separado.
+
+Verificação em origem isolada 8874: árvore acessível nomeou dimensões e unidades; largura zero foi bloqueada mantendo documento de 900 px, Escape restaurou 900; Enter confirmou 950 px. Espaçamento 12→18→Escape voltou a 12. Campo vetorial CX 0,25→Escape voltou a −0,5; Tab alcançou CY com contorno azul de 2 px. Retângulo, elipse, polígono, arco e linha não produziram IDs duplicados; todos os campos encontrados tinham rótulo associado. Busca sem correspondência anunciou zero; Limpar restaurou resultados e foco. Capturas/fixture ficam em `_local/t08`, ignoradas pelo Git. Leitor de tela real não foi testado.
+
+A confirmação numérica filtra o `change` nativo posterior ao Enter para evitar aplicação duplicada. No navegador, uma confirmação de CX foi revertida por um único undo. A sessão Zen em 5500 foi preservada.

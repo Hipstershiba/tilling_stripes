@@ -3905,6 +3905,9 @@ function syncAllInputsFromState() {
 }
 
 function initStudioUI() {
+  window.UiFields?.init(document, {onCancel: field => {
+    if (documentEditTransaction?.owner === field.id) cancelDocumentEdit();
+  }});
   saveStatus.subscribe(renderSaveStatus);
   document.getElementById('btnRetryPersistence')?.addEventListener('click', () => {
     saveScheduler.cancel();
