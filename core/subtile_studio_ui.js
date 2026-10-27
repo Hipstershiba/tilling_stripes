@@ -2091,8 +2091,9 @@
     const hasSel = selected.length > 0;
     const alignBlock = document.createElement('div');
     alignBlock.className = 'vec-props-subblock';
+    alignBlock.hidden = !hasSel;
     alignBlock.innerHTML = `
-      <div class="vec-subblock-title"><span>Alinhar à Célula [-0.5, +0.5]</span></div>
+      <div class="vec-subblock-title"><span>Alinhar</span></div>
       <div class="vec-align-strip">
         <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à Borda Esquerda (-0.5)" aria-label="Alinhar à Borda Esquerda (-0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignLeft')}</button>
         <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar Horizontalmente (0)" aria-label="Centralizar Horizontalmente (0)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterX')}</button>
@@ -2108,7 +2109,7 @@
         </div>
       ` : ''}
       ${hasSel ? `
-        <div class="vec-subblock-title" style="margin-top:5px;"><span>Transformar Seleção (D4)</span></div>
+        <div class="vec-subblock-title" style="margin-top:5px;"><span>Transformar</span></div>
         <div class="vec-d4-strip">
           <button type="button" class="mini-btn" data-sel-d4="r90" title="Girar seleção +90° horário">↻ +90°</button>
           <button type="button" class="mini-btn" data-sel-d4="r270" title="Girar seleção -90° anti-horário">↺ -90°</button>
@@ -2162,9 +2163,10 @@
       const canBool = unlockedSelCount >= 2;
       const boolBlock = document.createElement('div');
       boolBlock.className = 'vec-props-subblock';
+      boolBlock.hidden = !canBool;
       boolBlock.innerHTML = `
         <div class="vec-subblock-title">
-          <span>Pathfinder (Booleanas)</span>
+          <span>Combinar formas</span>
           <span style="font-weight:400;opacity:0.7;">${canBool ? `${unlockedSelCount} formas` : 'Selecione 2+'}</span>
         </div>
         <div class="vec-bool-strip">
@@ -2258,7 +2260,7 @@
     const ruleVal = primary.fillRule || 'evenodd';
 
     styleBlock.innerHTML = `
-      <div class="vec-subblock-title"><span>Preenchimento &amp; Traço</span></div>
+      <div class="vec-subblock-title"><span>Aparência</span></div>
       <div class="vec-style-toggles">
         <label class="vec-check-chip"><input type="checkbox" id="vecPropFillChk" ${hasFill ? 'checked' : ''}><span>Preencher</span></label>
         <label class="vec-check-chip"><input type="checkbox" id="vecPropStrokeChk" ${hasStroke ? 'checked' : ''}><span>Traço</span></label>
@@ -2337,7 +2339,7 @@
 
       if (sh.type === 'rect') {
         geoBlock.innerHTML = `
-          <div class="vec-subblock-title">Geometria • Retângulo</div>
+          <div class="vec-subblock-title">Geometria</div>
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>X</label><input type="number" step="0.05" data-sprop="x" value="${fmt(sh.x)}"></div>
             <div class="vec-prop-field"><label>Y</label><input type="number" step="0.05" data-sprop="y" value="${fmt(sh.y)}"></div>
@@ -2349,7 +2351,7 @@
         `;
       } else if (sh.type === 'ellipse') {
         geoBlock.innerHTML = `
-          <div class="vec-subblock-title">Geometria • Elipse</div>
+          <div class="vec-subblock-title">Geometria</div>
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
             <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
@@ -2360,7 +2362,7 @@
         `;
       } else if (sh.type === 'polygon') {
         geoBlock.innerHTML = `
-          <div class="vec-subblock-title">Geometria • Polígono / Estrela</div>
+          <div class="vec-subblock-title">Geometria</div>
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
             <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
@@ -2374,7 +2376,7 @@
       } else if (sh.type === 'arc') {
         const modeVal = sh.mode || 'pie';
         geoBlock.innerHTML = `
-          <div class="vec-subblock-title">Geometria • Arco / Fita Anular</div>
+          <div class="vec-subblock-title">Geometria</div>
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>CX</label><input type="number" step="0.05" data-sprop="cx" value="${fmt(sh.cx)}"></div>
             <div class="vec-prop-field"><label>CY</label><input type="number" step="0.05" data-sprop="cy" value="${fmt(sh.cy)}"></div>
@@ -2394,7 +2396,7 @@
         `;
       } else if (sh.type === 'line') {
         geoBlock.innerHTML = `
-          <div class="vec-subblock-title">Geometria • Linha</div>
+          <div class="vec-subblock-title">Geometria</div>
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>X1</label><input type="number" step="0.05" data-sprop="x1" value="${fmt(sh.x1)}"></div>
             <div class="vec-prop-field"><label>Y1</label><input type="number" step="0.05" data-sprop="y1" value="${fmt(sh.y1)}"></div>

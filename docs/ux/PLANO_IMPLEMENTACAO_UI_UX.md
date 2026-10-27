@@ -789,3 +789,16 @@ O conteúdo preserva avisos de exclusão, backup e quebra de simetria. Preservar
 Verificação em origem isolada 8874: árvore acessível nomeou dimensões e unidades; largura zero foi bloqueada mantendo documento de 900 px, Escape restaurou 900; Enter confirmou 950 px. Espaçamento 12→18→Escape voltou a 12. Campo vetorial CX 0,25→Escape voltou a −0,5; Tab alcançou CY com contorno azul de 2 px. Retângulo, elipse, polígono, arco e linha não produziram IDs duplicados; todos os campos encontrados tinham rótulo associado. Busca sem correspondência anunciou zero; Limpar restaurou resultados e foco. Capturas/fixture ficam em `_local/t08`, ignoradas pelo Git. Leitor de tela real não foi testado.
 
 A confirmação numérica filtra o `change` nativo posterior ao Enter para evitar aplicação duplicada. No navegador, uma confirmação de CX foi revertida por um único undo. A sessão Zen em 5500 foi preservada.
+
+### Revisão de densidade após T08 — 27/10/2026
+
+A T08 acrescentou elementos permanentes demais às buscas. Esta correção reduz a carga visual sem retirar seus recursos acessíveis.
+
+- [x] Busca em uma linha; × contextual com nome acessível, contador anunciado sem linha permanente e estado vazio curto.
+- [x] Retirar dicas repetidas de tamanho/encaixe e encurtar títulos, unidades e estados do pincel/carimbo.
+- [x] Reduzir bordas redundantes nas guias; conservar indicação de estado e foco.
+- [x] Exibir alinhamento/transformação com seleção e combinação com duas ou mais formas elegíveis.
+- [x] Validar no navegador: nenhuma ação de alinhamento visível sem seleção; combinação oculta com uma forma e visível com duas; busca/limpeza restaura foco e contador acessível.
+- [x] Gate completo: 50/50 suítes; AST/vault sincronizados preservando notas locais; commit separado.
+
+Captura em `_local/limpeza-ui/propriedades.png` permanece ignorada. Não se iniciou a T09. Mudanças matemáticas, limites, histórico e persistência estão fora desta correção.

@@ -583,7 +583,7 @@ html, body {
 
 .tool-btn.guide-toggle.active {
   background: var(--bg-panel-header);
-  border-color: var(--border-control);
+  border-color: transparent;
   color: var(--text-primary);
   box-shadow: inset 3px 0 0 var(--text-secondary);
 }
@@ -2983,7 +2983,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .tool-grid-btn.guide-toggle.active {
   background: var(--bg-panel-header);
-  border-color: var(--border-control);
+  border-color: transparent;
   color: var(--text-primary);
   box-shadow: inset 3px 0 0 var(--text-secondary);
 }
@@ -3596,7 +3596,7 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 [id^="toggleTileGuide"].active,
 #btnTileSnapToggle.active {
   background: var(--bg-panel-header);
-  border-color: var(--border-control);
+  border-color: transparent;
   color: var(--text-primary);
   box-shadow: inset 3px 0 0 var(--text-secondary);
 }
@@ -4657,11 +4657,17 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .vec-prop-field input:focus-visible, .vec-prop-field select:focus-visible,
 .subtile-text-input:focus-visible, .subtile-select:focus-visible, .swatch-search:focus-visible,
 .input-chip input:focus-visible, .sidebar-seed-chip input:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
-.field-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; width: 100%; min-width: 0; }
-.field-search input { min-width: 0; width: 100%; }
-.search-clear { min-height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 4px; background: var(--bg-panel-header); color: var(--text-primary); font: inherit; cursor: pointer; }
-.search-results { grid-column: 1 / -1; color: var(--text-secondary); font-size: var(--font-ui); }
+.field-search { position: relative; flex: 1; width: 100%; min-width: 0; }
+.field-search input { min-width: 0; width: 100%; padding-right: 36px; }
+.field-search input::-webkit-search-cancel-button { display: none; }
+.search-clear { position: absolute; top: 0; right: 2px; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
+.search-clear[hidden] { display: none; }
+.search-clear:hover { color: var(--text-primary); background: var(--bg-control-hover); }
+.search-results { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.search-results.is-empty { position: static; display: block; width: auto; height: auto; margin: 8px 0 0; overflow: visible; clip-path: none; color: var(--text-secondary); font-size: var(--font-ui); }
 .field-feedback { position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%); z-index: 2200; max-width: min(480px, calc(100vw - 24px)); padding: 10px 14px; border: 1px solid var(--color-error); border-radius: 6px; color: var(--text-primary); background: var(--bg-control); font-size: var(--font-ui); }
 
 .vec-prop-field:focus-within, .input-chip:focus-within, .sidebar-seed-chip:focus-within, .zoom-widget:focus-within { outline: none; }
 .swatches-search-row { align-items: flex-start; }
+
+.vec-props-subblock[hidden] { display: none; }

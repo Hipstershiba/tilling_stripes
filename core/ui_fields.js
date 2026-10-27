@@ -46,7 +46,7 @@
       field.setAttribute('aria-invalid', 'true');
       const hints = new Set((field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)); hints.add(feedback.id);
       field.setAttribute('aria-describedby', [...hints].join(' '));
-      feedback.textContent = `${field.getAttribute('aria-label') || 'Valor'}: ${message} Escape cancela.`;
+      feedback.textContent = message;
       feedback.classList.remove('hidden'); return false;
     }
     function cancel(field) { if (drafts.has(field)) field.value = drafts.get(field); onCancel(field); clear(field); }
@@ -81,13 +81,15 @@
       const field = doc.getElementById(id), target = doc.getElementById(targetId); if (!field || !target) continue;
       const wrapper = doc.createElement('div'); wrapper.className = 'field-search'; field.before(wrapper); wrapper.appendChild(field);
       const clearButton = doc.createElement('button'); clearButton.type = 'button'; clearButton.className = 'search-clear';
-      clearButton.textContent = 'Limpar'; clearButton.setAttribute('aria-label', field.getAttribute('aria-label').replace(/^Buscar /, 'Limpar busca de ')); wrapper.appendChild(clearButton);
+      clearButton.textContent = '×'; clearButton.title = 'Limpar busca'; clearButton.setAttribute('aria-label', field.getAttribute('aria-label').replace(/^Buscar /, 'Limpar busca de ')); wrapper.appendChild(clearButton);
       const count = doc.createElement('span'); count.id = `${id}-results`; count.className = 'search-results'; count.setAttribute('role', 'status'); count.setAttribute('aria-live', 'polite'); wrapper.appendChild(count);
       field.setAttribute('aria-describedby', count.id);
       function update() {
-        clearButton.disabled = !field.value;
+        clearButton.hidden = !field.value;
         const total = target.querySelectorAll(selector).length;
-        count.textContent = `${total} ${total === 1 ? unit.slice(0, -1) : unit}`;
+        const empty = Boolean(field.value.trim()) && total === 0;
+        count.classList.toggle('is-empty', empty);
+        count.textContent = empty ? 'Nenhum resultado' : `${total} ${total === 1 ? unit.slice(0, -1) : unit}`;
       }
       clearButton.addEventListener('click', () => { field.value = ''; field.dispatchEvent(new Event('input', {bubbles: true})); field.focus(); update(); });
       field.addEventListener('input', update);

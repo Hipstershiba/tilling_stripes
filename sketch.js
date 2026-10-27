@@ -2404,7 +2404,7 @@ function beginCloneCapture() {
   cancelToolGesture();
   StudioState.stampInteractionMode = 'select';
   syncEditWorkspaceUI();
-  showEditorToast('Arraste uma região e solte para capturar. Esc cancela.');
+  showEditorToast('Arraste para capturar.');
   redraw();
 }
 function cancelCloneCapture() {
@@ -3696,9 +3696,9 @@ function syncEditWorkspaceUI() {
 
   const cloneHint = document.getElementById('stampModeHint');
   if (cloneHint) cloneHint.textContent = StudioState.stampInteractionMode === 'select'
-    ? 'Arraste uma região e solte para capturar. Esc cancela.'
-    : isCloneReady() ? 'Clique para aplicar. Alt + arraste: nova captura. Botão direito: girar.'
-      : 'Segure Alt e arraste no mosaico para capturar uma região.';
+    ? 'Arraste para capturar.'
+    : isCloneReady() ? 'Pronto para aplicar.'
+      : 'Capture uma região com Alt+arraste.';
 
   // 7. Brush Size Display & Snap Status Badge
   const sizeValEl = document.getElementById('brushSizeValueText');
@@ -3722,7 +3722,7 @@ function syncEditWorkspaceUI() {
       const blocks = Math.max(1, Math.round(currentDim / N));
       sizeSubEl.textContent = `${blocks}×${blocks} ${blocks === 1 ? 'bloco' : 'blocos'}`;
     } else {
-      sizeSubEl.textContent = 'subtiles (linhas × colunas)';
+      sizeSubEl.textContent = 'peças';
     }
   }
   if (snapStatusEl) {
@@ -3740,7 +3740,7 @@ function syncEditWorkspaceUI() {
     const detail = row.querySelector('[data-size-detail]');
     if (value) value.textContent = `${info.dim}×${info.dim}`;
     if (detail) detail.textContent = row.dataset.sizeTool === 'freeze'
-      ? `Até ${info.N}×${info.N} subtiles (1 bloco)` : 'subtiles (linhas × colunas)';
+      ? `Até ${info.N}×${info.N} subtiles (1 bloco)` : 'peças';
     const decrease = row.querySelector('[data-size-step="-1"]');
     const increase = row.querySelector('[data-size-step="1"]');
     if (decrease) decrease.disabled = info.dim <= info.min;
@@ -3753,7 +3753,7 @@ function syncEditWorkspaceUI() {
   if (increaseBrush) increaseBrush.disabled = brushInfo.dim >= brushInfo.max;
   if (StudioState.brushSizeMode === 'custom' && StudioState.supertilePattern && sizeValEl) {
     sizeValEl.textContent = `${StudioState.supertilePattern.rows}×${StudioState.supertilePattern.cols}`;
-    if (sizeSubEl) sizeSubEl.textContent = 'subtiles (linhas × colunas)';
+    if (sizeSubEl) sizeSubEl.textContent = 'peças';
   }
 
   // 8. Supertile Builder Metadata, Badges & Contextual Actions
@@ -3778,7 +3778,7 @@ function syncEditWorkspaceUI() {
     if (brushD4El) brushD4El.textContent = `${cMeta.label} ${cMeta.arrow}`;
     if (brushBadgeEl) brushBadgeEl.textContent = `1×1 • #${c0.baseTileId}`;
   } else {
-    if (brushNameEl) brushNameEl.textContent = `Padrão de pincel ${pat.rows}×${pat.cols}`;
+    if (brushNameEl) brushNameEl.textContent = 'Padrão';
     if (brushD4El) brushD4El.textContent = `${d4Meta.label} ${d4Meta.arrow}`;
     if (brushBadgeEl) brushBadgeEl.textContent = `${pat.rows}×${pat.cols}`;
   }

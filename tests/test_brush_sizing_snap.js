@@ -241,7 +241,7 @@ const snapStatusEl = document.getElementById('brushSnapStatusText');
 StudioState.brushSnapToBlock = false;
 window.setBrushSizeMode('3');
 assert.strictEqual(sizeValEl.textContent, '3×3', 'Display must show 3×3');
-assert.strictEqual(sizeSubEl.textContent, 'subtiles (linhas × colunas)', 'Display must identify dimensional units');
+assert.strictEqual(sizeSubEl.textContent, 'peças', 'Display must identify dimensional units');
 assert.strictEqual(snapStatusEl.textContent, 'Desativado', 'Snap status must show Desativado');
 
 StudioState.brushSnapToBlock = true;
