@@ -170,6 +170,10 @@ function ensureSupertilePattern() {
 
 const STORAGE_KEY_STUDIO_STATE = window.StatePersistence ? window.StatePersistence.STORAGE_KEY_STUDIO_STATE : null;
 
+const saveStatus = window.SaveStatus || (typeof require === 'function' && require('./core/save_status.js'));
+let documentSaveTimestamp = 0;
+let deferStudioSave = false;
+
 let toastTimer = null;
 function showEditorToast(message, type = 'info') {
   const el = document.getElementById('editorToast');
@@ -184,7 +188,8 @@ function showEditorToast(message, type = 'info') {
 function showPersistenceWarning(msg) {
   const el = document.getElementById('persistenceWarning');
   if (el) {
-    if (msg) el.textContent = msg;
+    const text = document.getElementById('persistenceWarningText') || el;
+    if (msg && text.textContent !== msg) text.textContent = msg;
     el.classList.remove('hidden');
   }
 }
@@ -202,7 +207,7 @@ const MAX_EDIT_HISTORY = 25;
 const IDB_MAX_GENERATION_HISTORY = 256;
 const IDB_MAX_EDIT_HISTORY = 100;
 
-const saveScheduler = (typeof window !== 'undefined' && window.StatePersistence && typeof window.StatePersistence.createSaveScheduler === 'function')
+const baseSaveScheduler = (typeof window !== 'undefined' && window.StatePersistence && typeof window.StatePersistence.createSaveScheduler === 'function')
   ? window.StatePersistence.createSaveScheduler({
       save: () => saveStudioStateToStorage(),
       delayMs: 300
@@ -213,6 +218,11 @@ const saveScheduler = (typeof window !== 'undefined' && window.StatePersistence 
       cancel: () => {},
       pending: () => false
     };
+
+const saveScheduler = {
+  ...baseSaveScheduler,
+  schedule() { saveStatus.markPending('document'); baseSaveScheduler.schedule(); }
+};
 
 function scheduleSaveStudioStateToStorage() {
   saveScheduler.schedule();
@@ -302,61 +312,74 @@ function buildStudioStatePayload(includeHistories = true) {
 }
 
 function saveStudioStateToStorage() {
-  if (!StudioState.mosaicData) return;
-
+  if (deferStudioSave || !StudioState.mosaicData) return;
   const fullPayload = buildStudioStatePayload(true);
   if (!fullPayload) return;
-
+  documentSaveTimestamp = Math.max(Date.now(), documentSaveTimestamp + 1, (StudioState.loadedTimestamp || 0) + 1);
+  fullPayload.timestamp = documentSaveTimestamp;
   const persistence = window.StatePersistence;
+  let hasIndexedDB = false;
+  try { hasIndexedDB = typeof indexedDB !== 'undefined' && Boolean(indexedDB); } catch (_) {}
+  return saveStatus.save('document', fullPayload, {
+    local: snapshot => {
+      const storage = window.localStorage || localStorage;
+      if (persistence?.saveWithQuotaFallback) return persistence.saveWithQuotaFallback(storage, STORAGE_KEY_STUDIO_STATE, snapshot, StudioState.mosaicData);
+      storage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(snapshot));
+      return { success: true, mode: 'full' };
+    },
+    indexed: persistence?.saveToIndexedDB && hasIndexedDB
+      ? snapshot => persistence.saveToIndexedDB(persistence.IDB_KEY_CURRENT, snapshot) : null
+  });
+}
 
-  // 1. Primary Rich Storage: IndexedDB (asynchronous, gigabyte quota)
-  if (persistence && typeof persistence.saveToIndexedDB === 'function' && typeof indexedDB !== 'undefined') {
-    persistence.saveToIndexedDB(persistence.IDB_KEY_CURRENT, fullPayload).catch((err) => {
-      console.warn('IndexedDB save failed:', err);
-    });
-  }
+function hydrateStudioStorage(hasSavedState, libraryHydrationPromise, bootDocumentRevision) {
+  return libraryHydrationPromise.then(() => {
+    if (typeof window !== 'undefined' && window.StatePersistence && typeof indexedDB !== 'undefined') {
+      const persistence = window.StatePersistence;
+      return persistence.resolveBootState(localStorage, STORAGE_KEY_STUDIO_STATE).then((resolved) => {
+        if (saveStatus.snapshot().scopes.find(scope => scope.scope === 'document')?.revision !== bootDocumentRevision) return;
+        if (resolved && resolved.source === 'indexeddb' && resolved.payload) {
+          const idbState = resolved.payload;
+          const idbHistCount = (Array.isArray(idbState.history) ? idbState.history.length : 0) +
+            (Array.isArray(idbState.editHistory) ? idbState.editHistory.length : 0);
+          const curHistCount = (Array.isArray(StudioState.history) ? StudioState.history.length : 0) +
+            (Array.isArray(StudioState.editHistory) ? StudioState.editHistory.length : 0);
+          const isNewer = (typeof idbState.timestamp === 'number' && idbState.timestamp > (StudioState.loadedTimestamp || 0));
 
-  // 2. Fast synchronous boot cache: localStorage
-  if (persistence && typeof persistence.saveWithQuotaFallback === 'function') {
-    const res = persistence.saveWithQuotaFallback(
-      localStorage,
-      STORAGE_KEY_STUDIO_STATE,
-      fullPayload,
-      StudioState.mosaicData
-    );
-    if (res.success) {
-      if (typeof indexedDB === 'undefined' && res.mode === 'fallback_minimal') {
-        showPersistenceWarning(res.warning);
-      } else {
-        hidePersistenceWarning();
-      }
-    } else {
-      if (typeof indexedDB === 'undefined') {
-        showPersistenceWarning(res.warning || 'Não foi possível salvar automaticamente no navegador.');
-      }
-    }
-    return;
-  }
-
-  try {
-    localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(fullPayload));
-    hidePersistenceWarning();
-  } catch (err) {
-    if (typeof indexedDB === 'undefined') {
-      if (isQuotaError(err)) {
-        try {
-          const minPayload = buildStudioStatePayload(false);
-          localStorage.setItem(STORAGE_KEY_STUDIO_STATE, JSON.stringify(minPayload));
-          showPersistenceWarning('Limite de armazenamento atingido. O histórico foi liberado, mas o desenho atual foi salvo com sucesso.');
-        } catch (errMin) {
-          showPersistenceWarning('Não foi possível salvar automaticamente no navegador. Exporte seu trabalho para evitar perda de dados.');
+          if (!hasSavedState || isNewer || idbHistCount > curHistCount) {
+            const restored = applySavedStudioState(idbState);
+            if (restored) {
+              restoreMosaicFromSavedState();
+              syncZoomUI();
+              updateStatusBar();
+              redraw();
+            }
+          }
         }
-      } else {
-        showPersistenceWarning('Não foi possível salvar automaticamente no navegador.');
-        console.warn('Failed to save StudioState to localStorage:', err);
-      }
+      });
     }
-  }
+    return null;
+  }).catch(() => {}).then(() => {
+    if (saveStatus.snapshot().scopes.find(scope => scope.scope === 'document')?.revision === bootDocumentRevision) {
+      return saveStudioStateToStorage();
+    }
+  });
+}
+
+function renderSaveStatus(state) {
+  const status = document.getElementById('saveStatusText');
+  if (status && status.textContent !== state.text) status.textContent = state.text;
+  if (status) status.dataset.state = state.state;
+  const warn = state.failed.length || state.reduced.length;
+  if (warn) {
+    const reduction = state.scopes.find(scope => scope.state === 'reduced')?.reduction;
+    const detail = reduction ? ` ${reduction.history} gerações e ${reduction.editHistory} etapas de edição ficaram fora da cópia salva.` : '';
+    showPersistenceWarning([state.details, state.reduced.length ? 'Desenho salvo; histórico reduzido.' + detail : ''].filter(Boolean).join(' '));
+  } else if (state.state === 'saved' || state.state === 'idle') hidePersistenceWarning();
+  document.getElementById('btnBackupUnsavedLibrary')?.classList.toggle('hidden', !state.failed.includes('library'));
+  const mosaicAtRisk = state.failed.includes('document') || state.reduced.includes('document');
+  document.getElementById('btnExportUnsavedMosaic')?.classList.toggle('hidden', !mosaicAtRisk);
+  document.getElementById('saveImageLimit')?.classList.toggle('hidden', !mosaicAtRisk);
 }
 
 function applySavedStudioState(saved) {
@@ -688,11 +711,14 @@ function setup() {
   buildTileThumbnails();
   initStudioUI();
 
-  if (hasSavedState && StudioState.savedCellsSnapshot) {
-    restoreMosaicFromSavedState();
-  } else {
-    regenerateMosaic(true);
-  }
+  // Do not overwrite the durable IDB document with the temporary boot canvas.
+  saveStatus.markPending('document');
+  deferStudioSave = true;
+  try {
+    if (hasSavedState && StudioState.savedCellsSnapshot) restoreMosaicFromSavedState();
+    else regenerateMosaic(true);
+  } finally { deferStudioSave = false; }
+  const bootDocumentRevision = saveStatus.snapshot().scopes.find(scope => scope.scope === 'document').revision;
 
   let knownLibraryVariantKeys = new Set(
     window.LibraryStore && window.LibraryStore.getCompiled()?.variantKeyToId instanceof Map
@@ -718,44 +744,20 @@ function setup() {
       renderSupertileBuilderCanvas();
       window.SubtileStudioUI?.refresh();
       syncEditWorkspaceUI();
-      if (shouldPersistStudio) {
+      if (shouldPersistStudio && evt.reason !== 'hydrate-idb') {
         saveStudioStateToStorage();
       }
       redraw();
     });
   }
 
-  // Asynchronous IndexedDB migration & hydration (LibraryStore first so custom tile IDs exist before mosaic hydration)
-  const libraryHydrationPromise = (typeof window !== 'undefined' && window.LibraryStore && typeof indexedDB !== 'undefined')
-    ? window.LibraryStore.hydrateFromIndexedDB().catch(() => null)
-    : Promise.resolve(null);
-
-  libraryHydrationPromise.then(() => {
-    if (typeof window !== 'undefined' && window.StatePersistence && typeof indexedDB !== 'undefined') {
-      const persistence = window.StatePersistence;
-      return persistence.resolveBootState(localStorage, STORAGE_KEY_STUDIO_STATE).then((resolved) => {
-        if (resolved && resolved.source === 'indexeddb' && resolved.payload) {
-          const idbState = resolved.payload;
-          const idbHistCount = (Array.isArray(idbState.history) ? idbState.history.length : 0) +
-            (Array.isArray(idbState.editHistory) ? idbState.editHistory.length : 0);
-          const curHistCount = (Array.isArray(StudioState.history) ? StudioState.history.length : 0) +
-            (Array.isArray(StudioState.editHistory) ? StudioState.editHistory.length : 0);
-          const isNewer = (typeof idbState.timestamp === 'number' && idbState.timestamp > (StudioState.loadedTimestamp || 0));
-
-          if (!hasSavedState || isNewer || idbHistCount > curHistCount) {
-            const restored = applySavedStudioState(idbState);
-            if (restored) {
-              restoreMosaicFromSavedState();
-              syncZoomUI();
-              updateStatusBar();
-              redraw();
-            }
-          }
-        }
-      });
+  let libraryHydrationPromise = Promise.resolve(null);
+  try {
+    if (window.LibraryStore && typeof indexedDB !== 'undefined') {
+      libraryHydrationPromise = window.LibraryStore.hydrateFromIndexedDB().catch(() => null);
     }
-    return null;
-  }).catch(() => {});
+  } catch (_) {}
+  hydrateStudioStorage(hasSavedState, libraryHydrationPromise, bootDocumentRevision);
 
   window.addEventListener('beforeunload', flushSaveStudioStateToStorage);
 
@@ -3840,6 +3842,14 @@ function syncAllInputsFromState() {
 }
 
 function initStudioUI() {
+  saveStatus.subscribe(renderSaveStatus);
+  document.getElementById('btnRetryPersistence')?.addEventListener('click', () => {
+    saveScheduler.cancel();
+    saveStudioStateToStorage();
+    if (saveStatus.snapshot().scopes.some(scope => scope.scope === 'library')) window.LibraryStore?.retrySave();
+  });
+  document.getElementById('btnBackupUnsavedLibrary')?.addEventListener('click', () => document.getElementById('btnQuickLibraryBackup')?.click());
+  document.getElementById('btnExportUnsavedMosaic')?.addEventListener('click', () => document.getElementById('btnExport')?.click());
   document.getElementById('btnDirtyGuardCancel')?.addEventListener('click', () => closeDirtyGuard(false));
   document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));
   window.InfoUI?.init();

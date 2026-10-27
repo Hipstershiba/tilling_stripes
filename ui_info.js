@@ -115,10 +115,10 @@
       title: 'Salvamento Automático e Histórico',
       subtitle: 'Preservação de dados no navegador',
       body: [
-        'O mosaico e suas configurações são salvos automaticamente no localStorage a cada edição.',
-        'Histórico com descarte inteligente mantém o consumo dentro da cota de 5 MB do navegador.',
-        'Em caso de cota cheia, o motor realiza fallback de emergência preservando o desenho atual.',
-        'Use Exportar (PNG/SVG) para criar arquivos permanentes no seu computador.'
+        'Mosaico e biblioteca são salvos neste navegador. O status só confirma a revisão atual de ambos.',
+        'Uma cópia íntegra em IndexedDB ou localStorage confirma o salvamento; cache reduzido só gera aviso se não houver cópia íntegra.',
+        'Se nenhum armazenamento confirmar, o aviso permanece e permite tentar salvar novamente.',
+        'Backup JSON protege a biblioteca. Exportar PNG/SVG guarda a imagem do mosaico, sem ser um backup editável do projeto.'
       ]
     },
     'shortcuts': {

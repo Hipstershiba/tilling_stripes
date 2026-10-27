@@ -5,6 +5,7 @@
  */
 
 (function () {
+  const saveStatus = (typeof window !== 'undefined' && window.SaveStatus) || (typeof require === 'function' && require('./save_status.js'));
   // Note: Intentionally named without the studio state prefix enforced by test_storage_key.js
   const STORAGE_KEY_TILE_LIBRARY = 'tiling_stripes_tile_library_v1';
   const IDB_LIBRARY_DB_NAME = 'tiling_stripes_library_db';
@@ -65,21 +66,24 @@
     });
   }
 
-  async function saveToLibraryIDB(payload) {
-    const db = await openLibraryDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction([IDB_LIBRARY_STORE_NAME], 'readwrite');
-      const store = tx.objectStore(IDB_LIBRARY_STORE_NAME);
-      const req = store.put(payload, IDB_LIBRARY_RECORD_KEY);
-      req.onsuccess = () => {
-        db.close();
-        resolve(true);
-      };
-      req.onerror = (e) => {
-        db.close();
-        reject(e.target.error || new Error('Failed to write library IndexedDB'));
-      };
-    });
+  function saveToLibraryIDB(payload) {
+    const snapshot = JSON.parse(JSON.stringify(payload));
+    return saveStatus.enqueue('library:idb', () => openLibraryDB().then(db => new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction([IDB_LIBRARY_STORE_NAME], 'readwrite');
+        const store = tx.objectStore(IDB_LIBRARY_STORE_NAME);
+        const close = () => { try { db.close(); } catch (_) {} };
+        tx.oncomplete = () => { close(); resolve({ success: true, mode: 'indexeddb' }); };
+        tx.onerror = tx.onabort = () => { close(); reject(tx.error || new Error('Library transaction failed')); };
+        const request = store.get(IDB_LIBRARY_RECORD_KEY);
+        request.onerror = () => { close(); reject(request.error || new Error('Library read failed')); };
+        request.onsuccess = () => {
+          if ((request.result?.timestamp || 0) > (snapshot.timestamp || 0)) return;
+          const put = store.put(snapshot, IDB_LIBRARY_RECORD_KEY);
+          put.onerror = () => { close(); reject(put.error || new Error('Library write failed')); };
+        };
+      } catch (error) { try { db.close(); } catch (_) {} reject(error); }
+    })));
   }
 
   async function loadFromLibraryIDB() {
@@ -321,23 +325,15 @@
         doc: currentDoc
       };
 
-      const ls = getLocalStorageSafe();
-      if (ls) {
-        try {
-          ls.setItem(STORAGE_KEY_TILE_LIBRARY, JSON.stringify(envelope));
-        } catch (_e) {
-          // If localStorage hits quota on huge custom vector packs, IndexedDB remains authoritative
-        }
-      }
-
-      if (getIndexedDBSafe()) {
-        saveToLibraryIDB(envelope).catch((err) => {
-          console.error('[LibraryStore] Falha ao persistir biblioteca:', err);
-          if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('library-persistence-error'));
-          }
-        });
-      }
+      return saveStatus.save('library', envelope, {
+        local: snapshot => {
+          const ls = getLocalStorageSafe();
+          if (!ls) return { success: false };
+          ls.setItem(STORAGE_KEY_TILE_LIBRARY, JSON.stringify(snapshot));
+          return { success: true, mode: 'full' };
+        },
+        indexed: getIndexedDBSafe() ? saveToLibraryIDB : null
+      });
     }
 
     function commitDoc(nextRawDoc, reason = 'update', shouldPersist = true) {
@@ -373,17 +369,14 @@
     }
 
     async function hydrateFromIndexedDB() {
+      const startedTimestamp = currentTimestamp;
       if (!getIndexedDBSafe()) return { hydrated: false, source: 'memory' };
       try {
         const idbEnvelope = await loadFromLibraryIDB();
+        if (currentTimestamp !== startedTimestamp) return { hydrated: false, source: 'memory' };
         if (!idbEnvelope || typeof idbEnvelope !== 'object') {
           if (currentTimestamp > 0) {
-            await saveToLibraryIDB({
-              version: lib.LIBRARY_SCHEMA_VERSION,
-              timestamp: currentTimestamp,
-              reason: 'migrate-ls-to-idb',
-              doc: currentDoc
-            });
+            await persistCurrentDoc('migrate-ls-to-idb');
           }
           return { hydrated: false, source: 'localStorage' };
         }
@@ -845,6 +838,7 @@
       importLibraryJSON,
       resetToDefaults,
       hydrateFromIndexedDB,
+      retrySave: () => persistCurrentDoc('retry'),
       remapStudioState,
       onChange
     };

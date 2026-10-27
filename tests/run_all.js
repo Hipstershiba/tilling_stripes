@@ -19,6 +19,7 @@ const testSuites = [
   'test_state_persistence.js',
   'test_indexeddb_persistence.js',
   'test_save_scheduler.js',
+  'test_save_status.js',
   'test_storage_key.js',
   'test_payload_version.js',
   'test_history_limits.js',

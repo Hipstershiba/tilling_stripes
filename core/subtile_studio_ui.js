@@ -3222,12 +3222,7 @@
       return;
     }
     uiState.initialized = true;
-    window.addEventListener('library-persistence-error', () => {
-      const message = 'Falha ao salvar biblioteca. Exporte um backup JSON antes de fechar.';
-      notifyToast(message, 'error');
-      const warning = document.getElementById('persistenceWarning');
-      if (warning) { warning.textContent = message; warning.classList.remove('hidden'); }
-    });
+
 
     const { store, ve } = resolveDeps();
 

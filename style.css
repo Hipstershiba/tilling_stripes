@@ -889,8 +889,7 @@ body.right-dock-collapsed #right-dock {
   width: var(--dock-rail-w);
 }
 
-body.right-dock-collapsed .dock-workspace-pane,
-body.right-dock-collapsed #persistenceWarning {
+body.right-dock-collapsed .dock-workspace-pane {
   display: none !important;
 }
 
@@ -4678,3 +4677,12 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .swatches-group-toggle .family-check-indicator { flex: 0 0 13px; }
 
 #canvas-stage:focus-visible { outline: 2px solid #79adff; outline-offset: 3px; }
+
+/* Persistence feedback remains visible with the contextual dock collapsed. */
+#app-shell > .persistence-warning { flex: 0 0 auto; margin: 0; border-radius: 0; }
+.save-recovery-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+#saveImageLimit { display: block; margin-top: 6px; }
+#saveStatusText { font-size: 11px; color: var(--text-secondary, #b8bec9); max-width: 180px; }
+#saveStatusText[data-state="failed"] { color: #ff9292; }
+
+.save-recovery-actions button { min-height: 28px; padding: 4px 8px; background: var(--bg-control); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; font: inherit; cursor: pointer; }

@@ -205,7 +205,8 @@
 
     try {
       storage.setItem(storageKey, JSON.stringify(migrated));
-      return { success: true, mode: 'full' };
+      return { success: true, mode: 'full', reduced: (migrated.history?.length || 0) < (fullPayload.history?.length || 0) || (migrated.editHistory?.length || 0) < (fullPayload.editHistory?.length || 0),
+        reduction: { history: (fullPayload.history?.length || 0) - (migrated.history?.length || 0), editHistory: (fullPayload.editHistory?.length || 0) - (migrated.editHistory?.length || 0) } };
     } catch (err) {
       if (isQuotaError(err)) {
         try {
@@ -214,6 +215,7 @@
           return {
             success: true,
             mode: 'fallback_minimal',
+            reduction: { history: fullPayload.history?.length || 0, editHistory: fullPayload.editHistory?.length || 0 },
             warning: 'Limite de armazenamento atingido. O histórico foi liberado, mas o desenho atual foi salvo com sucesso.'
           };
         } catch (errMin) {
@@ -277,32 +279,27 @@
    * Saves a state payload into IndexedDB asynchronously.
    */
   function saveToIndexedDB(key = IDB_KEY_CURRENT, payload, customFactory) {
-    if (!payload || typeof payload !== 'object') {
-      return Promise.reject(new Error('Invalid payload for IndexedDB'));
-    }
-
-    return openIndexedDB(customFactory).then((db) => {
-      return new Promise((resolve, reject) => {
-        try {
-          const tx = db.transaction([IDB_STORE_NAME], 'readwrite');
-          const store = tx.objectStore(IDB_STORE_NAME);
-          const req = store.put(payload, key);
-          req.onsuccess = () => resolve({ success: true, mode: 'indexeddb' });
-          req.onerror = () => reject(req.error || new Error('IndexedDB put error'));
-          if (tx.oncomplete !== undefined) {
-            tx.oncomplete = () => {
-              try { db.close(); } catch (_) {}
-            };
-          }
-          if (tx.onerror !== undefined) {
-            tx.onerror = () => reject(tx.error || new Error('IndexedDB transaction error'));
-          }
-        } catch (err) {
-          try { db.close(); } catch (_) {}
-          reject(err);
-        }
-      });
-    });
+    if (!payload || typeof payload !== 'object') return Promise.reject(new Error('Invalid payload for IndexedDB'));
+    const saves = (typeof window !== 'undefined' && window.SaveStatus) || (typeof require === 'function' && require('./save_status.js'));
+    let snapshot;
+    try { snapshot = JSON.parse(JSON.stringify(payload)); } catch (error) { return Promise.reject(error); }
+    return saves.enqueue('document:idb:' + key, () => openIndexedDB(customFactory).then(db => new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction([IDB_STORE_NAME], 'readwrite');
+        const store = tx.objectStore(IDB_STORE_NAME);
+        const close = () => { try { db.close(); } catch (_) {} };
+        tx.oncomplete = () => { close(); resolve({ success: true, mode: 'indexeddb' }); };
+        tx.onerror = tx.onabort = () => { close(); reject(tx.error || new Error('IndexedDB transaction failed')); };
+        const request = store.get(key);
+        request.onerror = () => { close(); reject(request.error || new Error('IndexedDB read error')); };
+        request.onsuccess = () => {
+          // A late migration or save must never replace a newer stored revision.
+          if ((request.result?.timestamp || 0) > (snapshot.timestamp || 0)) return;
+          const put = store.put(snapshot, key);
+          put.onerror = () => { close(); reject(put.error || new Error('IndexedDB put error')); };
+        };
+      } catch (error) { try { db.close(); } catch (_) {} reject(error); }
+    })));
   }
 
   /**

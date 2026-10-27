@@ -1,6 +1,6 @@
 # Plano executável de interface e experiência
 
-Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T03 concluídas, T04–T17 pendentes.**
+Tiling Stripes Studio · 27/10/2026 · **Estado: execução iniciada; T01–T04 concluídas, T05–T17 pendentes.**
 
 Prioridade confirmada pelo usuário: **gerar mosaicos e fazer ajustes rápidos**. Plataforma de referência: desktop, mouse e teclado, interface em português. Toque/mobile e um editor de janelas personalizáveis não fazem parte deste plano.
 
@@ -637,7 +637,7 @@ Preencher ao implementar; todos os itens começam como planejados. “Já resolv
 | T01 | Concluída em 27/10/2026 | [Baseline, mapa, 45/45 suítes e cinco capturas 1440×900](T01_BASELINE_E_MAPA_ACOES.md). |
 | T02 | Concluída em 27/10/2026 | `test_dirty_guard.js`: listener real, modificadores, repetição, IME, campos editáveis e foco modal. No navegador: dirty guard bloqueou X/G/undo/Ctrl+E; Tab cíclico, Escape e retorno ao campo; editor ampliado e confirmação da biblioteca retornaram ao acionador. 45/45 suítes aprovadas. |
 | T03 | Concluída em 27/10/2026 | Listener real E/S/B: captura 2×2, E repetido, retorno do pincel/carimbo, paleta #84 e cancelamento de captura. Apagamento na borda com undo em seis escopos e encaixe ligado/desligado. Navegador: captura 2×2 por arrasto, borracha, undo e restauração das duas ferramentas. |
-| T04 | Planejada | Matriz de backends, ordem de callbacks e recuperação. |
+| T04 | Concluída em 27/10/2026 | `test_save_status.js`: matriz de armazenamentos, revisões de documento/biblioteca, falhas/abort e recuperação, filas A/B e recarga de B, fallback e boot tardio. No navegador: falha total, dock recolhido, biblioteca falhando e Tentar salvar após recuperação. |
 | T05 | Planejada | Undo por gesto, snapshot antigo e geração. |
 | T06 | Planejada | Tabela de comandos refletida em UI/ajuda e testes. |
 | T07 | Planejada | Tokens resolvidos, contraste e estados visuais. |
@@ -689,3 +689,15 @@ Gate T03: `node tests/run_all.js` aprovou 45/45 suítes, incluindo D4, registro 
 Relato do usuário: o construtor lateral do pincel não permitia compor padrões mistos e selecionar #84 no clone mudava para Pintar. A troca indevida era regressão da T03; o preenchimento integral automático do pincel impedia o construtor lateral já existente. Corrigidos antes de iniciar T04, sem aguardar a reorganização visual de T10.
 
 A paleta escolhe tinta para padrões maiores que 1×1 nos dois modos; a miniatura edita uma célula e Preencher continua sendo explícito. #84 na paleta mantém Clonar. E permanece o comando de borracha do mosaico. Redimensionar preserva a composição existente. A regressão nova falhou antes da correção (o padrão inteiro era preenchido), passou após e verifica peças mistas, peças vazias e preservação ao redimensionar. Navegador na origem de teste confirmou pincel 2×2 e clone com #84 selecionado, título Clonar e célula vazia na miniatura.
+
+### Registro da T04 — 27/10/2026
+
+Criado `core/save_status.js` para confirmar a revisão atual de cada escopo, agregar documento/biblioteca e ordenar pedidos. Escritores capturam o payload, serializam gravações por destino, comparam timestamps persistidos e esperam o commit da transação; callback antigo não anuncia revisão nova. Cache com histórico limitado/minimal é reportado como reduzido somente se nenhuma cópia íntegra da mesma revisão foi confirmada. Falha de biblioteca não é escondida pelo sucesso do documento.
+
+Aviso persistente movido para fora do dock, mantendo os 60 IDs legados, com Tentar salvar, backup JSON da biblioteca e exportação de imagem do mosaico. Texto esclarece o limite de PNG/SVG. Corrigida a regra CSS antiga que escondia o aviso ao recolher o dock. Preparação do canvas inicial não grava antes da restauração; callbacks de boot não substituem alterações feitas durante a leitura. Nenhuma chave/schema foi alterada; exportação de projeto editável continua fora do escopo.
+
+Testes novos exercitam controllers reais e Promises rejeitadas, transações abortadas após sucesso do pedido, bloqueio de acesso às APIs, pedidos concorrentes A/B, payload copiado, recarga de B, migração antiga, falha total e recuperação dos dois escopos. O mock da biblioteca foi atualizado para sinalizar o término da transação, em vez de simular persistência apenas no sucesso de `put`.
+
+Teste de navegador com fixture local em `_local/t04/failure.html`, storage em memória e IDB bloqueado, sem modificar a biblioteca criativa: falha do mosaico visível com dock recolhido; criar cópia de família adicionou falha da biblioteca e ação de backup; Tentar salvar manteve erro com a falha ativa; após liberar gravação em memória, confirmou Salvo neste navegador e retirou o aviso. Fixture e capturas permanecem locais e ignoradas pelo Git.
+
+Gate T04: `node tests/run_all.js` aprovou 46/46 suítes. O percurso saudável também confirmou Salvo neste navegador sem aviso, na abertura e após uma alteração. Evidência de falha em `_local/t04/falha-salvamento.jpg`, fora do Git.

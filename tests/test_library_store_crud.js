@@ -25,7 +25,7 @@ function makeFakeIDB() {
           createObjectStore: () => ({}),
           close: () => {},
           transaction(_stores, _mode) {
-            return {
+            const tx = { oncomplete: null, onerror: null, onabort: null,
               objectStore(_storeName) {
                 return {
                   put(val, key) {
@@ -33,6 +33,7 @@ function makeFakeIDB() {
                     setImmediate(() => {
                       idbMap.set(key, JSON.parse(JSON.stringify(val)));
                       if (r.onsuccess) r.onsuccess({ target: r });
+                      if (tx.oncomplete) tx.oncomplete();
                     });
                     return r;
                   },
@@ -41,12 +42,14 @@ function makeFakeIDB() {
                     setImmediate(() => {
                       r.result = idbMap.has(key) ? JSON.parse(JSON.stringify(idbMap.get(key))) : undefined;
                       if (r.onsuccess) r.onsuccess({ target: r });
+                      if (_mode === 'readonly' && tx.oncomplete) tx.oncomplete();
                     });
                     return r;
                   }
                 };
               }
             };
+            return tx;
           }
         };
         req.result = db;

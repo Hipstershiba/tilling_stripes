@@ -230,6 +230,16 @@
     </div>
 
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
+    <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
+      <span id="persistenceWarningText">Não foi possível salvar automaticamente.</span>
+      <div class="save-recovery-actions">
+        <button type="button" id="btnRetryPersistence">Tentar salvar</button>
+        <button type="button" id="btnBackupUnsavedLibrary" class="hidden">Backup da biblioteca (.json)</button>
+        <button type="button" id="btnExportUnsavedMosaic" class="hidden">Exportar imagem do mosaico</button>
+      </div>
+      <span id="saveImageLimit" class="hidden">PNG/SVG exportam a imagem; não são backup editável do projeto.</span>
+    </div>
+
     <div id="workspace-body">
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
@@ -631,6 +641,7 @@
           </div>
 
           <div id="status-right" class="status-right">
+            <span id="saveStatusText" role="status" aria-live="polite">Salvando…</span>
             <div class="status-spout" aria-label="Saída Spout">
               <label for="spoutToggle" class="status-spout-label" title="Ligar/desligar a saída Spout">Spout</label>
               <button type="button" id="spoutToggle" class="switch" role="switch" aria-checked="false"
@@ -658,9 +669,7 @@
           </button>
         </header>
 
-        <div id="persistenceWarning" class="persistence-warning hidden" role="alert">
-          Não foi possível salvar automaticamente. Exporte seu trabalho ou reduza a grade/histórico.
-        </div>
+
 
         <!-- ================================================================
              WORKSPACE 1: MODO GERADOR (Simetria & Swatches Permitidos)
@@ -1270,6 +1279,7 @@
   <script src="core/d4_detect.js"></script>
   <script src="core/tile_library.js"></script>
   <script src="core/library_compiler.js"></script>
+  <script src="core/save_status.js"></script>
   <script src="core/library_store.js"></script>
   <script src="core/tile_registry.js"></script>
   <script src="core/mosaic_engine.js"></script>
