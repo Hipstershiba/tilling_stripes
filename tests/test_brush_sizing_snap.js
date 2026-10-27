@@ -187,8 +187,8 @@ StudioState.activeTool = 'paint';
 StudioState.editBrushTileId = 2; // Selected tile #2
 window.setBrushSizeMode('3'); // 3x3 brush
 
-// Select Eraser (Tile 84)
-window.selectBrushTile(84);
+// Explicit E action fills the brush with empty tiles.
+window.activateEraser();
 assert.strictEqual(StudioState.editBrushTileId, 84, 'Active brush tile must be 84 (empty-tile)');
 assert.strictEqual(StudioState.activeTool, 'paint', 'Tool must be paint');
 
@@ -210,10 +210,10 @@ window.selectBrushTile(StudioState.previousBrushTileId);
 assert.strictEqual(StudioState.editBrushTileId, 2, 'Active brush tile must be restored to 2');
 for (let r = 0; r < 3; r++) {
   for (let c = 0; c < 3; c++) {
-    assert.strictEqual(StudioState.supertilePattern.cells[r][c].baseTileId, 2, 'All brush subtiles restored to Tile 2');
+    assert.strictEqual(StudioState.supertilePattern.cells[r][c].baseTileId, 84, 'Choosing new ink leaves the multi-cell pattern intact');
   }
 }
-console.log('✓ Restoring previous tile fills multi-cell brush pattern with restored tile.');
+console.log('✓ Selecting paint ink preserves the multi-cell brush until its cells are edited.');
 
 // 5. Testing Scope Mode Cycling (cycleEditScope via Q or Tab)
 console.log('5. Testing Scope Mode Cycling...');
@@ -512,8 +512,10 @@ window.beginCloneCapture();window.startCanvasRegionCaptureDrag({row:0,col:0,subR
 press('e');assert.equal(StudioState.isSelectingStampDrag,false);
 assert.equal(window.finishCanvasRegionCapture(),false);
 press('s');assert.deepStrictEqual(StudioState.supertilePattern,captured2);
-// Palette #84 uses the same eraser action; the brush button restores the painter.
-window.selectBrushTile(84);assert.equal(StudioState.activeTool,'paint');
+// Palette #84 chooses empty ink in clone; explicit E switches to erasing.
+window.selectBrushTile(84);assert.equal(StudioState.activeTool,'stamp');
+assert.deepStrictEqual(StudioState.supertilePattern,captured2);
+window.activateEraser();
 window.activateStudioTool('paint');assert.deepStrictEqual(StudioState.supertilePattern,lastPainter);
 console.log('✓ E/S/B, repeated E, palette action, all six scopes, snap and residual capture release verified.');
 
@@ -554,3 +556,25 @@ window.restoreBrushToolSessions(persistedBrushes);
 press('b');assert.deepStrictEqual(StudioState.supertilePattern,persistedPainter);
 press('s');assert.deepStrictEqual(StudioState.supertilePattern,persistedStamp);
 console.log('✓ Saving while erasing retains the independent painter and stamp after reload.');
+
+// Regression reported after T03: the inline builder must work in paint AND clone.
+window.activateStudioTool('paint');window.selectBrushTile(2);window.setBrushSizeMode('2');
+const builderStart=JSON.parse(JSON.stringify(StudioState.supertilePattern));
+window.selectBrushTile(67);
+assert.deepStrictEqual(StudioState.supertilePattern,builderStart,'Choosing builder ink must not flood the paint pattern');
+window.handleMiniBuilderCanvasMouse({clientX:20,clientY:20,button:0});
+assert.equal(StudioState.supertilePattern.cells[0][0].baseTileId,67);
+assert.equal(StudioState.supertilePattern.cells[1][1].baseTileId,builderStart.cells[1][1].baseTileId);
+window.setBrushSizeMode('3');
+assert.equal(StudioState.supertilePattern.cells[0][0].baseTileId,67,'Resizing must retain the assembled brush');
+for(const tool of ['paint','stamp']) {
+ window.activateStudioTool(tool);window.setBrushSizeMode('2');
+ const beforeEmptyInk=JSON.parse(JSON.stringify(StudioState.supertilePattern));
+ window.selectBrushTile(84);
+ assert.equal(StudioState.activeTool,tool,'Empty tile is builder ink, not a tool switch');
+ assert.deepStrictEqual(StudioState.supertilePattern,beforeEmptyInk);
+ window.handleMiniBuilderCanvasMouse({clientX:20,clientY:20,button:0});
+ assert.equal(StudioState.supertilePattern.cells[0][0].baseTileId,84);
+ assert.deepStrictEqual(StudioState.supertilePattern.cells[1][1],beforeEmptyInk.cells[1][1]);
+}
+console.log('✓ Inline paint and clone builders accept mixed/empty ink without flooding or switching tools.');

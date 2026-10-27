@@ -2503,21 +2503,14 @@ function closeBrushEditor(commit = true) {
 }
 
 function selectBrushTile(tileId) {
-  if (tileId === 84 && !brushEditorPortal) { activateEraser(); return; }
   if (isEraserPattern() && !brushEditorPortal) cancelToolGesture();
   if (StudioState.activeTool !== 'paint' && StudioState.activeTool !== 'stamp') activateStudioTool('paint');
   StudioState.editBrushTileId = tileId;
   StudioState.editBrushTransform = 'id';
   const pat = ensureSupertilePattern();
-  if (StudioState.activeTool === 'paint' && !brushEditorPortal) {
-    StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(
-      pat.rows,
-      pat.cols,
-      tileId,
-      'id'
-    );
-    StudioState.stampBlock = StudioState.supertilePattern;
-  } else if (!brushEditorPortal && pat.rows === 1 && pat.cols === 1) {
+  // A swatch chooses ink for the builder. Only a 1×1 brush is replaced directly;
+  // larger patterns are edited cell by cell, in both painter and clone tools.
+  if (!brushEditorPortal && pat.rows === 1 && pat.cols === 1) {
     StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(1, 1, tileId, 'id');
     StudioState.stampBlock = StudioState.supertilePattern;
   }
@@ -2546,22 +2539,13 @@ function setBrushSizeMode(sizeMode, preserveSnap = false) {
     }
   }
 
-  if (StudioState.activeTool === 'paint' && !brushEditorPortal) {
-    StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(
-      targetDim,
-      targetDim,
-      StudioState.editBrushTileId,
-      StudioState.editBrushTransform || 'id'
-    );
-  } else {
-    StudioState.supertilePattern = window.MosaicEngine.resizeSupertilePattern(
-      StudioState.supertilePattern,
-      targetDim,
-      targetDim,
-      brushEditorPortal ? 84 : StudioState.editBrushTileId,
-      brushEditorPortal ? 'id' : (StudioState.editBrushTransform || 'id')
-    );
-  }
+  StudioState.supertilePattern = window.MosaicEngine.resizeSupertilePattern(
+    StudioState.supertilePattern,
+    targetDim,
+    targetDim,
+    brushEditorPortal ? 84 : StudioState.editBrushTileId,
+    brushEditorPortal ? 'id' : (StudioState.editBrushTransform || 'id')
+  );
   StudioState.stampBlock = StudioState.supertilePattern;
   renderSupertileBuilderCanvas();
   syncEditWorkspaceUI();

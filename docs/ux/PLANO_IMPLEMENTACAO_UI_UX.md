@@ -683,3 +683,9 @@ Reproduzido antes da correção em `127.0.0.1:8874`: após carimbo 2×2, E manti
 Teste de navegador na origem separada: captura 2×2 por arrasto, E duas vezes mostrou Borracha/erase, arrasto apagou, undo executou, S recuperou 2×2 em Aplicar e B recuperou o pincel #2 anterior. Testes automatizados executam o listener real e o apagamento na borda/undo para os seis escopos com encaixe ligado/desligado; também verificam sessões preservadas ao salvar durante apagamento e restaurar. Capturas e saídas de execução permanecem locais e ignoradas.
 
 Gate T03: `node tests/run_all.js` aprovou 45/45 suítes, incluindo D4, registro de controles, persistência e Spout. Evidência visual local em `_local/t03/borracha.jpg`, fora do Git.
+
+### Correção complementar da T03 — construtor de brush
+
+Relato do usuário: o construtor lateral do pincel não permitia compor padrões mistos e selecionar #84 no clone mudava para Pintar. A troca indevida era regressão da T03; o preenchimento integral automático do pincel impedia o construtor lateral já existente. Corrigidos antes de iniciar T04, sem aguardar a reorganização visual de T10.
+
+A paleta escolhe tinta para padrões maiores que 1×1 nos dois modos; a miniatura edita uma célula e Preencher continua sendo explícito. #84 na paleta mantém Clonar. E permanece o comando de borracha do mosaico. Redimensionar preserva a composição existente. A regressão nova falhou antes da correção (o padrão inteiro era preenchido), passou após e verifica peças mistas, peças vazias e preservação ao redimensionar. Navegador na origem de teste confirmou pincel 2×2 e clone com #84 selecionado, título Clonar e célula vazia na miniatura.
