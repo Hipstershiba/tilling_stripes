@@ -77,6 +77,7 @@ global.noLoop = () => {};
 require('../core/d4_symmetry.js');
 require('../core/tile_registry.js');
 require('../core/mosaic_engine.js');
+require('../core/subtile_studio_ui.js');
 require('../sketch.js');
 
 const StudioState = window.StudioState;

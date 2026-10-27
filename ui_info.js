@@ -129,14 +129,14 @@
         'H / Espaço: Pan 2D | Z: Zoom | 1: Zoom 100% (1:1) | 0: Centralizar e Ajustar Artboard na Janela.',
         'Ctrl + Roda: Zoom | Alt + Roda: Pan Vertical | Shift + Roda: Pan Horizontal.',
         'Roda livre (sem teclas): Redimensionar Pincel (números inteiros até limite do canvas, sem ciclo).',
-        'Ctrl+U / Shift: Alternar / Forçar Ajuste ao Bloco (Snap to Block).',
-        'Q ou Tab (Shift+Q / Shift+Tab): Ciclar entre os 6 Modos de Escopo de Edição (antigos atalhos 1 a 6 removidos).',
+        'Ctrl+U / Shift: Alternar / Inverter momentaneamente o Ajuste ao Bloco (Snap to Block).',
+        'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
         'X: Inverter Cores Tile/Fundo (estilo Adobe Illustrator).',
         'G: Sortear nova Seed no gerador.',
         'Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z: Desfazer e Refazer edições.',
         'Ctrl+E: Alternar entre o Mosaico e o Estúdio de Subtiles & Famílias.',
         'No Estúdio de Subtiles: V (Seleção) | A (Nós) | P (Caneta) | M (Retângulo) | L (Elipse) | G (Polígono) | U (Arco/Fita) | \\ (Linha) | ; (Snap).',
-        'Tab (no Gerador): Mostrar / Ocultar Painéis Direitos.'
+        'Setas no canvas em Inspecionar: navegar gerações. Escape no canvas: cancelar gesto e voltar à ferramenta.'
       ]
     },
     'inspect': {

@@ -4667,3 +4667,14 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 #dock-workspace-tiles[data-inspector-panel="library"] > .tile-selection-help,
 #dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-bar,
 #dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-help { display: none; }
+
+.library-backup-shortcut { flex: 0 0 auto; margin-top: 8px; min-height: 32px; }
+#subtileConfirmBackupOption { margin: 14px 0; align-items: flex-start; line-height: 1.5; }
+#subtileConfirmBackup { flex: 0 0 auto; margin-top: 3px; accent-color: var(--accent-blue); }
+.swatches-group-heading { display: flex; align-items: center; gap: 6px; }
+.swatches-group-toggle { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; min-height: 30px; padding: 4px 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.swatches-group-toggle:hover { color: var(--text-primary); }
+.swatches-group-toggle:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+.swatches-group-toggle .family-check-indicator { flex: 0 0 13px; }
+
+#canvas-stage:focus-visible { outline: 2px solid #79adff; outline-offset: 3px; }

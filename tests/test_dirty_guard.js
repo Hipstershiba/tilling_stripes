@@ -46,8 +46,76 @@ assert.strictEqual(isDocumentDirty({ editHistoryIndex: 0, frozenCells: frozenMap
 
 console.log('✓ isDocumentDirty logic verified (edits and frozen cells correctly identified).');
 
-// 3. Static contract: Esc key closes Dirty Guard
-assert.ok(sketchSource.includes("e.key === 'Escape' && dirtyDialog"), 'Escape key must close dirtyGuardDialog');
-console.log('✓ Esc shortcut closes dirtyGuardDialog.');
+// Run the production listener and modal lifecycle rather than matching source wording.
+const vm = require('vm');
+const listenerStart = sketchSource.indexOf("  window.addEventListener('keydown', (e) => {", sketchSource.indexOf('// --- Illustrator & Editor Keyboard'));
+const listenerEnd = sketchSource.indexOf("\n  window.addEventListener('keyup'", listenerStart);
+const handlers = {};
+const calls = {swap: 0, generate: 0, undo: 0, environment: 0, scope: 0, history: 0};
+const stage = {id: 'canvas-stage', tagName: 'DIV'};
+const tool = {focus() { document.activeElement = tool; }};
+const context = {
+  window: {addEventListener: (type, fn) => handlers[type] = fn},
+  document: {getElementById: id => id === 'canvas-stage' ? stage : null, querySelector: () => tool},
+  StudioState: {activeTool: 'paint', workspace: 'edit'},
+  syncCanvasCursor() {}, redraw() {},
+  swapStudioColors() { calls.swap++; },
+  triggerRandomSeed() { calls.generate++; },
+  undoMosaicEdit() { calls.undo++; },
+  cycleEditScope() { calls.scope++; },
+  restoreGenerationHistory() { calls.history++; },
+  cancelToolGesture() {}, cancelCloneCapture() {}
+};
+context.window.SubtileStudioUI = {handleKeyDown(e) {
+  if (e.ctrlKey && e.key === 'e') { calls.environment++; return true; }
+  return false;
+}};
+vm.createContext(context);
+vm.runInContext(sketchSource.slice(listenerStart, listenerEnd), context);
+function key(key, extra = {}) {
+  const e = {key, target: stage, preventDefault() {this.defaultPrevented = true;}, ...extra};
+  handlers.keydown(e); return e;
+}
+key('x'); assert.equal(calls.swap, 1);
+for (const extra of [{ctrlKey:true},{metaKey:true},{altKey:true},{shiftKey:true},{repeat:true},{isComposing:true},{defaultPrevented:true},{target:{isContentEditable:true}}]) key('x',extra);
+assert.equal(calls.swap, 1, 'Only an exact, fresh X swaps colors');
+key('g'); key('g',{repeat:true}); assert.equal(calls.generate,1);
+key('Tab',{target:{tagName:'BUTTON'}}); assert.equal(calls.scope,0);
+key('Tab'); assert.equal(calls.scope,1);
+context.StudioState.activeTool='inspect';
+assert(!key('Tab').defaultPrevented); assert.equal(calls.scope,1);
+key('ArrowLeft',{target:{tagName:'BUTTON'}}); assert.equal(calls.history,0);
+key('ArrowLeft'); assert.equal(calls.history,1);
+context.StudioState.activeTool='paint';
+key('ArrowRight'); assert.equal(calls.history,1);
 
-console.log('--- ALL DIRTY GUARD CHECKS PASSED! ---');
+// Production modal manager with a small DOM surface: inert siblings, Tab cycle, cancel, focus restoration.
+global.window = {};
+require('../core/subtile_studio_ui.js');
+const modal = window.StudioModal;
+const background = {inert:false};
+const origin = {isConnected:true, focus() {document.activeElement=this;}};
+const makeControl = () => ({disabled:false, closest:()=>false, getClientRects:()=>[{}], focus(){document.activeElement=this;}});
+const first = makeControl(), last = makeControl();
+const dialog = {parentElement:{children:[]}, querySelectorAll:()=>[first,last], contains: el=>el===first||el===last};
+dialog.parentElement.children=[background,dialog];
+global.document = {activeElement:origin};
+let applied=0, reverted=0;
+const cancel=()=>{reverted++;modal.leave(dialog);};
+modal.enter(dialog,cancel);
+assert.equal(background.inert,true); assert(!dialog.inert); assert(modal.isOpen());
+last.focus(); dialog.onkeydown({key:'Tab',preventDefault(){}}); assert.equal(document.activeElement,first);
+first.focus(); dialog.onkeydown({key:'Tab',shiftKey:true,preventDefault(){}}); assert.equal(document.activeElement,last);
+context.window.StudioModal=modal;
+for (const target of [first,last]) for (const [k,extra] of [['x',{}],['g',{}],['z',{ctrlKey:true}],['e',{ctrlKey:true}]]) key(k,{target,...extra});
+assert.deepEqual(calls,{swap:1,generate:1,undo:0,environment:0,scope:1,history:1});
+key('Escape'); assert.equal(reverted,1); assert.equal(applied,0);
+assert.equal(background.inert,false); assert.equal(document.activeElement,origin); assert(!modal.isOpen());
+// Reopen and close without cancelling, including pre-existing inert state.
+background.inert=true;modal.enter(dialog,cancel);modal.leave(dialog);assert.equal(background.inert,true);
+
+// Count actual out-of-bounds frozen coordinates for a topology change.
+vm.runInContext(sketchSource.slice(sketchSource.indexOf('function countFrozenOutsideTopology('),sketchSource.indexOf('function requestTopologyChange(')),context);
+assert.equal(context.countFrozenOutsideTopology(new Map([['0,0,0,0',{}],['2,2,3,3',{}],['0,0,4,4',{}]]),2,2,2),2);
+assert.equal(context.countFrozenOutsideTopology(new Map([['2,2,3,3',{}]]),3,3,2),0);
+console.log('--- ALL DIRTY GUARD AND KEYBOARD CHECKS PASSED! ---');
