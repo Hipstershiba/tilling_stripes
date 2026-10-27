@@ -48,7 +48,7 @@
         'Clique Esquerdo: Pinta a célula com o tile ou supertile ativo.',
         'Clique Direito: Gira o tile sob o cursor em 90°.',
         'Alt + Clique: Conta-gotas (captura o tile clicado para o pincel).',
-        'Tamanhos 1×1 a 4×4: Cria supertiles compostos diretamente na grade.',
+        'Tamanho: use − / + ou a roda sobre o canvas. O ajuste para nos limites; com ajuste ao bloco, avança um bloco por vez.',
         'Reset 0°: Restaura a orientação neutra (sem rotação) do supertile.'
       ]
     },
@@ -58,7 +58,7 @@
       body: [
         'Clique Esquerdo: Gira o azulejo ou região em 90° no sentido horário.',
         'Clique Direito: Cicla para a variação anterior ou gira no sentido anti-horário.',
-        'Tamanhos: Permite girar áreas de 1×1 até blocos inteiros.',
+        'Tamanho: use − / + ou a roda sobre o canvas. Ajustar ao bloco encaixa a área na grade; clique novamente para liberar o encaixe.',
         'Modo de Grupo: Permite girar cada célula individualmente ou girar o bloco como uma peça rígida.'
       ]
     },
@@ -66,10 +66,10 @@
       title: 'Carimbo e Clonar',
       subtitle: 'Captura e replicação de regiões',
       body: [
-        'Alt + Clique: Captura qualquer bloco ou região retangular do mosaico.',
+        'Alt + Clique/Arraste: captura uma região, como no pincel. Solte e clique para aplicar. C permanece como alternativa; Esc cancela a captura.',
         'Clique Esquerdo: Carimba a estampa capturada respeitando o escopo ativo.',
         'Clique Direito: Gira a estampa em 90° antes de aplicar.',
-        'Seleção visual: Suporta arrastar para selecionar retângulos arbitrários.'
+        'Pincel e clone mantêm padrões próprios ao trocar de ferramenta. Ampliar editor abre uma área maior com paleta e edição lado a lado.'
       ]
     },
     'freeze': {
@@ -157,7 +157,7 @@
         'Os 31 mestres originais (IDs #0 a #84) são protegidos para preservar saves; clique em "Duplicar p/ Editar" para criar uma cópia editável.',
         'O Tile Vazio (#84) é o respiro matemático oficial de Mandala D4 e da Borracha.',
         'Ao excluir uma família customizada em uso, suas células no mosaico convertem-se com segurança para o Tile Vazio (#84).',
-        'Arraste famílias e grupos para reordenar ou use Exportar/Importar (.json) para backups.'
+        'Na aba Biblioteca, conjuntos organizam famílias. Filtre por conjunto ou por Meus subtiles, use Localizar atual e arraste famílias entre conjuntos. Exportar/Importar (.json) mantém backups.'
       ]
     },
     'vector-editor': {
@@ -175,9 +175,10 @@
       title: 'Booleanas, Camadas & SVG',
       subtitle: 'Pathfinder Bezier (Paper.js), Ordem Z e Intercâmbio Vetorial',
       body: [
-        'Pathfinder (selecione 2+ formas com Shift+Clique ou laço): Unir, Subtrair Frente, Interseção e Excluir (XOR com furos par-ímpar).',
+        'Na aba Camadas, marque 2+ objetos nas caixas de seleção. No canvas, use V e Shift+clique ou Shift+arraste no vazio para adicionar à seleção. Todos (Ctrl+A) seleciona os objetos visíveis e destravados.',
+        'O Pathfinder fica acima de Camadas e Propriedades: Unir, Subtrair Frente, Interseção e Excluir (XOR com furos par-ímpar). Ctrl+Z desfaz a operação.',
         'Transformações D4 na Seleção: Gire +90°/-90° ou espelhe Horizontal/Verticalmente em torno do centro (0, 0).',
-        'Camadas (Formas): Arraste linhas para alterar a Ordem Z (topo da lista = frente), duplo-clique para renomear, oculte (👁) ou trave (🔒).',
+        'Camadas (Formas): Arraste linhas para alterar a Ordem Z (topo da lista = frente), duplo-clique para renomear, oculte ou trave as formas.',
         'Importar e Exportar SVG: Converte <path>, <rect>, <circle>, <ellipse>, <polygon> e <line> normalizando o viewBox para [-0.5, 0.5], e exporta subtiles unitários limpos em .svg.'
       ]
     }
@@ -223,7 +224,7 @@
 
       const names = scopes.map(s => `${s.name} (${s.shortcut})`).join(', ');
       const scIndex = INFO_TOPICS.shortcuts.body.findIndex(l => l.includes('1 a 6') || l.includes('1-6') || l.includes('1–6'));
-      const shortcutLine = `1 a 6: Seleciona Escopo de Edição (${names}).`;
+      const shortcutLine = `Q ou Tab (Shift para voltar): Ciclar escopos de edição 1 a 6 (${names}).`;
       if (scIndex >= 0) {
         INFO_TOPICS.shortcuts.body[scIndex] = shortcutLine;
       }

@@ -381,6 +381,31 @@ console.log('✓ Direct node editing, coupled/broken Bezier tangents, and De Cas
 // ----------------------------------------------------------------------------
 // 7. Interactive State Machine, Per-Family Undo/Redo & Clipboard
 // ----------------------------------------------------------------------------
+// Shift-click must select the second object even when it lies on the first object's resize handle.
+const multiDoc = { id: 'multi-selection-regression', shapes: [
+  { id: 'first', type: 'rect', x: -0.3, y: -0.3, w: 0.3, h: 0.3, fill: true },
+  { id: 'second', type: 'rect', x: -0.02, y: -0.02, w: 0.2, h: 0.2, fill: true },
+  { id: 'third', type: 'rect', x: 0.3, y: 0.3, w: 0.1, h: 0.1, fill: true },
+  { id: 'locked', type: 'rect', x: 0.3, y: 0.3, w: 0.1, h: 0.1, fill: true, locked: true }
+] };
+VectorEditor.state.activeTool = 'select';
+VectorEditor.state.selectedShapeIds = ['first'];
+VectorEditor.onPointerDown(0, 0, { shiftKey: true }, multiDoc, 0.028);
+assert.deepStrictEqual(VectorEditor.state.selectedShapeIds, ['first', 'second']);
+assert.strictEqual(VectorEditor.state.dragOp.type, 'move-selection', 'Shift-click must not start a resize');
+assert.strictEqual(VectorEditor.onPointerUp(multiDoc).commitShapes, null, 'Selection must not mutate geometry');
+VectorEditor.onPointerDown(0, 0, { shiftKey: true }, multiDoc, 0.028);
+VectorEditor.onPointerUp(multiDoc);
+assert.deepStrictEqual(VectorEditor.state.selectedShapeIds, ['first'], 'Shift-click removes an already selected object');
+VectorEditor.onPointerDown(0.25, 0.25, { shiftKey: true }, multiDoc, 0.028);
+VectorEditor.onPointerMove(0.45, 0.45, { shiftKey: true }, multiDoc, 0.028);
+VectorEditor.onPointerUp(multiDoc);
+assert.deepStrictEqual(VectorEditor.state.selectedShapeIds, ['first', 'third'], 'Shift-marquee must add objects and skip locked ones');
+VectorEditor.onPointerDown(0.24, 0.24, {}, multiDoc, 0.028);
+VectorEditor.onPointerMove(0.46, 0.46, {}, multiDoc, 0.028);
+VectorEditor.onPointerUp(multiDoc);
+assert.deepStrictEqual(VectorEditor.state.selectedShapeIds, ['third'], 'Ordinary marquee replaces the selection');
+
 // Read-only guard on built-in family
 VectorEditor.state.activeTool = 'rect';
 const roRes = VectorEditor.onPointerDown(-0.2, -0.2, {}, { id: 'builtin-test', builtIn: true, shapes: [] }, 0.025);

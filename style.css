@@ -2928,7 +2928,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 /* 2-Column Tools Grid */
 .tools-grid-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 3px;
   width: 100%;
 }
@@ -3158,11 +3158,6 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .history-item-meta {
   font-size: 9px;
   color: var(--text-muted);
-}
-
-#toolPan {
-  grid-column: span 2;
-  justify-content: center;
 }
 
 .history-item-seed {
@@ -4505,3 +4500,170 @@ body[data-studio-mode="tiles"][data-vec-tool="direct"] #canvas-stage canvas {
 
 
 
+
+/* Subtile Studio: keep every panel reachable, including short viewports. */
+body[data-studio-mode="tiles"] #dock-workspace-tiles {
+  overflow-y: auto;
+  min-height: 0;
+}
+#dock-workspace-tiles > .dock-panel { flex-shrink: 0; }
+.lib-group-block { flex-shrink: 0; }
+#libMgrTreeContainer { min-height: 280px; overflow-y: auto; }
+.tile-layer-icon-btn { min-width: 28px; width: auto; }
+
+#panel-tile-library-mgr { flex: 0 0 auto; }
+#panelTileLibraryMgrBody { flex: 0 0 auto; }
+#libMgrTreeContainer { flex: 0 0 280px; }
+
+/* The Subtile Studio entry shares the left tool grid in both modes. */
+#left-toolbar .studio-mode-btn {
+  width: 100%;
+  height: 28px;
+  min-width: 0;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0 4px;
+  gap: 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+}
+body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn {
+  grid-column: 1 / -1;
+  height: 34px;
+  justify-content: center;
+  flex-direction: row;
+  gap: 6px;
+}
+
+/* Consistent size controls and readable feedback across mosaic editing tools. */
+.brush-step-btn { flex: 0 0 32px; width: 32px; height: 32px; }
+.brush-step-btn:disabled { opacity: 0.35; cursor: default; }
+.brush-step-btn:hover:not(:disabled) { border-color: var(--accent-cyan); }
+.brush-step-btn:disabled:hover { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-subtle); }
+.brush-size-badge { min-width: 0; flex: 1; }
+.brush-size-sub, .tool-size-hint { font-size: 11px; color: var(--text-secondary); }
+.tool-size-hint { margin: 6px 0; line-height: 1.4; }
+
+/* Progressive disclosure keeps the left toolbar focused on current tools. */
+.sidebar-disclosure { width: 100%; flex: 0 0 auto; border-top: 1px solid var(--border-subtle); }
+.sidebar-disclosure > summary {
+  padding: 9px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.sidebar-disclosure > summary:hover { color: var(--text-primary); }
+.sidebar-disclosure-body { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 8px; }
+.sidebar-disclosure .sidebar-history-container { flex: 0 0 auto; min-height: 0; }
+.sidebar-disclosure .sidebar-history-list { flex: 0 1 auto; max-height: 200px; }
+.sidebar-disclosure .tool-divider { margin: 0; }
+.tool-size-snap { display: flex; margin-top: 6px; }
+.tool-size-snap > .seg-btn { width: 100%; min-height: 28px; }
+
+/* Roomy brush editor: the live dock controls move into this modal. */
+.brush-expand-btn { width: 100%; min-height: 30px; padding: 5px 8px; cursor: pointer; color: var(--text-primary); background: var(--bg-control); border: 1px solid var(--border-light); border-radius: 5px; font-size: 11px; }
+.brush-editor-dialog { z-index: 20000; }
+.brush-editor-window { width: min(1040px, 94vw); height: min(820px, 92vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-light); border-radius: 10px; background: var(--bg-panel, #202126); box-shadow: 0 20px 80px #000a; }
+.brush-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
+.brush-editor-header h2 { margin: 0; font-size: 16px; }
+.brush-editor-help { margin: 10px 18px 0; color: var(--text-secondary); font-size: 12px; }
+#brushEditorHost { display: flex; flex: 1; min-height: 0; }
+#brushEditorHost #panelEditBrushBody { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(230px, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "stamp stamp" "size search" "preview palette"; gap: 12px; padding: 14px 18px; overflow: auto; }
+#brushEditorHost #stampModeSection { grid-area: stamp; }
+#brushEditorHost .supertile-size-section { grid-area: size; }
+#brushEditorHost .swatches-toolbar { grid-area: search; align-self: end; }
+#brushEditorHost .supertile-builder-card { grid-area: preview; display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+#brushEditorHost #editBrushPaletteContainer { grid-area: palette; min-height: 160px; }
+#brushEditorHost .supertile-canvas-box { width: 100%; height: auto; max-height: none; flex: 1; min-height: 150px; display: grid; place-items: center; }
+#brushEditorHost #supertileBuilderCanvas { display: block; width: min(100%, 52vh); height: auto; aspect-ratio: 1; max-height: 100%; }
+#brushEditorHost .active-brush-controls { width: 100%; flex: 0 0 auto; }
+#brushEditorHost #btnExpandBrushEditor { display: none; }
+@media (max-width: 700px) {
+  #brushEditorHost #panelEditBrushBody { grid-template-columns: minmax(0,1fr); grid-template-rows: auto auto auto auto minmax(180px,1fr); grid-template-areas: "stamp" "size" "preview" "search" "palette"; }
+  #brushEditorHost .supertile-canvas-box { flex: none; }
+}
+/* Modifiers and navigation override stale tool or vector cursors. */
+body[data-cursor-mode="rotate"] #canvas-stage canvas { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M22 13a9 9 0 1 0-3 7M22 5v8h-8' fill='none' stroke='%23000' stroke-width='5'/%3E%3Cpath d='M22 13a9 9 0 1 0-3 7M22 5v8h-8' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='13' cy='13' r='2' fill='%23fff'/%3E%3C/svg%3E") 13 13, crosshair; }
+body[data-cursor-mode="capture"] #canvas-stage canvas { cursor: crosshair !important; }
+body[data-cursor-mode="clone"] #canvas-stage canvas { cursor: copy !important; }
+body[data-cursor-mode="erase"] #canvas-stage canvas { cursor: cell !important; }
+body[data-cursor-mode="zoom-in"] #canvas-stage canvas { cursor: zoom-in !important; }
+body[data-cursor-mode="zoom-out"] #canvas-stage canvas { cursor: zoom-out !important; }
+body[data-cursor-mode="grab"] #canvas-stage canvas { cursor: grab !important; }
+body[data-cursor-mode="grabbing"] #canvas-stage canvas { cursor: grabbing !important; }
+
+/* Keep the enlarged canvas square and fully visible, matching pointer mapping. */
+#brushEditorHost .supertile-canvas-box { flex: 0 0 auto; align-self: center; width: min(100%, 440px, calc(92vh - 320px)); min-height: 0; aspect-ratio: 1; overflow: visible; }
+#brushEditorHost #supertileBuilderCanvas { width: 100%; height: auto; max-height: none; }
+
+body[data-cursor-mode="unavailable"] #canvas-stage canvas { cursor: not-allowed !important; }
+
+body[data-active-tool="stamp"] #btnSupertileCapture { display: none; }
+body[data-cursor-mode="erase"] #canvas-stage canvas { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M4 18 15 4 25 12 14 25H9Z M10 11 20 19 M8 25H25' fill='%2320252c' stroke='%23000' stroke-width='5' stroke-linejoin='round'/%3E%3Cpath d='M4 18 15 4 25 12 14 25H9Z M10 11 20 19 M8 25H25' fill='none' stroke='%23fff' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") 4 18, cell !important; }
+
+#supertileBuilderCanvas { cursor: crosshair; }
+
+.brush-editor-header-actions, .brush-editor-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.brush-editor-toolbar { margin: 12px 18px 0; padding: 10px; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 12px; }
+.brush-editor-toolbar label { display: flex; align-items: center; gap: 6px; }
+.brush-editor-toolbar input { width: 56px; min-height: 28px; padding: 3px 5px; color: var(--text-primary); background: var(--bg-panel,#202126); border: 1px solid var(--border-light); border-radius: 4px; }
+.brush-editor-toolbar .mini-btn, .brush-editor-header-actions .mini-btn { min-height: 30px; padding: 5px 9px; }
+.brush-editor-ink { flex-basis: 100%; color: var(--text-secondary); font-size: 11px; }
+#brushEditorHost .supertile-size-section { display: none; }
+#brushEditorHost #panelEditBrushBody { grid-template-rows: auto auto minmax(0,1fr); grid-template-areas: "stamp stamp" "preview search" "preview palette"; }
+#brushEditorHost .supertile-canvas-box { width: min(100%, 440px, max(180px, calc(92vh - 300px))); }
+.clone-capture-actions { display: flex; }
+@media (max-width: 700px) {
+  #brushEditorHost #panelEditBrushBody { grid-template-rows: auto auto auto minmax(180px,1fr); grid-template-areas: "stamp" "preview" "search" "palette"; }
+}
+
+#supertileBuilderCanvas:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+
+/* Subtile authoring: Illustrator-style focused inspector, with a large master canvas. */
+body[data-studio-mode="tiles"] { --right-dock-w: clamp(360px, 30vw, 460px); }
+body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0; }
+#dock-workspace-tiles > .dock-panel[hidden] { display: none !important; }
+#dock-workspace-tiles > .dock-panel:not([hidden]) { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+#dock-workspace-tiles > .dock-panel > .panel-header { position: sticky; top: 0; z-index: 2; background: var(--bg-panel-header); }
+.tile-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); flex: 0 0 auto; border-bottom: 1px solid var(--border-subtle); }
+.tile-inspector-tabs button { min-width: 0; padding: 12px 3px; font-size: 11px; color: var(--text-secondary); background: var(--bg-panel); border: 0; border-bottom: 2px solid transparent; cursor: pointer; }
+.tile-inspector-tabs button[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--accent-blue); background: var(--bg-control); }
+.tile-inspector-tabs button:focus-visible, .tile-layer-select:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: -2px; }
+.tile-selection-bar { display: flex; align-items: center; gap: 6px; padding: 10px 12px 4px; flex: 0 0 auto; }
+#tileSelectionSummary { flex: 1; font-size: 11px; line-height: 1.5; }
+.tile-selection-help { padding: 0 12px; margin: 6px 0 10px; font-size: 11px; line-height: 1.5; color: var(--text-secondary); flex: 0 0 auto; }
+.tile-pathfinder-container { padding: 0 12px 8px; flex: 0 0 auto; }
+#dock-workspace-tiles[data-inspector-panel="library"] > .tile-pathfinder-container,
+#dock-workspace-tiles[data-inspector-panel="variants"] > .tile-pathfinder-container { display: none; }
+.tile-pathfinder-container:empty { padding: 0; }
+.tile-pathfinder-container .vec-props-subblock { margin: 0; border-bottom: 0; }
+.tile-pathfinder-container .vec-bool-btn { min-height: 32px; }
+#panelTileLayersBody .tile-layers-list { max-height: none; overflow: visible; }
+#panelTileLayersBody .tile-layer-row { min-height: 38px; gap: 6px; }
+.tile-layer-select { flex: 0 0 16px; width: 16px; height: 16px; accent-color: var(--accent-blue); cursor: pointer; }
+.tile-layer-row .tile-layer-drag-grip { display: none; }
+.tile-layer-row .tile-layer-name { min-width: 50px; }
+.tile-layer-row .tile-layer-actions { gap: 2px; }
+.tile-layer-row .tile-layer-icon-btn { min-width: 24px; width: 24px; height: 28px; display: inline-flex; align-items: center; justify-content: center; }
+.tile-layer-row:not(.is-selected):not(:hover):not(:focus-within) .tile-layer-icon-btn.danger { visibility: hidden; }
+.tile-library-navigation { display: flex; gap: 6px; margin: 6px 0; }
+.tile-library-navigation .subtile-select { flex: 1; min-width: 0; }
+.tile-library-details { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+#panelTileLibraryMgrBody .tile-selection-help { padding: 0; }
+#panelTileLibraryMgrBody { min-height: 0; }
+#libMgrTreeContainer { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
+#panel-tile-library-mgr:not([hidden]) { display: flex; flex-direction: column; }
+#panelTileLibraryMgrBody { flex: 1 1 auto; overflow: hidden; }
+#panelTileLibraryMgrBody .swatches-toolbar { flex: 0 0 auto; }
+#vecPropsContainer details > summary { cursor: pointer; padding: 6px 0; }
+@media (max-width: 1100px) {
+  body[data-studio-mode="tiles"] { --right-dock-w: 340px; }
+  .tile-inspector-tabs button { font-size: 10px; }
+  .tile-layer-row .tile-layer-type-tag { display: none; }
+}
+#dock-workspace-tiles[data-inspector-panel="library"] > .tile-selection-bar,
+#dock-workspace-tiles[data-inspector-panel="library"] > .tile-selection-help,
+#dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-bar,
+#dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-help { display: none; }

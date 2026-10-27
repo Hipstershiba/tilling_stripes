@@ -65,7 +65,7 @@ const scopeShortcutLine = shortcutsTopic.body.find(l => l.includes('1 a 6') || l
 if (!scopeShortcutLine) {
   throw new Error('Could not find 1-6 scope shortcut line in shortcuts topic');
 }
-if (scopeShortcutLine.includes('Livre (1)')) {
+if (!scopeShortcutLine.includes('Q ou Tab') || scopeShortcutLine.includes('1 a 6: Seleciona')) {
   throw new Error('shortcuts topic still contains misattributed "Livre (1)"');
 }
 

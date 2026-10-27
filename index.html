@@ -99,7 +99,7 @@
               title="Diminuir Margem">▾</button>
           </div>
         </div>
-        <div class="input-chip chip-medium" title="Padding interno dos azulejos (%)">
+        <div class="input-chip chip-medium mosaic-mode-only" title="Padding interno dos azulejos (%)">
           <span class="chip-prefix"><span class="chip-label-full">Padding</span><span class="chip-label-short">P</span></span>
           <input type="number" id="paddingInput" min="0" max="25" step="1" value="5">
           <span class="chip-suffix">%</span>
@@ -125,7 +125,7 @@
         <div class="bar-divider"></div>
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
           <button type="button" class="tile-prev-btn" data-tile-preview="single" aria-pressed="false" title="Célula Mestre 1×1 isolada">1×1</button>
-          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Mestre cercado por 8 vizinhos fantasmas (3×3)">3×3</button>
+          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Repetição 3×3 do mestre com a mesma orientação">3×3</button>
           <button type="button" class="tile-prev-btn" data-tile-preview="mandala_d4" aria-pressed="false" title="Prévia em bloco 2×2 espelhado (D2/D4)">Espelhos</button>
           <button type="button" class="tile-prev-btn" data-tile-preview="rotational_c4" aria-pressed="false" title="Prévia em cata-vento rotacional 2×2 (C4)">Giro C4</button>
         </div>
@@ -135,17 +135,6 @@
 
       <div class="bar-spacer"></div>
 
-      <!-- Studio Mode Action Button (Mosaic <-> Subtile Creator & Library Manager) -->
-      <button type="button" id="btnStudioTilesMode" class="studio-mode-btn" aria-pressed="false" title="Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-          <path d="M14 17.5h7M17.5 14v7"></path>
-          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-        </svg>
-        <span class="studio-mode-btn-label">Subtiles</span>
-        <kbd class="studio-mode-kbd">Ctrl+E</kbd>
-      </button>
     </header>
 
     <!-- Floating Seed History Popover (Retained for backwards compatibility) -->
@@ -213,16 +202,39 @@
       </div>
     </div>
 
+    <div id="brushEditorDialog" class="modal-dialog-backdrop brush-editor-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="brushEditorTitle">
+      <div class="brush-editor-window">
+        <header class="brush-editor-header">
+          <h2 id="brushEditorTitle">Editor de pincel e clone</h2>
+          <div class="brush-editor-header-actions">
+            <button type="button" id="btnCancelBrushEditor" class="mini-btn">Cancelar · Esc</button>
+            <button type="button" id="btnCloseBrushEditor" class="mini-btn accent" aria-label="Concluir edição do pincel">Concluir</button>
+          </div>
+        </header>
+        <p class="brush-editor-help">Escolha um tile na paleta e pinte as células. Botão direito gira a célula. Concluir mantém as alterações; Cancelar as descarta.</p>
+        <div class="brush-editor-toolbar" role="group" aria-label="Editar grade do pincel">
+          <label>Linhas <input id="brushEditorRows" type="number" min="1" step="1" value="1"></label>
+          <label>Colunas <input id="brushEditorCols" type="number" min="1" step="1" value="1"></label>
+          <button type="button" id="btnBrushEditorUndo" class="mini-btn" title="Desfazer no pincel (Ctrl+Z)" disabled>Desfazer</button>
+          <button type="button" id="btnBrushEditorRedo" class="mini-btn" title="Refazer no pincel (Ctrl+Shift+Z)" disabled>Refazer</button>
+          <button type="button" id="btnBrushEditorErase" class="mini-btn">Borracha</button>
+          <button type="button" id="btnBrushEditorClear" class="mini-btn">Limpar grade</button>
+          <span id="brushEditorInkLabel" role="status" class="brush-editor-ink"></span>
+        </div>
+        <div id="brushEditorHost"></div>
+      </div>
+    </div>
+
     <!-- ==================== MAIN WORKSPACE AREA ==================== -->
     <div id="workspace-body">
 
       <!-- LEFT TOOLBAR (Adobe Illustrator Tool Strip) -->
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
         <!-- Ferramentas de Edição em 2 Colunas -->
-        <div class="sidebar-section mosaic-mode-only" aria-label="Ferramentas de Inspeção e Edição">
+        <div class="sidebar-section" aria-label="Ferramentas de Edição e Criação de Subtiles">
           <div class="sidebar-section-title">Ferramentas</div>
           <div class="tools-grid-2col">
-            <button id="toolInspect" class="tool-btn tool-grid-btn active" data-tool="inspect"
+            <button id="toolInspect" class="tool-btn tool-grid-btn active mosaic-mode-only" data-tool="inspect"
               title="Inspecionar Mosaico — Modo Gerador (Tecla V)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
@@ -230,7 +242,16 @@
               </svg>
               <span class="tool-grid-label">Inspecionar</span>
             </button>
-            <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn" data-tool="paint"
+            <button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn" aria-pressed="false" title="Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <path d="M14 17.5h7M17.5 14v7"></path>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span class="studio-mode-btn-label">Subtiles</span>
+      </button>
+            <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="paint"
               title="Pincel de Tile (Tecla B • Clique Esq: Pintar | Clique Dir: Girar | Alt+Clique: Conta-Gotas)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path
@@ -240,7 +261,7 @@
               </svg>
               <span class="tool-grid-label">Pintar</span>
             </button>
-            <button id="toolRotate" class="tool-btn tool-grid-btn edit-tool-btn" data-tool="rotate"
+            <button id="toolRotate" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="rotate"
               title="Girar / Família (Tecla R • Clique Esq: Avançar | Clique Dir: Voltar)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
@@ -248,8 +269,8 @@
               </svg>
               <span class="tool-grid-label">Girar</span>
             </button>
-            <button id="toolStamp" class="tool-btn tool-grid-btn edit-tool-btn" data-tool="stamp"
-              title="Carimbo de Bloco (Tecla S • Alt+Clique: Capturar Bloco | Clique Esq: Colar | Clique Dir: Girar Carimbo 90°)">
+            <button id="toolStamp" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="stamp"
+              title="Clonar (S) • Alt+clique/arraste: capturar • Clique/arraste: aplicar • Clique direito: girar">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M5 22h14"></path>
                 <path
@@ -257,9 +278,9 @@
                 </path>
                 <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"></path>
               </svg>
-              <span class="tool-grid-label">Carimbo</span>
+              <span class="tool-grid-label">Clonar</span>
             </button>
-            <button id="toolFreeze" class="tool-btn tool-grid-btn edit-tool-btn" data-tool="freeze" data-icon="snowflake"
+            <button id="toolFreeze" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="freeze" data-icon="snowflake"
               title="Congelar / Travar Subtiles (Tecla F • Clique aplica modo • Clique Dir inverte)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -272,17 +293,7 @@
               </svg>
               <span class="tool-grid-label">Travar</span>
             </button>
-            <button id="toolZoom" class="tool-btn tool-grid-btn" data-tool="zoom"
-              title="Ferramenta de Zoom (Tecla Z • Clique aproxima, Alt+Clique afasta)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                <line x1="11" y1="8" x2="11" y2="14"></line>
-                <line x1="8" y1="11" x2="14" y2="11"></line>
-              </svg>
-              <span class="tool-grid-label">Zoom</span>
-            </button>
-            <button id="toolPan" class="tool-btn tool-grid-btn" data-tool="pan"
+            <button id="toolPan" class="tool-btn tool-grid-btn mosaic-mode-only" data-tool="pan"
               title="Pan / Mover Prancheta (Tecla H ou segure Espaço)">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
@@ -293,6 +304,16 @@
                 </path>
               </svg>
               <span class="tool-grid-label">Pan</span>
+            </button>
+            <button id="toolZoom" class="tool-btn tool-grid-btn mosaic-mode-only" data-tool="zoom"
+              title="Ferramenta de Zoom (Tecla Z • Clique aproxima, Alt+Clique afasta)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <span class="tool-grid-label">Zoom</span>
             </button>
           </div>
         </div>
@@ -343,8 +364,8 @@
 
         <div class="tool-divider mosaic-mode-only"></div>
 
-        <!-- Cores (Ajuste Minimalista com Rótulos — Visível em ambos os modos) -->
-        <div class="sidebar-section" aria-label="Esquema de Cores">
+        <!-- Cores do mosaico (ocultas durante a criação de subtiles) -->
+        <div class="sidebar-section mosaic-mode-only" aria-label="Esquema de Cores">
           <div class="sidebar-section-title">Cores</div>
           <div class="illustrator-color-widget">
             <div class="sidebar-color-row">
@@ -367,6 +388,9 @@
 
         <div class="tool-divider mosaic-mode-only"></div>
 
+        <details class="sidebar-disclosure mosaic-mode-only">
+          <summary>Geração e histórico</summary>
+          <div class="sidebar-disclosure-body">
         <!-- Gerador de Mosaico & Sementes -->
         <div class="sidebar-section sidebar-gen-section mosaic-mode-only" aria-label="Geração e Sementes">
           <div class="sidebar-section-title">Gerador</div>
@@ -395,15 +419,15 @@
         <div class="tool-divider mosaic-mode-only"></div>
 
         <!-- Histórico de Mosaicos -->
-        <div class="sidebar-section sidebar-history-container mosaic-mode-only" aria-label="Histórico de Gerações">
+        <div class="sidebar-section sidebar-history-container is-collapsed mosaic-mode-only" aria-label="Histórico de Gerações">
           <div class="sidebar-section-title">
             <span>Histórico</span>
-            <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="true">▾</button>
+            <button type="button" id="btnToggleHistory" class="sidebar-collapse-btn" title="Recolher / Expandir Histórico" aria-label="Recolher ou Expandir Histórico" aria-expanded="false">▸</button>
           </div>
-          <div id="seedHistoryList" class="sidebar-history-list"></div>
+          <div id="seedHistoryList" class="sidebar-history-list collapsed"></div>
         </div>
-
-        <div class="tool-divider mosaic-mode-only"></div>
+          </div>
+        </details>
 
         <!-- Exportar Mosaico (Abaixo do Histórico) -->
         <div class="sidebar-section sidebar-export-section mosaic-mode-only" aria-label="Exportar Mosaico">
@@ -428,7 +452,7 @@
         <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ferramentas Vetoriais e Guias de Subtiles">
           <div class="tool-divider"></div>
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Vetor</div>
+            <div class="sidebar-section-title">Criar subtiles</div>
             <div class="tools-grid-2col" id="vecToolsGrid">
               <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active" data-vec-tool="select" aria-pressed="true" title="Seleção e Transformação BBox (Tecla V)">
                 <span>Seleção</span>
@@ -502,8 +526,9 @@
 
           <div class="tool-divider"></div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-section-title">Biblioteca</div>
+          <details class="sidebar-disclosure">
+            <summary>Biblioteca</summary>
+            <div class="sidebar-disclosure-body">
             <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary" title="Criar nova família customizada">
               <span>+ Novo Subtile</span>
             </button>
@@ -513,13 +538,15 @@
             <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn" title="Criar nova pasta de grupo">
               <span>+ Novo Grupo</span>
             </button>
-          </div>
+            </div>
+          </details>
 
           <div class="subtile-left-spacer"></div>
           <div class="tool-divider"></div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-section-title">SVG (Subtile)</div>
+          <details class="sidebar-disclosure">
+            <summary>Arquivos SVG</summary>
+            <div class="sidebar-disclosure-body">
             <div class="tools-grid-2col">
               <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn" title="Importar arquivo .svg normalizado para [-0.5, 0.5]">
                 <span>↑ SVG</span>
@@ -529,12 +556,14 @@
               </button>
             </div>
             <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
-          </div>
+            </div>
+          </details>
 
           <div class="tool-divider"></div>
 
-          <div class="sidebar-section">
-            <div class="sidebar-section-title">Backup (.json)</div>
+          <details class="sidebar-disclosure">
+            <summary>Backup da biblioteca</summary>
+            <div class="sidebar-disclosure-body">
             <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn" title="Baixar backup completo da biblioteca (.json)">
               <span>↓ Exportar .json</span>
             </button>
@@ -545,7 +574,8 @@
             <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger" title="Restaurar biblioteca para os 31 mestres originais">
               <span>↺ Restaurar Padrão</span>
             </button>
-          </div>
+            </div>
+          </details>
         </div>
       </aside>
 
@@ -838,13 +868,17 @@
                     <button type="button" class="info-btn" data-info-topic="rotate" aria-label="Saiba mais sobre a ferramenta Girar" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                 </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="rotateSizeControl">
-                  <button type="button" class="seg-btn active" data-rot-size="1" title="Girar 1 Tile (1×1)">1×1</button>
-                  <button type="button" class="seg-btn" data-rot-size="2" title="Girar área 2×2">2×2</button>
-                  <button type="button" class="seg-btn" data-rot-size="3" title="Girar área 3×3">3×3</button>
-                  <button type="button" class="seg-btn" data-rot-size="4" title="Girar área 4×4">4×4</button>
-                  <button type="button" class="seg-btn" data-rot-size="block"
-                    title="Girar 1 Bloco inteiro">Bloco</button>
+                <div class="brush-size-display-row" data-size-tool="rotate" role="group" aria-label="Tamanho da área de giro">
+                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)">−</button>
+                  <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
+                    <span class="brush-size-val" data-size-value>1×1</span>
+                    <span class="brush-size-sub" data-size-detail>subtiles (linhas × colunas)</span>
+                  </div>
+                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)">+</button>
+                </div>
+                <div class="tool-size-hint">− / + ou roda sobre o canvas</div>
+                <div class="tool-size-snap" id="rotateSizeControl">
+                  <button type="button" class="seg-btn" data-rot-size="block" aria-pressed="false" title="Alternar encaixe no bloco da grade">Ajustar ao bloco</button>
                 </div>
 
                 <div id="rotateGroupModeSection" class="rotate-sub-group hidden">
@@ -893,12 +927,17 @@
                 <div class="prop-label-row" style="margin-top: 6px;">
                   <label class="prop-label">Tamanho da Trava</label>
                 </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(5, 1fr);" id="freezeSizeControl" role="group" aria-label="Tamanho da trava">
-                  <button type="button" data-freeze-size="1" class="seg-btn active">1×1</button>
-                  <button type="button" data-freeze-size="2" class="seg-btn">2×2</button>
-                  <button type="button" data-freeze-size="3" class="seg-btn">3×3</button>
-                  <button type="button" data-freeze-size="4" class="seg-btn">4×4</button>
-                  <button type="button" data-freeze-size="block" class="seg-btn">Bloco</button>
+                <div class="brush-size-display-row" data-size-tool="freeze" role="group" aria-label="Tamanho da área de trava">
+                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de trava" title="Diminuir (− ou roda para baixo)">−</button>
+                  <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
+                    <span class="brush-size-val" data-size-value>1×1</span>
+                    <span class="brush-size-sub" data-size-detail>subtiles (linhas × colunas)</span>
+                  </div>
+                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)">+</button>
+                </div>
+                <div class="tool-size-hint">− / + ou roda sobre o canvas</div>
+                <div class="tool-size-snap" id="freezeSizeControl">
+                  <button type="button" class="seg-btn" data-freeze-size="block" aria-pressed="false" title="Alternar encaixe no bloco da grade">Ajustar ao bloco</button>
                 </div>
 
                 <div class="freeze-actions-row" style="margin-top: 10px;">
@@ -935,13 +974,11 @@
 
               <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
-                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
-                  id="stampInteractionSegmented">
-                  <button type="button" class="seg-btn active" data-stamp-mode="select"
-                    title="Arraste no mosaico para copiar uma região">Capturar</button>
-                  <button type="button" class="seg-btn" data-stamp-mode="apply"
-                    title="Clique no mosaico para colar o clone (Botão Direito gira +90°)">Colar</button>
+                <div class="clone-capture-actions" id="stampInteractionSegmented">
+                  <button type="button" class="mini-btn" data-stamp-mode="select"
+                    title="Atalho principal: segure Alt e arraste no mosaico. C também inicia uma captura.">Capturar região · Alt</button>
                 </div>
+                <p id="stampModeHint" class="tool-size-hint" role="status">Segure Alt e arraste para capturar. Solte e clique para aplicar.</p>
               </div>
 
               <!-- Brush / Supertile Size & Block Alignment -->
@@ -951,15 +988,15 @@
                     <label class="prop-label">Tamanho do Pincel</label>
                     <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Supertile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span class="prop-hint" style="font-size: 10px; color: var(--text-tertiary);">Roda do mouse</span>
+                  <span class="prop-hint" style="font-size: 10px; color: var(--text-tertiary);">− / + ou roda sobre o canvas</span>
                 </div>
                 <div class="brush-size-display-row" id="brushSizeControl">
-                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" title="Diminuir tamanho do pincel (ou Roda do Mouse para baixo)">−</button>
-                  <div class="brush-size-badge" id="brushSizeDisplayBadge">
+                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)">−</button>
+                  <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
                     <span class="brush-size-val" id="brushSizeValueText">1×1</span>
-                    <span class="brush-size-sub" id="brushSizeSubText">1 subtile</span>
+                    <span class="brush-size-sub" id="brushSizeSubText">subtiles (linhas × colunas)</span>
                   </div>
-                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" title="Aumentar tamanho do pincel (ou Roda do Mouse para cima)">+</button>
+                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)">+</button>
                 </div>
                 <div class="brush-snap-row" id="brushSnapRow">
                   <button type="button" class="brush-snap-toggle-btn" id="btnToggleBrushSnap" title="Alternar Ajuste ao Bloco (Atalho: Ctrl+U ou segurar Shift)">
@@ -980,10 +1017,11 @@
               <!-- Interactive Supertile Builder & Brush Preview Card -->
               <div class="active-brush-card supertile-builder-card">
                 <div class="supertile-canvas-box"
-                  title="Clique Esq: pintar célula (ou girar no 1×1) • Clique Dir: girar célula +90°">
-                  <canvas id="supertileBuilderCanvas" width="104" height="104"></canvas>
+                  title="Clique ou arraste para pintar • Clique direito gira • Alt amostra a célula">
+                  <canvas id="supertileBuilderCanvas" width="104" height="104" tabindex="0" aria-label="Grade do pincel: clique para pintar, botão direito para girar e Alt para amostrar uma célula"></canvas>
                 </div>
                 <div class="active-brush-controls">
+                  <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn" aria-haspopup="dialog" aria-controls="brushEditorDialog">Ampliar editor</button>
                   <div class="active-brush-title-row">
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
@@ -1027,6 +1065,19 @@
              WORKSPACE 3: ESTÚDIO DE SUBTILES & GESTÃO DE FAMÍLIAS (Fases B & C)
              ================================================================ -->
         <div id="dock-workspace-tiles" class="dock-workspace-pane hidden">
+          <nav class="tile-inspector-tabs" role="tablist" aria-label="Painéis do criador de subtiles">
+            <button type="button" id="tileTabLayers" role="tab" data-tile-panel="layers" aria-controls="panel-tile-layers" aria-selected="true">Camadas</button>
+            <button type="button" id="tileTabProperties" role="tab" data-tile-panel="properties" aria-controls="panel-tile-shape-props" aria-selected="false" tabindex="-1">Propriedades</button>
+            <button type="button" id="tileTabLibrary" role="tab" data-tile-panel="library" aria-controls="panel-tile-library-mgr" aria-selected="false" tabindex="-1">Biblioteca</button>
+            <button type="button" id="tileTabVariants" role="tab" data-tile-panel="variants" aria-controls="panel-tile-d4-live" aria-selected="false" tabindex="-1">Variantes</button>
+          </nav>
+          <div class="tile-selection-bar">
+            <span id="tileSelectionSummary" role="status">Nenhum objeto selecionado</span>
+            <button type="button" id="btnTileSelectAll" class="mini-btn" title="Selecionar todos os objetos visíveis e destravados (Ctrl+A)">Todos</button>
+            <button type="button" id="btnTileDeselect" class="mini-btn" title="Limpar seleção">Limpar</button>
+          </div>
+          <p class="tile-selection-help">V: selecionar · Shift+clique: adicionar/remover · Arraste no vazio: seleção por área. Nas camadas, marque os objetos para combinar.</p>
+          <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
 
           <!-- TILES PANEL 0: PROPRIEDADES & ALINHAMENTO DO EDITOR VETORIAL (Fase C) -->
           <section class="dock-panel" id="panel-tile-shape-props">
@@ -1067,7 +1118,7 @@
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
-                <span>Camadas &amp; SVG</span>
+                <span>Camadas / Objetos</span>
               </div>
               <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
               <span class="panel-chevron">▾</span>
@@ -1077,7 +1128,7 @@
               <div class="prop-section">
                 <div class="prop-label-row" style="margin-bottom: 6px;">
                   <div class="prop-label-with-info">
-                    <span class="prop-label">Pilha de Formas (Ordem Z)</span>
+                    <span class="prop-label">Objetos da família · frente → fundo</span>
                     <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Booleanas, Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                 </div>
@@ -1140,7 +1191,7 @@
                     <input type="text" id="tileActiveFamilyNameInput" class="subtile-text-input" maxlength="48" placeholder="Nome da família...">
                   </div>
                   <div class="tile-meta-field-row">
-                    <label for="tileActiveFamilyGroupSelect">Grupo</label>
+                    <label for="tileActiveFamilyGroupSelect">Conjunto</label>
                     <select id="tileActiveFamilyGroupSelect" class="subtile-select"></select>
                   </div>
                   <div class="tile-custom-actions-row">
@@ -1160,25 +1211,35 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <span>Grupos &amp; Famílias</span>
+                <span>Biblioteca · Conjuntos &amp; Famílias</span>
               </div>
               <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
               <span class="panel-chevron">▾</span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelTileLibraryMgrBody">
+              <div id="tileLibraryDetails" class="tile-library-details"></div>
               <div class="swatches-toolbar lib-mgr-toolbar">
+                <p class="tile-selection-help">Conjuntos organizam famílias. Cada família contém um desenho mestre e suas variantes. Arraste uma família para outro conjunto para movê-la.</p>
                 <input type="search" id="libMgrSearchInput" class="swatch-search" placeholder="Buscar grupo, família ou #id...">
+                <div class="tile-library-navigation">
+                  <select id="tileLibraryGroupFilter" class="subtile-select" aria-label="Filtrar conjunto"><option value="">Todos os conjuntos</option></select>
+                  <button type="button" id="btnTileLocateFamily" class="mini-btn">Localizar atual</button>
+                </div>
+                <div class="tile-library-navigation">
+                  <button type="button" id="btnTileExpandGroups" class="mini-btn">Expandir conjuntos</button>
+                  <button type="button" id="btnTileCollapseGroups" class="mini-btn">Recolher conjuntos</button>
+                </div>
                 <div class="lib-mgr-filter-row">
                   <div id="libMgrFilterControl" class="segmented-control" style="grid-template-columns: repeat(3, 1fr);">
                     <button type="button" class="seg-btn active" data-lib-filter="all" aria-pressed="true">Todos</button>
-                    <button type="button" class="seg-btn" data-lib-filter="custom" aria-pressed="false">Custom</button>
+                    <button type="button" class="seg-btn" data-lib-filter="custom" aria-pressed="false">Meus subtiles</button>
                     <button type="button" class="seg-btn" data-lib-filter="builtin" aria-pressed="false">Padrão</button>
                   </div>
                 </div>
                 <div class="swatch-bulk-actions lib-mgr-actions-bar">
                   <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent" title="Criar novo subtile customizado">+ Subtile</button>
-                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn" title="Criar novo grupo">+ Grupo</button>
+                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn" title="Criar novo conjunto de famílias">+ Conjunto</button>
                   <button type="button" id="btnLibMgrExportCustom" class="mini-btn" title="Exportar apenas subtiles customizados (.json)">Exportar Custom</button>
                 </div>
               </div>

@@ -93,7 +93,7 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 
 ### 3. Modo Estúdio de Subtiles & Gestão de Famílias (`Subtiles` / `Ctrl+E`)
 Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 4 superfícies da UI e mantendo a saída Spout do mosaico ao vivo:
-- **Prancheta Normalizada `[-0.5, 0.5]` & Preview de Continuidade**: Modos de visualização `1×1`, `3×3` (8 vizinhos fantasmas), `Espelhos 2×2` (`mandala_d4`) e `Giro C4 2×2` (`rotational_c4`), com grade magnética configurável (`Off`, `1/2`, `1/3`, `1/4`, `1/6`, `1/8`, `1/12`, `1/16`), eixos $D_4$, portas de fita (`±1/6` e centro) e margem de respiro (`#paddingInput` compartilhado).
+- **Prancheta Normalizada `[-0.5, 0.5]` & Preview de Continuidade**: Modos de visualização `1×1`, `3×3` (8 vizinhos com a mesma transformação do mestre), `Espelhos 2×2` (`mandala_d4`) e `Giro C4 2×2` (`rotational_c4`), com grade magnética configurável (`Off`, `1/2`, `1/3`, `1/4`, `1/6`, `1/8`, `1/12`, `1/16`), eixos $D_4$, portas de fita (`±1/6` e centro) e margem de respiro (`#paddingInput` compartilhado).
 - **Editor Vetorial Interativo (`core/vector_editor.js`)**: 8 ferramentas dedicadas — Seleção BBox com 8 alças e rotação (`V`), Seleção Direta de Nós e Tangentes Bezier Cúbicas (`A`, com subdivisão exata De Casteljau), Caneta Bezier (`P`), Retângulo arredondado (`M`), Elipse (`L`), Polígono/Estrela (`G`), Arco/Setor Anular Truchet (`U`) e Linha (`\`), além de presets rápidos de fita `1/3`, alinhamento/distribuição na célula, histórico *Undo/Redo* por família e área de transferência (`Ctrl+C`/`V`/`D`).
 - **Pathfinder, Transformações $D_4$ & Camadas (`core/vector_boolean.js`)**: Operações booleanas **Unir**, **Subtrair**, **Interseção** e **Excluir (XOR)** via Paper.js headless local (`libraries/paper-core.min.js`), preservando curvas Bezier cúbicas e gerando caminhos compostos com furos (`fillRule: evenodd`); giro `+90°`/`-90°` e espelhos `H`/`V` sobre a seleção; painel **Camadas (Formas)** com reordenação de Z-index por *Drag-and-Drop*, setas e atalhos (`Ctrl+]`/`Ctrl+[`, `Ctrl+Shift+]`/`Ctrl+Shift+[`), renomeação inline (duplo-clique), visibilidade e trava por forma.
 - **Importar / Exportar SVG**: `importSVGToShapes` converte `<path>` (incl. arcos `A`), `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>` e `<line>` com `<g transform>` aninhados, normalizando o `viewBox` para `[-0.5, 0.5]` como formas editáveis (sobre mestre built-in, cria automaticamente uma família customizada); `exportFamilyToSVG` gera um `.svg` unitário limpo da variante ativa.
@@ -232,7 +232,7 @@ node tests/run_all.js
    - `test_info_scopes_source.js`: Fonte canônica única para os 6 escopos de simetria conectando UI, popover e motor.
    - `test_info_aria.js`: Acessibilidade ARIA (`aria-expanded`, `aria-controls`, `aria-haspopup`) e foco nos componentes informativos.
    - `test_editor_ui_state.js`: Matriz de visibilidade do editor, seletores CSS `.hidden` e cursores de ferramentas.
-   - `test_info_ui_state.js`: Validação dos 13 tópicos de informação, singleton popover/tooltip e widget Illustrator.
+   - `test_info_ui_state.js`: Validação dos 17 tópicos de informação, singleton popover/tooltip e widget Illustrator.
    - `test_viewport_pan_zoom.js`: Navegação de viewport, pan 2D contínuo via CSS transforms, atalhos de centralização 100% e ajuste.
    - `test_brush_sizing_snap.js`: Pincel com tamanhos inteiros não-cíclicos, ajuste ao bloco (`Ctrl+U` / `Shift`) e atalho da borracha (`E`).
    - `test_ui_control_registry.js`: Congelamento do inventário dos 60 controles com ID único em `index.html`.
@@ -286,7 +286,7 @@ node tests/run_all.js
 ### Viewport e Prancheta
 - `1` / `Shift + 1` / `Ctrl + 1`: Recentralizar a prancheta com zoom em 100% (1:1)
 - `0` / `Ctrl + 0`: Ajustar o artboard inteiro à janela visível
-- `Espaço + Arrasto` ou `Alt + Arrasto` ou Botão do Meio: Pan 2D contínuo
+- `Espaço + Arrasto` ou Botão do Meio: Pan 2D contínuo
 - `Ctrl + Roda do Mouse`: Zoom suave sob o cursor
 
 ### Guias e Documento
@@ -298,3 +298,44 @@ node tests/run_all.js
 - `O`: Mostrar/ocultar mapa de órbitas
 - `?`: Abrir Central de Ajuda e Atalhos (Popover)
 - `Escape`: Fechar popovers de ajuda ou diálogos ativos
+
+## Correções da revisão do Subtile Studio (27/10/2026)
+
+O dock de Subtiles permite rolagem vertical do conjunto; a biblioteca tem uma lista de 280 px e os grupos não encolhem. Selecionar uma ferramenta vetorial encerra Pan/Zoom; sair do Estúdio restaura a ferramenta anterior do mosaico. A seleção e as sessões temporárias são limpas ao trocar de família.
+
+SVG unitário usa margem zero por padrão, independente do respiro do mosaico. Famílias e camadas aceitam Enter/Espaço; os modais retêm Tab/Shift+Tab e restauram o foco. A importação começa em Mesclar, pede confirmação adicional para Substituir e baixa backup JSON antes de importar/restaurar. SOLO usa a proteção de documento alterado. Miniaturas são reutilizadas enquanto a geometria da família permanece igual.
+
+Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
+
+Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 45 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
+
+O botão **Criar subtiles** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
+
+As ferramentas do mosaico usam pares de mesma largura: Inspecionar/Subtiles, Pintar/Girar, Carimbo/Travar e Pan/Zoom. Na edição, grades e eixos globais aparecem apenas pelos botões de Guias Visuais; a prévia mantém a geometria fantasma e o contorno da área de ação, sem uma malha automática sobre as réplicas simétricas.
+
+Tamanhos de Pintar/Carimbo, Girar e Travar usam o padrão **− | tamanho | +**, também acessível por `−`/`+` no teclado e roda do mouse sobre o canvas. Os tamanhos param nos limites, sem voltar ao início; botões indisponíveis ficam desativados. Girar e pintar alcançam a dimensão máxima do mosaico; Travar respeita o tamanho de um bloco. No pincel com ajuste ao bloco, o passo é um bloco. A indicação `linhas × colunas` preserva o tamanho real de carimbos retangulares. Os atalhos dos escopos são `Q`/`Tab`, com `Shift` para voltar.
+
+A barra esquerda recolhe **Geração e histórico** por padrão; no criador de subtiles, Biblioteca, Arquivos SVG e Backup também ficam em grupos expansíveis. O histórico começa recolhido e tem altura limitada quando aberto. Os tamanhos de Girar e Travar têm apenas o controle − / medida / + e um botão independente para ajustar ao bloco; não há uma segunda linha de presets numéricos.
+
+A prévia de Girar destaca todas as células alcançadas pelo escopo ativo, usando os mesmos alvos da operação. O contorno ciano delimita as regiões afetadas e o âmbar marca a origem. As bordas internas entre células vizinhas não são desenhadas, preservando a ausência de grade automática.
+
+Girar opera sobre o conteúdo atual de cada região afetada pelo escopo. Réplicas simétricas leem suas próprias células editadas, em vez de receber uma cópia da região de origem. A direção do giro respeita os espelhamentos D4. Sobreposições só aplicam ciclos completos de movimentação de células para preservar o conteúdo; a prévia usa os mesmos alvos da operação. Pintar e Carimbo mantêm sua semântica de aplicação de um padrão.
+
+O botão **Ampliar editor** abre um popup com canvas maior e paleta lado a lado; os mesmos controles do dock são movidos para ele, sem cópias independentes. O editor trabalha ao vivo; **Concluir** mantém as alterações; **Cancelar** ou `Esc` restaura o pincel da abertura e retorna ao dock. Clique/arraste pinta células e o botão direito gira a célula, inclusive em 1×1. A roda sobre o canvas ampliado e `−`/`+` seguem o mesmo controle de tamanho do mosaico.
+
+**Clone:** `S` seleciona a ferramenta; o gesto principal de captura é **Alt + clique/arraste**, seguido de aplicação com clique normal. `C` continua como alternativa para iniciar captura. Arraste e solte para capturar; a ferramenta passa automaticamente a aplicar. Clique/arraste aplica e botão direito gira o clone. `Esc` ou botão direito durante a captura cancela sem substituir o clone anterior. Capturas com ajuste ao bloco funcionam em qualquer direção de arrasto. Pincel e clone conservam padrões independentes durante a sessão; trocar ferramenta encerra o gesto anterior. Os dois padrões são salvos separadamente no campo opcional `brushToolSessions` do payload v3 e restaurados após recarregar.
+
+**Cursores:** captura usa mira; aplicar clone usa cópia; Girar usa seta circular com ponto de ação; Borracha usa célula; Pan/Espaço usam mão aberta e fechada durante o arrasto; Zoom com Alt indica afastamento. Navegação tem prioridade sobre os cursores vetoriais. Combinações sem aplicação válida no escopo Iguais usam cursor de ação indisponível.
+
+Capturar uma região com Alt também entra na sessão de Clone antes de substituir o padrão ativo. Voltar a Pintar recupera seu tile, orientação, tamanho e ajuste ao bloco. Saves antigos sem um pincel separado retomam um pincel normal 1×1 (#2), preservando a região capturada na ferramenta Clone.
+
+O editor ampliado permite definir **Linhas e Colunas** separadamente, escolher o tile da paleta sem preencher o padrão inteiro, pintar/apagar células e desfazer/refazer com `Ctrl+Z`/`Ctrl+Shift+Z`. Redimensionar preserva as células existentes e cria células vazias. Limpar grade pode ser desfeito; Cancelar/Esc restaura o padrão anterior à abertura. No Clone sem captura, clicar normalmente apenas orienta a usar Alt; a prévia mostra “Aguardando captura”.
+
+
+### Criador de subtiles — seleção e organização dos painéis
+
+O criador abre na visualização **1×1 Mestre**, com mais espaço para desenhar. O painel contextual usa abas **Camadas**, **Propriedades**, **Biblioteca** e **Variantes**, com navegação pelas setas do teclado. A aba Camadas apresenta a pilha de objetos da família, da frente para o fundo: marque caixas para selecionar vários objetos, arraste linhas para reordenar, dê duplo clique no nome para renomear e use os controles de visibilidade e bloqueio. São objetos empilhados da família; não há grupos de camadas aninhados.
+
+No canvas, **V** ativa Seleção; **Shift+clique** adiciona ou remove um objeto, **arrastar no vazio** seleciona por área e **Shift+arrastar no vazio** acrescenta à seleção existente. **Todos / Ctrl+A** seleciona os objetos visíveis e destravados. O Pathfinder fica acima das abas Camadas e Propriedades e habilita Unir, Subtrair, Interseção e Excluir com dois ou mais objetos elegíveis. A seleção permanece ao trocar de aba; **Ctrl+Z** desfaz edições e booleanas.
+
+Na Biblioteca, **conjunto** é o nome de interface para os grupos de famílias existentes no modelo de dados. Há busca, filtros Todos / Meus subtiles / Padrão, filtro por conjunto, Expandir/Recolher e Localizar atual. Os metadados da família selecionada ficam junto da biblioteca. Cada família reúne um mestre e suas variantes D4; mover uma família para outro conjunto preserva suas variantes. Os formatos de persistência e os IDs canônicos 0–84 permanecem iguais.

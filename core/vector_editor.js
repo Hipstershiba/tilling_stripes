@@ -1538,6 +1538,7 @@
     activeSnapGuides: { guideX: null, guideY: null },
     clipboard: [],
     histories: new Map(), // familyId -> { entries: [{ shapes, clipToTile }], index: number }
+    currentFamilyId: null,
     workingFamilyId: null,
     workingShapes: null, // live draft shapes during drag/pen
     dragOp: null, // active pointer drag operation
@@ -1984,7 +1985,8 @@
   }
 
   function resetTransientForFamilySwitch(familyId) {
-    if (editorState.workingFamilyId && editorState.workingFamilyId !== familyId) {
+    if (editorState.currentFamilyId !== familyId) {
+      editorState.currentFamilyId = familyId;
       editorState.workingFamilyId = null;
       editorState.workingShapes = null;
       editorState.dragOp = null;
@@ -2259,7 +2261,7 @@
     const selectedShapes = baseShapes.filter((s) => s && selSet.has(s.id) && !s.locked && s.visible !== false);
 
     // 1. Check 8 BBox Resize Handles + Rotation Handle
-    if (selectedShapes.length > 0) {
+    if (selectedShapes.length > 0 && !mods.shiftKey) {
       const box = computeSelectionBounds(selectedShapes);
       if (box) {
         const handles = getBBoxHandlePositions(box, hitRadiusNorm * 2.6);
@@ -2326,7 +2328,8 @@
       editorState.selectedShapeIds = [];
       editorState.selectedNodes = [];
     }
-    editorState.dragOp = { type: 'marquee', mode: 'select', u0: u, v0: v, u1: u, v1: v, baseShapes };
+    editorState.dragOp = { type: 'marquee', mode: 'select', u0: u, v0: v, u1: u, v1: v, baseShapes,
+      initialSelection: mods.shiftKey ? [...editorState.selectedShapeIds] : [] };
     editorState.activeSnapGuides = { guideX: null, guideY: null };
     return { handled: true };
   }
@@ -2565,7 +2568,7 @@
               hits.push(sh.id);
             }
           }
-          editorState.selectedShapeIds = hits;
+          editorState.selectedShapeIds = [...new Set([...(op.initialSelection || []), ...hits])];
         } else if (op.mode === 'direct') {
           const nodeHits = [];
           const { vr } = resolveDeps();
