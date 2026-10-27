@@ -1123,7 +1123,7 @@ function restoreDocumentSnapshot(snap) {
 let spoutSocket = null;
 let spoutTimer = null;
 let spoutFrameInfo = null;
-let spoutLastSignature = 0;
+let spoutLastSignature = null;
 
 function setSpoutStatus(label, state, detail) {
   const el = document.getElementById('spoutStatus');
@@ -1199,21 +1199,27 @@ function renderSpoutFrame() {
 
 function spoutPump() {
   if (!spoutSocket || spoutSocket.readyState !== WebSocket.OPEN) return;
+  // Keep at most one frame in flight. Once drained, render the newest artwork.
+  if (spoutSocket.bufferedAmount > 0) return;
 
   // Cheap: only the artwork invalidates the frame. Panning, zooming or toggling guides do not.
   const signature = spoutArtSignature();
   if (spoutFrameInfo && signature === spoutLastSignature) return;
 
   const frame = renderSpoutFrame();
-  if (!frame) return;
+  if (!frame) {
+    setSpoutStatus('sem canvas', 'error', 'Mosaico ainda não gerado');
+    return;
+  }
 
   if (!spoutFrameInfo || frame.width !== spoutFrameInfo.width || frame.height !== spoutFrameInfo.height) {
-    spoutFrameInfo = { width: frame.width, height: frame.height };
     spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
   }
 
-  spoutLastSignature = signature;
   spoutSocket.send(frame.pixels);
+  spoutFrameInfo = { width: frame.width, height: frame.height };
+  spoutLastSignature = signature;
+  setSpoutStatus('on', 'on', 'Enviando o mosaico puro para o Spout');
 }
 
 let spoutRetryTimer = null;
@@ -1239,23 +1245,19 @@ function startSpoutOutput() {
     return;
   }
   spoutSocket.binaryType = 'arraybuffer';
+  const socket = spoutSocket;
 
   spoutSocket.onopen = () => {
+    if (spoutSocket !== socket) return;
     if (spoutRetryTimer) { clearTimeout(spoutRetryTimer); spoutRetryTimer = null; }
-    const frame = renderSpoutFrame();
-    if (!frame) {
-      setSpoutStatus('sem canvas', 'error', 'Mosaico ainda não gerado');
-      return;
-    }
-    spoutFrameInfo = { width: frame.width, height: frame.height };
-    spoutSocket.send(window.SpoutOutput.buildStartMessage(StudioState.spoutName, frame.width, frame.height));
-    spoutSocket.send(frame.pixels);
-    spoutLastSignature = spoutArtSignature();
-    setSpoutStatus('on', 'on', 'Enviando o mosaico puro para o Spout');
+    spoutFrameInfo = null;
+    spoutLastSignature = null;
     if (!spoutTimer) spoutTimer = setInterval(spoutPump, 50);
+    spoutPump();
   };
 
   spoutSocket.onmessage = (ev) => {
+    if (spoutSocket !== socket) return;
     try {
       const msg = JSON.parse(ev.data);
       if (msg.type === 'error') setSpoutStatus('erro', 'error', msg.reason || 'Erro na ponte');
@@ -1264,12 +1266,14 @@ function startSpoutOutput() {
   };
 
   spoutSocket.onerror = () => {
+    if (spoutSocket !== socket) return;
     // A failed connect fires error and then close; the retry is scheduled in onclose.
     if (spoutRetryTimer) return;
     setSpoutStatus('offline', 'error', 'Ponte offline — rode tools/spout_bridge.cmd');
   };
 
   spoutSocket.onclose = () => {
+    if (spoutSocket !== socket) return;
     if (spoutTimer) { clearInterval(spoutTimer); spoutTimer = null; }
     spoutSocket = null;
     spoutFrameInfo = null;
@@ -1285,12 +1289,13 @@ function stopSpoutOutput() {
   if (spoutRetryTimer) { clearTimeout(spoutRetryTimer); spoutRetryTimer = null; }
   if (spoutTimer) { clearInterval(spoutTimer); spoutTimer = null; }
   if (spoutSocket) {
-    try { spoutSocket.send(JSON.stringify({ type: 'stop' })); } catch (err) { /* already closing */ }
-    spoutSocket.close();
+    const socket = spoutSocket;
     spoutSocket = null;
+    try { socket.send(JSON.stringify({ type: 'stop' })); } catch (err) { /* already closing */ }
+    socket.close();
   }
   spoutFrameInfo = null;
-  spoutLastSignature = 0;
+  spoutLastSignature = null;
   setSpoutStatus('off', 'off', 'Saída Spout desligada');
 }
 
@@ -1544,7 +1549,46 @@ function renderSwatchesPanel() {
         groupHeaderAppended = true;
         const groupHeading = document.createElement('div');
         groupHeading.className = 'swatches-group-heading';
-        groupHeading.textContent = groupLabel;
+        const groupTileIds = [...new Set(grp.families.flatMap((family) => family.tileIds))];
+        const selectedCount = groupTileIds.filter((id) => StudioState.allowedTiles.has(id)).length;
+        const groupSelected = selectedCount === groupTileIds.length;
+        const groupToggle = document.createElement('button');
+        groupToggle.type = 'button';
+        groupToggle.className = 'swatches-group-toggle';
+        groupToggle.setAttribute('role', 'checkbox');
+        groupToggle.setAttribute('aria-checked', groupSelected ? 'true' : selectedCount ? 'mixed' : 'false');
+        groupToggle.setAttribute('aria-label', `Conjunto ${groupLabel}`);
+        groupToggle.title = `${groupSelected ? 'Desativar' : 'Ativar'} todas as famílias do conjunto, inclusive as ocultas pela busca`;
+        const indicator = document.createElement('span');
+        indicator.className = 'family-check-indicator';
+        indicator.textContent = groupSelected ? '✓' : selectedCount ? '–' : '';
+        const groupName = document.createElement('span');
+        groupName.textContent = groupLabel;
+        groupToggle.appendChild(indicator);
+        groupToggle.appendChild(groupName);
+        groupToggle.addEventListener('click', () => {
+          groupTileIds.forEach((id) => groupSelected ? StudioState.allowedTiles.delete(id) : StudioState.allowedTiles.add(id));
+          renderSwatchesPanel();
+          regenerateMosaic(true);
+        });
+        const groupCount = document.createElement('span');
+        groupCount.className = 'family-count-tag';
+        groupCount.textContent = `${selectedCount}/${groupTileIds.length}`;
+        const groupSolo = document.createElement('button');
+        groupSolo.type = 'button';
+        groupSolo.className = 'family-solo-btn';
+        groupSolo.textContent = 'SOLO';
+        groupSolo.setAttribute('aria-label', `Isolar conjunto ${groupLabel}`);
+        groupSolo.title = `Gerar apenas com as famílias de ${groupLabel}`;
+        groupSolo.addEventListener('click', () => {
+          StudioState.allowedTiles.clear();
+          groupTileIds.forEach((id) => StudioState.allowedTiles.add(id));
+          renderSwatchesPanel();
+          regenerateMosaic(true);
+        });
+        groupHeading.appendChild(groupToggle);
+        groupHeading.appendChild(groupCount);
+        groupHeading.appendChild(groupSolo);
         container.appendChild(groupHeading);
       }
 
@@ -2164,6 +2208,7 @@ function rotateOrFlipActiveBrush(d4Key) {
   StudioState.editBrushTransform = window.D4Symmetry.composeD4(d4Key, StudioState.editBrushTransform || 'id');
   renderSupertileBuilderCanvas();
   syncEditWorkspaceUI();
+  window.SubtileStudioUI?.syncNavigationState?.();
   saveStudioStateToStorage();
   redraw();
 }
@@ -2405,11 +2450,7 @@ function openBrushEditor() {
   host.appendChild(body);
   canvas.width = canvas.height = 576;
   dialog.classList.remove('hidden');
-  for (let branch=dialog; branch.parentElement; branch=branch.parentElement) {
-    for (const sibling of branch.parentElement.children) {
-      if (sibling !== branch) { brushEditorPortal.inert.push([sibling, sibling.inert]); sibling.inert = true; }
-    }
-  }
+  window.StudioModal.enter(dialog, () => closeBrushEditor(false));
   renderSupertileBuilderCanvas();
   syncBrushEditorUI();
   document.getElementById('btnCloseBrushEditor')?.focus();
@@ -2423,7 +2464,7 @@ function closeBrushEditor(commit = true) {
   portal.canvas.width = portal.width;
   portal.canvas.height = portal.height;
   document.getElementById('brushEditorDialog')?.classList.add('hidden');
-  portal.inert.forEach(([el, value]) => { el.inert = value; });
+  window.StudioModal.leave(document.getElementById('brushEditorDialog'));
   if (!commit) restoreBrushEditorSnapshot(portal.original);
   renderSupertileBuilderCanvas();
   if (portal.focus?.isConnected) portal.focus.focus();
@@ -2758,9 +2799,14 @@ function finishCanvasRegionCapture() {
 
 function handleCanvasMouseDown(e) {
   if (StudioState.studioMode === 'tiles') {
+    if (StudioState.activeTool === 'zoom') {
+      e.preventDefault();
+      const delta = (e.altKey || e.button === 2) ? -25 : 25;
+      setZoomPercent(StudioState.zoomPercent + delta);
+      return;
+    }
     if (
       StudioState.activeTool !== 'pan' &&
-      StudioState.activeTool !== 'zoom' &&
       !StudioState.isSpaceDown &&
       e.button === 0
     ) {
@@ -2931,8 +2977,9 @@ let dirtyGuardSessionSuppressed = false;
 let pendingDirtyGuardAction = null;
 let dirtyGuardTriggerElement = null;
 
-function requestParamChangeWithGuard(triggerEl, revertFn, applyFn) {
-  if (dirtyGuardSessionSuppressed || !isDocumentDirty(StudioState)) {
+function requestParamChangeWithGuard(triggerEl, revertFn, applyFn, { frozenLoss = 0 } = {}) {
+  if (window.StudioModal?.isOpen()) { revertFn?.(); return; }
+  if (!frozenLoss && (dirtyGuardSessionSuppressed || !isDocumentDirty(StudioState))) {
     applyFn();
     return;
   }
@@ -2959,10 +3006,12 @@ function requestParamChangeWithGuard(triggerEl, revertFn, applyFn) {
   }
 
   if (descEl) {
-    descEl.innerHTML = `${reason} Alterar este parâmetro irá regenerar o desenho. Suas alterações vão para o histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.`;
+    descEl.innerHTML = `${reason} ${frozenLoss ? `A nova grade removerá ${frozenLoss} preservações que ficam fora dos seus limites.` : 'As preservações que cabem na grade serão mantidas.'} Alterar este parâmetro irá regenerar o desenho. Suas alterações vão para o histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.`;
   }
 
   pendingDirtyGuardAction = { revertFn, applyFn };
+  cancelToolGesture();
+  window.StudioModal.enter(dialog, () => closeDirtyGuard(false), triggerEl || document.activeElement);
   dialog.classList.remove('hidden');
   btnCancel?.focus();
 }
@@ -2970,11 +3019,12 @@ function requestParamChangeWithGuard(triggerEl, revertFn, applyFn) {
 function closeDirtyGuard(confirmed) {
   const dialog = document.getElementById('dirtyGuardDialog');
   const dontAskCheckbox = document.getElementById('dirtyGuardDontAsk');
-  if (dontAskCheckbox && dontAskCheckbox.checked) {
+  if (confirmed && dontAskCheckbox && dontAskCheckbox.checked) {
     dirtyGuardSessionSuppressed = true;
   }
 
   dialog?.classList.add('hidden');
+  if (dialog) window.StudioModal.leave(dialog);
   const action = pendingDirtyGuardAction;
   pendingDirtyGuardAction = null;
 
@@ -2988,6 +3038,38 @@ function closeDirtyGuard(confirmed) {
     dirtyGuardTriggerElement.focus?.();
     dirtyGuardTriggerElement = null;
   }
+}
+
+function countFrozenOutsideTopology(frozenCells, rows, cols, subdivision) {
+  const n = subdivision * 2;
+  return Array.from(frozenCells?.keys() || []).filter(key => {
+    const parts = key.split(',').map(Number);
+    return parts.length !== 4 || parts.some(v => !Number.isInteger(v) || v < 0) ||
+      parts[0] >= rows || parts[1] >= cols || parts[2] >= n || parts[3] >= n;
+  }).length;
+}
+
+function requestTopologyChange(next, trigger) {
+  const rows = next.rows ?? StudioState.rows, cols = next.cols ?? StudioState.cols;
+  const subdivision = next.subdivision ?? StudioState.subdivision;
+  if (rows === StudioState.rows && cols === StudioState.cols && subdivision === StudioState.subdivision) return;
+  const frozenLoss = countFrozenOutsideTopology(StudioState.frozenCells, rows, cols, subdivision);
+  requestParamChangeWithGuard(trigger || document.activeElement, syncAllInputsFromState, () => {
+    Object.assign(StudioState, next);
+    syncAllInputsFromState();
+    regenerateMosaic(true);
+  }, { frozenLoss });
+}
+
+function swapStudioColors() {
+  [StudioState.fgColor, StudioState.bgColor] = [StudioState.bgColor, StudioState.fgColor];
+  const fg = document.getElementById('fgColorPicker'), bg = document.getElementById('bgColorPicker');
+  if (fg) fg.value = StudioState.fgColor;
+  if (bg) bg.value = StudioState.bgColor;
+  renderEditBrushPalette();
+  renderSupertileBuilderCanvas();
+  flushSaveStudioStateToStorage();
+  redraw();
 }
 
 function resetEditHistoryWithInitialSnapshot() {
@@ -3408,6 +3490,7 @@ function syncEditWorkspaceUI() {
   syncFreezeUI();
   syncContextPanel();
   syncCanvasCursor();
+  window.SubtileStudioUI?.syncNavigationState?.();
   document.body.dataset.activeTool = StudioState.activeTool;
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
   document.body.dataset.studioMode = StudioState.studioMode === 'tiles' ? 'tiles' : 'mosaic';
@@ -3727,6 +3810,8 @@ function syncAllInputsFromState() {
 }
 
 function initStudioUI() {
+  document.getElementById('btnDirtyGuardCancel')?.addEventListener('click', () => closeDirtyGuard(false));
+  document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));
   window.InfoUI?.init();
 
   document.getElementById('btnD4Undo')?.addEventListener('click', () => {
@@ -3804,11 +3889,8 @@ function initStudioUI() {
   const marginInput = document.getElementById('gridMargin');
 
   const applyGridDimensions = (r, c) => {
-    StudioState.rows = Math.max(1, Math.min(32, Math.round(r)));
-    StudioState.cols = Math.max(1, Math.min(32, Math.round(c)));
-    if (rowsInput) rowsInput.value = StudioState.rows;
-    if (colsInput) colsInput.value = StudioState.cols;
-    regenerateMosaic(true);
+    requestTopologyChange({ rows: Math.max(1, Math.min(32, Math.round(r))),
+      cols: Math.max(1, Math.min(32, Math.round(c))) });
   };
 
   rowsInput?.addEventListener('change', () => {
@@ -3975,8 +4057,7 @@ function initStudioUI() {
   // --- Right Dock Controls (Symmetry, Subdivision, Padding, Colors) ---
   document.querySelectorAll('#subdivisionControl .seg-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      StudioState.subdivision = parseInt(btn.dataset.sub, 10) || 2;
-      regenerateMosaic(true);
+      requestTopologyChange({ subdivision: parseInt(btn.dataset.sub, 10) || 2 }, btn);
     });
   });
 
@@ -4008,9 +4089,9 @@ function initStudioUI() {
       : spoutNameInput.value;
     spoutNameInput.value = StudioState.spoutName;
     if (spoutSocket && spoutSocket.readyState === WebSocket.OPEN && spoutFrameInfo) {
-      spoutSocket.send(window.SpoutOutput.buildStartMessage(
-        StudioState.spoutName, spoutFrameInfo.width, spoutFrameInfo.height
-      ));
+      // Restart and resend together, even when the artwork itself is unchanged.
+      spoutFrameInfo = null;
+      spoutPump();
     }
     saveStudioStateToStorage();
   });
@@ -4030,17 +4111,7 @@ function initStudioUI() {
     saveScheduler.schedule();
     redraw();
   });
-  document.getElementById('btnSwapColors')?.addEventListener('click', () => {
-    const tmp = StudioState.fgColor;
-    StudioState.fgColor = StudioState.bgColor;
-    StudioState.bgColor = tmp;
-    if (fgPicker) fgPicker.value = StudioState.fgColor;
-    if (bgPicker) bgPicker.value = StudioState.bgColor;
-    renderSupertileBuilderCanvas();
-    saveScheduler.flush();
-    saveStudioStateToStorage();
-    redraw();
-  });
+  document.getElementById('btnSwapColors')?.addEventListener('click', swapStudioColors);
 
   // --- Swatches Bulk Controls ---
   document.getElementById('tileSearchInput')?.addEventListener('input', (e) => {
@@ -4402,7 +4473,7 @@ function initStudioUI() {
     StudioState.rightDockCollapsed = isCollapsed;
     if (btnToggleDock) {
       btnToggleDock.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-      btnToggleDock.setAttribute('title', isCollapsed ? 'Expandir Painel Lateral (Tab)' : 'Recolher Painel Lateral (Tab)');
+      btnToggleDock.setAttribute('title', isCollapsed ? 'Expandir Painel Lateral' : 'Recolher Painel Lateral');
       btnToggleDock.setAttribute('aria-label', isCollapsed ? 'Expandir Painel Lateral' : 'Recolher Painel Lateral');
       const iconSpan = btnToggleDock.querySelector('.dock-toggle-icon');
       if (iconSpan) {
@@ -4482,7 +4553,15 @@ function initStudioUI() {
       return;
     }
 
-    // 4. Non-edit tools (inspect): plain wheel pans the canvas in 2D
+    // 4. In tiles mode: default mouse wheel scroll zooms the artboard!
+    if (StudioState.studioMode === 'tiles') {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 15 : -15;
+      setZoomPercent(StudioState.zoomPercent + delta);
+      return;
+    }
+
+    // 5. Non-edit tools (inspect): plain wheel pans the canvas in 2D
     e.preventDefault();
     StudioState.panOffsetX = (StudioState.panOffsetX || 0) - e.deltaX;
     StudioState.panOffsetY = (StudioState.panOffsetY || 0) - e.deltaY;
@@ -4490,6 +4569,7 @@ function initStudioUI() {
   }, { passive: false });
 
   pasteboard?.addEventListener('mousedown', (e) => {
+    document.getElementById('canvas-stage')?.focus({ preventScroll: true });
     if (StudioState.activeTool === 'zoom') {
       const delta = (e.altKey || e.button === 2) ? -25 : 25;
       setZoomPercent(StudioState.zoomPercent + delta);
@@ -4565,6 +4645,14 @@ function initStudioUI() {
 
   // --- Illustrator & Editor Keyboard Shortcuts ---
   window.addEventListener('keydown', (e) => {
+    if (e.defaultPrevented || e.isComposing) return;
+    if (window.StudioModal?.isOpen()) {
+      if (e.key === 'Escape') { e.preventDefault(); window.StudioModal.cancel(); }
+      return;
+    }
+    if (e.target?.isContentEditable || e.target?.closest?.('[contenteditable]:not([contenteditable="false"])')) return;
+    if (e.repeat && e.code !== 'Space' && !['Shift', 'Alt'].includes(e.key)) return;
+    if (e.altKey && e.key !== 'Alt') return;
     StudioState.isShiftDown = Boolean(e.shiftKey);
     StudioState.isAltDown = Boolean(e.altKey);
     syncCanvasCursor();
@@ -4578,29 +4666,8 @@ function initStudioUI() {
       return;
     }
 
-    // Illustrator Shortcut: X swaps foreground and background colors
-    if (e.key === 'x' || e.key === 'X') {
-      e.preventDefault();
-      const tmp = StudioState.fgColor;
-      StudioState.fgColor = StudioState.bgColor;
-      StudioState.bgColor = tmp;
-      const fgPicker = document.getElementById('fgColorPicker');
-      const bgPicker = document.getElementById('bgColorPicker');
-      if (fgPicker) fgPicker.value = StudioState.fgColor;
-      if (bgPicker) bgPicker.value = StudioState.bgColor;
-      renderEditBrushPalette();
-      renderSupertileBuilderCanvas();
-      flushSaveStudioStateToStorage();
-      redraw();
-      return;
-    }
-
-    // Esc closes Dirty Guard Dialog if open
-    const dirtyDialog = document.getElementById('dirtyGuardDialog');
-    if (e.key === 'Escape' && dirtyDialog && !dirtyDialog.classList.contains('hidden')) {
-      e.preventDefault();
-      closeDirtyGuard(false);
-      return;
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'x') {
+      e.preventDefault(); swapStudioColors(); return;
     }
 
     // Shortcut: ? opens shortcuts help popover
@@ -4617,6 +4684,7 @@ function initStudioUI() {
     // Undo / Redo Mosaic Edits (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
     if (e.ctrlKey || e.metaKey) {
       const k = e.key.toLowerCase();
+      if (e.shiftKey && !['z', '0', '1'].includes(k)) return;
       if (k === 'z' && !e.shiftKey) {
         e.preventDefault();
         undoMosaicEdit();
@@ -4668,6 +4736,7 @@ function initStudioUI() {
     }
 
     const k = e.key.toLowerCase();
+    if (e.shiftKey && /^[a-z]$/.test(k) && !['b', 'f', 'q'].includes(k)) return;
     const isEditTool = StudioState.activeTool === 'paint' ||
       StudioState.activeTool === 'rotate' ||
       StudioState.activeTool === 'stamp' ||
@@ -4679,16 +4748,17 @@ function initStudioUI() {
       return;
     }
 
+    const stage = document.getElementById('canvas-stage');
     if (e.key === 'Tab') {
-      if (e.target && e.target !== document.body && e.target.id !== 'canvas-stage') {
-        return;
+      if (e.target === stage && isEditTool) {
+        e.preventDefault(); cycleEditScope(e.shiftKey ? -1 : 1);
       }
-      e.preventDefault();
-      if (isEditTool || StudioState.workspace === 'edit') {
-        cycleEditScope(e.shiftKey ? -1 : 1);
-      } else {
-        toggleRightDock();
-      }
+      return;
+    }
+    if (e.key === 'Escape' && e.target === stage) {
+      e.preventDefault(); cancelToolGesture();
+      if (StudioState.activeTool === 'stamp') cancelCloneCapture();
+      document.querySelector('#left-toolbar [data-tool="' + StudioState.activeTool + '"]')?.focus();
       return;
     }
 
@@ -4773,9 +4843,9 @@ function initStudioUI() {
     } else if ((k === '1' || (e.shiftKey && k === '!') || e.code === 'Digit1' || e.code === 'Numpad1') && !e.altKey) {
       e.preventDefault();
       resetZoom100();
-    } else if (e.key === 'ArrowLeft') {
+    } else if (e.key === 'ArrowLeft' && e.target === stage && StudioState.activeTool === 'inspect') {
       restoreGenerationHistory(StudioState.historyIndex - 1);
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === 'ArrowRight' && e.target === stage && StudioState.activeTool === 'inspect') {
       restoreGenerationHistory(StudioState.historyIndex + 1);
     }
   });

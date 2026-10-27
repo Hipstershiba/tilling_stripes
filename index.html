@@ -166,6 +166,10 @@
       <div class="modal-dialog-card">
         <h3 id="subtileConfirmTitle" class="modal-dialog-title">Confirmar Ação</h3>
         <p id="subtileConfirmDesc" class="modal-dialog-desc"></p>
+        <label id="subtileConfirmBackupOption" class="subtile-radio-row hidden">
+          <input type="checkbox" id="subtileConfirmBackup">
+          <span>Baixar backup da biblioteca antes de excluir (.json)</span>
+        </label>
         <div class="modal-dialog-actions">
           <button type="button" id="btnSubtileConfirmCancel" class="btn-dialog-secondary">Cancelar</button>
           <button type="button" id="btnSubtileConfirmOk" class="btn-dialog-primary">Confirmar</button>
@@ -388,9 +392,7 @@
 
         <div class="tool-divider mosaic-mode-only"></div>
 
-        <details class="sidebar-disclosure mosaic-mode-only">
-          <summary>Geração e histórico</summary>
-          <div class="sidebar-disclosure-body">
+          <div class="sidebar-disclosure-body mosaic-mode-only">
         <!-- Gerador de Mosaico & Sementes -->
         <div class="sidebar-section sidebar-gen-section mosaic-mode-only" aria-label="Geração e Sementes">
           <div class="sidebar-section-title">Gerador</div>
@@ -427,7 +429,6 @@
           <div id="seedHistoryList" class="sidebar-history-list collapsed"></div>
         </div>
           </div>
-        </details>
 
         <!-- Exportar Mosaico (Abaixo do Histórico) -->
         <div class="sidebar-section sidebar-export-section mosaic-mode-only" aria-label="Exportar Mosaico">
@@ -484,7 +485,21 @@
           <div class="tool-divider"></div>
 
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Ímã &amp; Guias</div>
+            <div class="sidebar-section-title">Navegação</div>
+            <div class="tools-grid-2col">
+              <button type="button" id="btnTileViewPan" class="subtile-rail-btn" aria-pressed="false" title="Mover prancheta (Tecla H ou Espaço)">
+                <span>Pan (H)</span>
+              </button>
+              <button type="button" id="btnTileViewZoom" class="subtile-rail-btn" aria-pressed="false" title="Zoom da prancheta (Tecla Z ou Scroll)">
+                <span>Zoom (Z)</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="tool-divider"></div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">Grade &amp; Guias</div>
             <div class="vec-snap-row">
               <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active" aria-pressed="true" title="Ativar/Desativar Snap Magnético (Tecla ;)">
                 <span>Ímã</span>
@@ -512,14 +527,6 @@
               </button>
               <button type="button" id="toggleTileGuidePadding" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar margem de Padding">
                 <span>Margem</span>
-              </button>
-            </div>
-            <div class="tools-grid-2col" style="margin-top: 4px;">
-              <button type="button" id="btnTileViewPan" class="subtile-rail-btn" title="Mover prancheta (Tecla H ou Espaço)">
-                <span>Pan (H)</span>
-              </button>
-              <button type="button" id="btnTileViewReset" class="subtile-rail-btn" title="Centralizar prancheta em 100% (Tecla 1)">
-                <span>1:1 (1)</span>
               </button>
             </div>
           </div>
@@ -577,12 +584,13 @@
             </div>
           </details>
         </div>
+        <button type="button" id="btnQuickLibraryBackup" class="subtile-rail-action-btn library-backup-shortcut" title="Baixar backup completo da biblioteca de subtiles (.json)">↓ Backup da biblioteca</button>
       </aside>
 
       <!-- CENTER ARTBOARD VIEWPORT -->
       <main id="workspace-viewport">
         <div id="artboard-pasteboard">
-          <div id="canvas-stage">
+          <div id="canvas-stage" tabindex="0" role="region" aria-label="Área de trabalho: mosaico ou peça">
             <!-- p5.js canvas mounts here -->
           </div>
         </div>

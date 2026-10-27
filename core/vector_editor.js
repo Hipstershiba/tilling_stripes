@@ -146,7 +146,9 @@
 
     const threshold = typeof options.threshold === 'number' ? options.threshold : 0.026;
     const gridDiv = options.gridDiv !== undefined ? options.gridDiv : 6;
-    const snapPorts = options.snapPorts !== false;
+    const snapPorts = options.snapPorts !== undefined
+      ? Boolean(options.snapPorts)
+      : (gridDiv === 0 || (gridDiv % 3 === 0));
     const objPts = Array.isArray(options.objectPoints) ? options.objectPoints : [];
 
     // 1. Priority check: exact 2D point snap to existing object anchors/centers or cell corners/center
@@ -1533,6 +1535,7 @@
     activeTool: 'select', // 'select' | 'direct' | 'pen' | 'rect' | 'ellipse' | 'polygon' | 'arc' | 'line'
     snapEnabled: true,
     gridDiv: 6, // 0 (off), 2, 3, 4, 6, 8, 12, 16
+    snapPorts: null, // null = auto (gridDiv % 3 === 0), boolean = explicit override
     selectedShapeIds: [],
     selectedNodes: [], // [{ shapeId, contourIdx, nodeIdx }]
     activeSnapGuides: { guideX: null, guideY: null },
@@ -2066,9 +2069,13 @@
     const baseShapes = deepClone(familyDoc.shapes || []);
     const tool = editorState.activeTool;
     const objPts = extractObjectSnapPoints(baseShapes, editorState.selectedShapeIds);
+    const effSnapPorts = typeof editorState.snapPorts === 'boolean'
+      ? editorState.snapPorts
+      : (editorState.gridDiv === 0 || (editorState.gridDiv % 3 === 0));
     const snapped = snapPoint(u, v, {
       enabled: editorState.snapEnabled && !mods.metaKey,
       gridDiv: editorState.gridDiv,
+      snapPorts: effSnapPorts,
       threshold: hitRadiusNorm,
       objectPoints: objPts
     });
@@ -2340,9 +2347,13 @@
     // Pen rubber-band hover when not actively dragging
     if (editorState.activeTool === 'pen' && editorState.penSession && !editorState.dragOp) {
       const sess = editorState.penSession;
+      const effSnapPorts = typeof editorState.snapPorts === 'boolean'
+        ? editorState.snapPorts
+        : (editorState.gridDiv === 0 || (editorState.gridDiv % 3 === 0));
       const snapped = snapPoint(u, v, {
         enabled: editorState.snapEnabled && !mods.metaKey,
         gridDiv: editorState.gridDiv,
+        snapPorts: effSnapPorts,
         threshold: hitRadiusNorm,
         objectPoints: extractObjectSnapPoints(familyDoc.shapes || [])
       });
@@ -2361,9 +2372,13 @@
     }
 
     const objPts = extractObjectSnapPoints(op.baseShapes || [], editorState.selectedShapeIds);
+    const effSnapPorts = typeof editorState.snapPorts === 'boolean'
+      ? editorState.snapPorts
+      : (editorState.gridDiv === 0 || (editorState.gridDiv % 3 === 0));
     const snapped = snapPoint(u, v, {
       enabled: editorState.snapEnabled && !mods.metaKey,
       gridDiv: editorState.gridDiv,
+      snapPorts: effSnapPorts,
       threshold: hitRadiusNorm,
       objectPoints: objPts
     });
@@ -2448,6 +2463,7 @@
         const snapCenter = snapPoint(op.startBox.cx + du, op.startBox.cy + dv, {
           enabled: true,
           gridDiv: editorState.gridDiv,
+          snapPorts: effSnapPorts,
           threshold: hitRadiusNorm * 0.85,
           objectPoints: objPts
         });

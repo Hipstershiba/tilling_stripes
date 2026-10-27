@@ -485,10 +485,15 @@
 
   function syncNavigationState() {
     if (typeof document === 'undefined') return;
-    const btn = document.getElementById('btnTileViewPan');
-    const active = hostCtx?.studioState?.activeTool === 'pan';
-    btn?.classList.toggle('active', active);
-    btn?.setAttribute('aria-pressed', String(active));
+    const btnPan = document.getElementById('btnTileViewPan');
+    const panActive = hostCtx?.studioState?.activeTool === 'pan';
+    btnPan?.classList.toggle('active', panActive);
+    btnPan?.setAttribute('aria-pressed', String(panActive));
+
+    const btnZoom = document.getElementById('btnTileViewZoom');
+    const zoomActive = hostCtx?.studioState?.activeTool === 'zoom';
+    btnZoom?.classList.toggle('active', zoomActive);
+    btnZoom?.setAttribute('aria-pressed', String(zoomActive));
   }
 
   function setVectorTool(toolId) {
@@ -581,45 +586,51 @@
   // ==========================================================================
 
   const modalFocus = new Map();
-  function enterModal(dialog) {
+  function enterModal(dialog, cancel = () => {
+    if (dialog.id === 'subtileImportDialog') closeImportModal(false);
+    else closeConfirmModal(false);
+  }, origin = document.activeElement) {
+    if (modalFocus.has(dialog)) return;
     const blocked = [];
     for (let branch = dialog; branch.parentElement; branch = branch.parentElement) {
       for (const sibling of branch.parentElement.children) {
         if (sibling !== branch) { blocked.push([sibling, sibling.inert]); sibling.inert = true; }
       }
     }
-    modalFocus.set(dialog, {origin: document.activeElement, blocked});
+    modalFocus.set(dialog, {origin, blocked, cancel, previousKeydown: dialog.onkeydown});
     dialog.onkeydown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault(); e.stopPropagation();
-        if (dialog.id === 'subtileImportDialog') closeImportModal(false);
-        else closeConfirmModal(false);
+        cancel();
       } else if (e.key === 'Tab') {
         const items = Array.from(dialog.querySelectorAll('button, input, select, textarea, [tabindex="0"]'))
-          .filter(el => !el.disabled && !el.closest('.hidden'));
+          .filter(el => !el.disabled && !el.closest('.hidden') && !el.hidden && !el.inert && el.getClientRects().length > 0);
         const first = items[0], last = items[items.length - 1];
         if (!first) { e.preventDefault(); return; }
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
       }
     };
   }
   function leaveModal(dialog) {
     const record = modalFocus.get(dialog);
     modalFocus.delete(dialog);
+    if (record) dialog.onkeydown = record.previousKeydown;
     record?.blocked.forEach(([el, inert]) => { el.inert = inert; });
     if (record?.origin?.isConnected) record.origin.focus();
   }
+  if (typeof window !== 'undefined') window.StudioModal = {
+    enter: enterModal, leave: leaveModal,
+    isOpen: () => modalFocus.size > 0,
+    cancel: () => Array.from(modalFocus.values()).at(-1)?.cancel()
+  };
+
   function backupLibrary() {
-    const { store, ve } = resolveDeps();
+    const { store } = resolveDeps();
     triggerDownloadJSON(`library-${Date.now()}.tiles-backup.json`, store.exportLibraryJSON());
-    if (ve) {
-      ve.state.currentFamilyId = null;
-      ve.state.histories.clear();
-    }
   }
 
-  function openConfirmModal({ title, descriptionHTML, confirmLabel = 'Confirmar', danger = false, onConfirm }) {
+  function openConfirmModal({ title, descriptionHTML, confirmLabel = 'Confirmar', danger = false, offerBackup = false, onConfirm }) {
     if (typeof document === 'undefined') return;
     const dialog = document.getElementById('subtileConfirmDialog');
     const titleEl = document.getElementById('subtileConfirmTitle');
@@ -636,7 +647,14 @@
     confirmBtn.textContent = confirmLabel;
     confirmBtn.classList.toggle('danger', Boolean(danger));
 
-    uiState.pendingConfirmAction = onConfirm;
+    const backupOption = document.getElementById('subtileConfirmBackupOption');
+    const backupCheck = document.getElementById('subtileConfirmBackup');
+    backupOption?.classList.toggle('hidden', !offerBackup);
+    if (backupCheck) backupCheck.checked = false;
+    uiState.pendingConfirmAction = () => {
+      if (offerBackup && backupCheck?.checked) backupLibrary();
+      if (typeof onConfirm === 'function') onConfirm();
+    };
     enterModal(dialog);
     dialog.classList.remove('hidden');
     cancelBtn?.focus();
@@ -1026,8 +1044,8 @@
       descriptionHTML: usageWarning,
       confirmLabel: 'Excluir Família',
       danger: true,
+      offerBackup: true,
       onConfirm: () => {
-        backupLibrary();
         store.deleteFamily(familyId);
         if (uiState.selectedFamilyId === familyId) {
           const allFams = reg.TILE_FAMILIES_META;
@@ -1224,7 +1242,9 @@
       if (gridSel && String(gridSel.value) !== String(ve.state.gridDiv)) {
         gridSel.value = String(ve.state.gridDiv);
       }
+      ve.state.snapPorts = Boolean(uiState.guides.showPorts);
     }
+    syncNavigationState();
   }
 
   function renderD4LivePanel() {
@@ -2902,22 +2922,21 @@
       p.noFill();
 
       // 1. Subtile Normalized Magnetic Grid (dynamic division 2/3/4/6/8/12/16)
-      if (uiState.guides.showGrid && innerSide > 12 && gridDiv >= 2) {
-        p.stroke(148, 163, 184, 34);
+      if (uiState.guides.showGrid && innerSide > 12) {
+        const effectiveGridDiv = gridDiv >= 2 ? gridDiv : 6;
+        p.stroke(148, 163, 184, 55);
         p.strokeWeight(0.8);
-        for (let k = 1; k < gridDiv; k++) {
-          const frac = -0.5 + k / gridDiv;
-          if (Math.abs(frac) < 1e-6) continue;
+        for (let k = 1; k < effectiveGridDiv; k++) {
+          const frac = -0.5 + k / effectiveGridDiv;
+          if (Math.abs(frac) < 1e-6 && uiState.guides.showAxes) continue;
           const pos = frac * innerSide;
           p.line(pos, -innerHalf, pos, innerHalf);
           p.line(-innerHalf, pos, innerHalf, pos);
         }
-        p.stroke(56, 189, 248, 42);
-        for (const frac of [-1 / 6, 1 / 6]) {
-          const pos3 = frac * innerSide;
-          p.line(pos3, -innerHalf, pos3, innerHalf);
-          p.line(-innerHalf, pos3, innerHalf, pos3);
-        }
+        // Crisp boundary frame for the magnetic grid area
+        p.stroke(148, 163, 184, 75);
+        p.strokeWeight(0.9);
+        p.rect(-innerHalf, -innerHalf, innerSide, innerSide);
       }
 
       // 2. Padding margin inner frame
@@ -2952,8 +2971,23 @@
         }
       }
 
-      // 4. Edge Port Ticks (1/3 Ribbon Ports at ±1/6 and Center Port at 0)
+      // 4. Edge Port Ticks & Ribbon Guides (1/3 Ribbon Ports at ±1/6 and Center Port at 0)
       if (uiState.guides.showPorts && innerSide > 20) {
+        // Subtle dashed ribbon connection lines connecting edge ports
+        p.stroke(56, 189, 248, 75);
+        p.strokeWeight(0.8);
+        if (p.drawingContext && typeof p.drawingContext.setLineDash === 'function') {
+          p.drawingContext.setLineDash([3, 4]);
+        }
+        for (const frac of [-1 / 6, 1 / 6]) {
+          const pos3 = frac * innerSide;
+          p.line(pos3, -innerHalf, pos3, innerHalf);
+          p.line(-innerHalf, pos3, innerHalf, pos3);
+        }
+        if (p.drawingContext && typeof p.drawingContext.setLineDash === 'function') {
+          p.drawingContext.setLineDash([]);
+        }
+
         const tickLen = Math.max(4, Math.min(9, side * 0.035));
         const portOffsets = [-1 / 6, 0, 1 / 6];
         for (const off of portOffsets) {
@@ -3320,6 +3354,10 @@
     const bindTileGuide = (btnId, guideKey) => {
       document.getElementById(btnId)?.addEventListener('click', () => {
         uiState.guides[guideKey] = !uiState.guides[guideKey];
+        const { ve } = resolveDeps();
+        if (guideKey === 'showPorts' && ve) {
+          ve.state.snapPorts = Boolean(uiState.guides.showPorts);
+        }
         renderLeftPaneState();
         requestHostRedraw();
       });
@@ -3335,9 +3373,10 @@
         syncNavigationState();
       }
     });
-    document.getElementById('btnTileViewReset')?.addEventListener('click', () => {
-      if (typeof window !== 'undefined' && typeof window.resetZoom100 === 'function') {
-        window.resetZoom100();
+    document.getElementById('btnTileViewZoom')?.addEventListener('click', () => {
+      if (hostCtx && typeof hostCtx.setActiveTool === 'function') {
+        hostCtx.setActiveTool(hostCtx.studioState.activeTool === 'zoom' ? 'inspect' : 'zoom');
+        syncNavigationState();
       }
     });
 
@@ -3356,6 +3395,7 @@
     };
 
     document.getElementById('btnExportLibraryJson')?.addEventListener('click', exportFull);
+    document.getElementById('btnQuickLibraryBackup')?.addEventListener('click', exportFull);
     document.getElementById('btnLibMgrExportCustom')?.addEventListener('click', exportCustomOnly);
 
     const fileInput = document.getElementById('libraryJsonFileInput');
@@ -3806,6 +3846,7 @@
     handleViewportDoubleClick,
     handleViewportMouseMoved,
     getStatusBarTexts,
+    syncNavigationState,
     handleKeyDown,
     // Pure / headless helpers exported for unit & contract tests
     moveItemInArray,

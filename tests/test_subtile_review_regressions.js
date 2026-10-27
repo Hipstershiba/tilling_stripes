@@ -57,8 +57,57 @@ assert.deepStrictEqual(ve.state.selectedShapeIds, ['first', 'second']);
 studio.setInspectorPanel('invalid');
 assert.strictEqual(studio.state.inspectorPanel, 'library');
 delete global.document;
+
+// --- Subtile Studio Navigation & Snap Invariants ---
+// 1. Snapping on binary grid (div 4) does NOT attract to 1/6 ports unless explicitly asked
+const snapBinaryNoPorts = ve.snapPoint(0.17, 0, { gridDiv: 4, snapPorts: false });
+assert.strictEqual(snapBinaryNoPorts.u, 0.17, 'Point 0.17 must not snap to 1/6 when snapPorts is false');
+const snapBinaryDiv = ve.snapPoint(0.24, 0, { gridDiv: 4, snapPorts: false });
+assert.strictEqual(snapBinaryDiv.u, 0.25, 'Point 0.24 must snap to 1/4 grid line');
+
+// 2. Default snap with div 4 excludes ports, while div 6 includes ports
+const snapDefaultDiv4 = ve.snapPoint(0.17, 0, { gridDiv: 4 });
+assert.strictEqual(snapDefaultDiv4.u, 0.17, 'Default snap with div 4 must not inject 1/6 port targets');
+const snapDefaultDiv6 = ve.snapPoint(0.17, 0, { gridDiv: 6 });
+assert.strictEqual(snapDefaultDiv6.u, 0.166667, 'Default snap with div 6 must snap to 1/6');
+
+// 3. Navigation State sync: Pan and Zoom buttons
+const navElements = {
+  btnTileViewPan: { classList: new Set(), attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } },
+  btnTileViewZoom: { classList: new Set(), attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } }
+};
+navElements.btnTileViewPan.classList.toggle = function(cls, on) { on ? this.add(cls) : this.delete(cls); };
+navElements.btnTileViewZoom.classList.toggle = function(cls, on) { on ? this.add(cls) : this.delete(cls); };
+global.document = { getElementById: id => navElements[id] || null };
+
+hostState.activeTool = 'pan';
+studio.syncNavigationState();
+assert.strictEqual(navElements.btnTileViewPan.attrs['aria-pressed'], 'true');
+assert.strictEqual(navElements.btnTileViewZoom.attrs['aria-pressed'], 'false');
+
+hostState.activeTool = 'zoom';
+studio.syncNavigationState();
+assert.strictEqual(navElements.btnTileViewPan.attrs['aria-pressed'], 'false');
+assert.strictEqual(navElements.btnTileViewZoom.attrs['aria-pressed'], 'true');
+delete global.document;
+
 const fs = require('fs');
+const htmlSource = fs.readFileSync(require.resolve('../index.html'), 'utf8');
+assert(htmlSource.includes('id="btnTileViewPan"'), 'btnTileViewPan must exist in index.html');
+assert(htmlSource.includes('id="btnTileViewZoom"'), 'btnTileViewZoom must exist in index.html');
+assert(!htmlSource.includes('id="btnTileViewReset"'), 'btnTileViewReset must be removed as redundant');
+assert(htmlSource.includes('sidebar-section-title">Navegação</div>'), 'Navegação section must exist in left toolbar');
+assert(htmlSource.includes('sidebar-section-title">Grade &amp; Guias</div>'), 'Grade & Guias section must exist in left toolbar');
+
+const sketchSrc = fs.readFileSync(require.resolve('../sketch.js'), 'utf8');
+assert(sketchSrc.includes("if (StudioState.studioMode === 'tiles')"), 'sketch.js must check tiles mode in wheel listener');
+assert(sketchSrc.includes("setZoomPercent(StudioState.zoomPercent + delta)"), 'sketch.js must zoom on wheel in tiles mode');
+assert(sketchSrc.includes("window.SubtileStudioUI?.syncNavigationState?.()"), 'sketch.js must sync navigation state');
+
 const ui = fs.readFileSync(require.resolve('../core/subtile_studio_ui.js'), 'utf8');
+const deleteFamilyFlow = ui.slice(ui.indexOf('  function handleDeleteFamily('), ui.indexOf('  function handleResetLibraryDefaults('));
+assert(!deleteFamilyFlow.includes('backupLibrary()'), 'Deleting a family must not force a backup download or clear all vector histories');
+assert(deleteFamilyFlow.includes('store.deleteFamily(familyId)'), 'Deletion must still use the store sanitization flow');
 assert(!/[\u{1F441}\u{1F512}\u{1F513}]/u.test(ui));
 assert(ui.includes('previousMosaicTool'));
 assert(ui.includes("if (isTilesMode()) hostCtx.setActiveTool?.('inspect')"));
