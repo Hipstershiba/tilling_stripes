@@ -9,169 +9,135 @@
     (typeof require === 'function' ? require('./core/studio_commands.js') : null);
   const INFO_TOPICS = {
     'grid-symmetry': {
-      title: 'Simetria da Grade (Macro)',
-      subtitle: 'Como os blocos do mosaico se relacionam',
-      body: [
-        'Mandala (D4 Estrito): 8 octantes com rigor matemático. Eixos sem tile invariante recebem o Tile Vazio (#84) como respiro.',
-        'Caleidoscópio (Livre): 8 octantes com liberdade total. Espelha 100% dos tiles selecionados sem restrições de eixo.',
-        'Rotacional (C4): 4 quadrantes girando continuamente 90° em sentido horário ao redor do centro.',
-        'Bilateral (XY): 4 quadrantes com espelhamento clássico nos eixos horizontal e vertical.'
-      ]
+        "title": "Simetria da grade",
+        "body": [
+            "Mandala: oito setores com simetria rigorosa. Nos eixos, peças incompatíveis dão lugar à peça vazia.",
+            "Caleidoscópio: espelha oito setores, permitindo peças assimétricas nos eixos.",
+            "Rotacional: repete o desenho com giros de 90°.",
+            "Bilateral: espelha na horizontal e na vertical."
+        ]
     },
     'block-symmetry': {
-      title: 'Simetria Interna do Bloco',
-      subtitle: 'Organização dos subtiles dentro de cada bloco',
-      body: [
-        'Igual à Grade: Cada bloco replica automaticamente o mesmo modo de simetria selecionado para a grade macro.',
-        'Independente: Permite escolher uma simetria interna diferente para os 4 quadrantes de cada bloco.',
-        'Atenção: Escolher uma simetria de bloco menor que a da grade (ex: Grade Mandala com Bloco Bilateral) reduz a simetria global resultante.'
-      ]
+        "title": "Simetria do bloco",
+        "body": [
+            "Igual à grade: usa a mesma simetria do mosaico em cada bloco.",
+            "Independente: permite escolher outra simetria dentro dos blocos.",
+            "Uma simetria interna diferente pode reduzir a simetria do resultado."
+        ]
     },
     'scopes': {
-      title: 'Escopos de Edição',
-      subtitle: 'Para onde sua pincelada ou giro se propaga',
-      body: []
+        "title": "Onde a edição se repete",
+        "body": []
     },
     'center-symmetry': {
-      title: 'Simetria pelo Centro do Canvas',
-      subtitle: 'Propagação global ao redor do centro do mosaico',
-      body: [
-        'Mandala: Simetria radial em 8 direções ao redor do ponto central.',
-        'Caleidoscópio: 8 direções radiais livres com todos os tiles.',
-        'Giro 4×: Rotação contínua de 90° nos 4 quadrantes globais.',
-        'Espelho XY: Reflexão horizontal e vertical simultânea.',
-        'Espelho X / Y: Reflexão em um único eixo cartesiano (esquerda-direita ou topo-base).'
-      ]
+        "title": "Simetria pelo centro",
+        "body": [
+            "Usa o centro do mosaico como referência, sem depender da divisão em blocos.",
+            "Mandala e Caleidoscópio: oito direções; Giro 4×: giros de 90°.",
+            "Espelho XY: horizontal e vertical. Espelho X ou Y: apenas um eixo."
+        ]
     },
     'brush': {
-      title: 'Pincel e padrão de pincel',
-      subtitle: 'Pintura livre e construtor de carimbos',
-      body: [
-        'Clique Esquerdo: Pinta a célula com o tile ou supertile ativo.',
-        'Clique Direito: Gira o padrão do pincel em 90°.',
-        'Alt + Clique/Arraste: captura uma região para o pincel; H/Espaço move a visualização.',
-        'Tamanho: use − / + ou a roda sobre o canvas. O ajuste para nos limites; com ajuste ao bloco, avança um bloco por vez.',
-        'Reset 0°: Restaura a orientação neutra (sem rotação) do supertile.'
-      ]
+        "title": "Pincel",
+        "body": [
+            "Clique ou arraste para pintar. O botão direito gira o padrão em 90°.",
+            "Alt+arraste captura uma região. Ampliar editor permite montar o padrão com a paleta.",
+            "Use − / + ou a roda para mudar o tamanho. Com encaixe ativo, o ajuste avança por blocos.",
+            "0° remove giros e espelhamentos do padrão."
+        ]
     },
     'rotate': {
-      title: 'Ferramenta Girar',
-      subtitle: 'Rotação pontual ou em bloco de azulejos',
-      body: [
-        'Clique Esquerdo: Gira o azulejo ou região em 90° no sentido horário.',
-        'Clique Direito: Cicla para a variação anterior ou gira no sentido anti-horário.',
-        'Tamanho: use − / + ou a roda sobre o canvas. Ajustar ao bloco encaixa a área na grade; clique novamente para liberar o encaixe.',
-        'Modo de Grupo: Permite girar cada célula individualmente ou girar o bloco como uma peça rígida.'
-      ]
+        "title": "Girar",
+        "body": [
+            "Clique para girar 90°; botão direito gira no sentido contrário ou volta à variante anterior.",
+            "Use − / + ou a roda para mudar a área. Ajustar ao bloco liga ou desliga o encaixe.",
+            "Escolha entre girar cada peça ou girar o bloco inteiro."
+        ]
     },
     'stamp': {
-      title: 'Carimbo',
-      subtitle: 'Captura e replicação de regiões',
-      body: [
-        'Alt + Clique/Arraste: captura uma região, como no pincel. Solte e clique para aplicar. C permanece como alternativa; Esc cancela a captura.',
-        'Clique Esquerdo: Carimba a estampa capturada respeitando o escopo ativo.',
-        'Clique Direito: Gira a estampa em 90° antes de aplicar.',
-        'Pincel e clone mantêm padrões próprios ao trocar de ferramenta. Ampliar editor abre uma área maior com paleta e edição lado a lado.'
-      ]
+        "title": "Carimbo",
+        "body": [
+            "Alt+arraste captura; clique aplica. C também inicia a captura e Escape cancela.",
+            "O botão direito gira a estampa em 90°. O escopo define onde ela se repete.",
+            "Pincel e carimbo guardam padrões separados. Use Ampliar editor para editar a estampa."
+        ]
     },
     'freeze': {
-      title: 'Preservar peças',
-      subtitle: 'Proteja suas regiões favoritas durante novas gerações',
-      body: [
-        'Imunidade à Geração: Subtiles travados não são alterados ao gerar novos mosaicos ou sortear novas sementes (G).',
-        'Modos Congelar e Descongelar: Ação monotônica no canvas — o modo selecionado garante que todo clique adiciona ou todo clique remove.',
-        'Tamanhos de Área: Permite travar regiões desde subtiles individuais (1×1) até blocos completos.',
-        'Escopo de Simetria: Respeita diretamente o escopo ativo do Editor (1 a 6) para travar subtiles isolados (Livre) ou propagar pela órbita.',
-        'Desfazer e Refazer: Suporta Ctrl+Z / Ctrl+Y para reverter alterações de travas a qualquer momento.'
-      ]
+        "title": "Preservar peças",
+        "body": [
+            "As peças preservadas permanecem nas próximas gerações. Você ainda pode editá-las manualmente.",
+            "Escolha preservar ou liberar e pinte a área desejada. Tamanho e escopo definem a região afetada.",
+            "Shift+F libera todas. Ctrl+Z desfaz; Ctrl+Shift+Z refaz."
+        ]
     },
     'same-tile': {
-      title: 'Escopo Iguais (Substituição Global)',
-      subtitle: 'Troca inteligente de um azulejo em todo o mosaico',
-      body: [
-        'Substitui instantaneamente todas as cópias do azulejo sob o cursor pelo novo azulejo selecionado.',
-        'Requer pincel unitário (1×1) para garantir substituição precisa um-para-um.',
-        'Ideal para ajustar a paleta de cores ou o estilo de linhas sem redesenhar o mosaico.'
-      ]
+        "title": "Peças iguais",
+        "body": [
+            "Troca todas as peças do mosaico iguais à peça sob o cursor.",
+            "Use um pincel de 1×1 para aplicar a substituição."
+        ]
     },
-    'd4-strict': {
-      title: 'Mandala (D4 Estrito)',
-      subtitle: 'Fechamento rigoroso no Grupo Diédrico D4',
-      body: [
-        'Garante simetria matemática rigorosa nos 8 octantes do quadrado.',
-        'Células em eixos ou diagonais exigem tiles auto-invariantes sob rotação ou espelho.',
-        'Quando a família escolhida não possui simetria no eixo, o motor usa o Tile Vazio (#84) como respiro geométrico.',
-        'Edições manuais em eixos disparam aviso transparente, permitindo continuar ou desfazer.'
-      ]
+    "d4-strict": {
+        "title": "Mandala",
+        "body": [
+            "Mantém a simetria nos oito setores, inclusive nos eixos e diagonais.",
+            "Quando uma peça não tem uma variante compatível com o eixo, entra a peça vazia (#84).",
+            "Edições manuais podem quebrar essa simetria; o aviso permite continuar ou desfazer."
+        ]
     },
     'kaleidoscope': {
-      title: 'Caleidoscópio (Livre)',
-      subtitle: 'Simetria radial estética e permissiva',
-      body: [
-        'Espelha e rotaciona livremente em 8 octantes com 100% dos tiles selecionados.',
-        'Permite azulejos assimétricos nas diagonais sem forçar espaços vazios.',
-        'Recomendado para composições ricas, fluidas e vibrantes sem regras restritivas.'
-      ]
+        "title": "Caleidoscópio",
+        "body": [
+            "Espelha e gira o desenho em oito setores.",
+            "Aceita peças assimétricas nos eixos, sem substituí-las pela peça vazia."
+        ]
     },
     'persistence': {
-      title: 'Salvamento Automático e Histórico',
-      subtitle: 'Preservação de dados no navegador',
-      body: [
-        'Mosaico e biblioteca são salvos neste navegador. O status só confirma a revisão atual de ambos.',
-        'Uma cópia íntegra em IndexedDB ou localStorage confirma o salvamento; cache reduzido só gera aviso se não houver cópia íntegra.',
-        'Se nenhum armazenamento confirmar, o aviso permanece e permite tentar salvar novamente.',
-        'Backup JSON protege a biblioteca. Exportar PNG/SVG guarda a imagem do mosaico, sem ser um backup editável do projeto.'
-      ]
+        "title": "Salvamento e backup",
+        "body": [
+            "Mosaico e biblioteca são salvos neste navegador. O rodapé confirma quando ambos estão salvos.",
+            "Se o salvamento falhar, use Tentar novamente no aviso.",
+            "O backup JSON guarda a biblioteca. PNG e SVG exportam a imagem, sem guardar o projeto editável."
+        ]
     },
     'shortcuts': {
-      title: 'Atalhos e comandos por ambiente',
-      subtitle: 'Mosaico e editor de peças',
-      body: []
+        "title": "Atalhos e comandos",
+        "body": []
     },
     'inspect': {
-      title: 'Inspeção do Mosaico',
-      subtitle: 'Análise de coordenadas e composição',
-      body: [
-        'Passe o mouse sobre qualquer subtile do mosaico para ver em tempo real:',
-        'Coordenadas de Bloco (L, C) e Subtile interno.',
-        'ID do azulejo, nome da família e transformação geométrica ativa (0°, 90°, espelho).',
-        'Identificador da órbita de simetria correspondente.'
-      ]
+        "title": "Inspecionar",
+        "body": [
+            "Passe o cursor sobre uma peça para consultar o bloco, a família, a orientação e a órbita no rodapé."
+        ]
     },
     'subtile-library': {
-      title: 'Biblioteca de Subtiles e Famílias D4',
-      subtitle: '1 Mestre Vetorial = 1 Família Fechada em D4',
-      body: [
-        'Cada família possui 1 desenho mestre normalizado em [-0.5, 0.5] e gera automaticamente 1, 2, 4 ou 8 variantes segundo sua simetria D4.',
-        'Os 31 mestres originais (IDs #0 a #84) são protegidos para preservar saves; clique em "Criar cópia editável" para criar uma cópia editável.',
-        'O Tile Vazio (#84) é o respiro matemático oficial de Mandala D4 e da Borracha.',
-        'Ao excluir uma família customizada em uso, suas células no mosaico convertem-se com segurança para o Tile Vazio (#84).',
-        'Na aba Biblioteca, conjuntos organizam famílias. Filtre por conjunto ou por Meus subtiles, use Localizar atual e arraste famílias entre conjuntos. Exportar/Importar (.json) mantém backups.'
-      ]
+        "title": "Biblioteca de peças",
+        "body": [
+            "Cada família reúne um desenho mestre e suas variantes de giro e espelho.",
+            "As famílias originais são protegidas. Use Criar cópia editável para alterá-las.",
+            "Conjuntos organizam famílias; arraste uma família para movê-la entre conjuntos.",
+            "Ao excluir uma família em uso, suas peças no mosaico ficam vazias. Faça um backup JSON para guardar a biblioteca."
+        ]
     },
     'vector-editor': {
-      title: 'Editor Vetorial de Subtiles',
-      subtitle: 'Desenho normalizado em [-0.5, 0.5] com continuidade D4',
-      body: [
-        'Seleção (V): Move, redimensiona pelas 8 alças e gira formas (Shift mantém proporção / ângulos de 15°; Alt escala pelo centro).',
-        'Seleção Direta (A): Edita nós e alças Bezier (Alt quebra simetria da alça; duplo-clique alterna Canto/Suave; Alt+Clique cria nó no segmento).',
-        'Caneta (P): clique cria canto; arraste cria curvas; clicar no primeiro ponto fecha o contorno. Enter conclui aberto; Escape cancela. Trocar ferramenta conclui um caminho válido, exceto durante arrasto provisório.',
-        'Primitivas: Retângulo (M), Elipse (L), Polígono/Estrela (G), Arco/Setor Anular de Fita (U) e Linha (\\).',
-        'Ímã e Grade (1/2 a 1/16): A divisão 1/6 alinha exatamente bordas (±0.5), centro (0) e portas de fita Truchet (±1/6 e ±1/3).'
-      ]
+        "title": "Desenhar peças",
+        "body": [
+            "Seleção (V): mova, redimensione ou gire pelas alças. Shift mantém proporções; Alt usa o centro.",
+            "Editar pontos (A): ajuste nós e curvas. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
+            "Caneta (P): clique cria cantos; arraste cria curvas. Clique no início para fechar, Enter conclui e Escape cancela.",
+            "Encaixe alinha o desenho à grade. A divisão 1/6 ajuda a conectar as fitas nas bordas."
+        ]
     },
     'vector-layers': {
-      title: 'Booleanas, Camadas & SVG',
-      subtitle: 'Pathfinder Bezier (Paper.js), Ordem Z e Intercâmbio Vetorial',
-      body: [
-        'Na aba Camadas, marque 2+ objetos nas caixas de seleção. No canvas, use V e Shift+clique ou Shift+arraste no vazio para adicionar à seleção. Todos (Ctrl+A) seleciona os objetos visíveis e destravados.',
-        'O Pathfinder fica acima de Camadas e Propriedades: Unir, Subtrair Frente, Interseção e Excluir (XOR com furos par-ímpar). Ctrl+Z desfaz a operação.',
-        'Transformações D4 na Seleção: Gire +90°/-90° ou espelhe Horizontal/Verticalmente em torno do centro (0, 0).',
-        'Camadas (Formas): Arraste linhas para alterar a Ordem Z (topo da lista = frente), duplo-clique para renomear, oculte ou trave as formas.',
-        'Importar e Exportar SVG: Converte <path>, <rect>, <circle>, <ellipse>, <polygon> e <line> normalizando o viewBox para [-0.5, 0.5], e exporta subtiles unitários limpos em .svg.'
-      ]
+        "title": "Camadas e SVG",
+        "body": [
+            "Seleção: marque objetos nas camadas ou use Shift+clique no desenho. Ctrl+A seleciona todos os visíveis e destravados.",
+            "Combinar: selecione duas ou mais formas para unir, subtrair, intersectar ou excluir a sobreposição. Ctrl+Z desfaz.",
+            "Ordem: o topo da lista fica à frente. Arraste para reordenar; duplo clique renomeia. Os ícones ocultam ou travam a forma.",
+            "SVG: importe formas para editar ou exporte a peça atual. O desenho importado se ajusta aos limites da peça."
+        ]
     }
-  };
+};
 
   /**
    * Synchronizes scope descriptions in INFO_TOPICS strictly from window.MosaicEngine.EDIT_SCOPES.
@@ -316,25 +282,10 @@
     popoverTitleEl.textContent = data.title;
     popoverEl.dataset.topic = topicKey;
 
-    // Render body bullets safely
-    popoverBodyEl.innerHTML = '';
     if (topicKey === 'shortcuts' && commands) {
       renderShortcutHelp(document.body.dataset.studioMode === 'tiles' ? 'tiles' : 'mosaic');
-    } else if (data.subtitle) {
-      const sub = document.createElement('p');
-      sub.className = 'info-popover-sub';
-      sub.textContent = data.subtitle;
-      popoverBodyEl.appendChild(sub);
-    }
-
-    if (topicKey !== 'shortcuts' && Array.isArray(data.body) && data.body.length > 0) {
-      const ul = document.createElement('ul');
-      ul.className = 'info-popover-list';
-      for (const item of data.body) {
-        const li = document.createElement('li');
-        li.textContent = item;
-        popoverBodyEl.appendChild(li);
-      }
+    } else {
+      renderTopicBody(data);
     }
 
     // Set accessibility states
@@ -353,6 +304,19 @@
 
     // Focus close button inside popover for keyboard accessibility
     popoverCloseBtn?.focus();
+  }
+
+  function renderTopicBody(data) {
+    popoverBodyEl.innerHTML = '';
+    const list = document.createElement('ul');
+    list.className = 'info-popover-list';
+    for (const item of data.body || []) {
+      const row = document.createElement('li');
+      row.textContent = item;
+      list.appendChild(row);
+    }
+    popoverBodyEl.appendChild(list);
+    popoverBodyEl.scrollTop = 0;
   }
 
   function renderShortcutHelp(context, restoreFocus = false) {

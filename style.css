@@ -2359,8 +2359,8 @@ select:focus-visible {
   padding-left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  line-height: 1.35;
+  gap: 12px;
+  line-height: 1.55;
 }
 
 .info-popover-list li {

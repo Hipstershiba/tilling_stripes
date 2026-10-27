@@ -1044,7 +1044,6 @@
             <button type="button" id="btnTileSelectAll" class="mini-btn" title="Selecionar todos os objetos visíveis e destravados (Ctrl+A)">Todos</button>
             <button type="button" id="btnTileDeselect" class="mini-btn" title="Limpar seleção">Limpar</button>
           </div>
-          <p class="tile-selection-help">V: selecionar · Shift+clique: adicionar/remover · Arraste no vazio: seleção por área. Nas camadas, marque os objetos para combinar.</p>
           <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
 
           <!-- TILES PANEL 0: PROPRIEDADES & ALINHAMENTO DO EDITOR VETORIAL (Fase C) -->
@@ -1096,7 +1095,7 @@
               <div class="prop-section">
                 <div class="prop-label-row" style="margin-bottom: 6px;">
                   <div class="prop-label-with-info">
-                    <span class="prop-label">Objetos da família · frente → fundo</span>
+                    <span class="prop-label">Frente → fundo</span>
                     <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Booleanas, Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                 </div>
@@ -1148,7 +1147,7 @@
 
                 <!-- Read-only notice for canonical built-in masters (#0..#84) -->
                 <div id="tileReadOnlyNotice" class="tile-readonly-banner">
-                  <span id="tileReadOnlyText">Família canônica protegida (slots 0..84).</span>
+                  <span id="tileReadOnlyText">Família original protegida.</span>
                   <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent">⧉ Criar cópia editável</button>
                 </div>
 
@@ -1188,7 +1187,6 @@
             <div class="panel-body swatches-panel-body" id="panelTileLibraryMgrBody">
               <div id="tileLibraryDetails" class="tile-library-details"></div>
               <div class="swatches-toolbar lib-mgr-toolbar">
-                <p class="tile-selection-help">Conjuntos organizam famílias. Cada família contém um desenho mestre e suas variantes. Arraste uma família para outro conjunto para movê-la.</p>
                 <input type="search" id="libMgrSearchInput" class="swatch-search" placeholder="Buscar grupo, família ou #id...">
                 <div class="tile-library-navigation">
                   <select id="tileLibraryGroupFilter" class="subtile-select" aria-label="Filtrar conjunto"><option value="">Todos os conjuntos</option></select>

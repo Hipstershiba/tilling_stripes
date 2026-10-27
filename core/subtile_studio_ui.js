@@ -1398,8 +1398,8 @@
         const textEl = document.getElementById('tileReadOnlyText');
         if (textEl) {
           textEl.textContent = fam.isCanonicalEmpty
-            ? 'O Tile Vazio (#84) é o respiro matemático canônico de Mandala D4 e da Borracha (E).'
-            : `Família canônica protegida (slots #${fam.tileIds[0]}..#${fam.tileIds[fam.tileIds.length - 1]}). Duplique para editar livremente.`;
+            ? 'Peça vazia — usada pela Borracha (E).'
+            : 'Família original protegida.';
         }
       } else {
         readOnlyNotice.classList.add('hidden');
@@ -1985,7 +1985,7 @@
     const pathfinder = document.getElementById('tilePathfinderContainer');
     if (pathfinder) pathfinder.innerHTML = '';
     const summary = document.getElementById('tileSelectionSummary');
-    if (summary) summary.textContent = fam.builtIn || fam.protected ? 'Família protegida · duplique para editar' : 'Nenhum objeto selecionado';
+    if (summary) summary.textContent = fam.builtIn || fam.protected ? 'Peça protegida' : 'Nenhum objeto selecionado';
     const selectAllBtn = document.getElementById('btnTileSelectAll');
     const deselectBtn = document.getElementById('btnTileDeselect');
     if (selectAllBtn) selectAllBtn.disabled = Boolean(fam.builtIn || fam.protected || !(famDoc.shapes || []).some((s) => s && !s.locked && s.visible !== false));
@@ -1995,7 +1995,7 @@
       if (selBadge) selBadge.textContent = 'Somente Leitura';
       container.innerHTML = `
         <div class="vec-empty-hint">
-          Este subtile pertence aos <strong>31 mestres canônicos</strong>. Crie uma cópia editável para desenhar, alinhar e esculpir curvas Bezier.
+          Crie uma cópia para editar esta peça.
         </div>
         <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
           ⧉ Criar cópia editável

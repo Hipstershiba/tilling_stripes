@@ -102,3 +102,17 @@ assert(helpBody.children[0].children[1].focused, 'Focus follows the replacement 
 assert.equal(helpBody.children[0].children[1].attributes['aria-pressed'], 'true');
 assert.equal(helpBody.scrollTop, 0);
 console.log('✓ Help separates catalog contexts and keeps the popover open and focused when switching.');
+
+// Generic topics must use a real list; stray li elements bypass spacing and semantics.
+const topicStart = source.indexOf('  function renderTopicBody(');
+vm.runInContext(source.slice(topicStart, source.indexOf('\n  }', topicStart) + 4), helpContext);
+helpContext.renderTopicBody({body: ['Selecionar formas.', 'SVG: <path> permanece texto.']});
+assert.equal(helpBody.children.length, 1);
+assert.equal(helpBody.children[0].tag, 'ul');
+assert.equal(helpBody.children[0].children.length, 2);
+assert(helpBody.children[0].children.every(node => node.tag === 'li'));
+assert.equal(helpBody.children[0].children[1].textContent, 'SVG: <path> permanece texto.');
+helpContext.renderTopicBody({body: ['Outro tópico.']});
+assert.equal(helpBody.children[0].children.length, 1, 'Opening a new topic replaces the old list');
+assert.equal(helpBody.scrollTop, 0);
+console.log('✓ Generic information topics keep list semantics, literal text and reset scrolling.');

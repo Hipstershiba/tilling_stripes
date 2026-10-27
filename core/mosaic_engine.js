@@ -29,42 +29,42 @@
       name: 'Centro do Canvas',
       subtitle: 'Simetria Global Pura',
       shortcut: '1',
-      description: 'Propaga em torno do centro absoluto do canvas (Mandala 8×, Giro 4× ou Espelho X/Y), independente das divisões de blocos.'
+      description: 'Repete a edição ao redor do centro do mosaico, sem depender dos blocos.'
     },
     orbit_sym: {
       id: 'orbit_sym',
       name: 'Órbita (Bloco+Grade)',
       subtitle: 'Caleidoscópio Hierárquico',
       shortcut: '2',
-      description: 'Edita e propaga combinando a simetria interna do Supertile (Bloco) com a simetria macro da grade.'
+      description: 'Combina a simetria do bloco com a da grade.'
     },
     block_sym: {
       id: 'block_sym',
       name: 'Dentro do Supertile',
       subtitle: '4 quadrantes do bloco',
       shortcut: '3',
-      description: 'Reflete/rotaciona apenas dentro dos quadrantes internos do Supertile (bloco) clicado.'
+      description: 'Repete a edição apenas dentro do bloco clicado.'
     },
     all_blocks: {
       id: 'all_blocks',
       name: 'Todos os Supertiles',
       subtitle: 'Grade inteira sincronizada',
       shortcut: '4',
-      description: 'Propaga a edição (respeitando a simetria e orientação de cada bloco) para todos os Supertiles da grade.'
+      description: 'Repete a edição em todos os blocos, respeitando a orientação de cada um.'
     },
     single: {
       id: 'single',
       name: 'Livre (Pontual)',
       subtitle: 'Sem espelhamento',
       shortcut: '5',
-      description: 'Aplica exclusivamente na área sob o cursor (Tile ou Supertile), sem propagar para outros cantos.'
+      description: 'Edita apenas a área sob o cursor.'
     },
     same_tile: {
       id: 'same_tile',
       name: 'Mesmo Tile',
       subtitle: 'Substituição global',
       shortcut: '6',
-      description: 'Seleciona todos os subtiles do mosaico que usam exatamente o mesmo Tile sob o cursor.'
+      description: 'Afeta todas as peças iguais à peça sob o cursor.'
     }
   };
 

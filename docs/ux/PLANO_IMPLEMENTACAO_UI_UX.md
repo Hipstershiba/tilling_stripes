@@ -765,3 +765,14 @@ A validação inicial não detectou regressões de composição: tamanho mínimo
 - [x] Gate completo: 49/49 suítes; AST e vault sincronizados; correção registrada em commit separado.
 
 Evidências locais em `_local/revisao-t07`, ignoradas pelo Git. A sessão Zen em 5500 foi preservada. Esta revisão não substitui a matriz de zoom/responsividade da T14 nem teste de leitor de tela ou Spout real.
+
+### Limpeza de textos e popups da T07 — 27/10/2026
+
+- [x] Revisar títulos e conteúdo dos tópicos contextuais; remover subtítulos técnicos e explicações internas sem utilidade na ação.
+- [x] Encurtar as descrições dos seis escopos na fonte compartilhada, sem mudar comportamento ou identificadores.
+- [x] Remover instruções permanentes repetidas em Camadas/Biblioteca; encurtar estado protegido e aviso de cópia.
+- [x] Corrigir itens de informação inseridos fora da lista; testar estrutura semântica, texto literal e troca de tópico com rolagem reiniciada.
+- [x] Conferir no navegador os popups de Camadas/SVG, simetria, pincel e escopos; captura em `_local/revisao-t07/popup-camadas-limpo.png` ignorada pelo Git.
+- [x] Gate completo: 49/49 suítes; conhecimento sincronizado preservando notas locais; limpeza registrada em commit separado.
+
+O conteúdo preserva avisos de exclusão, backup e quebra de simetria. Preservar usa o atalho real de refazer, Ctrl+Shift+Z. T08 permanece pendente.
