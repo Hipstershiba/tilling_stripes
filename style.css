@@ -3572,13 +3572,26 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 
 .subtile-rail-btn {
   width: 100%;
-
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 0 4px;
+  gap: 4px;
   cursor: pointer;
+  overflow: hidden;
+}
 
+.subtile-rail-btn svg {
+  flex-shrink: 0;
+}
+
+.subtile-rail-btn span {
+  font-size: var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.015em;
 }
 
 .subtile-rail-btn:hover:not(:disabled) {
