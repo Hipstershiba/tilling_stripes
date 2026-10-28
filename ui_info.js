@@ -114,7 +114,7 @@
         "title": "Biblioteca de peças",
         "body": [
             "Cada família reúne um desenho mestre e suas variantes de giro e espelho.",
-            "As famílias originais são protegidas. Use Criar cópia editável para alterá-las.",
+            "As famílias originais são protegidas. Use Criar cópia para alterá-las.",
             "Conjuntos organizam famílias; arraste uma família para movê-la entre conjuntos.",
             "Ao excluir uma família em uso, suas peças no mosaico ficam vazias. Faça um backup JSON para guardar a biblioteca."
         ]
@@ -200,9 +200,9 @@
       'Ctrl+U alterna o encaixe nos blocos; Shift inverte momentaneamente o encaixe ao editar.',
       'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
       'Setas no canvas em Inspeção: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
-      'Carimbo (S): C inicia a seleção; escolha retângulo, elipse ou losango. T alterna Estampar e Recortar e mover; clique define o destino. Mover usa células inteiras, sem repetir por simetria, e pode ser desfeito com Ctrl+Z.',
+      'Carimbo (S): C inicia a seleção. Retângulo delimita a área; Laço fecha um contorno livre; Pincel de seleção pinta células e tem diâmetro ajustável por −/+, roda ou botões de tamanho. T alterna Estampar e Recortar e mover; clique define o destino. Mover usa células inteiras, sem repetir por simetria, e pode ser desfeito com Ctrl+Z.',
       'No editor de peças:', ...commands.help('tiles'),
-      'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia editável.',
+      'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia.',
       'Escape cancela Caneta/arrasto ou limpa a seleção, sem sair do editor. Ctrl+E ou Voltar ao mosaico muda de ambiente.',
       '; ou Ctrl+U: alternar encaixe na grade. H/Espaço: Mão; Z: Zoom.'
     ];
@@ -356,7 +356,7 @@
       'Espaço move a vista. Ctrl+roda dá zoom; 0 ajusta e 1 retorna a 100%.'
     ] : [
       'Enter conclui a Caneta. Escape cancela o gesto ou limpa a seleção.',
-      'Ctrl+D duplica formas selecionadas. Peça protegida: use Criar cópia editável.',
+      'Ctrl+D duplica formas selecionadas. Peça protegida: use Criar cópia.',
       'Shift mantém proporção; Alt desenha pelo centro. Ctrl+E volta ao mosaico.'
     ];
     for (const line of lines) { const p = document.createElement('p'); p.textContent = line; notes.appendChild(p); }

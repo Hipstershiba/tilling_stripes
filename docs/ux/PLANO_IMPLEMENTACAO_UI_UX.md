@@ -870,3 +870,12 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Manter controles disponíveis no mosaico; escolher uma forma inicia a captura e escolher um modo ativa o Carimbo.
 - [x] Usar ícones vetoriais, tooltips e nomes acessíveis, sem instruções permanentes.
 - [x] Validar no navegador acesso a partir da Inspeção, destaque ativo, botão Capturar e ocultação no editor de peças; gate 52/52 e AST/vault sincronizados.
+
+### Retângulo, Laço, Pincel de seleção e ícones — 28/10/2026
+
+- [x] Substituir Elipse/Losango por Laço livre e Pincel de seleção na barra esquerda.
+- [x] Aplicar máscaras reais de células, interpolar arrastos do pincel e preservar captura/cancelamento sem mutação do mosaico.
+- [x] Revisar ações de ferramentas, guias, simetria, escopos, biblioteca, importação/exportação, pincel e propriedades para usar ícones e nomes curtos em tooltip/foco.
+- [x] Preservar texto em valores, abas, itens do usuário e confirmações; manter opções da simetria do bloco diretamente disponíveis.
+- [x] Revisar no navegador captura por pincel, recorte, desfazer, ferramentas, gerador, biblioteca, propriedades e editor ampliado; conferir janela de 900×768.
+- [x] Gate completo: 52/52 suítes, incluindo laço côncavo, gesto sem área, interpolação do pincel, máscaras, cancelamento e preservação do documento. Sincronizar AST/vault e registrar apenas código, testes e documentação; capturas em `_local/laco-icones` ignoradas pelo Git.

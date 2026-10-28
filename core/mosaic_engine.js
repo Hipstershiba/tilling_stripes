@@ -676,16 +676,59 @@
     };
   }
 
-  /**
-   * Captures any rectangular region of subtiles [gr0..gr1, gc0..gc1] in global subtile coordinates
-   * for the Clone / Stamp / Supertile brush.
-   */
-  function isRegionCellSelected(row, col, rows, cols, shape = 'rect') {
-    const x = (col + 0.5) / cols * 2 - 1;
-    const y = (row + 0.5) / rows * 2 - 1;
-    if (shape === 'ellipse') return x * x + y * y <= 1;
-    if (shape === 'diamond') return Math.abs(x) + Math.abs(y) <= 1;
-    return true;
+  /** Transient freehand selection in global cell coordinates. */
+  function createRegionGesture(shape, rows, cols, diameter = 1) {
+    return {shape, rows, cols, radius: Math.max(0.5, diameter / 2), points: [], cells: new Set(),
+      minGR: rows, minGC: cols, maxGR: -1, maxGC: -1};
+  }
+
+  function segmentDistance(x, y, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const t = Math.max(0, Math.min(1, ((x-a.x)*dx + (y-a.y)*dy) / (dx*dx + dy*dy || 1)));
+    return Math.hypot(x-a.x-t*dx, y-a.y-t*dy);
+  }
+
+  function extendRegionGesture(gesture, x, y) {
+    const previous = gesture.points[gesture.points.length-1] || {x,y};
+    if (gesture.points.length && Math.hypot(x-previous.x, y-previous.y) < 0.025) return;
+    gesture.points.push({x,y});
+    const add = (r,c) => {
+      if (r<0 || c<0 || r>=gesture.rows || c>=gesture.cols) return;
+      gesture.cells.add(`${r},${c}`);
+      gesture.minGR = Math.min(gesture.minGR,r); gesture.maxGR = Math.max(gesture.maxGR,r);
+      gesture.minGC = Math.min(gesture.minGC,c); gesture.maxGC = Math.max(gesture.maxGC,c);
+    };
+    if (gesture.shape === 'brush') {
+      const radius = gesture.radius;
+      for (let r=Math.max(0,Math.floor(Math.min(previous.y,y)-radius));r<Math.min(gesture.rows,Math.ceil(Math.max(previous.y,y)+radius));r++) {
+        for (let c=Math.max(0,Math.floor(Math.min(previous.x,x)-radius));c<Math.min(gesture.cols,Math.ceil(Math.max(previous.x,x)+radius));c++) {
+          if (segmentDistance(c+.5,r+.5,previous,{x,y})<=radius) add(r,c);
+        }
+      }
+      add(Math.floor(y),Math.floor(x));
+    } else {
+      add(Math.floor(y),Math.floor(x));
+    }
+  }
+
+  function getRegionGestureCells(gesture) {
+    if (!gesture) return [];
+    if (gesture.shape === 'brush') return [...gesture.cells].map(key=>{const [gr,gc]=key.split(',').map(Number);return {gr,gc};});
+    if (gesture.points.length<3) return [];
+    const cells = [], points = gesture.points;
+    const a0=points[0], b0=points[1];
+    if (!points.some(p=>Math.abs((b0.x-a0.x)*(p.y-a0.y)-(b0.y-a0.y)*(p.x-a0.x))>1e-9)) return [];
+    for (let gr=gesture.minGR;gr<=gesture.maxGR;gr++) for(let gc=gesture.minGC;gc<=gesture.maxGC;gc++) {
+      const x=gc+.5,y=gr+.5;
+      let inside=false, boundary=false;
+      for(let i=0,j=points.length-1;i<points.length;j=i++) {
+        const a=points[j],b=points[i];
+        if(segmentDistance(x,y,a,b)<1e-7) boundary=true;
+        if((a.y>y)!==(b.y>y) && x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x) inside=!inside;
+      }
+      if(inside || boundary) cells.push({gr,gc});
+    }
+    return cells;
   }
 
   function captureSubtileRegion(mosaicData, gr0, gc0, gr1, gc1) {
@@ -1371,15 +1414,15 @@
       p.fill(52, 211, 153, 42);
       p.stroke(52, 211, 153, 245);
       p.strokeWeight(2);
-      if (editPreview.selectionShape === 'ellipse') {
-        p.ellipse(sx + rw / 2, sy + rh / 2, rw, rh);
-      } else if (editPreview.selectionShape === 'diamond') {
+      if (editPreview.selectionShape === 'lasso' && editPreview.selectionPoints?.length) {
         p.beginShape();
-        p.vertex(sx + rw / 2, sy);
-        p.vertex(sx + rw, sy + rh / 2);
-        p.vertex(sx + rw / 2, sy + rh);
-        p.vertex(sx, sy + rh / 2);
+        for (const point of editPreview.selectionPoints) p.vertex(margin + point.x * subW, margin + point.y * subH);
         p.endShape(p.CLOSE);
+      } else if (editPreview.selectionShape === 'brush') {
+        p.noStroke();
+        for (const cell of editPreview.selectionCells || []) p.rect(margin+cell.gc*subW, margin+cell.gr*subH, subW, subH);
+        p.stroke(52, 211, 153, 245);
+        drawPlacementFootprint(p, editPreview.selectionCells || [], margin, subW, subH, p.color(52,211,153,245));
       } else {
         p.rect(sx, sy, rw, rh, 3);
       }
@@ -1648,7 +1691,9 @@
     resizeSupertilePattern,
     symmetrizeSupertilePattern,
     captureSubtileRegion,
-    isRegionCellSelected,
+    createRegionGesture,
+    extendRegionGesture,
+    getRegionGestureCells,
     captureBlockPattern,
     transformClonePattern,
     resolveStampRegionPlacements,

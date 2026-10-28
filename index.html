@@ -54,7 +54,7 @@
             <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
           </svg>
         </button>
-        <button id="btnFitCanvasToGrid" class="bar-action-btn" title="Ajustar proporção da Prancheta à Grade"><span class="btn-full-text">Ajustar</span><span class="btn-short-text">Ajustar</span></button>
+        <button id="btnFitCanvasToGrid" class="bar-action-btn icon-only" title="Ajustar" aria-label="Ajustar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label"><span class="btn-full-text">Ajustar</span><span class="btn-short-text">Ajustar</span></span></button>
       </div>
 
       <div class="bar-divider mosaic-mode-only"></div>
@@ -116,9 +116,7 @@
         <div class="bar-divider"></div>
         <span id="tileStudioActiveBadge" class="tile-studio-origin-badge">Padrão #0</span>
         <span id="tileStudioActiveName" class="tile-studio-active-name">Arco de Fita</span>
-        <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn" title="Criar cópia editável desta família">
-          <span>⧉ Criar cópia editável</span>
-        </button>
+        <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn icon-only" title="Criar cópia" aria-label="Criar cópia"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg><span class="icon-label"><span>⧉ Criar cópia editável</span></span></button>
         <div class="vec-undo-group" role="group" aria-label="Desfazer e Refazer no Subtile">
           <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled aria-label="Desfazer no Subtile (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg></button>
           <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled aria-label="Refazer no Subtile (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg></button>
@@ -127,11 +125,11 @@
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
           <button type="button" class="tile-prev-btn" data-tile-preview="single" aria-pressed="false" title="Célula Mestre 1×1 isolada">1×1</button>
           <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Repetição 3×3 do mestre com a mesma orientação">3×3</button>
-          <button type="button" class="tile-prev-btn" data-tile-preview="mandala_d4" aria-pressed="false" title="Prévia em bloco 2×2 espelhado (D2/D4)">Espelhos</button>
-          <button type="button" class="tile-prev-btn" data-tile-preview="rotational_c4" aria-pressed="false" title="Prévia em cata-vento rotacional 2×2 (C4)">Giro C4</button>
+          <button type="button" class="tile-prev-btn icon-only" data-tile-preview="mandala_d4" aria-pressed="false" title="Espelhos" aria-label="Espelhos"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20M3 6v12l6-6zM21 6v12l-6-6z"/></svg><span class="icon-label">Espelhos</span></button>
+          <button type="button" class="tile-prev-btn icon-only" data-tile-preview="rotational_c4" aria-pressed="false" title="Giro C4" aria-label="Giro C4"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 8M4 3v7h7"/></svg><span class="icon-label">Giro C4</span></button>
         </div>
-        <button type="button" id="btnTileClipToggle" class="bar-action-btn" aria-pressed="false" title="Recortar aos limites da peça, sem apagar formas">Recortar</button>
-        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn" title="Enviar variante ativa para o Pincel e pintar no Mosaico">Pintar</button>
+        <button type="button" id="btnTileClipToggle" class="bar-action-btn icon-only" aria-pressed="false" title="Recortar" aria-label="Recortar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h14v14M7 3v14h14M3 17h14V3"/></svg><span class="icon-label">Recortar</span></button>
+        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn icon-only" title="Pintar" aria-label="Pintar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg><span class="icon-label">Pintar</span></button>
       </div>
 
       <div class="bar-spacer"></div>
@@ -210,20 +208,19 @@
     <div id="brushEditorDialog" class="modal-dialog-backdrop brush-editor-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="brushEditorTitle">
       <div class="brush-editor-window">
         <header class="brush-editor-header">
-          <h2 id="brushEditorTitle">Editor de pincel e clone</h2>
+          <h2 id="brushEditorTitle">Pincel</h2>
           <div class="brush-editor-header-actions">
             <button type="button" id="btnCancelBrushEditor" class="mini-btn" title="Descartar alterações e fechar (Tecla Esc)">Cancelar</button>
             <button type="button" id="btnCloseBrushEditor" class="mini-btn accent" aria-label="Concluir edição do pincel">Concluir</button>
           </div>
         </header>
-        <p class="brush-editor-help">Escolha um tile na paleta e pinte as células. Botão direito gira a célula. Concluir mantém as alterações; Cancelar as descarta.</p>
         <div class="brush-editor-toolbar" role="group" aria-label="Editar grade do pincel">
           <label>Linhas <input id="brushEditorRows" aria-label="Linhas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
           <label>Colunas <input id="brushEditorCols" aria-label="Colunas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
-          <button type="button" id="btnBrushEditorUndo" class="mini-btn" title="Desfazer no pincel (Ctrl+Z)" disabled>Desfazer</button>
-          <button type="button" id="btnBrushEditorRedo" class="mini-btn" title="Refazer no pincel (Ctrl+Shift+Z)" disabled>Refazer</button>
-          <button type="button" id="btnBrushEditorErase" class="mini-btn">Borracha</button>
-          <button type="button" id="btnBrushEditorClear" class="mini-btn">Limpar grade</button>
+          <button type="button" id="btnBrushEditorUndo" class="mini-btn icon-only" disabled title="Desfazer" aria-label="Desfazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg><span class="icon-label">Desfazer</span></button>
+          <button type="button" id="btnBrushEditorRedo" class="mini-btn icon-only" disabled title="Refazer" aria-label="Refazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg><span class="icon-label">Refazer</span></button>
+          <button type="button" id="btnBrushEditorErase" class="mini-btn icon-only" title="Borracha" aria-label="Borracha"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m3 14 11-11 8 8-10 10H9zM8 9l8 8M12 21h10"/></svg><span class="icon-label">Borracha</span></button>
+          <button type="button" id="btnBrushEditorClear" class="mini-btn icon-only" title="Limpar" aria-label="Limpar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span class="icon-label">Limpar grade</span></button>
           <span id="brushEditorInkLabel" role="status" class="brush-editor-ink"></span>
         </div>
         <div id="brushEditorHost"></div>
@@ -249,55 +246,39 @@
         <div class="sidebar-section" aria-label="Ferramentas de Edição e Criação de Subtiles">
           <div class="sidebar-section-title">Ferramentas</div>
           <div class="tools-grid-2col">
-            <button id="toolInspect" class="tool-btn tool-grid-btn active mosaic-mode-only" data-tool="inspect"
-              title="Inspecionar Mosaico — Modo Gerador (Tecla V)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <button id="toolInspect" class="tool-btn tool-grid-btn active mosaic-mode-only icon-only" data-tool="inspect"
+              title="Inspeção" aria-label="Inspeção"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
                 <path d="M13 13l6 6"></path>
-              </svg>
-              <span class="tool-grid-label">Inspeção</span>
-            </button>
-            <button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn" aria-pressed="false" title="Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              </svg><span class="icon-label"><span class="tool-grid-label">Inspeção</span></span></button>
+            <button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn icon-only" aria-pressed="false" title="Editar peças" aria-label="Editar peças"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7" rx="1"></rect>
           <rect x="14" y="3" width="7" height="7" rx="1"></rect>
           <path d="M14 17.5h7M17.5 14v7"></path>
           <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-        </svg>
-        <span class="studio-mode-btn-label">Editar peças</span>
-      </button>
-            <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="paint"
-              title="Pincel de Tile (Tecla B • Clique Esq: Pintar | Clique Dir: Girar | Alt+Clique: Conta-Gotas)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        </svg><span class="icon-label"><span class="studio-mode-btn-label">Editar peças</span></span></button>
+            <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="paint"
+              title="Pincel" aria-label="Pincel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path
                   d="M18.37 2.63L14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z">
                 </path>
                 <path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"></path>
-              </svg>
-              <span class="tool-grid-label">Pintar</span>
-            </button>
-            <button id="toolRotate" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="rotate"
-              title="Girar / Família (Tecla R • Clique Esq: Avançar | Clique Dir: Voltar)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Pintar</span></span></button>
+            <button id="toolRotate" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="rotate"
+              title="Girar" aria-label="Girar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
                 <polyline points="21 3 21 8 16 8"></polyline>
-              </svg>
-              <span class="tool-grid-label">Girar</span>
-            </button>
-            <button id="toolStamp" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="stamp"
-              title="Carimbo (S) • Alt+clique/arraste: capturar • Clique/arraste: aplicar • Clique direito: girar">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Girar</span></span></button>
+            <button id="toolStamp" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="stamp"
+              title="Carimbo" aria-label="Carimbo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M5 22h14"></path>
                 <path
                   d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z">
                 </path>
                 <path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13"></path>
-              </svg>
-              <span class="tool-grid-label">Carimbo</span>
-            </button>
-            <button id="toolFreeze" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only" data-tool="freeze" data-icon="snowflake"
-              title="Congelar / Travar Subtiles (Tecla F • Clique aplica modo • Clique Dir inverte)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              </svg><span class="icon-label"><span class="tool-grid-label">Carimbo</span></span></button>
+            <button id="toolFreeze" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="freeze" data-icon="snowflake"
+              title="Preservar" aria-label="Preservar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="2" y1="12" x2="22" y2="12"></line>
                 <line x1="12" y1="2" x2="12" y2="22"></line>
@@ -305,31 +286,23 @@
                 <path d="m4 8 4 4-4 4"></path>
                 <path d="m16 4-4 4-4-4"></path>
                 <path d="m8 20 4-4 4 4"></path>
-              </svg>
-              <span class="tool-grid-label">Preservar</span>
-            </button>
-            <button id="toolPan" class="tool-btn tool-grid-btn mosaic-mode-only" data-tool="pan"
-              title="Pan / Mover Prancheta (Tecla H ou segure Espaço)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Preservar</span></span></button>
+            <button id="toolPan" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-tool="pan"
+              title="Mão" aria-label="Mão"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
                 <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
                 <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
                 <path
                   d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15">
                 </path>
-              </svg>
-              <span class="tool-grid-label">Mão</span>
-            </button>
-            <button id="toolZoom" class="tool-btn tool-grid-btn mosaic-mode-only" data-tool="zoom"
-              title="Ferramenta de Zoom (Tecla Z • Clique aproxima, Alt+Clique afasta)">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Mão</span></span></button>
+            <button id="toolZoom" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-tool="zoom"
+              title="Zoom" aria-label="Zoom"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 <line x1="11" y1="8" x2="11" y2="14"></line>
                 <line x1="8" y1="11" x2="14" y2="11"></line>
-              </svg>
-              <span class="tool-grid-label">Zoom</span>
-            </button>
+              </svg><span class="icon-label"><span class="tool-grid-label">Zoom</span></span></button>
           </div>
         </div>
 
@@ -338,9 +311,9 @@
         <div id="stampModeSection" class="sidebar-section mosaic-mode-only" aria-label="Seleção de regiões">
           <div class="sidebar-section-title">Seleção</div>
           <div class="clone-capture-actions" id="stampInteractionSegmented">
-            <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Seleção retangular" title="Seleção retangular"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
-            <button type="button" class="mini-btn" data-region-shape="ellipse" aria-pressed="false" aria-label="Seleção elíptica" title="Seleção elíptica"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="7" stroke-dasharray="3 2"/></svg></button>
-            <button type="button" class="mini-btn" data-region-shape="diamond" aria-pressed="false" aria-label="Seleção em losango" title="Seleção em losango"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9z" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Retângulo" title="Retângulo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" class="mini-btn" data-region-shape="lasso" aria-pressed="false" aria-label="Laço" title="Laço"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 17c-8-2-6-12 4-13 10-1 12 9 5 13-5 3-12 2-11-1 1-2 5 0 4 3-1 2-3 3-5 3"/></svg></button>
+            <button type="button" class="mini-btn" data-region-shape="brush" aria-pressed="false" aria-label="Pincel de seleção" title="Pincel de seleção"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg></button>
             <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="12" height="12"/><path d="M9 15v6h12V9h-6"/></svg></button>
             <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
             <button type="button" class="mini-btn" data-stamp-mode="select" aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M12 7v10M7 12h10"/></svg></button>
@@ -352,41 +325,29 @@
         <div class="sidebar-section mosaic-mode-only" aria-label="Guias Visuais">
           <div class="sidebar-section-title">Guias Visuais</div>
           <div class="tools-grid-2col">
-            <button id="toggleGuideAxes" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Eixos de Simetria (Tecla A)" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <button id="toggleGuideAxes" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Eixos" aria-label="Eixos"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <line x1="12" y1="2" x2="12" y2="22"></line>
                 <line x1="2" y1="12" x2="22" y2="12"></line>
                 <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-              <span class="tool-grid-label">Eixos</span>
-            </button>
-            <button id="toggleGuideBlocks" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Grade de Blocos" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Eixos</span></span></button>
+            <button id="toggleGuideBlocks" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Blocos" aria-label="Blocos"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
                 <line x1="3" y1="15" x2="21" y2="15"></line>
                 <line x1="9" y1="3" x2="9" y2="21"></line>
                 <line x1="15" y1="3" x2="15" y2="21"></line>
-              </svg>
-              <span class="tool-grid-label">Blocos</span>
-            </button>
-            <button id="toggleGuideSubtiles" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Micro-Grade de Subtiles (Tecla M)" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Blocos</span></span></button>
+            <button id="toggleGuideSubtiles" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Peças" aria-label="Peças"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              <span class="tool-grid-label">Subtiles</span>
-            </button>
-            <button id="toggleGuideOrbits" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Mapa de Órbitas (Tecla O)" aria-pressed="false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              </svg><span class="icon-label"><span class="tool-grid-label">Subtiles</span></span></button>
+            <button id="toggleGuideOrbits" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Órbitas" aria-label="Órbitas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <circle cx="12" cy="12" r="9" stroke-dasharray="3 2"></circle>
                 <polyline points="12 7 15 10 12 13"></polyline>
                 <path d="M9 10h6"></path>
-              </svg>
-              <span class="tool-grid-label">Órbitas</span>
-            </button>
+              </svg><span class="icon-label"><span class="tool-grid-label">Órbitas</span></span></button>
           </div>
         </div>
 
@@ -420,17 +381,7 @@
         <!-- Gerador de Mosaico & Sementes -->
         <div class="sidebar-section sidebar-gen-section mosaic-mode-only" aria-label="Geração e Sementes">
           <div class="sidebar-section-title">Gerador</div>
-          <button type="button" id="btnRandomize" class="sidebar-gen-btn" title="Sortear nova Seed (Tecla G)" aria-label="Gerar Mosaico">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 3 21 3 21 8"></polyline>
-              <line x1="4" y1="20" x2="21" y2="3"></line>
-              <polyline points="21 16 21 21 16 21"></polyline>
-              <line x1="15" y1="15" x2="21" y2="21"></line>
-              <line x1="4" y1="4" x2="9" y2="9"></line>
-            </svg>
-            <span class="gen-btn-label">Gerar Mosaico</span>
-          </button>
+          <button type="button" id="btnRandomize" class="sidebar-gen-btn icon-only" title="Gerar" aria-label="Gerar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 5h3l12 14h3M3 19h3l4-5M14 10l4-5h3m-4-3 4 3-4 3m0 8 4 3-4 3"/></svg><span class="icon-label"><span class="gen-btn-label">Gerar Mosaico</span></span></button>
           <div class="sidebar-seed-row" title="Navegação de Seeds">
             <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 6-6 6 6 6"/></svg></button>
             <div class="sidebar-seed-chip" title="Semente atual">
@@ -461,14 +412,7 @@
               <option value="png" selected>PNG</option>
               <option value="svg">SVG</option>
             </select>
-            <button type="button" id="btnExport" class="sidebar-export-btn" title="Baixar arquivo do mosaico atual" aria-label="Exportar Mosaico">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Exportar</span>
-            </button>
+            <button type="button" id="btnExport" class="sidebar-export-btn icon-only" title="Exportar" aria-label="Exportar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Exportar</span></span></button>
           </div>
         </div>
 
@@ -478,58 +422,34 @@
           <div class="sidebar-section">
             <div class="sidebar-section-title">Ferramentas</div>
             <div class="tools-grid-2col" id="vecToolsGrid">
-              <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active" data-vec-tool="select" aria-pressed="true" title="Seleção (V)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--bg-control)" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active icon-only" data-vec-tool="select" aria-pressed="true" title="Seleção" aria-label="Seleção"><svg width="15" height="15" viewBox="0 0 24 24" fill="var(--bg-control)" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 3l7 17.5 2.5-7 7.5-2.5L3 3z"></path>
-                </svg>
-                <span>Seleção</span>
-              </button>
-              <button type="button" id="vecToolDirect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="direct" aria-pressed="false" title="Seleção direta (A)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                </svg><span class="icon-label"><span>Seleção</span></span></button>
+              <button type="button" id="vecToolDirect" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="direct" aria-pressed="false" title="Seleção direta" aria-label="Seleção direta"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M3 3l7 17.5 2.5-7 7.5-2.5L3 3z"></path>
-                </svg>
-                <span>Seleção direta</span>
-              </button>
-              <button type="button" id="vecToolPen" class="subtile-rail-btn vec-tool-btn" data-vec-tool="pen" aria-pressed="false" title="Caneta Bezier — Clique p/ canto, Arraste p/ curva (Tecla P)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Seleção direta</span></span></button>
+              <button type="button" id="vecToolPen" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="pen" aria-pressed="false" title="Caneta" aria-label="Caneta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
                   <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
                   <circle cx="11" cy="11" r="1" fill="currentColor"></circle>
-                </svg>
-                <span>Caneta</span>
-              </button>
-              <button type="button" id="vecToolRect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="rect" aria-pressed="false" title="Retângulo / Quadrado (Tecla M • Shift=1:1, Alt=Centro)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Caneta</span></span></button>
+              <button type="button" id="vecToolRect" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="rect" aria-pressed="false" title="Retângulo" aria-label="Retângulo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                </svg>
-                <span>Retângulo</span>
-              </button>
-              <button type="button" id="vecToolEllipse" class="subtile-rail-btn vec-tool-btn" data-vec-tool="ellipse" aria-pressed="false" title="Elipse / Círculo (Tecla L • Shift=1:1, Alt=Centro)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Retângulo</span></span></button>
+              <button type="button" id="vecToolEllipse" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="ellipse" aria-pressed="false" title="Elipse" aria-label="Elipse"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="9"></circle>
-                </svg>
-                <span>Elipse</span>
-              </button>
-              <button type="button" id="vecToolPolygon" class="subtile-rail-btn vec-tool-btn" data-vec-tool="polygon" aria-pressed="false" title="Polígono Regular / Estrela (Tecla G)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Elipse</span></span></button>
+              <button type="button" id="vecToolPolygon" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="polygon" aria-pressed="false" title="Polígono" aria-label="Polígono"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"></polygon>
-                </svg>
-                <span>Polígono</span>
-              </button>
-              <button type="button" id="vecToolArc" class="subtile-rail-btn vec-tool-btn" data-vec-tool="arc" aria-pressed="false" title="Arco / Setor Anular de Fita (Tecla U)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Polígono</span></span></button>
+              <button type="button" id="vecToolArc" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="arc" aria-pressed="false" title="Arco" aria-label="Arco"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 12A9 9 0 0 0 12 3v4a5 5 0 0 1 5 5h4z"></path>
-                </svg>
-                <span>Arco</span>
-              </button>
-              <button type="button" id="vecToolLine" class="subtile-rail-btn vec-tool-btn" data-vec-tool="line" aria-pressed="false" title="Linha / Haste (Tecla \)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Arco</span></span></button>
+              <button type="button" id="vecToolLine" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="line" aria-pressed="false" title="Linha" aria-label="Linha"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="5" y1="19" x2="19" y2="5"></line>
                   <circle cx="5" cy="19" r="1.5" fill="currentColor"></circle>
                   <circle cx="19" cy="5" r="1.5" fill="currentColor"></circle>
-                </svg>
-                <span>Linha</span>
-              </button>
+                </svg><span class="icon-label"><span>Linha</span></span></button>
             </div>
           </div>
 
@@ -538,24 +458,18 @@
           <div class="sidebar-section">
             <div class="sidebar-section-title">Navegação</div>
             <div class="tools-grid-2col">
-              <button type="button" id="btnTileViewPan" class="subtile-rail-btn" aria-pressed="false" title="Mover prancheta (Tecla H ou Espaço)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" id="btnTileViewPan" class="subtile-rail-btn icon-only" aria-pressed="false" title="Mão" aria-label="Mão"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
                   <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
                   <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
                   <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
-                </svg>
-                <span>Mão</span>
-              </button>
-              <button type="button" id="btnTileViewZoom" class="subtile-rail-btn" aria-pressed="false" title="Zoom da prancheta (Tecla Z ou Scroll)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Mão</span></span></button>
+              <button type="button" id="btnTileViewZoom" class="subtile-rail-btn icon-only" aria-pressed="false" title="Zoom" aria-label="Zoom"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   <line x1="11" y1="8" x2="11" y2="14"></line>
                   <line x1="8" y1="11" x2="14" y2="11"></line>
-                </svg>
-                <span>Zoom</span>
-              </button>
+                </svg><span class="icon-label"><span>Zoom</span></span></button>
             </div>
           </div>
 
@@ -564,15 +478,12 @@
           <div class="sidebar-section">
             <div class="sidebar-section-title">Grade &amp; Guias</div>
             <div class="vec-snap-row">
-              <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active" aria-pressed="true" title="Ativar/Desativar Encaixe na grade (Tecla ;)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Encaixar" aria-label="Encaixar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 4v7a8 8 0 0 0 16 0V4"></path>
                   <line x1="4" y1="9" x2="8" y2="9"></line>
                   <line x1="16" y1="9" x2="20" y2="9"></line>
                   <path d="M8 4v7a4 4 0 0 0 8 0V4"></path>
-                </svg>
-                <span>Encaixe</span>
-              </button>
+                </svg><span class="icon-label"><span>Encaixe</span></span></button>
               <select id="tileGridDivSelect" class="subtile-grid-select" title="Subdivisão da Grade Magnética" aria-label="Subdivisão da Grade Magnética">
                 <option value="0">Off</option>
                 <option value="2">1/2</option>
@@ -585,26 +496,19 @@
               </select>
             </div>
             <div class="tools-grid-2col">
-              <button type="button" id="toggleTileGuideGrid" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar grade fracionária">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" id="toggleTileGuideGrid" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Grade" aria-label="Grade"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                   <line x1="3" y1="9" x2="21" y2="9"></line>
                   <line x1="3" y1="15" x2="21" y2="15"></line>
                   <line x1="9" y1="3" x2="9" y2="21"></line>
                   <line x1="15" y1="3" x2="15" y2="21"></line>
-                </svg>
-                <span>Grade</span>
-              </button>
-              <button type="button" id="toggleTileGuideAxes" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar eixos e diagonais D4">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Grade</span></span></button>
+              <button type="button" id="toggleTileGuideAxes" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Eixos" aria-label="Eixos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="12" y1="2" x2="12" y2="22"></line>
                   <line x1="2" y1="12" x2="22" y2="12"></line>
                   <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <span>Eixos D4</span>
-              </button>
-              <button type="button" id="toggleTileGuidePorts" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar portas de encaixe (1/3 e centro)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Eixos D4</span></span></button>
+              <button type="button" id="toggleTileGuidePorts" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Portas" aria-label="Portas"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                   <circle cx="8" cy="3" r="1.2" fill="currentColor"></circle>
                   <circle cx="12" cy="3" r="1.2" fill="currentColor"></circle>
@@ -612,16 +516,11 @@
                   <circle cx="8" cy="21" r="1.2" fill="currentColor"></circle>
                   <circle cx="12" cy="21" r="1.2" fill="currentColor"></circle>
                   <circle cx="16" cy="21" r="1.2" fill="currentColor"></circle>
-                </svg>
-                <span>Portas</span>
-              </button>
-              <button type="button" id="toggleTileGuidePadding" class="subtile-rail-btn active" aria-pressed="true" title="Mostrar/Ocultar margem de Espaçamento">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                </svg><span class="icon-label"><span>Portas</span></span></button>
+              <button type="button" id="toggleTileGuidePadding" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Margem" aria-label="Margem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                   <rect x="7" y="7" width="10" height="10" stroke-dasharray="2 2"></rect>
-                </svg>
-                <span>Margem</span>
-              </button>
+                </svg><span class="icon-label"><span>Margem</span></span></button>
             </div>
           </div>
 
@@ -630,15 +529,9 @@
           <details class="sidebar-disclosure">
             <summary>Biblioteca</summary>
             <div class="sidebar-disclosure-body">
-            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary" title="Criar nova família customizada">
-              <span>+ Novo Subtile</span>
-            </button>
-            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn" title="Duplicar família selecionada para editar">
-              <span>⧉ Duplicar Família</span>
-            </button>
-            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn" title="Criar nova pasta de grupo">
-              <span>+ Novo Grupo</span>
-            </button>
+            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary icon-only" title="Nova peça" aria-label="Nova peça"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg><span class="icon-label"><span>+ Novo Subtile</span></span></button>
+            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn icon-only" title="Duplicar" aria-label="Duplicar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg><span class="icon-label"><span>⧉ Duplicar Família</span></span></button>
+            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/></svg><span class="icon-label"><span>+ Novo Grupo</span></span></button>
             </div>
           </details>
 
@@ -649,12 +542,8 @@
             <summary>Arquivos SVG</summary>
             <div class="sidebar-disclosure-body">
             <div class="tools-grid-2col">
-              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn" title="Importar arquivo .svg normalizado para [-0.5, 0.5]">
-                <span>Importar SVG</span>
-              </button>
-              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn" title="Exportar o subtile atual como vetor .svg unitário">
-                <span>Exportar SVG</span>
-              </button>
+              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Importar SVG</span></span></button>
+              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Exportar SVG</span></span></button>
             </div>
             <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
             </div>
@@ -665,16 +554,10 @@
           <details class="sidebar-disclosure">
             <summary>Backup da biblioteca</summary>
             <div class="sidebar-disclosure-body">
-            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn" title="Baixar backup completo da biblioteca (.json)">
-              <span>↓ Exportar .json</span>
-            </button>
-            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn" title="Importar pacote ou backup de subtiles (.json)">
-              <span>↑ Importar .json</span>
-            </button>
+            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn icon-only" title="Exportar JSON" aria-label="Exportar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>↓ Exportar .json</span></span></button>
+            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn icon-only" title="Importar JSON" aria-label="Importar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label"><span>↑ Importar .json</span></span></button>
             <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
-            <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger" title="Restaurar biblioteca para os 31 mestres originais">
-              <span>↺ Restaurar Padrão</span>
-            </button>
+            <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger icon-only" title="Restaurar padrão" aria-label="Restaurar padrão"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/></svg><span class="icon-label"><span>↺ Restaurar Padrão</span></span></button>
             </div>
           </details>
         </div>
@@ -707,11 +590,7 @@
                 <option value="400">400%</option>
               </select>
               <button id="btnZoomIn" class="status-icon-btn" title="Aumentar Zoom (+)" aria-label="Aumentar Zoom"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
-              <button id="btnFitArtboard" class="status-reset-zoom-btn" title="Ajustar à janela (0)" aria-label="Ajustar à Janela">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:middle;">
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                </svg><span>Ajustar</span>
-              </button>
+              <button id="btnFitArtboard" class="status-reset-zoom-btn icon-only" title="Ajustar" aria-label="Ajustar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label"><span>Ajustar</span></span></button>
               <button id="btnZoomReset100" class="status-reset-zoom-btn" title="Zoom 1:1 e Centralizar (Tecla 1 ou Ctrl+1)" aria-label="Zoom 100%">1:1</button>
             </div>
           </div>
@@ -793,7 +672,7 @@
                 <!-- Non-square grid warning for Mandala D4 / Rotational C4 -->
                 <div id="nonSquareGridNotice" class="notice-banner hidden">
                   <span>Para rotação de 90° nas bordas, a grade precisa ter o mesmo nº de linhas e colunas.</span>
-                  <button id="btnMakeGridEqual" type="button" class="notice-btn">Igualar L×C</button>
+                  <button id="btnMakeGridEqual" type="button" class="notice-btn icon-only" title="Igualar grade" aria-label="Igualar grade"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label">Igualar L×C</span></button>
                 </div>
               </div>
 
@@ -874,18 +753,18 @@
                 <div class="swatches-search-row">
                   <input type="search" id="tileSearchInput" aria-label="Buscar famílias ou peças permitidas" class="swatch-search"
                     placeholder="Buscar...">
-                  <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut"
-                    title="Abrir Estúdio de Subtiles e Gestão de Famílias (Ctrl+E)">+ Subtile</button>
+                  <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut icon-only"
+                    title="Nova peça" aria-label="Nova peça"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg><span class="icon-label">+ Subtile</span></button>
                 </div>
                 <div class="swatch-bulk-actions">
-                  <button type="button" id="btnSelectAllTiles" class="mini-btn"
-                    title="Permitir todas as peças da biblioteca, inclusive as ocultas pela busca">Todos</button>
-                  <button type="button" id="btnSelectNoTiles" class="mini-btn"
-                    title="Desativar todas as peças da biblioteca, inclusive as ocultas pela busca">Nenhum</button>
-                  <button type="button" id="btnInvertTiles" class="mini-btn"
-                    title="Inverter todas as peças da biblioteca, inclusive as ocultas pela busca">Inverter</button>
-                  <button type="button" id="btnRandomFamilies" class="mini-btn accent"
-                    title="Sortear um subconjunto aleatório de famílias e regerar">Sortear seleção</button>
+                  <button type="button" id="btnSelectAllTiles" class="mini-btn icon-only"
+                    title="Todos" aria-label="Todos"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8V3h5M16 3h5v5M3 16v5h5M21 16v5h-5M7 12l3 3 7-7"/></svg><span class="icon-label">Todos</span></button>
+                  <button type="button" id="btnSelectNoTiles" class="mini-btn icon-only"
+                    title="Nenhum" aria-label="Nenhum"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8V3h5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l8 8M8 16l8-8"/></svg><span class="icon-label">Nenhum</span></button>
+                  <button type="button" id="btnInvertTiles" class="mini-btn icon-only"
+                    title="Inverter" aria-label="Inverter"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg><span class="icon-label">Inverter</span></button>
+                  <button type="button" id="btnRandomFamilies" class="mini-btn accent icon-only"
+                    title="Sortear" aria-label="Sortear"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 5h3l12 14h3M3 19h3l4-5M14 10l4-5h3m-4-3 4 3-4 3m0 8 4 3-4 3"/></svg><span class="icon-label">Sortear seleção</span></button>
                 </div>
               </div>
 
@@ -952,12 +831,12 @@
                     </div>
                   </div>
                   <div class="canvas-center-sym-grid" id="canvasCenterSymControl">
-                    <button type="button" class="seg-btn active" data-center-sym="mandala_d4" data-tooltip="Mandala D4 Estrita (8 Octantes)">Mandala</button>
-                    <button type="button" class="seg-btn" data-center-sym="kaleidoscope" data-tooltip="Caleidoscópio Permissivo (8 Octantes Livres)">Caleid.</button>
-                    <button type="button" class="seg-btn" data-center-sym="rotational_c4" data-tooltip="Rotacional 4× (90°) ao redor do centro">Giro 4×</button>
-                    <button type="button" class="seg-btn" data-center-sym="bilateral_d2" data-tooltip="Espelho Duplo (Horizontal + Vertical)">Esp. XY</button>
-                    <button type="button" class="seg-btn" data-center-sym="mirror_x" data-tooltip="Espelho Horizontal (Esquerda ↔ Direita)">Esp. X</button>
-                    <button type="button" class="seg-btn" data-center-sym="mirror_y" data-tooltip="Espelho Vertical (Topo ↔ Base)">Esp. Y</button>
+                    <button type="button" class="seg-btn active icon-only" data-center-sym="mandala_d4" title="Mandala" aria-label="Mandala"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"/></svg><span class="icon-label">Mandala</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="kaleidoscope" title="Caleidoscópio" aria-label="Caleidoscópio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span class="icon-label">Caleid.</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="rotational_c4" title="Rotacional" aria-label="Rotacional"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-9-9"/><polyline points="16 3 21 3 21 8"/></svg><span class="icon-label">Giro 4×</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="bilateral_d2" title="Espelhos XY" aria-label="Espelhos XY"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg><span class="icon-label">Esp. XY</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_x" title="Espelho H" aria-label="Espelho H"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20M3 6v12l6-6zM21 6v12l-6-6z"/></svg><span class="icon-label">Esp. X</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_y" title="Espelho V" aria-label="Espelho V"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12h20M6 3h12l-6 6zM6 21h12l-6-6z"/></svg><span class="icon-label">Esp. Y</span></button>
                   </div>
                 </div>
               </div>
@@ -979,7 +858,7 @@
                   <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="tool-size-snap" id="rotateSizeControl">
-                  <button type="button" class="seg-btn" data-rot-size="block" aria-pressed="false" title="Alternar encaixe no bloco da grade">Ajustar ao bloco</button>
+                  <button type="button" class="seg-btn icon-only" data-rot-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h14v14M7 3v14h14M3 17h14V3"/></svg><span class="icon-label">Ajustar ao bloco</span></button>
                 </div>
 
                 <div id="rotateGroupModeSection" class="rotate-sub-group hidden">
@@ -988,10 +867,10 @@
                   </div>
                   <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
                     id="rotateGroupModeControl">
-                    <button type="button" class="seg-btn active" data-rot-group="group"
-                      title="Gira o conjunto inteiro como um Padrão de pincel rígido em 90°">Conjunto</button>
-                    <button type="button" class="seg-btn" data-rot-group="individual"
-                      title="Gira cada tile no próprio lugar">Cada Tile</button>
+                    <button type="button" class="seg-btn active icon-only" data-rot-group="group"
+                      title="Conjunto" aria-label="Conjunto"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/></svg><span class="icon-label">Conjunto</span></button>
+                    <button type="button" class="seg-btn icon-only" data-rot-group="individual"
+                      title="Individual" aria-label="Individual"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h14v14M7 3v14h14M3 17h14V3"/></svg><span class="icon-label">Cada Tile</span></button>
                   </div>
                 </div>
 
@@ -1000,10 +879,10 @@
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
                   id="rotateBehaviorControl">
-                  <button type="button" class="seg-btn active" data-rot-mode="d4_r90"
-                    title="Rotação geométrica exata de 90° (D4)">Giro 90°</button>
-                  <button type="button" class="seg-btn" data-rot-mode="family"
-                    title="Avança para a próxima variação da família do tile">Família</button>
+                  <button type="button" class="seg-btn active icon-only" data-rot-mode="d4_r90"
+                    title="Giro 90°" aria-label="Giro 90°"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 8M4 3v7h7"/></svg><span class="icon-label">Giro 90°</span></button>
+                  <button type="button" class="seg-btn icon-only" data-rot-mode="family"
+                    title="Família" aria-label="Família"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/></svg><span class="icon-label">Família</span></button>
                 </div>
               </div>
 
@@ -1021,8 +900,8 @@
                   <label class="prop-label">Ação da Trava</label>
                 </div>
                 <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="freezeModeControl" role="group" aria-label="Modo da trava">
-                  <button type="button" data-freeze-mode="freeze" class="seg-btn active" aria-pressed="true">Preservar</button>
-                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn" aria-pressed="false">Destravar</button>
+                  <button type="button" data-freeze-mode="freeze" class="seg-btn active icon-only" aria-pressed="true" title="Preservar" aria-label="Preservar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg><span class="icon-label">Preservar</span></button>
+                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn icon-only" aria-pressed="false" title="Liberar" aria-label="Liberar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0"/></svg><span class="icon-label">Destravar</span></button>
                 </div>
 
                 <div class="prop-label-row" style="margin-top: 6px;">
@@ -1037,17 +916,11 @@
                   <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="tool-size-snap" id="freezeSizeControl">
-                  <button type="button" class="seg-btn" data-freeze-size="block" aria-pressed="false" title="Alternar encaixe no bloco da grade">Ajustar ao bloco</button>
+                  <button type="button" class="seg-btn icon-only" data-freeze-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h14v14M7 3v14h14M3 17h14V3"/></svg><span class="icon-label">Ajustar ao bloco</span></button>
                 </div>
 
                 <div class="freeze-actions-row" style="margin-top: 10px;">
-                  <button type="button" id="btnFreezeClearSelection" class="freeze-action-btn" title="Descongelar todos os subtiles (Shift+F ou Delete)" disabled>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    <span>Descongelar Tudo</span>
-                  </button>
+                  <button type="button" id="btnFreezeClearSelection" class="freeze-action-btn icon-only" disabled title="Limpar preservações" aria-label="Limpar preservações"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0"/></svg><span class="icon-label"><span>Descongelar Tudo</span></span></button>
                 </div>
               </div>
             </div>
@@ -1088,16 +961,8 @@
                   <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
                 </div>
                 <div class="brush-snap-row" id="brushSnapRow">
-                  <button type="button" class="brush-snap-toggle-btn" id="btnToggleBrushSnap" title="Encaixar nos blocos (Ctrl+U alterna; Shift inverte temporariamente)">
-                    <svg class="snap-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M4 4v7a8 8 0 0 0 16 0V4"/>
-                      <line x1="4" y1="9" x2="8" y2="9"/>
-                      <line x1="16" y1="9" x2="20" y2="9"/>
-                      <path d="M8 4v7a4 4 0 0 0 8 0V4"/>
-                    </svg>
-                    <span class="snap-label">Encaixe nos blocos:</span>
-                    <span class="snap-status" id="brushSnapStatusText">Desativado</span>
-                  </button>
+                  <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
+                    <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
                 </div>
               </div>
 
@@ -1108,28 +973,28 @@
                   <canvas id="supertileBuilderCanvas" width="104" height="104" tabindex="0" aria-label="Grade do pincel: clique para pintar, botão direito para girar e Alt para amostrar uma célula"></canvas>
                 </div>
                 <div class="active-brush-controls">
-                  <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn" aria-haspopup="dialog" aria-controls="brushEditorDialog">Ampliar editor</button>
+                  <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label">Ampliar editor</span></button>
                   <div class="active-brush-title-row">
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
                   </div>
                   <div class="d4-mini-grid">
-                    <button type="button" id="btnBrushRot90" class="d4-mini-btn"
-                      title="Girar +90° (ou Clique Direito no mosaico)">⟳ +90°</button>
-                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn" title="Espelhar Horizontalmente (MX)">⇄
-                      Flip X</button>
-                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn" title="Espelhar Verticalmente (MY)">⇅
-                      Flip Y</button>
-                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn"
-                      title="Resetar orientação para 0°">0°</button>
+                    <button type="button" id="btnBrushRot90" class="d4-mini-btn icon-only"
+                      title="Girar 90°" aria-label="Girar 90°"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 8M4 3v7h7"/></svg><span class="icon-label">⟳ +90°</span></button>
+                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn icon-only" title="Espelhar H" aria-label="Espelhar H"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20M3 6v12l6-6zM21 6v12l-6-6z"/></svg><span class="icon-label">⇄
+                      Flip X</span></button>
+                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn icon-only" title="Espelhar V" aria-label="Espelhar V"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12h20M6 3h12l-6 6zM6 21h12l-6-6z"/></svg><span class="icon-label">⇅
+                      Flip Y</span></button>
+                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn icon-only"
+                      title="Restaurar giro" aria-label="Restaurar giro"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/></svg><span class="icon-label">0°</span></button>
                   </div>
                   <div id="supertileBuilderActions" class="supertile-builder-actions hidden">
-                    <button type="button" id="btnSupertileFillAll" class="mini-btn"
-                      title="Preencher todo o Padrão de pincel com o tile ativo">Preencher</button>
-                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn"
-                      title="Simetrizar o Padrão de pincel em Mandala D4"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: middle;"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>Simetria</button>
-                    <button type="button" id="btnSupertileCapture" class="mini-btn accent"
-                      title="Capturar região do mosaico (Carimbo)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: middle;"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>Capturar</button>
+                    <button type="button" id="btnSupertileFillAll" class="mini-btn icon-only"
+                      title="Preencher" aria-label="Preencher"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m4 11 8-8 8 8-8 8zM4 11h16M3 22h18"/></svg><span class="icon-label">Preencher</span></button>
+                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn icon-only"
+                      title="Simetria" aria-label="Simetria"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20M2 12h20M4 4l16 16M4 20 20 4"/></svg><span class="icon-label">Simetria</span></button>
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent icon-only"
+                      title="Capturar" aria-label="Capturar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg><span class="icon-label">Capturar</span></button>
                   </div>
                 </div>
               </div>
@@ -1160,8 +1025,8 @@
           </nav>
           <div class="tile-selection-bar">
             <span id="tileSelectionSummary" role="status">Nenhum objeto selecionado</span>
-            <button type="button" id="btnTileSelectAll" class="mini-btn" title="Selecionar todos os objetos visíveis e destravados (Ctrl+A)">Todos</button>
-            <button type="button" id="btnTileDeselect" class="mini-btn" title="Limpar seleção">Limpar</button>
+            <button type="button" id="btnTileSelectAll" class="mini-btn icon-only" title="Todos" aria-label="Todos"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8V3h5M16 3h5v5M3 16v5h5M21 16v5h-5M7 12l3 3 7-7"/></svg><span class="icon-label">Todos</span></button>
+            <button type="button" id="btnTileDeselect" class="mini-btn icon-only" title="Limpar seleção" aria-label="Limpar seleção"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8V3h5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l8 8M8 16l8-8"/></svg><span class="icon-label">Limpar</span></button>
           </div>
           <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
 
@@ -1214,8 +1079,8 @@
             <div class="panel-body" id="panelTileLayersBody">
               <div class="prop-section">
                 <div class="tile-layers-toolbar">
-                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent" title="Importar formas editáveis de um arquivo SVG">Importar SVG</button>
-                  <button type="button" id="btnLayersExportSvg" class="mini-btn" title="Exportar este subtile como arquivo SVG">Exportar SVG</button>
+                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label">Importar SVG</span></button>
+                  <button type="button" id="btnLayersExportSvg" class="mini-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label">Exportar SVG</span></button>
                   <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])" aria-label="Trazer forma selecionada para o topo (Ctrl+Shift+])"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 3h16M12 7v14m-6-8 6-6 6 6"/></svg></button>
                   <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)" aria-label="Enviar forma selecionada para trás (Ctrl+Shift+[)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21h16M12 3v14m-6-6 6 6 6-6"/></svg></button>
                 </div>
@@ -1262,7 +1127,7 @@
                 <!-- Read-only notice for canonical built-in masters (#0..#84) -->
                 <div id="tileReadOnlyNotice" class="tile-readonly-banner">
                   <span id="tileReadOnlyText">Família original protegida.</span>
-                  <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent">⧉ Criar cópia editável</button>
+                  <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent icon-only" title="Criar cópia" aria-label="Criar cópia"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg><span class="icon-label">⧉ Criar cópia editável</span></button>
                 </div>
 
                 <!-- Editable metadata card for custom families (>= 85) -->
@@ -1277,8 +1142,8 @@
                   </div>
                   <div class="tile-custom-actions-row">
                     <span id="tileActiveShapeCountBadge" class="prop-badge secondary">1 forma</span>
-                    <button type="button" id="btnUseActiveInBrush" class="mini-btn accent" title="Usar variante selecionada no Pincel do Mosaico">Pintar</button>
-                    <button type="button" id="btnSoloActiveInMosaic" class="mini-btn" title="Isolar apenas esta família e gerar no Mosaico">Isolar</button>
+                    <button type="button" id="btnUseActiveInBrush" class="mini-btn accent icon-only" title="Pintar" aria-label="Pintar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg><span class="icon-label">Pintar</span></button>
+                    <button type="button" id="btnSoloActiveInMosaic" class="mini-btn icon-only" title="Isolar" aria-label="Isolar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="icon-label">Isolar</span></button>
                   </div>
                 </div>
               </div>
@@ -1304,23 +1169,23 @@
                 <input type="search" id="libMgrSearchInput" aria-label="Buscar famílias na biblioteca" class="swatch-search" placeholder="Buscar...">
                 <div class="tile-library-navigation">
                   <select id="tileLibraryGroupFilter" class="subtile-select" aria-label="Filtrar conjunto"><option value="">Todos os conjuntos</option></select>
-                  <button type="button" id="btnTileLocateFamily" class="mini-btn">Localizar atual</button>
+                  <button type="button" id="btnTileLocateFamily" class="mini-btn icon-only" title="Localizar" aria-label="Localizar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg><span class="icon-label">Localizar atual</span></button>
                 </div>
                 <div class="tile-library-navigation">
-                  <button type="button" id="btnTileExpandGroups" class="mini-btn">Expandir conjuntos</button>
-                  <button type="button" id="btnTileCollapseGroups" class="mini-btn">Recolher conjuntos</button>
+                  <button type="button" id="btnTileExpandGroups" class="mini-btn icon-only" title="Expandir" aria-label="Expandir"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg><span class="icon-label">Expandir conjuntos</span></button>
+                  <button type="button" id="btnTileCollapseGroups" class="mini-btn icon-only" title="Recolher" aria-label="Recolher"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg><span class="icon-label">Recolher conjuntos</span></button>
                 </div>
                 <div class="lib-mgr-filter-row">
                   <div id="libMgrFilterControl" class="segmented-control" style="grid-template-columns: repeat(3, 1fr);">
-                    <button type="button" class="seg-btn active" data-lib-filter="all" aria-pressed="true">Todos</button>
-                    <button type="button" class="seg-btn" data-lib-filter="custom" aria-pressed="false">Meus subtiles</button>
-                    <button type="button" class="seg-btn" data-lib-filter="builtin" aria-pressed="false">Padrão</button>
+                    <button type="button" class="seg-btn active icon-only" data-lib-filter="all" aria-pressed="true" title="Todos" aria-label="Todos"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8V3h5M16 3h5v5M3 16v5h5M21 16v5h-5M7 12l3 3 7-7"/></svg><span class="icon-label">Todos</span></button>
+                    <button type="button" class="seg-btn icon-only" data-lib-filter="custom" aria-pressed="false" title="Meus" aria-label="Meus"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 5 5 5M4 20l5-1L21 7l-4-4L5 15z"/></svg><span class="icon-label">Meus subtiles</span></button>
+                    <button type="button" class="seg-btn icon-only" data-lib-filter="builtin" aria-pressed="false" title="Padrão" aria-label="Padrão"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg><span class="icon-label">Padrão</span></button>
                   </div>
                 </div>
                 <div class="swatch-bulk-actions lib-mgr-actions-bar">
-                  <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent" title="Criar novo subtile customizado">+ Subtile</button>
-                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn" title="Criar novo conjunto de famílias">+ Conjunto</button>
-                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn" title="Exportar apenas subtiles customizados (.json)">Exportar Subtiles</button>
+                  <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg><span class="icon-label">+ Subtile</span></button>
+                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/></svg><span class="icon-label">+ Conjunto</span></button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar peças" aria-label="Exportar peças"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label">Exportar Subtiles</span></button>
                 </div>
               </div>
 

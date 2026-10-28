@@ -44,7 +44,7 @@
   add('tiles', 'duplicate', 'Duplicar formas', 'Ctrl+D', ['btnVecPropDuplicate'], ctx => ctx.duplicate(), {
     available: ctx => Boolean(ctx.canDuplicate?.()), unavailable: ctx => ctx.duplicateUnavailable?.()
   });
-  add('tiles', 'copyEditable', 'Criar cópia editável', '', ['btnTileTopDuplicate', 'btnPropsDuplicateBuiltIn', 'btnNoticeDuplicateToEdit'], ctx => ctx.copyEditable(), {label: 'span'});
+  add('tiles', 'copyEditable', 'Criar cópia', '', ['btnTileTopDuplicate', 'btnPropsDuplicateBuiltIn', 'btnNoticeDuplicateToEdit'], ctx => ctx.copyEditable(), {label: 'span'});
   add('tiles', 'finish', 'Concluir Caneta', 'Enter', [], ctx => ctx.finish(), {available: ctx => Boolean(ctx.canFinish?.())});
   add('tiles', 'cancel', 'Cancelar gesto ou limpar seleção', 'Escape', [], ctx => ctx.cancel());
   const get = (context, id) => definitions.find(command => command.context === context && command.id === id);
@@ -74,7 +74,7 @@
       for (const id of command.controls) {
         const el = root.getElementById(id);
         if (!el) continue;
-        el.title = `${command.name}${command.shortcut ? ` (${command.shortcut})` : ''}${command.detail ? ` • ${command.detail}` : ''}`;
+        el.title = `${command.name}${command.shortcut ? ` (${command.shortcut})` : ''}`;
         if (command.label) {
           const label = el.querySelector?.(command.label);
           if (label) label.textContent = command.name;

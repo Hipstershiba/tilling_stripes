@@ -22,7 +22,7 @@ studio.openTilesStudio(registry.TILE_FAMILIES_META[0].id);
 const familyCount = () => registry.TILE_FAMILIES_META.length;
 let count = familyCount();
 studio.handleKeyDown(event('d', {ctrlKey: true}), state);
-assert.equal(familyCount(), count); assert(messages.pop().includes('Criar cópia editável'));
+assert.equal(familyCount(), count); assert(messages.pop().includes('Criar cópia'));
 const custom = store.createFamily({name: 'Pan • Clip • nome do usuário'}).family;
 studio.selectFamily(custom.id);
 const getDoc = () => store.getFamilyById(custom.id);

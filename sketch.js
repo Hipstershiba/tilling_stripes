@@ -807,11 +807,19 @@ function getEditPreviewState() {
       stampBlock: StudioState.stampBlock,
       dragSelectionRect,
       selectionShape: mosaicSelectionShape,
+      selectionPoints: captureGesture?.points,
+      selectionCells: captureGesture ? window.MosaicEngine.getRegionGestureCells(captureGesture) : [],
       hoveredCell: hit
     };
   }
 
   if (StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select') {
+    if (mosaicSelectionShape === 'brush' && hit) {
+      const m=StudioState.mosaicData,N=m.subtilesPerSide;
+      const preview=window.MosaicEngine.createRegionGesture('brush',m.rows*N,m.cols*N,selectionBrushDiameter);
+      window.MosaicEngine.extendRegionGesture(preview,hit.selectionX ?? hit.col*N+hit.subCol+.5,hit.selectionY ?? hit.row*N+hit.subRow+.5);
+      return {tool:'stamp',scopeMode:'single',dragSelectionRect:preview,selectionShape:'brush',selectionCells:window.MosaicEngine.getRegionGestureCells(preview)};
+    }
     return {
       tool: 'stamp',
       scopeMode: StudioState.editScope,
@@ -1587,7 +1595,9 @@ function renderSwatchesPanel() {
     const active = generatorUiState.isolation?.key === key;
     const el = button(active ? 'Restaurar seleção' : 'Isolar', 'family-solo-btn',
       active ? 'Restaurar a seleção anterior ao isolamento' : `Isolar ${label}`, key + ':solo', () => toggleGeneratorIsolation(key, ids));
-    el.setAttribute('aria-pressed', String(active)); return el;
+    el.setAttribute('aria-pressed', String(active));
+    if (window.UiFormat?.icon) el.innerHTML = window.UiFormat.icon(active ? 'reset' : 'eye');
+    return el;
   }
   for (const group of grouped) {
     let headingAdded = false;
@@ -1668,6 +1678,8 @@ function buildSymmetryPanelUI() {
       btn.type = 'button';
       btn.className = 'sym-card';
       btn.dataset.mode = m.id;
+      btn.title = m.name;
+      btn.setAttribute('aria-label', m.name);
       btn.innerHTML = `
         <div class="sym-card-icon">${SYMMETRY_ICONS_SVG[m.id] || ''}</div>
         <div class="sym-card-text">
@@ -1726,6 +1738,8 @@ function buildSymmetryPanelUI() {
       btn.type = 'button';
       btn.className = 'block-sym-pill';
       btn.dataset.blockMode = opt.key;
+      btn.title = opt.title;
+      btn.setAttribute('aria-label', opt.title);
       btn.innerHTML = `
         <div class="block-sym-pill-icon">${opt.icon || ''}</div>
         <div class="block-sym-pill-text">
@@ -1974,7 +1988,7 @@ function getCanvasHitCell(mx, my) {
   const subCol = Math.min(N - 1, Math.max(0, Math.floor((localX / blockW) * N)));
   const subRow = Math.min(N - 1, Math.max(0, Math.floor((localY / blockH) * N)));
 
-  return { row, col, subRow, subCol };
+  return { row, col, subRow, subCol, selectionX: (lx-m)/blockW*N, selectionY: (ly-m)/blockH*N };
 }
 
 function resolveFreezeTargetPlacements(hit) {
@@ -2102,6 +2116,8 @@ function performSubtileRotateStep(hit, step = 1) {
 let mosaicRegion = null;
 let mosaicTransferMode = 'stamp';
 let mosaicSelectionShape = 'rect';
+let captureGesture = null;
+let selectionBrushDiameter = 1;
 function moveMosaicRegion(hit) {
   if (!mosaicRegion || !StudioState.mosaicData) return false;
   const m = StudioState.mosaicData, N = m.subtilesPerSide;
@@ -2374,6 +2390,7 @@ function beginCloneCapture() {
 }
 function cancelCloneCapture() {
   StudioState.isSelectingStampDrag = false;
+  captureGesture = null;
   captureOriginHit = null;
   StudioState.stampInteractionMode = 'apply';
   syncEditWorkspaceUI();
@@ -2445,8 +2462,8 @@ function syncBrushEditorUI() {
   if (undo) undo.disabled = !brushEditorPortal.undo.length;
   if (redo) redo.disabled = !brushEditorPortal.redo.length;
   const ink = document.getElementById('brushEditorInkLabel');
-  if (ink) ink.textContent = StudioState.editBrushTileId === 84 ? 'Borracha: pinte para apagar células'
-    : `Tile para pintar: #${StudioState.editBrushTileId} · ${window.TileRegistry.TILE_NAMES[StudioState.editBrushTileId] || ''}`;
+  if (ink) ink.textContent = StudioState.editBrushTileId === 84 ? 'Borracha'
+    : `#${StudioState.editBrushTileId} · ${window.TileRegistry.TILE_NAMES[StudioState.editBrushTileId] || ''}`;
 }
 
 function openBrushEditor() {
@@ -2591,6 +2608,13 @@ function stepToolSizeFromWheel(e) {
 function cycleActiveToolSize(direction) {
   direction = Math.sign(direction);
   if (!direction) return false;
+  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select' && !brushEditorPortal) {
+    const next = Math.max(1,Math.min(getToolSizeInfo().max,selectionBrushDiameter+direction));
+    if (next === selectionBrushDiameter) return false;
+    selectionBrushDiameter = next;
+    syncEditWorkspaceUI(); redraw();
+    return true;
+  }
   if (StudioState.activeTool === 'freeze' || StudioState.activeTool === 'rotate') {
     const info = getToolSizeInfo();
     const next = Math.max(info.min, Math.min(info.max, info.dim + direction));
@@ -2729,6 +2753,15 @@ function mouseDragged() {
 function updateCaptureDragBounds(hit) {
   const origin = captureOriginHit || hit;
   const N = StudioState.mosaicData.subtilesPerSide;
+  if (mosaicSelectionShape !== 'rect' && captureGesture) {
+    const gr = hit.row*N+hit.subRow, gc = hit.col*N+hit.subCol;
+    window.MosaicEngine.extendRegionGesture(captureGesture, hit.selectionX ?? gc+.5, hit.selectionY ?? gr+.5);
+    StudioState.stampDragStartGR = captureGesture.minGR;
+    StudioState.stampDragStartGC = captureGesture.minGC;
+    StudioState.stampDragCurrGR = captureGesture.maxGR;
+    StudioState.stampDragCurrGC = captureGesture.maxGC;
+    return;
+  }
   if (isEffectiveBrushSnap()) {
     StudioState.stampDragStartGR = Math.min(origin.row, hit.row) * N;
     StudioState.stampDragStartGC = Math.min(origin.col, hit.col) * N;
@@ -2744,6 +2777,7 @@ function updateCaptureDragBounds(hit) {
 function startCanvasRegionCaptureDrag(hit) {
   if (!StudioState.mosaicData || !hit) return;
   if (StudioState.activeTool !== 'stamp') activateStudioTool('stamp');
+  captureGesture = window.MosaicEngine.createRegionGesture(mosaicSelectionShape, StudioState.mosaicData.rows*StudioState.mosaicData.subtilesPerSide, StudioState.mosaicData.cols*StudioState.mosaicData.subtilesPerSide, mosaicSelectionShape === 'brush' ? selectionBrushDiameter : 1);
   captureOriginHit = {...hit};
   StudioState.isSelectingStampDrag = true;
   StudioState.stampInteractionMode = 'select';
@@ -2765,9 +2799,15 @@ function finishCanvasRegionCapture() {
       StudioState.stampDragCurrGC
     );
     if (captured) {
-      for (let y=0;y<captured.rows;y++) for(let x=0;x<captured.cols;x++) {
-        if (!window.MosaicEngine.isRegionCellSelected(y, x, captured.rows, captured.cols, mosaicSelectionShape)) captured.cells[y][x] = null;
+      if (mosaicSelectionShape !== 'rect') {
+        const cells = window.MosaicEngine.getRegionGestureCells(captureGesture);
+        if (!cells.length) { cancelCloneCapture(); return false; }
+        const selected = new Set(cells.map(cell => `${cell.gr},${cell.gc}`));
+        for (let y=0;y<captured.rows;y++) for(let x=0;x<captured.cols;x++) {
+          if (!selected.has(`${captured.minGlobalRow+y},${captured.minGlobalCol+x}`)) captured.cells[y][x] = null;
+        }
       }
+      captureGesture = null;
       mosaicRegion = {pattern: JSON.parse(JSON.stringify(captured)), row: captured.minGlobalRow, col: captured.minGlobalCol};
       StudioState.supertilePattern = captured;
       StudioState.stampBlock = captured;
@@ -3243,7 +3283,8 @@ function buildEditWorkspaceUI() {
     btn.type = 'button';
     btn.className = 'edit-scope-card';
     btn.dataset.scope = s.id;
-    btn.title = `${window.UiFormat?.formatProductDescription(`${s.name} — ${s.description}`) || `${s.name} — ${s.description}`} (Q/Tab: próximo escopo; Shift: anterior)`;
+    btn.title = shortNames[s.id] || s.name;
+    btn.setAttribute('aria-label', btn.title);
     btn.innerHTML = `
       <span class="edit-scope-icon">${EDIT_SCOPE_ICONS[s.id] || '•'}</span>
       <span class="edit-scope-title">${shortNames[s.id] || s.name}</span>
@@ -3720,6 +3761,13 @@ function syncEditWorkspaceUI() {
   if (StudioState.brushSizeMode === 'custom' && StudioState.supertilePattern && sizeValEl) {
     sizeValEl.textContent = `${StudioState.supertilePattern.rows}×${StudioState.supertilePattern.cols}`;
     if (sizeSubEl) sizeSubEl.textContent = 'peças';
+  }
+
+  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select' && !brushEditorPortal) {
+    if (sizeValEl) sizeValEl.textContent = `${selectionBrushDiameter}×${selectionBrushDiameter}`;
+    if (sizeSubEl) sizeSubEl.textContent = 'peças';
+    if (decreaseBrush) decreaseBrush.disabled = selectionBrushDiameter <= 1;
+    if (increaseBrush) increaseBrush.disabled = selectionBrushDiameter >= brushInfo.max;
   }
 
   // 8. Supertile Builder Metadata, Badges & Contextual Actions

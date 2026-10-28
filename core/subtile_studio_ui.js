@@ -389,6 +389,7 @@
       if (labelEl) {
         labelEl.textContent = inTiles ? 'Voltar ao mosaico' : 'Editar peças';
       }
+      btnMode.setAttribute('aria-label', inTiles ? 'Voltar ao mosaico' : 'Editar peças');
       btnMode.title = inTiles
         ? 'Voltar ao mosaico (Ctrl+E)'
         : 'Editar peças (Ctrl+E)';
@@ -556,7 +557,7 @@
       duplicateUnavailable() {
         if (editable) notifyToast('Selecione formas para duplicar.');
         else {
-          notifyToast('Peça protegida. Use Criar cópia editável.');
+          notifyToast('Peça protegida. Use Criar cópia.');
           if (typeof document !== 'undefined') {
             const button = document.getElementById('btnTileTopDuplicate');
             button?.focus();
@@ -2061,6 +2062,7 @@
       document.getElementById('btnPropsDuplicateBuiltIn')?.addEventListener('click', () => {
         runTileCommand('copyEditable');
       });
+      iconizePropertyActions();
       return;
     }
 
@@ -2140,6 +2142,7 @@
       });
     });
     container.appendChild(presetBlock);
+    iconizePropertyActions();
 
     // 2. Align & Selection Quick Actions
     const hasSel = selected.length > 0;
@@ -2149,12 +2152,12 @@
     alignBlock.innerHTML = `
       <div class="vec-subblock-title"><span>Alinhar</span></div>
       <div class="vec-align-strip">
-        <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à Borda Esquerda (-0.5)" aria-label="Alinhar à Borda Esquerda (-0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignLeft')}</button>
-        <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar Horizontalmente (0)" aria-label="Centralizar Horizontalmente (0)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterX')}</button>
-        <button type="button" class="vec-align-btn" data-align="right" title="Alinhar à Borda Direita (+0.5)" aria-label="Alinhar à Borda Direita (+0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignRight')}</button>
-        <button type="button" class="vec-align-btn" data-align="top" title="Alinhar ao Topo (-0.5)" aria-label="Alinhar ao Topo (-0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignTop')}</button>
-        <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar Verticalmente (0)" aria-label="Centralizar Verticalmente (0)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterY')}</button>
-        <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à Base (+0.5)" aria-label="Alinhar à Base (+0.5)" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignBottom')}</button>
+        <button type="button" class="vec-align-btn" data-align="left" title="Alinhar à esquerda" aria-label="Alinhar à esquerda" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignLeft')}</button>
+        <button type="button" class="vec-align-btn" data-align="centerX" title="Centralizar H" aria-label="Centralizar H" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterX')}</button>
+        <button type="button" class="vec-align-btn" data-align="right" title="Alinhar à direita" aria-label="Alinhar à direita" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignRight')}</button>
+        <button type="button" class="vec-align-btn" data-align="top" title="Alinhar ao topo" aria-label="Alinhar ao topo" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignTop')}</button>
+        <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar V" aria-label="Centralizar V" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterY')}</button>
+        <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à base" aria-label="Alinhar à base" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignBottom')}</button>
       </div>
       ${selected.length >= 3 ? `
         <div class="vec-inline-actions" style="margin-top:3px;">
@@ -2297,8 +2300,8 @@
           </div>
         </div>
         <div class="vec-inline-actions" style="margin-top:2px;">
-          <button type="button" class="mini-btn" data-sw-preset="${(1 / 6).toFixed(6)}">Espess. 1/6</button>
-          <button type="button" class="mini-btn" data-sw-preset="${(1 / 3).toFixed(6)}">Espess. 1/3</button>
+          <button type="button" class="mini-btn" data-sw-preset="${(1 / 6).toFixed(6)}">1/6</button>
+          <button type="button" class="mini-btn" data-sw-preset="${(1 / 3).toFixed(6)}">1/3</button>
         </div>
       ` : ''}
       ${primary.type === 'path' && hasFill ? `
@@ -2863,6 +2866,12 @@
 
   function iconizePropertyActions() {
     const paths = {
+      'stripe-h-1-3': 'M3 8h18v8H3z', 'stripe-v-1-3': 'M8 3h8v18H8z',
+      'curve-tl-1-3': 'M3 3v6a12 12 0 0 1 12 12h6A18 18 0 0 0 3 3z', 'quarter-pie-tl':'M3 3a18 18 0 0 1 18 18H3z',
+      horizontal:'M3 3v18M21 3v18M8 6v12M16 6v12', vertical:'M3 3h18M3 21h18M6 8h12M6 16h12',
+      closed:'M4 4h16v16H4z', open:'M4 4v16h16', cancel:'M5 5l14 14M5 19 19 5',
+      btnPropsDuplicateBuiltIn:'M3 3h12v12H3z M9 9h12v12H9z',
+      btnVecToggleSmooth:'M3 18C3 3 21 21 21 6 M3 3h18 M10 10h4v4h-4z', btnVecSubdivideSeg:'M3 12h18M12 3v18M9 9h6v6H9z',
       unite: 'M3 3h11v7h7v11H10v-7H3z', subtract: 'M3 3h12v7h-5v5H3z M10 10h11v11H10z',
       intersect: 'M3 3h12v12H3z M9 9h12v12H9z M9 9h6v6H9z', exclude: 'M3 3h12v6H9v6H3z M15 9h6v12H9v-6h6z',
       r90: 'M4 10a8 8 0 1 1 1 8 M4 3v7h7', r270: 'M20 10a8 8 0 1 0-1 8 M20 3v7h-7',
@@ -2871,11 +2880,15 @@
       btnVecPropToPath: 'M3 18C3 3 21 21 21 6 M1 16h4v4H1z M19 4h4v4h-4z'
     };
     document.querySelectorAll('#vecPropsContainer button, #tilePathfinderContainer button').forEach(button => {
-      const key = button.dataset.boolOp || button.dataset.selD4 || button.id;
+      const key = button.dataset.boolOp || button.dataset.selD4 || button.dataset.preset || button.dataset.distrib || button.dataset.penAct || button.id;
       if (!paths[key]) return;
-      const name = button.getAttribute('aria-label') || button.title || button.textContent.trim();
+      const names = {unite:'Unir',subtract:'Menos frente',intersect:'Interseção',exclude:'Excluir',r90:'Girar 90°',r270:'Girar -90°',mx:'Espelhar H',my:'Espelhar V',
+        btnVecPropDuplicate:'Duplicar',btnVecPropDelete:'Excluir',btnVecPropToPath:'Converter em caminho',btnPropsDuplicateBuiltIn:'Criar cópia',btnVecToggleSmooth:'Suavizar',btnVecSubdivideSeg:'Inserir nó',
+        'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',closed:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
+      const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
-      button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[key]}"/></svg>`;
+      button.classList.add('icon-only');
+      button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[key]}"/></svg><span class="icon-label">${name}</span>`;
     });
   }
 
