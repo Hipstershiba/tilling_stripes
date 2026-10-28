@@ -825,6 +825,17 @@ A preferência do usuário substitui a divulgação progressiva da simetria do b
 - [x] Usar o mesmo tratamento neutro/selecionado nas ferramentas e opções do mosaico e do editor; guias ligadas conservam marca discreta.
 - [x] Adaptar rodapé à largura da coluna: em 900×768 a coluna de 334 px manteve todos os controles visíveis, em duas linhas e sem cortes.
 - [x] Manter famílias alcançáveis com uma rolagem externa no gerador.
-- [ ] Concluir gate, sincronização e commit.
+- [x] Alterações incorporadas em `fb9cb4e`; validação pendente concluída na retomada de 28/10.
 
 Capturas em `_local/visual-unificado` permanecem ignoradas. A T10 não foi iniciada.
+
+### Retomada e conciliação da revisão visual — 28/10/2026
+
+A revisão interrompida já havia sido incorporada em `fb9cb4e`. Dez commits posteriores à T09 acrescentaram ícones de ferramentas, retiraram backup/atalhos visuais redundantes, ajustaram histórico/rolagem e tema nativo dos campos, e corrigiram a regra de preenchimento vetorial. Nenhuma dessas alterações foi revertida. A rolagem atual permanece interna à lista de famílias e ao histórico, conforme os commits posteriores; substitui a rolagem externa descrita no registro anterior.
+
+- [x] Conferir histórico Git e ausência de alterações locais pendentes no início da retomada.
+- [x] Reproduzir o ponto pendente: zoom respondia, mas o conteúdo do grupo não aparecia no editor.
+- [x] Isolar a pintura do grupo de zoom e retirar seu recorte interno; confirmar pintura após troca de ambiente, zoom 100→125→100, redimensionamento e ausência de cortes a 900×768.
+- [x] Gate completo: 51/51 suítes; AST/vault sincronizados; correção residual registrada em commit separado.
+
+Captura atual em `_local/retomada-ui/editor.png`, ignorada pelo Git. T10 continua pendente.

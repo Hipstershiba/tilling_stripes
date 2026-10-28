@@ -771,7 +771,9 @@ body.is-panning * {
   border: 1px solid var(--border-subtle);
   border-radius: 4px;
   height: var(--control-h);
-  overflow: hidden;
+  /* Isolate control painting from canvas transforms and footer clipping. */
+  transform: translateZ(0);
+  overflow: visible;
 }
 
 .status-icon-btn {
