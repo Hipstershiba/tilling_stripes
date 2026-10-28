@@ -120,10 +120,10 @@
         ]
     },
     'vector-editor': {
-        "title": "Desenhar peças",
+        "title": "Ferramentas",
         "body": [
-            "Seleção (V): mova, redimensione ou gire pelas alças. Shift mantém proporções; Alt usa o centro.",
-            "Seleção direta (A): ajuste nós e curvas. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
+            "Seleção (V): mova, redimensione ou gire pelo centro da seleção. Alt+arraste duplica; Shift restringe o movimento.",
+            "Seleção direta (A): ajuste nós e curvas. Arraste o corpo para mover o objeto inteiro; Alt+arraste o corpo duplica. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
             "Caneta (P): clique cria cantos; arraste cria curvas. Clique no início para fechar, Enter conclui e Escape cancela.",
             "Encaixe alinha o desenho à grade. A divisão 1/6 ajuda a conectar as fitas nas bordas."
         ]
@@ -200,6 +200,7 @@
       'Ctrl+U alterna o encaixe nos blocos; Shift inverte momentaneamente o encaixe ao editar.',
       'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
       'Setas no canvas em Inspeção: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
+      'Carimbo (S): C inicia a seleção; escolha retângulo, elipse ou losango. T alterna Estampar e Recortar e mover; clique define o destino. Mover usa células inteiras, sem repetir por simetria, e pode ser desfeito com Ctrl+Z.',
       'No editor de peças:', ...commands.help('tiles'),
       'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia editável.',
       'Escape cancela Caneta/arrasto ou limpa a seleção, sem sair do editor. Ctrl+E ou Voltar ao mosaico muda de ambiente.',

@@ -231,9 +231,9 @@ const d4Base = [asymRect, asymPath, { ...keep }];
 const r90 = VectorBoolean.transformSelectedShapesD4(d4Base, ['R'], 'r90');
 const r90Rect = VectorEditor.convertShapeToPath(r90.find((s) => s.id === 'R'));
 const rb = boundsOfPathShape(r90Rect);
-// r90 maps (u, v) -> (-v, u): x in [0.1, 0.4], y in [-0.4, -0.3] -> x in [0.3, 0.4], y in [0.1, 0.4]
-approx(rb.minX, 0.3, 1e-4, 'r90 minX'); approx(rb.maxX, 0.4, 1e-4, 'r90 maxX');
-approx(rb.minY, 0.1, 1e-4, 'r90 minY'); approx(rb.maxY, 0.4, 1e-4, 'r90 maxY');
+// Rotate around the off-origin selection center (0.25, -0.35).
+approx(rb.minX, 0.2, 1e-4, 'r90 minX'); approx(rb.maxX, 0.3, 1e-4, 'r90 maxX');
+approx(rb.minY, -0.5, 1e-4, 'r90 minY'); approx(rb.maxY, -0.2, 1e-4, 'r90 maxY');
 assert.deepStrictEqual(r90.find((s) => s.id === 'KEEP'), keep, 'unselected shapes must remain untouched by D4 transforms');
 
 function pathSig(shape) {
@@ -254,7 +254,7 @@ for (const k of ['mx', 'my']) {
   assert.strictEqual(pathSig(twice[1]), pathSig(asymPath), `2x ${k} must be identity (path)`);
 }
 const mxRect = boundsOfPathShape(VectorEditor.convertShapeToPath(VectorBoolean.transformSelectedShapesD4(d4Base, ['R'], 'mx')[0]));
-approx(mxRect.minX, -0.4, 1e-4, 'mx minX'); approx(mxRect.maxX, -0.1, 1e-4, 'mx maxX');
+approx(mxRect.minX, 0.1, 1e-4, 'mx minX'); approx(mxRect.maxX, 0.4, 1e-4, 'mx maxX');
 const lockedT = VectorBoolean.transformSelectedShapesD4([{ ...asymRect, locked: true }], ['R'], 'r90');
 assert.strictEqual(lockedT[0].x, asymRect.x, 'locked shapes must be ignored by D4 transforms');
 console.log('✓ Quick D4 selection transforms (r90, r270, mx, my + closure) PASSED!');

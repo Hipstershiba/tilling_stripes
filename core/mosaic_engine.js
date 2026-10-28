@@ -680,6 +680,14 @@
    * Captures any rectangular region of subtiles [gr0..gr1, gc0..gc1] in global subtile coordinates
    * for the Clone / Stamp / Supertile brush.
    */
+  function isRegionCellSelected(row, col, rows, cols, shape = 'rect') {
+    const x = (col + 0.5) / cols * 2 - 1;
+    const y = (row + 0.5) / rows * 2 - 1;
+    if (shape === 'ellipse') return x * x + y * y <= 1;
+    if (shape === 'diamond') return Math.abs(x) + Math.abs(y) <= 1;
+    return true;
+  }
+
   function captureSubtileRegion(mosaicData, gr0, gc0, gr1, gc1) {
     if (!mosaicData) return null;
     const N = mosaicData.subtilesPerSide;
@@ -760,6 +768,7 @@
       for (let c = 0; c < W; c++) {
         const srcCell = stampPattern.cells[r][c];
         const [tr, tc] = transformGridCoords(r, c, H, W, transformKey);
+        if (!srcCell) { outCells[tr][tc] = null; continue; }
         const nextTransform = composeD4(transformKey, srcCell.transform || 'id');
         const nextTileId = getTransformedTileId(srcCell.baseTileId, nextTransform);
         if (tr >= 0 && tr < outRows && tc >= 0 && tc < outCols) {
@@ -1362,12 +1371,23 @@
       p.fill(52, 211, 153, 42);
       p.stroke(52, 211, 153, 245);
       p.strokeWeight(2);
-      p.rect(sx, sy, rw, rh, 3);
+      if (editPreview.selectionShape === 'ellipse') {
+        p.ellipse(sx + rw / 2, sy + rh / 2, rw, rh);
+      } else if (editPreview.selectionShape === 'diamond') {
+        p.beginShape();
+        p.vertex(sx + rw / 2, sy);
+        p.vertex(sx + rw, sy + rh / 2);
+        p.vertex(sx + rw / 2, sy + rh);
+        p.vertex(sx, sy + rh / 2);
+        p.endShape(p.CLOSE);
+      } else {
+        p.rect(sx, sy, rw, rh, 3);
+      }
 
       // Dimensions badge
       const selCols = maxGC - minGC + 1;
       const selRows = maxGR - minGR + 1;
-      const label = `Supertile: ${selCols} × ${selRows} subtiles`;
+      const label = `${selCols} × ${selRows}`;
       p.noStroke();
       p.fill(16, 24, 22, 235);
       p.rectMode(p.CENTER);
@@ -1628,6 +1648,7 @@
     resizeSupertilePattern,
     symmetrizeSupertilePattern,
     captureSubtileRegion,
+    isRegionCellSelected,
     captureBlockPattern,
     transformClonePattern,
     resolveStampRegionPlacements,

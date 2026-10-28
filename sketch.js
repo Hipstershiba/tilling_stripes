@@ -806,6 +806,7 @@ function getEditPreviewState() {
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
       stampBlock: StudioState.stampBlock,
       dragSelectionRect,
+      selectionShape: mosaicSelectionShape,
       hoveredCell: hit
     };
   }
@@ -857,6 +858,22 @@ function getEditPreviewState() {
       regionPlacements: resolved.placements,
       anchorBounds: resolved.anchorBounds
     };
+  }
+
+  if (StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move') {
+    const placements = [];
+    if (mosaicRegion) {
+      const {pattern, row, col} = mosaicRegion;
+      const m = StudioState.mosaicData, N = m.subtilesPerSide;
+      const gr = hit.row * N + hit.subRow, gc = hit.col * N + hit.subCol;
+      if (gr + pattern.rows <= m.rows * N && gc + pattern.cols <= m.cols * N) {
+        for (let y=0;y<pattern.rows;y++) for(let x=0;x<pattern.cols;x++) if(pattern.cells[y][x]) {
+          const source = m.grid[Math.floor((row+y)/N)][Math.floor((col+x)/N)].cells[(row+y)%N][(col+x)%N];
+          placements.push({...source, gr:gr+y, gc:gc+x, isAnchor:true});
+        }
+      }
+    }
+    return {tool:'stamp', scopeMode:'single', regionPlacements:placements};
   }
 
   // Paint or Stamp ('apply' mode): both use the unified Supertile / Brush pattern
@@ -966,6 +983,7 @@ function resetD4BrokenState() {
 }
 
 function regenerateMosaic(recordHistory = true) {
+  mosaicRegion = null;
   resetD4BrokenState();
 
   const isDestructive = recordHistory && !StudioState.isRestoringHistory;
@@ -1083,6 +1101,7 @@ function buildDocumentSnapshot(explicitParams = null) {
  * Used by undo/redo when the step crosses a generation.
  */
 function restoreDocumentSnapshot(snap) {
+  mosaicRegion = null;
   if (!snap || !window.DocumentSnapshot || !window.MosaicEngine) return false;
   const doc = snap.document;
   if (!doc) return false;
@@ -2079,6 +2098,35 @@ function performSubtileRotateStep(hit, step = 1) {
   return changed;
 }
 
+// Region transfer is transactional: clear only after validating the complete destination.
+let mosaicRegion = null;
+let mosaicTransferMode = 'stamp';
+let mosaicSelectionShape = 'rect';
+function moveMosaicRegion(hit) {
+  if (!mosaicRegion || !StudioState.mosaicData) return false;
+  const m = StudioState.mosaicData, N = m.subtilesPerSide;
+  const r = hit.row * N + hit.subRow, c = hit.col * N + hit.subCol;
+  const {pattern, row, col} = mosaicRegion;
+  if (r < 0 || c < 0 || r + pattern.rows > m.rows * N || c + pattern.cols > m.cols * N) return false;
+  if (r === row && c === col) return false;
+  const cell = (gr,gc) => m.grid[Math.floor(gr/N)][Math.floor(gc/N)].cells[gr%N][gc%N];
+  const key = (gr,gc) => `${Math.floor(gr/N)},${Math.floor(gc/N)},${gr%N},${gc%N}`;
+  const frozen = [];
+  for (let y=0;y<pattern.rows;y++) for(let x=0;x<pattern.cols;x++) if(pattern.cells[y][x]) {
+    frozen.push([y,x,StudioState.frozenCells?.get(key(row+y,col+x)), {...cell(row+y,col+x)}]);
+    StudioState.frozenCells?.delete(key(row+y,col+x));
+    Object.assign(cell(row+y,col+x), {baseTileId:84,tileId:84,transform:'id'});
+  }
+  for (const [y,x,preserved,contents] of frozen) {
+    Object.assign(cell(r+y,c+x), contents);
+    StudioState.frozenCells?.delete(key(r+y,c+x));
+    if (preserved !== undefined) StudioState.frozenCells.set(key(r+y,c+x),preserved);
+  }
+  mosaicRegion = {pattern,row:r,col:c};
+  syncD4Badge(); syncFreezeUI();
+  return true;
+}
+
 function performBrushOrStampAtHit(hit) {
   if (!StudioState.mosaicData || !hit) return false;
 
@@ -2205,7 +2253,7 @@ function currentBrushSession() {
 function isEraserPattern() {
   const pattern = StudioState.supertilePattern;
   return brushPatternOwner === 'paint' && StudioState.editBrushTileId === 84 &&
-    pattern?.cells?.every(row => row.every(cell => cell.baseTileId === 84));
+    pattern?.cells?.every(row => row.every(cell => !cell || cell.baseTileId === 84));
 }
 function rememberBrushSession() {
   // Erasing is temporary; never replace the last non-empty painter with it.
@@ -2228,8 +2276,8 @@ function restoreBrushToolSessions(saved) {
         pattern.rows < 1 || pattern.cols < 1 || !Array.isArray(pattern.cells) ||
         pattern.cells.length !== pattern.rows || !pattern.cells.every(row =>
           Array.isArray(row) && row.length === pattern.cols && row.every(cell =>
-            cell && Number.isInteger(cell.baseTileId) && cell.baseTileId >= 0 && cell.baseTileId < total &&
-            window.D4Symmetry.D4_METADATA[cell.transform || 'id']))) continue;
+            (cell === null || (cell && Number.isInteger(cell.baseTileId) && cell.baseTileId >= 0 && cell.baseTileId < total &&
+            window.D4Symmetry.D4_METADATA[cell.transform || 'id']))))) continue;
     const safe = JSON.parse(JSON.stringify(session));
     safe.tileId = Number.isInteger(safe.tileId) && safe.tileId >= 0 && safe.tileId < total ? safe.tileId : 2;
     safe.transform = window.D4Symmetry.D4_METADATA[safe.transform] ? safe.transform : 'id';
@@ -2321,7 +2369,7 @@ function beginCloneCapture() {
   cancelToolGesture();
   StudioState.stampInteractionMode = 'select';
   syncEditWorkspaceUI();
-  showEditorToast('Arraste para capturar.');
+
   redraw();
 }
 function cancelCloneCapture() {
@@ -2717,6 +2765,10 @@ function finishCanvasRegionCapture() {
       StudioState.stampDragCurrGC
     );
     if (captured) {
+      for (let y=0;y<captured.rows;y++) for(let x=0;x<captured.cols;x++) {
+        if (!window.MosaicEngine.isRegionCellSelected(y, x, captured.rows, captured.cols, mosaicSelectionShape)) captured.cells[y][x] = null;
+      }
+      mosaicRegion = {pattern: JSON.parse(JSON.stringify(captured)), row: captured.minGlobalRow, col: captured.minGlobalCol};
       StudioState.supertilePattern = captured;
       StudioState.stampBlock = captured;
       StudioState.editBrushTransform = 'id';
@@ -2738,7 +2790,7 @@ function finishCanvasRegionCapture() {
       if (StudioState.activeTool === 'stamp') cloneReady = true;
       captureOriginHit = null;
       StudioState.stampInteractionMode = 'apply';
-      showEditorToast(`Capturado ${captured.rows}×${captured.cols}. Clique para aplicar; Alt+arraste para recapturar.`);
+
       renderEditBrushPalette();
       renderSupertileBuilderCanvas();
       syncEditWorkspaceUI();
@@ -2878,6 +2930,7 @@ function handleCanvasMouseDown(e) {
     e.preventDefault();
     if (e.button === 2) {
       if (StudioState.isSelectingStampDrag || StudioState.stampInteractionMode === 'select') { cancelCloneCapture(); return; }
+      if (mosaicTransferMode === 'move') return;
       rotateOrFlipActiveBrush('r90');
       return;
     }
@@ -2888,6 +2941,10 @@ function handleCanvasMouseDown(e) {
         startCanvasRegionCaptureDrag(hit);
       } else {
         if (!isCloneReady()) { showEditorToast('Segure Alt e arraste para capturar uma região antes de clonar.', 'info'); return; }
+        if (mosaicTransferMode === 'move') {
+          if (moveMosaicRegion(hit)) { pushEditHistorySnapshot(); saveStudioStateToStorage(); redraw(); }
+          return;
+        }
         const activePat = ensureSupertilePattern();
         const isMultiCell = activePat.rows > 1 || activePat.cols > 1;
         if (StudioState.editScope === 'same_tile' && isMultiCell) {
@@ -3333,6 +3390,7 @@ function resetActiveBrushOrientation() {
   const pat = ensureSupertilePattern();
   for (const row of pat.cells) {
     for (const cell of row) {
+      if (!cell) continue;
       cell.transform = 'id';
       cell.tileId = cell.baseTileId;
     }
@@ -3849,6 +3907,17 @@ function initStudioUI() {
   syncAllInputsFromState();
   syncEditWorkspaceUI();
 
+  document.querySelectorAll('[data-region-mode]').forEach(btn => btn.addEventListener('click', () => {
+    mosaicTransferMode = btn.dataset.regionMode;
+    document.querySelectorAll('[data-region-mode]').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
+    if (mosaicTransferMode === 'move' && !mosaicRegion) beginCloneCapture();
+    redraw();
+  }));
+  document.querySelectorAll('[data-region-shape]').forEach(btn => btn.addEventListener('click', () => {
+    mosaicSelectionShape = btn.dataset.regionShape;
+    document.querySelectorAll('[data-region-shape]').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
+    beginCloneCapture();
+  }));
   // --- Artboard Size Controls ---
   const wInput = document.getElementById('canvasW');
   const hInput = document.getElementById('canvasH');
@@ -4714,6 +4783,12 @@ function initStudioUI() {
       e.preventDefault();
       if (window.StudioCommands) runMosaicCommand('swap');
       else swapStudioColors();
+      return;
+    }
+
+    if (StudioState.studioMode !== 'tiles' && StudioState.activeTool === 'stamp' && e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      document.querySelector(`[data-region-mode="${mosaicTransferMode === 'move' ? 'stamp' : 'move'}"]`)?.click();
       return;
     }
 

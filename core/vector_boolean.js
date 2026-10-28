@@ -581,17 +581,19 @@
 
   /**
    * Applies an exact D4 isometry (`r90`, `r270`, `r180`, `mx`, `my`, `md`, `mad`)
-   * around the master cell center `(0, 0)` to all selected unlocked shapes.
+   * around the shared selection center to all selected unlocked shapes.
    */
   function transformSelectedShapesD4(shapes, selectedIds, d4Key) {
-    const { vr } = resolveDeps();
+    const { vr, ve } = resolveDeps();
     const list = deepClone(shapes || []);
-    if (!vr || !d4Key || d4Key === 'id') return list;
+    if (!vr || !ve || !d4Key || d4Key === 'id') return list;
 
     const selSet = new Set(selectedIds || []);
+    const bounds = ve.computeSelectionBounds(list.filter(sh => sh && selSet.has(sh.id) && !sh.locked));
+    if (!bounds) return list;
     return list.map((sh) => {
       if (!sh || !selSet.has(sh.id) || sh.locked) return sh;
-      return roundShapeCoords(vr.transformShapeD4(sh, d4Key));
+      return roundShapeCoords(ve.translateShape(vr.transformShapeD4(ve.translateShape(sh, -bounds.cx, -bounds.cy), d4Key), bounds.cx, bounds.cy));
     });
   }
 

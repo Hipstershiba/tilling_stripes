@@ -851,3 +851,15 @@ Captura atual em `_local/retomada-ui/editor.png`, ignorada pelo Git. T10 continu
 - [x] Gate completo: 51/51 suítes; AST/vault sincronizados; commit separado.
 
 Terminologia de referência: documentação oficial do Illustrator para Seleção direta e Pathfinder (Unir, Menos frente, Interseção, Excluir). Captura local em `_local/ferramentas-pathfinder`, ignorada pelo Git. T10 continua pendente.
+
+### Gestos de seleção e recorte solicitados — 28/10/2026
+
+- [x] Corrigir o pivô dos botões de giro/espelhamento para o centro da seleção.
+- [x] Permitir mover objetos pelo corpo com Seleção direta e duplicar com Alt+arraste.
+- [x] Converter ações das propriedades e Pathfinder em ícones com tooltip/nome acessível.
+- [x] Acrescentar Recortar e mover no mosaico, alternância T e máscaras retangular/elíptica/losango.
+- [x] Preservar conteúdo nas sobreposições, rejeitar destinos fora da prancheta e agrupar movimento em um desfazer.
+- [x] Verificar no navegador recorte, desfazer/refazer, atalho T e propriedades sem rótulos de botão permanentes.
+- [x] Gate completo: 52/52 suítes; capturas em `_local/editor-gestos`, ignoradas pelo Git.
+
+Este ajuste responde ao pedido de edição e mantém T10 pendente.

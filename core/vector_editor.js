@@ -2253,8 +2253,12 @@
       // 4. Otherwise hit-test topmost shape to focus its nodes, or start marquee
       const hitSh = hitTestShapesTopmost(baseShapes, u, v, hitRadiusNorm);
       if (hitSh) {
-        editorState.selectedShapeIds = [hitSh.id];
+        if (!editorState.selectedShapeIds.includes(hitSh.id)) editorState.selectedShapeIds = [hitSh.id];
         editorState.selectedNodes = [];
+        editorState.dragOp = {type: 'move-selection', u0: u, v0: v, baseShapes,
+          startBox: computeSelectionBounds(baseShapes.filter(sh => editorState.selectedShapeIds.includes(sh.id))), changed: false, initialSelection: [...editorState.selectedShapeIds], duplicate: Boolean(mods.altKey)};
+        editorState.workingFamilyId = familyDoc.id;
+        editorState.workingShapes = deepClone(baseShapes);
         return { handled: true };
       }
 
@@ -2319,6 +2323,7 @@
       );
       editorState.dragOp = {
         type: 'move-selection',
+        initialSelection: [...editorState.selectedShapeIds], duplicate: Boolean(mods.altKey),
         u0: u,
         v0: v,
         startBox: activeBox,
@@ -2477,7 +2482,14 @@
         }
       }
 
-      if (Math.hypot(du, dv) > 1e-4) op.changed = true;
+      if (Math.hypot(du, dv) > 1e-4) {
+        if (op.duplicate && !op.changed) {
+          const copy = duplicateSelectedShapes(op.baseShapes, editorState.selectedShapeIds, 0);
+          op.baseShapes = copy.shapes;
+          editorState.selectedShapeIds = copy.newIds;
+        }
+        op.changed = true;
+      }
       const sel = new Set(editorState.selectedShapeIds);
       editorState.workingShapes = op.baseShapes.map((sh) =>
         (sh && sel.has(sh.id) && !sh.locked) ? translateShape(sh, du, dv) : deepClone(sh)

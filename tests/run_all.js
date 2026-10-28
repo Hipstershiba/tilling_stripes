@@ -70,7 +70,8 @@ const testSuites = [
   'test_tile_studio_ui_contract.js',
   'test_vector_editor_ops.js',
   'test_vector_boolean_svg.js',
-  'test_subtile_review_regressions.js'
+  'test_subtile_review_regressions.js',
+  'test_region_transfer.js'
 ];
 
 console.log('====================================================');

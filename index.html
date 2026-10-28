@@ -364,7 +364,7 @@
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
               </svg>
-              <span class="tool-grid-label">Grade de peças</span>
+              <span class="tool-grid-label">Subtiles</span>
             </button>
             <button id="toggleGuideOrbits" class="tool-btn tool-grid-btn guide-toggle" title="Mostrar/Ocultar Mapa de Órbitas (Tecla O)" aria-pressed="false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -463,18 +463,17 @@
         <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ferramentas Vetoriais e Guias de Subtiles">
           <div class="tool-divider"></div>
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Desenhar peças</div>
+            <div class="sidebar-section-title">Ferramentas</div>
             <div class="tools-grid-2col" id="vecToolsGrid">
-              <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active" data-vec-tool="select" aria-pressed="true" title="Seleção e Transformação BBox (Tecla V)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 3l7 18 2.5-7.5L20 11 3 3z"></path>
+              <button type="button" id="vecToolSelect" class="subtile-rail-btn vec-tool-btn active" data-vec-tool="select" aria-pressed="true" title="Seleção (V)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--bg-control)" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3l7 17.5 2.5-7 7.5-2.5L3 3z"></path>
                 </svg>
                 <span>Seleção</span>
               </button>
-              <button type="button" id="vecToolDirect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="direct" aria-pressed="false" title="Seleção Direta de Nós e Alças Bezier (Tecla A)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m3 3 7 18 2.5-7.5L20 11 3 3z"></path>
-                  <circle cx="12.5" cy="13.5" r="1.5" fill="currentColor"></circle>
+              <button type="button" id="vecToolDirect" class="subtile-rail-btn vec-tool-btn" data-vec-tool="direct" aria-pressed="false" title="Seleção direta (A)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 3l7 17.5 2.5-7 7.5-2.5L3 3z"></path>
                 </svg>
                 <span>Seleção direta</span>
               </button>
@@ -638,10 +637,10 @@
             <div class="sidebar-disclosure-body">
             <div class="tools-grid-2col">
               <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn" title="Importar arquivo .svg normalizado para [-0.5, 0.5]">
-                <span>↑ SVG</span>
+                <span>Importar SVG</span>
               </button>
               <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn" title="Exportar o subtile atual como vetor .svg unitário">
-                <span>↓ SVG</span>
+                <span>Exportar SVG</span>
               </button>
             </div>
             <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
@@ -1062,10 +1061,16 @@
               <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
                 <div class="clone-capture-actions" id="stampInteractionSegmented">
+                  <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T alterna com Mover)">⧉</button>
+                  <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T alterna com Estampar)">✥</button>
+                  <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Seleção retangular" title="Seleção retangular">□</button>
+                  <button type="button" class="mini-btn" data-region-shape="ellipse" aria-pressed="false" aria-label="Seleção elíptica" title="Seleção elíptica">○</button>
+                  <button type="button" class="mini-btn" data-region-shape="diamond" aria-pressed="false" aria-label="Seleção em losango" title="Seleção em losango">◇</button>
+
                   <button type="button" class="mini-btn" data-stamp-mode="select"
-                    title="Atalho principal: segure Alt e arraste no mosaico. Tecla C também inicia uma captura.">Capturar região</button>
+                    aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)">⌖</button>
                 </div>
-                <p id="stampModeHint" class="tool-size-hint" role="status">Segure Alt e arraste para capturar. Solte e clique para aplicar.</p>
+                <p id="stampModeHint" class="sr-only" role="status">Segure Alt e arraste para capturar. Solte e clique para aplicar.</p>
               </div>
 
               <!-- Brush / Supertile Size & Block Alignment -->
@@ -1170,7 +1175,7 @@
                   <path d="M12 20h9"></path>
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                 </svg>
-                <span>Propriedades &amp; Forma</span>
+                <span>Propriedades</span>
               </div>
               <span id="vecSelectionBadge" class="panel-counter-pill">Nenhuma</span>
               <span class="panel-chevron">▾</span>
@@ -1201,7 +1206,8 @@
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
-                <span>Camadas / Objetos</span>
+                <span>Camadas</span>
+                <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
               <span class="panel-chevron">▾</span>
@@ -1209,15 +1215,9 @@
 
             <div class="panel-body" id="panelTileLayersBody">
               <div class="prop-section">
-                <div class="prop-label-row" style="margin-bottom: 6px;">
-                  <div class="prop-label-with-info">
-                    <span class="prop-label">Frente → fundo</span>
-                    <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Booleanas, Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                </div>
                 <div class="tile-layers-toolbar">
-                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent" title="Importar formas editáveis de um arquivo .svg">↑ Importar SVG</button>
-                  <button type="button" id="btnLayersExportSvg" class="mini-btn" title="Baixar este subtile como arquivo .svg limpo">↓ Exportar .SVG</button>
+                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent" title="Importar formas editáveis de um arquivo SVG">Importar SVG</button>
+                  <button type="button" id="btnLayersExportSvg" class="mini-btn" title="Exportar este subtile como arquivo SVG">Exportar SVG</button>
                   <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])" aria-label="Trazer forma selecionada para o topo (Ctrl+Shift+])"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 3h16M12 7v14m-6-8 6-6 6 6"/></svg></button>
                   <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)" aria-label="Enviar forma selecionada para trás (Ctrl+Shift+[)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21h16M12 3v14m-6-6 6 6 6-6"/></svg></button>
                 </div>
@@ -1237,7 +1237,7 @@
                   <line x1="12" y1="3" x2="12" y2="21"></line>
                   <line x1="3" y1="12" x2="21" y2="12"></line>
                 </svg>
-                <span>Órbita &amp; Variantes D4</span>
+                <span>Variantes D4</span>
               </div>
               <span id="tileLiveOrbitCountBadge" class="panel-counter-pill">4 variantes</span>
               <span class="panel-chevron">▾</span>
@@ -1294,7 +1294,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <span>Biblioteca · Conjuntos &amp; Famílias</span>
+                <span>Biblioteca</span>
               </div>
               <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
               <span class="panel-chevron">▾</span>
@@ -1322,7 +1322,7 @@
                 <div class="swatch-bulk-actions lib-mgr-actions-bar">
                   <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent" title="Criar novo subtile customizado">+ Subtile</button>
                   <button type="button" id="btnLibMgrNewGroup" class="mini-btn" title="Criar novo conjunto de famílias">+ Conjunto</button>
-                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn" title="Exportar apenas subtiles customizados (.json)">Exportar meus desenhos</button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn" title="Exportar apenas subtiles customizados (.json)">Exportar Subtiles</button>
                 </div>
               </div>
 

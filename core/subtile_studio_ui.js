@@ -403,7 +403,7 @@
       tilesDock?.classList.remove('hidden');
       genDock?.classList.add('hidden');
       editDock?.classList.add('hidden');
-      if (ctxTitle) ctxTitle.textContent = 'Peças e famílias';
+      if (ctxTitle) ctxTitle.textContent = 'Subtiles';
     } else {
       tilesDock?.classList.add('hidden');
       if (hostCtx && typeof hostCtx.syncEditWorkspaceUI === 'function') {
@@ -529,6 +529,9 @@
   function cancelVectorPreview() {
     const { ve } = resolveDeps();
     if (!ve) return;
+    if (ve.state.dragOp?.duplicate && ve.state.dragOp.initialSelection) {
+      ve.state.selectedShapeIds = [...ve.state.dragOp.initialSelection];
+    }
     ve.state.penSession = null;
     ve.state.dragOp = null;
     ve.state.workingShapes = null;
@@ -1362,7 +1365,7 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'tile-live-variant-card' + (vIdx === uiState.selectedVariantIndex ? ' active' : '');
-        btn.title = `#${tid} • ${reg.TILE_NAMES[tid] || fam.name} (${repKey}) — Clique p/ inspecionar | Duplo-clique p/ pintar no mosaico`;
+        btn.title = `#${tid} • ${reg.TILE_NAMES[tid] || fam.name} (${repKey})`;
 
         const imgSrc = thumbs && thumbs.get(tid) ? thumbs.get(tid) : '';
         btn.innerHTML = `
@@ -1902,7 +1905,7 @@
     if (!container.children.length) {
       const empty = document.createElement('div');
       empty.className = 'vec-empty-hint';
-      empty.textContent = 'Nenhuma família corresponde aos filtros. Altere o conjunto, o tipo ou a busca.';
+      empty.textContent = 'Nenhuma família encontrada.';
       container.appendChild(empty);
     }
     container.scrollTop = previousScrollTop;
@@ -2006,13 +2009,24 @@
       boolBlock.innerHTML = `
         <div class="vec-subblock-title">
           <span>Pathfinder</span>
-          <span style="font-weight:400;opacity:0.7;">${canBool ? `${unlockedSelCount} formas` : fam.builtIn || fam.protected ? 'Crie uma cópia' : 'Selecione 2+'}</span>
         </div>
         <div class="vec-bool-strip">
-          <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir formas selecionadas num contorno contínuo" ${!canBool ? 'disabled' : ''}>Unir</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Subtrair formas da frente sobre a forma de trás (furos compostos)" ${!canBool ? 'disabled' : ''}>Menos frente</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Manter apenas a área comum de interseção" ${!canBool ? 'disabled' : ''}>Interseção</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Diferença simétrica (XOR) vazando sobreposições" ${!canBool ? 'disabled' : ''}>Excluir</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir (Unite) — Combinar formas num contorno contínuo" ${!canBool ? 'disabled' : ''}>
+            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h9v6h7v10H10v-6H4V4z"/></svg>
+            <span>Unir</span>
+          </button>
+          <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Menos Frente (Minus Front) — Subtrair a forma da frente da forma de trás" ${!canBool ? 'disabled' : ''}>
+            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="1" stroke-dasharray="2 2"/><path d="M3 9h6v6h6v6H3V9z" fill="currentColor"/></svg>
+            <span>Menos</span>
+          </button>
+          <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Interseção (Intersect) — Manter apenas a área comum de sobreposição" ${!canBool ? 'disabled' : ''}>
+            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="12" height="12" rx="1"/><rect x="9" y="9" width="12" height="12" rx="1"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/></svg>
+            <span>Interseção</span>
+          </button>
+          <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Excluir (Exclude) — Diferença simétrica vazando sobreposições" ${!canBool ? 'disabled' : ''}>
+            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path fill-rule="evenodd" d="M3 3h12v12H3V3zm6 6h12v12H9V9z" fill="currentColor"/></svg>
+            <span>Excluir</span>
+          </button>
         </div>
       `;
       boolBlock.querySelectorAll('[data-bool-op]').forEach((btn) => {
@@ -2026,10 +2040,11 @@
           ve.state.selectedShapeIds = res.resultIds;
           ve.state.selectedNodes = [];
           commitFamilyShapes(famDoc.id, res.shapes);
-          notifyToast(res.emptyResult ? 'Operação resultou em área vazia.' : `Booleana (${btn.textContent.trim()}) aplicada.`);
+          if (res.emptyResult) notifyToast('Resultado vazio.');
         });
       });
       (pathfinder || container).appendChild(boolBlock);
+      iconizePropertyActions();
     }
 
 
@@ -2037,7 +2052,7 @@
       if (selBadge) selBadge.textContent = 'Somente Leitura';
       container.innerHTML = `
         <div class="vec-empty-hint">
-          Crie uma cópia para editar esta peça.
+          Peça protegida (somente leitura)
         </div>
         <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
           ⧉ Criar cópia editável
@@ -2157,7 +2172,7 @@
         </div>
         <div class="vec-inline-actions" style="margin-top:3px;">
           <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">⧉ Duplicar</button>
-          ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Virar Caminho</button>' : ''}
+          ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Converter em Caminho</button>' : ''}
           <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">✕ Excluir</button>
         </div>
       ` : ''}
@@ -2244,9 +2259,7 @@
       } else {
         const hint = document.createElement('div');
         hint.className = 'vec-empty-hint';
-        hint.textContent = shapes.length === 0
-          ? 'Prancheta vazia: desenhe com Retângulo (M), Arco/Fita (U) ou Caneta (P), ou insira uma Base de Fita acima.'
-          : 'Clique numa forma no canvas para inspecionar e editar estilo, medidas ou nós Bezier.';
+        hint.textContent = 'Nenhum objeto selecionado';
         container.appendChild(hint);
       }
       return;
@@ -2427,7 +2440,7 @@
               <button type="button" class="mini-btn" id="btnVecToggleSmooth">Alternar Canto/Suave</button>
               <button type="button" class="mini-btn" id="btnVecSubdivideSeg">+ Subdividir</button>
             </div>
-          ` : '<div class="vec-empty-hint">Use Seleção direta (A) para arrastar vértices, alças Bezier ou Alt+Clique para inserir nós.</div>'}
+          ` : '<div class="vec-empty-hint">Nenhum nó selecionado</div>'}
         `;
 
         geoBlock.querySelector('#vecPropPathClosed')?.addEventListener('change', (e) => {
@@ -2520,6 +2533,7 @@
         container.appendChild(geoBlock);
       }
     }
+    iconizePropertyActions();
   }
 
   function renderLayersPanel() {
@@ -2563,20 +2577,20 @@
       const hint = document.createElement('div');
       hint.className = 'vec-empty-hint';
       hint.textContent = fam.isCanonicalEmpty
-        ? 'Célula vazia canônica (#84) — respiro geométrico sem formas.'
-        : 'Nenhuma forma nesta família. Use as ferramentas vetoriais ou importe um SVG.';
+        ? 'Célula vazia (#84)'
+        : 'Nenhuma forma';
       listEl.appendChild(hint);
       return;
     }
 
-    const shortTags = {
-      rect: 'RET',
-      ellipse: 'ELI',
-      polygon: 'POL',
-      triangle: 'TRI',
-      arc: 'ARC',
-      line: 'LIN',
-      path: 'CAM'
+    const shapeIcons = {
+      rect: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',
+      ellipse: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+      polygon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/></svg>',
+      triangle: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 3 22 21 2 21"/></svg>',
+      arc: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12A9 9 0 0 0 12 3v4a5 5 0 0 1 5 5h4z"/></svg>',
+      line: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/></svg>',
+      path: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18c3-8 8-2 11-10 2-5 5-2 5 2"/></svg>'
     };
     const defaultLabels = {
       rect: 'Retângulo',
@@ -2678,7 +2692,8 @@
 
       const tag = document.createElement('span');
       tag.className = 'tile-layer-type-tag';
-      tag.textContent = shortTags[sh.type] || 'VET';
+      tag.setAttribute('aria-hidden', 'true');
+      tag.innerHTML = shapeIcons[sh.type] || shapeIcons.path;
       row.appendChild(tag);
 
       const displayName = sh.name || `${defaultLabels[sh.type] || 'Forma'} #${idx + 1}`;
@@ -2846,6 +2861,24 @@
     }
   }
 
+  function iconizePropertyActions() {
+    const paths = {
+      unite: 'M3 3h11v7h7v11H10v-7H3z', subtract: 'M3 3h12v7h-5v5H3z M10 10h11v11H10z',
+      intersect: 'M3 3h12v12H3z M9 9h12v12H9z M9 9h6v6H9z', exclude: 'M3 3h12v6H9v6H3z M15 9h6v12H9v-6h6z',
+      r90: 'M4 10a8 8 0 1 1 1 8 M4 3v7h7', r270: 'M20 10a8 8 0 1 0-1 8 M20 3v7h-7',
+      mx: 'M12 2v20 M3 6v12l6-6z M21 6v12l-6-6z', my: 'M2 12h20 M6 3h12l-6 6z M6 21h12l-6-6z',
+      btnVecPropDuplicate: 'M3 3h12v12H3z M9 9h12v12H9z', btnVecPropDelete: 'M3 6h18 M9 6V3h6v3 M6 6v15h12V6 M10 10v7 M14 10v7',
+      btnVecPropToPath: 'M3 18C3 3 21 21 21 6 M1 16h4v4H1z M19 4h4v4h-4z'
+    };
+    document.querySelectorAll('#vecPropsContainer button, #tilePathfinderContainer button').forEach(button => {
+      const key = button.dataset.boolOp || button.dataset.selD4 || button.id;
+      if (!paths[key]) return;
+      const name = button.getAttribute('aria-label') || button.title || button.textContent.trim();
+      button.setAttribute('aria-label', name); button.title = name;
+      button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[key]}"/></svg>`;
+    });
+  }
+
   function refresh() {
     if (typeof document === 'undefined') return;
     ensureValidSelection();
@@ -2855,6 +2888,7 @@
     renderTopBarControls();
     renderLeftPaneState();
     renderShapePropsPanel();
+    iconizePropertyActions();
     renderLayersPanel();
     renderD4LivePanel();
     renderLibraryManagerTree();
@@ -3272,12 +3306,11 @@
     if (uiState.hoverNorm) {
       const xStr = uiState.hoverNorm.nx >= 0 ? `+${uiState.hoverNorm.nx.toFixed(3)}` : uiState.hoverNorm.nx.toFixed(3);
       const yStr = uiState.hoverNorm.ny >= 0 ? `+${uiState.hoverNorm.ny.toFixed(3)}` : uiState.hoverNorm.ny.toFixed(3);
-      const toolTag = ve ? ` • Ferramenta: <strong>${ve.state.activeTool.toUpperCase()}</strong>` : '';
-      hover = `Coordenada Normalizada: <strong>(${xStr}, ${yStr})</strong>${toolTag} • Duplo-clique numa variante D4 para pintar no Mosaico`;
+      hover = `X: ${xStr}  Y: ${yStr}`;
     } else if (fam.builtIn) {
-      hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Criar cópia editável</strong> para desenhar livremente`;
+      hover = 'Protegida (somente leitura)';
     } else {
-      hover = `Editor Vetorial ativo • V Seleção | A Seleção direta | P Caneta | M Retângulo | L Elipse | G Polígono | U Arco | \\ Linha`;
+      hover = 'Pronto';
     }
 
     return { artboard, grid, hover };

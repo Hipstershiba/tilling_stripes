@@ -629,3 +629,27 @@ assert.ok(overlayDrawOps > 10, 'SubtileStudioUI.renderViewport must render maste
 LibraryStore.resetToDefaults();
 console.log('✓ End-to-End Acceptance (custom composite family -> 4 D4 variants -> Mandala D4 mosaic -> SVG export) PASSED!');
 console.log('ALL FASE C VECTOR EDITOR TESTS PASSED!\n');
+
+// Body dragging with Direct Selection and lazy Alt-drag duplication.
+for (const tool of ['direct', 'select']) {
+  const doc = {id: 'body-'+tool, shapes:[{id:'body',type:'rect',x:-.2,y:-.2,w:.4,h:.4,fill:true}]};
+  VectorEditor.state.activeTool = tool;
+  VectorEditor.state.snapEnabled = false;
+  VectorEditor.onPointerDown(0,0,{},doc,.01);
+  VectorEditor.onPointerMove(.1,.05,{},doc,.01);
+  const moved = VectorEditor.onPointerUp(doc).commitShapes;
+  assert.ok(moved, tool+' body drag commits');
+  approx(moved[0].x,-.1,1e-5);
+  assert.strictEqual(doc.shapes[0].x,-.2, 'document unchanged until commit');
+  VectorEditor.onPointerDown(0,0,{altKey:true},doc,.01);
+  assert.strictEqual(VectorEditor.onPointerUp(doc).commitShapes,null, 'Alt-click creates no copy');
+  VectorEditor.onPointerDown(0,0,{altKey:true},doc,.01);
+  VectorEditor.onPointerMove(.1,.05,{altKey:true},doc,.01);
+  VectorEditor.onPointerMove(.2,.1,{altKey:true},doc,.01);
+  const copies = VectorEditor.onPointerUp(doc).commitShapes;
+  assert.strictEqual(copies.length,2,'one duplicate for entire gesture');
+  assert.deepStrictEqual(copies[0],doc.shapes[0],'original remains');
+  approx(copies[1].x,0,1e-5);
+  assert.deepStrictEqual(VectorEditor.state.selectedShapeIds,[copies[1].id]);
+}
+console.log('Body drag and Alt-drag duplication PASSED');

@@ -428,3 +428,11 @@ Nomes revisados no catálogo de comandos: Inspeção, Pincel, Girar, Carimbo, Pr
 Pathfinder permanece visível nas abas Camadas/Propriedades, inclusive em peças protegidas. Unir, Menos frente, Interseção e Excluir ficam habilitados com duas ou mais formas visíveis e destravadas em uma cópia editável. Peças protegidas mostram a necessidade de criar cópia. As operações mantêm undo/redo.
 
 “Não perguntar nesta sessão” passa a respeitar a sessão da aba via sessionStorage, inclusive após reload e em mudanças de grade com perda de preservações. A preferência é gravada ao confirmar Regenerar; Cancelar não grava a opção. Se sessionStorage estiver indisponível, a preferência continua funcionando em memória até recarregar. Alterações continuam recuperáveis pelo histórico.
+
+### Seleção, transformação e recorte — 28/10/2026
+
+No editor vetorial, os botões de giro e espelhamento usam o centro da caixa da seleção desbloqueada, como a alça de rotação. A Seleção direta permite arrastar o corpo de objetos; nós e alças continuam editáveis individualmente. Alt+arraste no corpo duplica a seleção uma única vez, preservando os originais. Um Alt+clique não duplica; cancelar o arrasto descarta a cópia provisória e restaura a seleção original.
+
+No mosaico, Carimbo oferece seleção retangular, elíptica e em losango, alinhadas a células inteiras. C inicia captura; T alterna Estampar e Recortar e mover. Após capturar, clique no destino: Estampar usa o escopo de simetria ativo; Mover transfere apenas a seleção, esvazia a origem com #84 e leva suas preservações. Sobreposições usam uma leitura prévia do conteúdo. Destinos fora da prancheta são rejeitados sem mutação. Uma movimentação corresponde a um desfazer. Selecionar/cancelar não apaga nada. A origem do recorte é transitória e invalidada por regeneração, restauração ou recarga; o padrão capturado pode continuar disponível para estampar.
+
+Ações de transformação, duplicação, exclusão, conversão e Pathfinder usam ícones com nomes acessíveis e tooltips. Instruções ficam na ajuda ou nos tooltips; não acrescentar tutoriais, avisos de sucesso ou descrições redundantes aos painéis. A captura mostra apenas as dimensões durante o gesto. `tests/test_region_transfer.js` cobre sobreposição, máscaras, limites, preservações e cancelamento da duplicação; os testes vetoriais cobrem o pivô e Alt+arraste. Gate: 52 suítes.
