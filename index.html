@@ -211,7 +211,7 @@
         <header class="brush-editor-header">
           <h2 id="brushEditorTitle">Editor de pincel e clone</h2>
           <div class="brush-editor-header-actions">
-            <button type="button" id="btnCancelBrushEditor" class="mini-btn">Cancelar · Esc</button>
+            <button type="button" id="btnCancelBrushEditor" class="mini-btn" title="Descartar alterações e fechar (Tecla Esc)">Cancelar</button>
             <button type="button" id="btnCloseBrushEditor" class="mini-btn accent" aria-label="Concluir edição do pincel">Concluir</button>
           </div>
         </header>
@@ -532,7 +532,7 @@
                   <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
                   <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
                 </svg>
-                <span>Mão (H)</span>
+                <span>Mão</span>
               </button>
               <button type="button" id="btnTileViewZoom" class="subtile-rail-btn" aria-pressed="false" title="Zoom da prancheta (Tecla Z ou Scroll)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -541,7 +541,7 @@
                   <line x1="11" y1="8" x2="11" y2="14"></line>
                   <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
-                <span>Zoom (Z)</span>
+                <span>Zoom</span>
               </button>
             </div>
           </div>
@@ -1034,7 +1034,6 @@
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                     <span>Descongelar Tudo</span>
-                    <kbd style="font-size:var(--font-ui); opacity: 0.7; margin-left: 4px;">⇧F</kbd>
                   </button>
                 </div>
               </div>
@@ -1063,7 +1062,7 @@
               <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
                 <div class="clone-capture-actions" id="stampInteractionSegmented">
                   <button type="button" class="mini-btn" data-stamp-mode="select"
-                    title="Atalho principal: segure Alt e arraste no mosaico. C também inicia uma captura.">Capturar região · Alt</button>
+                    title="Atalho principal: segure Alt e arraste no mosaico. Tecla C também inicia uma captura.">Capturar região</button>
                 </div>
                 <p id="stampModeHint" class="tool-size-hint" role="status">Segure Alt e arraste para capturar. Solte e clique para aplicar.</p>
               </div>
@@ -1094,7 +1093,6 @@
                     </svg>
                     <span class="snap-label">Encaixe nos blocos:</span>
                     <span class="snap-status" id="brushSnapStatusText">Desativado</span>
-                    <kbd class="snap-kbd">Ctrl+U</kbd>
                   </button>
                 </div>
               </div>
@@ -1181,7 +1179,7 @@
               <div class="prop-section">
                 <div class="prop-label-row" style="margin-bottom: 6px;">
                   <div class="prop-label-with-info">
-                    <span id="vecToolContextLabel" class="prop-label">Seleção (V)</span>
+                    <span id="vecToolContextLabel" class="prop-label" title="Tecla V">Seleção</span>
                     <button type="button" class="info-btn" data-info-topic="vector-editor" aria-label="Saiba mais sobre o Editor Vetorial de Subtiles" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
                   <span id="vecSnapStatusBadge" class="prop-badge secondary">Encaixe 1/6</span>
