@@ -2872,8 +2872,6 @@
       closed:'M4 4h16v16H4z', open:'M4 4v16h16', cancel:'M5 5l14 14M5 19 19 5',
       btnPropsDuplicateBuiltIn:'M3 3h12v12H3z M9 9h12v12H9z',
       btnVecToggleSmooth:'M3 18C3 3 21 21 21 6 M3 3h18 M10 10h4v4h-4z', btnVecSubdivideSeg:'M3 12h18M12 3v18M9 9h6v6H9z',
-      unite: 'M3 3h11v7h7v11H10v-7H3z', subtract: 'M3 3h12v7h-5v5H3z M10 10h11v11H10z',
-      intersect: 'M3 3h12v12H3z M9 9h12v12H9z M9 9h6v6H9z', exclude: 'M3 3h12v6H9v6H3z M15 9h6v12H9v-6h6z',
       r90: 'M4 10a8 8 0 1 1 1 8 M4 3v7h7', r270: 'M20 10a8 8 0 1 0-1 8 M20 3v7h-7',
       mx: 'M12 2v20 M3 6v12l6-6z M21 6v12l-6-6z', my: 'M2 12h20 M6 3h12l-6 6z M6 21h12l-6-6z',
       btnVecPropDuplicate: 'M3 3h12v12H3z M9 9h12v12H9z', btnVecPropDelete: 'M3 6h18 M9 6V3h6v3 M6 6v15h12V6 M10 10v7 M14 10v7',
@@ -2881,13 +2879,21 @@
     };
     document.querySelectorAll('#vecPropsContainer button, #tilePathfinderContainer button').forEach(button => {
       const key = button.dataset.boolOp || button.dataset.selD4 || button.dataset.preset || button.dataset.distrib || button.dataset.penAct || button.id;
-      if (!paths[key]) return;
+      if (!paths[key] && !button.dataset.boolOp) return;
       const names = {unite:'Unir',subtract:'Menos frente',intersect:'Interseção',exclude:'Excluir',r90:'Girar 90°',r270:'Girar -90°',mx:'Espelhar H',my:'Espelhar V',
         btnVecPropDuplicate:'Duplicar',btnVecPropDelete:'Excluir',btnVecPropToPath:'Converter em caminho',btnPropsDuplicateBuiltIn:'Criar cópia',btnVecToggleSmooth:'Suavizar',btnVecSubdivideSeg:'Inserir nó',
         'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',closed:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
       const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
       button.classList.add('icon-only');
+      if (button.dataset.boolOp) {
+        button.innerHTML = uiFormat.icon(key) + `<span class="icon-label">${name}</span>`;
+        return;
+      }
+      if (key === 'btnPropsDuplicateBuiltIn' || key === 'btnVecPropDuplicate') {
+        button.innerHTML = uiFormat.icon('copy') + `<span class="icon-label">${name}</span>`;
+        return;
+      }
       button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[key]}"/></svg><span class="icon-label">${name}</span>`;
     });
   }

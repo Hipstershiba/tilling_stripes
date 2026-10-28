@@ -55,11 +55,11 @@
         ]
     },
     'stamp': {
-        "title": "Carimbo",
+        "title": "Clonar",
         "body": [
             "Alt+arraste captura; clique aplica. C também inicia a captura e Escape cancela.",
             "O botão direito gira a estampa em 90°. O escopo define onde ela se repete.",
-            "Pincel e carimbo guardam padrões separados. Use Ampliar editor para editar a estampa."
+            "Pincel e clone guardam padrões separados. Use Ampliar editor para editar a estampa."
         ]
     },
     'freeze': {
@@ -200,7 +200,7 @@
       'Ctrl+U alterna o encaixe nos blocos; Shift inverte momentaneamente o encaixe ao editar.',
       'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
       'Setas no canvas em Inspeção: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
-      'Carimbo (S): C inicia a seleção. Retângulo delimita a área; Laço fecha um contorno livre; Pincel de seleção pinta células e tem diâmetro ajustável por −/+, roda ou botões de tamanho. T alterna Estampar e Recortar e mover; clique define o destino. Mover usa células inteiras, sem repetir por simetria, e pode ser desfeito com Ctrl+Z.',
+      'Seleção: Shift+M delimita um retângulo; W pinta uma máscara. Arraste dentro da região para mover; arraste fora dela para selecionar novamente. S ativa Clonar e aplica cópias. C recaptura; T alterna seleção e clonagem. A barra contextual mostra as dimensões e o histórico. Escape cancela o gesto.',
       'No editor de peças:', ...commands.help('tiles'),
       'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia.',
       'Escape cancela Caneta/arrasto ou limpa a seleção, sem sair do editor. Ctrl+E ou Voltar ao mosaico muda de ambiente.',

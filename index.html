@@ -118,8 +118,8 @@
         <span id="tileStudioActiveName" class="tile-studio-active-name">Arco de Fita</span>
         <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn icon-only" title="Criar cópia" aria-label="Criar cópia"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg><span class="icon-label"><span>⧉ Criar cópia editável</span></span></button>
         <div class="vec-undo-group" role="group" aria-label="Desfazer e Refazer no Subtile">
-          <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled aria-label="Desfazer no Subtile (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg></button>
-          <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled aria-label="Refazer no Subtile (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg></button>
+          <button type="button" id="btnVecUndo" class="icon-btn" title="Desfazer no Subtile (Ctrl+Z)" disabled aria-label="Desfazer no Subtile (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L3 9L8 14M3 9H14A6 6 0 0 1 14 21"/></svg></button>
+          <button type="button" id="btnVecRedo" class="icon-btn" title="Refazer no Subtile (Ctrl+Shift+Z)" disabled aria-label="Refazer no Subtile (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 4L21 9L16 14M21 9H10A6 6 0 0 0 10 21"/></svg></button>
         </div>
         <div class="bar-divider"></div>
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
@@ -217,8 +217,8 @@
         <div class="brush-editor-toolbar" role="group" aria-label="Editar grade do pincel">
           <label>Linhas <input id="brushEditorRows" aria-label="Linhas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
           <label>Colunas <input id="brushEditorCols" aria-label="Colunas do padrão de pincel" type="number" min="1" step="1" value="1"></label>
-          <button type="button" id="btnBrushEditorUndo" class="mini-btn icon-only" disabled title="Desfazer" aria-label="Desfazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg><span class="icon-label">Desfazer</span></button>
-          <button type="button" id="btnBrushEditorRedo" class="mini-btn icon-only" disabled title="Refazer" aria-label="Refazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg><span class="icon-label">Refazer</span></button>
+          <button type="button" id="btnBrushEditorUndo" class="mini-btn icon-only" disabled title="Desfazer" aria-label="Desfazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L3 9L8 14M3 9H14A6 6 0 0 1 14 21"/></svg><span class="icon-label">Desfazer</span></button>
+          <button type="button" id="btnBrushEditorRedo" class="mini-btn icon-only" disabled title="Refazer" aria-label="Refazer"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 4L21 9L16 14M21 9H10A6 6 0 0 0 10 21"/></svg><span class="icon-label">Refazer</span></button>
           <button type="button" id="btnBrushEditorErase" class="mini-btn icon-only" title="Borracha" aria-label="Borracha"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m3 14 11-11 8 8-10 10H9zM8 9l8 8M12 21h10"/></svg><span class="icon-label">Borracha</span></button>
           <button type="button" id="btnBrushEditorClear" class="mini-btn icon-only" title="Limpar" aria-label="Limpar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span class="icon-label">Limpar grade</span></button>
           <span id="brushEditorInkLabel" role="status" class="brush-editor-ink"></span>
@@ -257,8 +257,7 @@
                 <path d="M13 13l6 6"></path>
               </svg><span class="icon-label"><span class="tool-grid-label">Inspeção</span></span></button>
             <button type="button" id="toolSelectRect" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="rect" aria-pressed="false" aria-label="Retângulo" title="Retângulo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
-            <button type="button" id="toolSelectLasso" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="lasso" aria-pressed="false" aria-label="Laço" title="Laço"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 17c-8-2-6-12 4-13 10-1 12 9 5 13-5 3-12 2-11-1 1-2 5 0 4 3-1 2-3 3-5 3"/></svg></button>
-            <button type="button" id="toolSelectBrush" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="brush" aria-pressed="false" aria-label="Pincel de seleção" title="Pincel de seleção"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg></button>
+            <button type="button" id="toolSelectBrush" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="brush" aria-pressed="false" aria-label="Pincel de seleção" title="Pincel de seleção"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" stroke-dasharray="2 2"/><path d="M7 9h4v4H7zM11 13h4v4h-4z" fill="currentColor" stroke="none"/><path d="M16 7v6M13 10h6"/></svg></button>
             <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="paint"
               title="Pincel" aria-label="Pincel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path
@@ -272,7 +271,7 @@
                 <polyline points="21 3 21 8 16 8"></polyline>
               </svg><span class="icon-label"><span class="tool-grid-label">Girar</span></span></button>
             <button id="toolStamp" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="stamp"
-              title="Carimbo" aria-label="Carimbo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              title="Clonar" aria-label="Clonar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M5 22h14"></path>
                 <path
                   d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z">
@@ -309,15 +308,6 @@
         </div>
 
         <div class="tool-divider mosaic-mode-only"></div>
-
-        <div id="stampModeSection" class="sidebar-section mosaic-mode-only" aria-label="Ações da seleção">
-          <div class="clone-capture-actions" id="stampInteractionSegmented">
-            <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="12" height="12"/><path d="M9 15v6h12V9h-6"/></svg></button>
-            <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
-            <button type="button" class="mini-btn" data-stamp-mode="select" aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M12 7v10M7 12h10"/></svg></button>
-          </div>
-          <p id="stampModeHint" class="sr-only" role="status"></p>
-        </div>
 
         <!-- Guias Visuais em 2 Colunas -->
         <div class="sidebar-section mosaic-mode-only" aria-label="Guias Visuais">
@@ -409,7 +399,7 @@
               <option value="png" selected>PNG</option>
               <option value="svg">SVG</option>
             </select>
-            <button type="button" id="btnExport" class="sidebar-export-btn icon-only" title="Exportar" aria-label="Exportar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Exportar</span></span></button>
+            <button type="button" id="btnExport" class="sidebar-export-btn icon-only" title="Exportar" aria-label="Exportar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/></svg><span class="icon-label"><span>Exportar</span></span></button>
           </div>
         </div>
 
@@ -539,8 +529,8 @@
             <summary>Arquivos SVG</summary>
             <div class="sidebar-disclosure-body">
             <div class="tools-grid-2col">
-              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Importar SVG</span></span></button>
-              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>Exportar SVG</span></span></button>
+              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3V15M7 10L12 15L17 10M3 16V21H21V16"/></svg><span class="icon-label"><span>Importar SVG</span></span></button>
+              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/></svg><span class="icon-label"><span>Exportar SVG</span></span></button>
             </div>
             <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
             </div>
@@ -551,8 +541,8 @@
           <details class="sidebar-disclosure">
             <summary>Backup da biblioteca</summary>
             <div class="sidebar-disclosure-body">
-            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn icon-only" title="Exportar JSON" aria-label="Exportar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label"><span>↓ Exportar .json</span></span></button>
-            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn icon-only" title="Importar JSON" aria-label="Importar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label"><span>↑ Importar .json</span></span></button>
+            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn icon-only" title="Exportar JSON" aria-label="Exportar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/></svg><span class="icon-label"><span>↓ Exportar .json</span></span></button>
+            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn icon-only" title="Importar JSON" aria-label="Importar JSON"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3V15M7 10L12 15L17 10M3 16V21H21V16"/></svg><span class="icon-label"><span>↑ Importar .json</span></span></button>
             <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
             <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger icon-only" title="Restaurar padrão" aria-label="Restaurar padrão"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/></svg><span class="icon-label"><span>↺ Restaurar Padrão</span></span></button>
             </div>
@@ -570,6 +560,11 @@
         </div>
 
         <!-- View and output status, between the sidebars -->
+        <section class="selection-summary hidden" id="selectionSummary" aria-label="Seleção">
+            <div class="selection-summary-heading"><span>Seleção</span><button type="button" id="btnClearRegion" class="mini-btn" title="Limpar seleção" aria-label="Limpar seleção"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+            <dl><div><dt>Área</dt><dd id="selectionDimensions">—</dd></div><div><dt>Peças</dt><dd id="selectionCellCount">0</dd></div></dl>
+          </section>
+
         <footer id="status-bar">
           <div class="status-left">
             <div class="zoom-widget">
@@ -776,6 +771,7 @@
         <div id="dock-workspace-edit" class="dock-workspace-pane hidden">
 
           <!-- EDIT PANEL 1: FERRAMENTA, ESCOPO D4 & OPÇÕES DE GIRO -->
+
           <section class="dock-panel" id="panel-edit-scope">
             <header class="panel-header" data-collapse-target="panelEditScopeBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditScopeBody">
               <div class="panel-title-wrap">
@@ -783,12 +779,12 @@
                   <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
                   <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
                 </svg>
-                <span>Edição &amp; Simetria</span>
+                <span id="editPanelHeading">Edição &amp; Simetria</span>
               </div>
               <div class="edit-undo-bar" onclick="event.stopPropagation();">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/></svg></button>
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L3 9L8 14M3 9H14A6 6 0 0 1 14 21"/></svg></button>
                 <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/></svg></button>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 4L21 9L16 14M21 9H10A6 6 0 0 0 10 21"/></svg></button>
               </div>
               <span class="panel-chevron">▾</span>
             </header>
@@ -933,7 +929,7 @@
                   <rect x="3" y="13" width="8" height="8" rx="1"></rect>
                   <rect x="13" y="13" width="8" height="8" rx="1"></rect>
                 </svg>
-                <span>Padrão do pincel</span>
+                <span id="brushPanelHeading">Pincel</span>
               </div>
               <span id="activeBrushBadge" class="panel-counter-pill">1×1 • #2</span>
               <span class="panel-chevron">▾</span>
@@ -991,7 +987,7 @@
                       title="Preencher" aria-label="Preencher"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m4 11 8-8 8 8-8 8zM4 11h16M3 22h18"/></svg><span class="icon-label">Preencher</span></button>
                     <button type="button" id="btnSupertileSymmetrize" class="mini-btn icon-only"
                       title="Simetria" aria-label="Simetria"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20M2 12h20M4 4l16 16M4 20 20 4"/></svg><span class="icon-label">Simetria</span></button>
-                    <button type="button" id="btnSupertileCapture" class="mini-btn accent icon-only"
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent icon-only hidden" aria-hidden="true" tabindex="-1"
                       title="Capturar" aria-label="Capturar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg><span class="icon-label">Capturar</span></button>
                   </div>
                 </div>
@@ -1077,10 +1073,10 @@
             <div class="panel-body" id="panelTileLayersBody">
               <div class="prop-section">
                 <div class="tile-layers-toolbar">
-                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><span class="icon-label">Importar SVG</span></button>
-                  <button type="button" id="btnLayersExportSvg" class="mini-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label">Exportar SVG</span></button>
-                  <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])" aria-label="Trazer forma selecionada para o topo (Ctrl+Shift+])"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 3h16M12 7v14m-6-8 6-6 6 6"/></svg></button>
-                  <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)" aria-label="Enviar forma selecionada para trás (Ctrl+Shift+[)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21h16M12 3v14m-6-6 6 6 6-6"/></svg></button>
+                  <button type="button" id="btnLayersImportSvg" class="mini-btn accent icon-only" title="Importar SVG" aria-label="Importar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3V15M7 10L12 15L17 10M3 16V21H21V16"/></svg><span class="icon-label">Importar SVG</span></button>
+                  <button type="button" id="btnLayersExportSvg" class="mini-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/></svg><span class="icon-label">Exportar SVG</span></button>
+                  <button type="button" id="btnLayerBringFront" class="mini-btn" title="Trazer forma selecionada para o topo (Ctrl+Shift+])" aria-label="Trazer forma selecionada para o topo (Ctrl+Shift+])"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 3H20M12 7V21M6 13L12 7L18 13"/></svg></button>
+                  <button type="button" id="btnLayerSendBack" class="mini-btn" title="Enviar forma selecionada para trás (Ctrl+Shift+[)" aria-label="Enviar forma selecionada para trás (Ctrl+Shift+[)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21H20M12 3V17M6 11L12 17L18 11"/></svg></button>
                 </div>
                 <div id="tileLayersListContainer" class="tile-layers-list">
                   <!-- Populated dynamically by SubtileStudioUI -->
@@ -1183,7 +1179,7 @@
                 <div class="swatch-bulk-actions lib-mgr-actions-bar">
                   <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg><span class="icon-label">+ Subtile</span></button>
                   <button type="button" id="btnLibMgrNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/></svg><span class="icon-label">+ Conjunto</span></button>
-                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar peças" aria-label="Exportar peças"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/></svg><span class="icon-label">Exportar Subtiles</span></button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar peças" aria-label="Exportar peças"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/></svg><span class="icon-label">Exportar Subtiles</span></button>
                 </div>
               </div>
 

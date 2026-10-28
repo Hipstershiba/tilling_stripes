@@ -7,7 +7,7 @@ const end = source.indexOf('\nfunction performBrushOrStampAtHit', start);
 function fixture(mask = [[true,true]]) {
   const cells = Array.from({length:4}, (_,r) => Array.from({length:4}, (_,c) => ({baseTileId:r*4+c,tileId:r*4+c,transform:'id'})));
   const state = {mosaicData:{rows:1,cols:1,subtilesPerSide:4,grid:[[{cells}]]},frozenCells:new Map()};
-  const context = {StudioState:state, mosaicRegion:{row:0,col:0,pattern:{rows:mask.length,cols:mask[0].length,cells:mask}},syncD4Badge(){},syncFreezeUI(){}};
+  const context = {StudioState:state,regionMoveGesture:null,redraw(){},syncCanvasCursor(){},syncEditWorkspaceUI(){},pushEditHistorySnapshot(){context.snapshots=(context.snapshots||0)+1;}, mosaicRegion:{row:0,col:0,pattern:{rows:mask.length,cols:mask[0].length,cells:mask}},syncD4Badge(){},syncFreezeUI(){}};
   vm.createContext(context);
   vm.runInContext(source.slice(start,end),context);
   return {state,cells,context,move:(r,c)=>context.moveMosaicRegion({row:0,col:0,subRow:r,subCol:c})};
@@ -47,15 +47,7 @@ function gesture(shape, points, diameter=1) {
   for(const [x,y] of points) engine.extendRegionGesture(g,x,y);
   return g;
 }
-let g=gesture('lasso',[[0,0],[6,0],[0,6]]);
-let cells=engine.getRegionGestureCells(g);
-assert.strictEqual(cells.length,21,'triangle selects enclosed cell centers, including its edge');
-assert.ok(!cells.some(c=>c.gr===5 && c.gc===5),'lasso excludes cells outside polygon');
-g=gesture('lasso',[[0,0],[5,0],[5,1],[1,1],[1,5],[0,5]]);
-assert.strictEqual(engine.getRegionGestureCells(g).length,9,'concave L-shaped lasso');
-assert.strictEqual(engine.getRegionGestureCells(gesture('lasso',[[0,0],[5,5]])).length,0,'unfinished lasso is empty');
-assert.strictEqual(engine.getRegionGestureCells(gesture('lasso',[[.5,.5],[1.5,1.5],[2.5,2.5]])).length,0,'straight lasso has no area');
-g=gesture('brush',[[.5,.5],[6.5,.5]]);
+let g=gesture('brush',[[.5,.5],[6.5,.5]]);
 assert.strictEqual(engine.getRegionGestureCells(g).length,7,'interpolate sparse mouse events without gaps');
 assert.ok(engine.getRegionGestureCells(g).every(c=>c.gr===0));
 engine.extendRegionGesture(g,.5,.5);
@@ -79,8 +71,8 @@ assert.strictEqual(ve.state.workingShapes,null);
 const captureFixture=fixture();
 const captureState=captureFixture.state;
 captureState.activeTool='stamp';
-const captureContext={StudioState:captureState,window:{MosaicEngine:engine},mosaicSelectionShape:'lasso',captureGesture:null,captureOriginHit:null,mosaicRegion:null,selectionBrushDiameter:1,brushEditorPortal:null,
-  getToolSizeInfo:()=>({dim:1,max:4}),isEffectiveBrushSnap:()=>true,syncEditWorkspaceUI(){},syncCanvasCursor(){},redraw(){},renderEditBrushPalette(){},renderSupertileBuilderCanvas(){},saveStudioStateToStorage(){}};
+const captureContext={StudioState:captureState,window:{MosaicEngine:engine},mosaicSelectionShape:'rect',mosaicTransferMode:'move',regionMoveGesture:null,captureGesture:null,captureOriginHit:null,mosaicRegion:null,selectionBrushDiameter:1,brushEditorPortal:null,
+  getToolSizeInfo:()=>({dim:1,max:4}),isEffectiveBrushSnap:()=>false,syncEditWorkspaceUI(){},syncCanvasCursor(){},redraw(){},renderEditBrushPalette(){},renderSupertileBuilderCanvas(){},saveStudioStateToStorage(){}};
 vm.createContext(captureContext);
 for(const name of ['updateCaptureDragBounds','startCanvasRegionCaptureDrag','finishCanvasRegionCapture','cancelCloneCapture','cycleActiveToolSize']) {
   const from=source.indexOf('function '+name+'(');
@@ -90,10 +82,9 @@ for(const name of ['updateCaptureDragBounds','startCanvasRegionCaptureDrag','fin
 const hit=(x,y)=>({row:0,col:0,subRow:Math.floor(y),subCol:Math.floor(x),selectionX:x,selectionY:y});
 const unchanged=JSON.stringify(captureFixture.cells);
 captureContext.startCanvasRegionCaptureDrag(hit(.1,.1));
-captureContext.updateCaptureDragBounds(hit(3.9,.1));
-captureContext.updateCaptureDragBounds(hit(.1,3.9));
+captureContext.updateCaptureDragBounds(hit(1.9,1.9));
 assert.strictEqual(captureContext.finishCanvasRegionCapture(),true);
-assert.strictEqual(captureState.supertilePattern.cells.flat().filter(Boolean).length,10);
+assert.strictEqual(captureState.supertilePattern.cells.flat().filter(Boolean).length,4);
 assert.strictEqual(JSON.stringify(captureFixture.cells),unchanged,'capturing is non-destructive');
 captureContext.mosaicSelectionShape='brush';
 captureContext.startCanvasRegionCaptureDrag(hit(.5,.5));
@@ -106,7 +97,7 @@ captureContext.startCanvasRegionCaptureDrag(hit(.5,2.5));
 captureContext.cancelCloneCapture();
 assert.strictEqual(captureContext.captureGesture,null);
 assert.strictEqual(JSON.stringify(captureFixture.cells),unchanged,'canceling never clears source');
-console.log('Lasso, brush and real capture controller PASSED');
+console.log('Rectangle, brush and real capture controller PASSED');
 
 captureState.stampInteractionMode='select';
 const clipboardBefore=JSON.stringify(captureState.supertilePattern);
@@ -115,3 +106,34 @@ assert.strictEqual(captureContext.selectionBrushDiameter,2);
 assert.strictEqual(JSON.stringify(captureState.supertilePattern),clipboardBefore,'selection size leaves captured pattern intact');
 captureContext.startCanvasRegionCaptureDrag(hit(.5,.5));
 assert.strictEqual(captureContext.captureGesture.radius,1,'selection diameter is independent of captured bounds');
+
+// Drag selection: source stays intact during motion, one commit on release.
+f=fixture();
+const dragBefore=JSON.stringify(f.cells);
+f.context.beginRegionInteraction({row:0,col:0,subRow:0,subCol:0});
+f.context.updateRegionMove({row:0,col:0,subRow:1,subCol:2});
+assert.strictEqual(JSON.stringify(f.cells),dragBefore,'pointer move only updates preview');
+assert.strictEqual(f.context.finishRegionMove(),true);
+assert.strictEqual(f.context.snapshots,1,'one undo for complete drag');
+assert.strictEqual(f.state.stampBlock.minGlobalRow,1,'clone source follows moved selection');
+assert.strictEqual(f.state.stampBlock.minGlobalCol,2);
+assert.deepStrictEqual(f.cells[1].map(c=>c.tileId),[4,5,0,1]);
+f=fixture();
+f.context.beginRegionInteraction({row:0,col:0,subRow:0,subCol:0});
+f.context.updateRegionMove({row:0,col:0,subRow:3,subCol:3});
+assert.strictEqual(f.context.finishRegionMove(),false,'out of bounds is rejected');
+assert.strictEqual(JSON.stringify(f.cells),dragBefore);
+f.context.beginRegionInteraction({row:0,col:0,subRow:0,subCol:0});
+f.context.updateRegionMove(null);
+assert.strictEqual(f.context.finishRegionMove(),false,'leaving artboard cancels move');
+assert.strictEqual(JSON.stringify(f.cells),dragBefore);
+
+// Escape/cancel must discard a provisional drag before global mouseup commits it.
+f=fixture();
+const cancelRegionStart=source.indexOf('function cancelCloneCapture(');
+vm.runInContext(source.slice(cancelRegionStart,source.indexOf('\n}',cancelRegionStart)+2),f.context);
+f.context.beginRegionInteraction({row:0,col:0,subRow:0,subCol:0});
+f.context.updateRegionMove({row:0,col:0,subRow:1,subCol:2});
+f.context.cancelCloneCapture();
+assert.strictEqual(f.context.finishRegionMove(),false);
+assert.strictEqual(JSON.stringify(f.cells),dragBefore,'cancelled movement preserves source');

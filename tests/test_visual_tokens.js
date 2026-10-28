@@ -116,3 +116,20 @@ helpContext.renderTopicBody({body: ['Outro tópico.']});
 assert.equal(helpBody.children[0].children.length, 1, 'Opening a new topic replaces the old list');
 assert.equal(helpBody.scrollTop, 0);
 console.log('✓ Generic information topics keep list semantics, literal text and reset scrolling.');
+const propertySource = fs.readFileSync(require.resolve('../core/subtile_studio_ui.js'), 'utf8');
+const actionKeys = ['unite', 'subtract', 'intersect', 'exclude', 'btnPropsDuplicateBuiltIn', 'btnVecPropDuplicate'];
+const propertyButtons = actionKeys.map(key => ({id: key.startsWith('btn') ? key : '',
+  dataset: key.startsWith('btn') ? {} : {boolOp: key}, classList: {add() {}},
+  setAttribute() {}, getAttribute() {return '';}, textContent: '', innerHTML: ''}));
+const propertyContext = vm.createContext({uiFormat: format, document: {querySelectorAll: () => propertyButtons}});
+const iconStart = propertySource.indexOf('  function iconizePropertyActions()');
+vm.runInContext(propertySource.slice(iconStart, propertySource.indexOf('\n  function refresh()', iconStart)) + '\niconizePropertyActions();', propertyContext);
+for (let i = 0; i < propertyButtons.length; i++) {
+  const key = actionKeys[i];
+  assert(propertyButtons[i].innerHTML.startsWith(format.icon(key.startsWith('btn') ? 'copy' : key)),
+    `Property rendering must retain the shared filled/copy icon: ${key}`);
+}
+assert(format.icon('intersect').includes('fill="currentColor"'));
+assert(format.icon('exclude').includes('fill-rule="evenodd"'));
+assert.notEqual(propertyButtons[2].innerHTML, propertyButtons[3].innerHTML);
+console.log('✓ Property actions retain distinct filled boolean results and the library copy icon.');

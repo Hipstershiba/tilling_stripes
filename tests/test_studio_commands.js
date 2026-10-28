@@ -111,10 +111,11 @@ for (const entries of Object.values(commands.tools)) for (const [, name] of entr
 // Region tools share the command catalog; modifier shortcuts do not steal guide keys.
 const regions=[];
 const selectionContext={selectRegion:shape=>regions.push(shape)};
-for (const [key,extra,shape] of [['m',{shiftKey:true},'rect'],['l',{},'lasso'],['w',{},'brush']]) {
+for (const [key,extra,shape] of [['m',{shiftKey:true},'rect'],['w',{},'brush']]) {
   assert.strictEqual(commands.dispatch('mosaic',event(key,extra),selectionContext),true);
   assert.strictEqual(regions.pop(),shape);
 }
+assert.strictEqual(commands.dispatch('mosaic',event('l'),selectionContext),false,'lasso is removed');
 assert.strictEqual(commands.dispatch('mosaic',event('m'),selectionContext),false,'M remains the subtile guide');
 assert.strictEqual(commands.dispatch('mosaic',event('l',{ctrlKey:true}),selectionContext),false);
 assert.strictEqual(commands.dispatch('mosaic',event('w',{ctrlKey:true}),selectionContext),false);

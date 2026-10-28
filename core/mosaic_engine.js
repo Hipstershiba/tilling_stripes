@@ -714,21 +714,7 @@
   function getRegionGestureCells(gesture) {
     if (!gesture) return [];
     if (gesture.shape === 'brush') return [...gesture.cells].map(key=>{const [gr,gc]=key.split(',').map(Number);return {gr,gc};});
-    if (gesture.points.length<3) return [];
-    const cells = [], points = gesture.points;
-    const a0=points[0], b0=points[1];
-    if (!points.some(p=>Math.abs((b0.x-a0.x)*(p.y-a0.y)-(b0.y-a0.y)*(p.x-a0.x))>1e-9)) return [];
-    for (let gr=gesture.minGR;gr<=gesture.maxGR;gr++) for(let gc=gesture.minGC;gc<=gesture.maxGC;gc++) {
-      const x=gc+.5,y=gr+.5;
-      let inside=false, boundary=false;
-      for(let i=0,j=points.length-1;i<points.length;j=i++) {
-        const a=points[j],b=points[i];
-        if(segmentDistance(x,y,a,b)<1e-7) boundary=true;
-        if((a.y>y)!==(b.y>y) && x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x) inside=!inside;
-      }
-      if(inside || boundary) cells.push({gr,gc});
-    }
-    return cells;
+    return [];
   }
 
   function captureSubtileRegion(mosaicData, gr0, gc0, gr1, gc1) {
@@ -1388,6 +1374,11 @@
     // Canvas-wide grids and axes are drawn only by renderGuidesAndOverlays,
     // according to the user's guide toggles. The edit preview adds action feedback.
 
+    if (editPreview.selectedCells?.length) {
+      drawPlacementFootprint(p,editPreview.selectedCells,margin,subW,subH,p.color(90,160,255,230));
+      if (!editPreview.regionPlacements?.length) { p.pop(); return; }
+    }
+
     // 1. Highlight captured source region with emerald corner brackets if present
     if (editPreview.stampBlock && Number.isInteger(editPreview.stampBlock.minGlobalRow)) {
       drawSubtileRegionBrackets(
@@ -1414,11 +1405,7 @@
       p.fill(52, 211, 153, 42);
       p.stroke(52, 211, 153, 245);
       p.strokeWeight(2);
-      if (editPreview.selectionShape === 'lasso' && editPreview.selectionPoints?.length) {
-        p.beginShape();
-        for (const point of editPreview.selectionPoints) p.vertex(margin + point.x * subW, margin + point.y * subH);
-        p.endShape(p.CLOSE);
-      } else if (editPreview.selectionShape === 'brush') {
+      if (editPreview.selectionShape === 'brush') {
         p.noStroke();
         for (const cell of editPreview.selectionCells || []) p.rect(margin+cell.gc*subW, margin+cell.gr*subH, subW, subH);
         p.stroke(52, 211, 153, 245);

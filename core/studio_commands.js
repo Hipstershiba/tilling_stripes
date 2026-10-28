@@ -5,7 +5,7 @@
       ['inspect', 'Inspeção', 'V', 'toolInspect'],
       ['paint', 'Pincel', 'B', 'toolPaint', 'Clique pinta; botão direito gira o pincel; Alt+arraste captura.'],
       ['rotate', 'Girar', 'R', 'toolRotate'],
-      ['stamp', 'Carimbo', 'S', 'toolStamp', 'Alt+arraste captura; clique aplica.'],
+      ['stamp', 'Clonar', 'S', 'toolStamp', 'Alt+arraste captura; clique aplica.'],
       ['freeze', 'Preservar', 'F', 'toolFreeze', 'Preserva na próxima geração; permite edição manual. Shift+F limpa as preservações.'],
       ['pan', 'Mão', 'H', 'toolPan', 'Mover a visualização; Espaço ativa temporariamente.'],
       ['zoom', 'Zoom', 'Z', 'toolZoom', 'Clique aproxima; Alt+clique afasta.']
@@ -39,7 +39,6 @@
     add(context, 'toggle', context === 'mosaic' ? 'Editar peças' : 'Voltar ao mosaico', 'Ctrl+E', ['btnStudioTilesMode'], ctx => ctx.toggle(), {label: '.studio-mode-btn-label'});
   }
   add('mosaic', 'selectRect', 'Retângulo', 'Shift+M', ['toolSelectRect'], ctx => ctx.selectRegion('rect'));
-  add('mosaic', 'selectLasso', 'Laço', 'L', ['toolSelectLasso'], ctx => ctx.selectRegion('lasso'));
   add('mosaic', 'selectBrush', 'Pincel de seleção', 'W', ['toolSelectBrush'], ctx => ctx.selectRegion('brush'));
   add('mosaic', 'generate', 'Gerar mosaico', 'G', ['btnRandomize'], ctx => ctx.generate());
   add('mosaic', 'eraser', 'Borracha', 'E', [], ctx => ctx.eraser());

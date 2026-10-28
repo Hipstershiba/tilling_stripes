@@ -888,3 +888,15 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Reunir Encaixe à linha de tamanho e Ampliar à identificação do pincel; manter histórico e exportação acessíveis.
 - [x] Verificar atalhos no navegador, digitação em busca, separação dos ambientes e janela de 900×768.
 - [x] Gate 52/52, AST/vault sincronizados e alteração registrada separadamente; somente código, testes e documentação. Evidências em `_local/layout-atalhos`, ignoradas pelo Git.
+
+### Redesenho das barras e fluxo Seleção / Clonar — 28/10/2026
+
+- [x] Remover Laço e os botões separados de Estampar, Mover e Capturar região; preservar C como atalho de recaptura.
+- [x] Distinguir o pincel de seleção com contorno tracejado, células selecionadas e sinal de adição.
+- [x] Mover por arrasto dentro da seleção; fora dela iniciar nova captura. Aplicar somente no mouseup válido e permitir Escape sem mutação.
+- [x] Reservar S/Clonar à aplicação de cópias e preservar T para alternar as ferramentas.
+- [x] Reduzir as barras a 120/304 px e substituir o painel direito pela barra contextual durante a seleção.
+- [x] Compartilhar o ícone de Criar cópia entre Propriedades e Biblioteca.
+- [x] Revisar no navegador arrasto, desfazer, alternância Seleção/Clonar, restauração dos controles e ambientes em 900×768; confirmar ícone de cópia idêntico ao da Biblioteca.
+- [x] Restaurar preenchimentos distintos no Pathfinder; padronizar setas e impedir que a renderização das propriedades sobrescreva os ícones compartilhados.
+- [x] Gate 52/52, incluindo regressão da renderização de ícones; sincronizar AST/vault e registrar apenas código, testes e documentação. Capturas locais ignoradas pelo Git.

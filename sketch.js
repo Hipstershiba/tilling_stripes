@@ -804,13 +804,29 @@ function getEditPreviewState() {
       tool: StudioState.activeTool,
       scopeMode: StudioState.editScope,
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
-      stampBlock: StudioState.stampBlock,
+      stampBlock: null,
       dragSelectionRect,
       selectionShape: mosaicSelectionShape,
       selectionPoints: captureGesture?.points,
       selectionCells: captureGesture ? window.MosaicEngine.getRegionGestureCells(captureGesture) : [],
       hoveredCell: hit
     };
+  }
+
+  if (StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move' && mosaicRegion && !StudioState.isSelectingStampDrag) {
+    const selectedCells=[],placements=[];
+    const {pattern,row,col}=mosaicRegion,m=StudioState.mosaicData,N=m.subtilesPerSide;
+    const target=regionMoveGesture?.targetHit;
+    const gr=target?target.row*N+target.subRow:row,gc=target?target.col*N+target.subCol:col;
+    const valid=target && gr>=0 && gc>=0 && gr+pattern.rows<=m.rows*N && gc+pattern.cols<=m.cols*N;
+    for(let y=0;y<pattern.rows;y++) for(let x=0;x<pattern.cols;x++) if(pattern.cells[y][x]) {
+      selectedCells.push({gr:row+y,gc:col+x});
+      if(valid) {
+        const cell=m.grid[Math.floor((row+y)/N)][Math.floor((col+x)/N)].cells[(row+y)%N][(col+x)%N];
+        placements.push({...cell,gr:gr+y,gc:gc+x,isAnchor:true});
+      }
+    }
+    return {tool:'stamp',scopeMode:'single',selectedCells,regionPlacements:placements};
   }
 
   if (StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select') {
@@ -824,7 +840,7 @@ function getEditPreviewState() {
       tool: 'stamp',
       scopeMode: StudioState.editScope,
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
-      stampBlock: StudioState.stampBlock,
+      stampBlock: null,
       stampInteractionMode: 'select',
       snapToBlock: isEffectiveBrushSnap(),
       hoveredCell: hit
@@ -836,7 +852,7 @@ function getEditPreviewState() {
       tool: StudioState.activeTool,
       scopeMode: StudioState.editScope,
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
-      stampBlock: StudioState.stampBlock,
+      stampBlock: mosaicRegion ? StudioState.stampBlock : null,
       regionPlacements: []
     };
   }
@@ -868,22 +884,6 @@ function getEditPreviewState() {
     };
   }
 
-  if (StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move') {
-    const placements = [];
-    if (mosaicRegion) {
-      const {pattern, row, col} = mosaicRegion;
-      const m = StudioState.mosaicData, N = m.subtilesPerSide;
-      const gr = hit.row * N + hit.subRow, gc = hit.col * N + hit.subCol;
-      if (gr + pattern.rows <= m.rows * N && gc + pattern.cols <= m.cols * N) {
-        for (let y=0;y<pattern.rows;y++) for(let x=0;x<pattern.cols;x++) if(pattern.cells[y][x]) {
-          const source = m.grid[Math.floor((row+y)/N)][Math.floor((col+x)/N)].cells[(row+y)%N][(col+x)%N];
-          placements.push({...source, gr:gr+y, gc:gc+x, isAnchor:true});
-        }
-      }
-    }
-    return {tool:'stamp', scopeMode:'single', regionPlacements:placements};
-  }
-
   // Paint or Stamp ('apply' mode): both use the unified Supertile / Brush pattern
   const activePattern = ensureSupertilePattern();
   const resolved = window.MosaicEngine.resolveStampRegionPlacements(
@@ -902,7 +902,7 @@ function getEditPreviewState() {
     tool: StudioState.activeTool,
     scopeMode: StudioState.editScope,
     canvasCenterSymmetry: StudioState.canvasCenterSymmetry,
-    stampBlock: StudioState.stampBlock,
+    stampBlock: mosaicRegion ? StudioState.stampBlock : null,
     regionPlacements: resolved.placements,
     anchorBounds: resolved.anchorBounds
   };
@@ -992,6 +992,7 @@ function resetD4BrokenState() {
 
 function regenerateMosaic(recordHistory = true) {
   mosaicRegion = null;
+  regionMoveGesture = null;
   resetD4BrokenState();
 
   const isDestructive = recordHistory && !StudioState.isRestoringHistory;
@@ -1110,6 +1111,7 @@ function buildDocumentSnapshot(explicitParams = null) {
  */
 function restoreDocumentSnapshot(snap) {
   mosaicRegion = null;
+  regionMoveGesture = null;
   if (!snap || !window.DocumentSnapshot || !window.MosaicEngine) return false;
   const doc = snap.document;
   if (!doc) return false;
@@ -2118,6 +2120,8 @@ let mosaicTransferMode = 'stamp';
 let mosaicSelectionShape = 'rect';
 let captureGesture = null;
 let selectionBrushDiameter = 1;
+let regionMoveGesture = null;
+let selectionControlHomes = null;
 function moveMosaicRegion(hit) {
   if (!mosaicRegion || !StudioState.mosaicData) return false;
   const m = StudioState.mosaicData, N = m.subtilesPerSide;
@@ -2138,9 +2142,48 @@ function moveMosaicRegion(hit) {
     StudioState.frozenCells?.delete(key(r+y,c+x));
     if (preserved !== undefined) StudioState.frozenCells.set(key(r+y,c+x),preserved);
   }
-  mosaicRegion = {pattern,row:r,col:c};
+  const movedPattern=JSON.parse(JSON.stringify(pattern));
+  for (const [y,x,,contents] of frozen) movedPattern.cells[y][x]={...contents};
+  Object.assign(movedPattern,{minGlobalRow:r,minGlobalCol:c,maxGlobalRow:r+pattern.rows-1,maxGlobalCol:c+pattern.cols-1});
+  StudioState.supertilePattern=movedPattern;
+  StudioState.stampBlock=movedPattern;
+  mosaicRegion = {pattern:JSON.parse(JSON.stringify(movedPattern)),row:r,col:c};
   syncD4Badge(); syncFreezeUI();
   return true;
+}
+
+function regionContainsHit(hit) {
+  if (!hit || !mosaicRegion || !StudioState.mosaicData) return false;
+  const N=StudioState.mosaicData.subtilesPerSide;
+  return Boolean(mosaicRegion.pattern.cells[hit.row*N+hit.subRow-mosaicRegion.row]?.[hit.col*N+hit.subCol-mosaicRegion.col]);
+}
+function regionTargetHit(row,col) {
+  const N=StudioState.mosaicData.subtilesPerSide;
+  return {row:Math.floor(row/N),col:Math.floor(col/N),subRow:row%N,subCol:col%N};
+}
+function beginRegionInteraction(hit) {
+  if (StudioState.stampInteractionMode === 'select' || !regionContainsHit(hit)) { startCanvasRegionCaptureDrag(hit); return; }
+  const N=StudioState.mosaicData.subtilesPerSide;
+  regionMoveGesture={startRow:hit.row*N+hit.subRow,startCol:hit.col*N+hit.subCol,
+    targetHit:regionTargetHit(mosaicRegion.row,mosaicRegion.col)};
+  StudioState.stampInteractionMode='apply';
+  syncCanvasCursor(); redraw();
+}
+function updateRegionMove(hit) {
+  if (!regionMoveGesture) return;
+  if (!hit) { regionMoveGesture.targetHit=null; return; }
+  const N=StudioState.mosaicData.subtilesPerSide;
+  regionMoveGesture.targetHit=regionTargetHit(mosaicRegion.row+hit.row*N+hit.subRow-regionMoveGesture.startRow,
+    mosaicRegion.col+hit.col*N+hit.subCol-regionMoveGesture.startCol);
+}
+function finishRegionMove() {
+  const gesture=regionMoveGesture;
+  regionMoveGesture=null;
+  if (!gesture?.targetHit) return false;
+  const changed=moveMosaicRegion(gesture.targetHit);
+  if (changed) pushEditHistorySnapshot();
+  syncEditWorkspaceUI(); redraw();
+  return changed;
 }
 
 function performBrushOrStampAtHit(hit) {
@@ -2228,6 +2271,8 @@ function cancelToolGesture() {
     pushEditHistorySnapshot();
   }
   StudioState.isSelectingStampDrag = false;
+  regionMoveGesture = null;
+  captureGesture = null;
   StudioState.isPaintingDrag = false;
   StudioState.isFreezingDrag = false;
   StudioState.isPaintingMiniBuilder = false;
@@ -2244,6 +2289,7 @@ function syncCanvasCursor() {
   else if (StudioState.studioMode === 'tiles') mode = 'vector';
   else if (StudioState.isSelectingStampDrag ||
     ((mode === 'paint' || mode === 'stamp') && StudioState.isAltDown)) mode = 'capture';
+  else if (mode === 'stamp' && mosaicTransferMode === 'move') mode = regionContainsHit(StudioState.hoveredCell) ? 'move' : 'capture';
   else if (mode === 'stamp') mode = StudioState.stampInteractionMode === 'select' ? 'capture' : isCloneReady() ? 'clone' : 'unavailable';
   else if (mode === 'paint' && StudioState.editBrushTileId === 84) mode = 'erase';
   if (StudioState.editScope === 'same_tile' && ['paint','erase','clone','rotate'].includes(mode)) {
@@ -2379,9 +2425,33 @@ function activateEraser() {
   redraw();
 }
 
+function syncSelectionControls(selecting) {
+  const context=document.getElementById('selectionSummary');
+  const undo=document.getElementById('btnEditUndo')?.parentElement;
+  const size=document.getElementById('brushSizeControl');
+  if (!context || !undo?.parentElement || !size?.parentElement || typeof context.appendChild !== 'function') return;
+  if (!selectionControlHomes) selectionControlHomes={undoParent:undo.parentElement,undoNext:undo.nextSibling,sizeParent:size.parentElement,sizeNext:size.nextSibling};
+  const restore=(node,parent,next)=>{if(node.parentElement!==parent) parent.insertBefore(node,next?.parentNode===parent?next:null);};
+  if (selecting) {
+    if (mosaicSelectionShape==='brush') context.appendChild(size);
+    else restore(size,selectionControlHomes.sizeParent,selectionControlHomes.sizeNext);
+    context.appendChild(undo);
+  } else {
+    restore(undo,selectionControlHomes.undoParent,selectionControlHomes.undoNext);
+    restore(size,selectionControlHomes.sizeParent,selectionControlHomes.sizeNext);
+  }
+}
+
+function activateCloneTool() {
+  cancelToolGesture();
+  mosaicTransferMode = 'stamp';
+  activateStudioTool('stamp');
+}
+
 function activateRegionSelection(shape) {
-  if (!['rect','lasso','brush'].includes(shape)) return;
+  if (!['rect','brush'].includes(shape)) return;
   mosaicSelectionShape = shape;
+  mosaicTransferMode = 'move';
   beginCloneCapture();
 }
 
@@ -2395,6 +2465,7 @@ function beginCloneCapture() {
   redraw();
 }
 function cancelCloneCapture() {
+  regionMoveGesture = null;
   StudioState.isSelectingStampDrag = false;
   captureGesture = null;
   captureOriginHit = null;
@@ -2614,7 +2685,7 @@ function stepToolSizeFromWheel(e) {
 function cycleActiveToolSize(direction) {
   direction = Math.sign(direction);
   if (!direction) return false;
-  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select' && !brushEditorPortal) {
+  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && (mosaicTransferMode === 'move' || StudioState.stampInteractionMode === 'select') && !brushEditorPortal) {
     const next = Math.max(1,Math.min(getToolSizeInfo().max,selectionBrushDiameter+direction));
     if (next === selectionBrushDiameter) return false;
     selectionBrushDiameter = next;
@@ -2685,6 +2756,8 @@ function mouseDragged() {
     return;
   }
   const hit = getCanvasHitCell(mouseX, mouseY);
+  if (regionMoveGesture) { updateRegionMove(hit); redraw(); return; }
+
   const prev = StudioState.hoveredCell;
   const changed = (!prev && hit) || (prev && !hit) ||
     (prev && hit && (prev.row !== hit.row || prev.col !== hit.col || prev.subRow !== hit.subRow || prev.subCol !== hit.subCol));
@@ -2883,6 +2956,7 @@ function handleCanvasMouseDown(e) {
   // Alt + Left-Click/Drag anywhere = Capture Tile or Supertile Region from the Mosaic!
   if (e.altKey && e.button === 0 && (StudioState.activeTool === 'paint' || StudioState.activeTool === 'stamp' || StudioState.activeTool === 'inspect')) {
     e.preventDefault();
+    if (StudioState.activeTool !== 'stamp') mosaicTransferMode = 'stamp';
     startCanvasRegionCaptureDrag(hit);
     return;
   }
@@ -2974,6 +3048,12 @@ function handleCanvasMouseDown(e) {
   // Clone / Stamp Tool ('stamp')
   if (StudioState.activeTool === 'stamp') {
     e.preventDefault();
+    if (mosaicTransferMode === 'move') {
+      if (e.button === 0) beginRegionInteraction(hit);
+      else if (e.button === 2) cancelCloneCapture();
+      return;
+    }
+
     if (e.button === 2) {
       if (StudioState.isSelectingStampDrag || StudioState.stampInteractionMode === 'select') { cancelCloneCapture(); return; }
       if (mosaicTransferMode === 'move') return;
@@ -2987,10 +3067,6 @@ function handleCanvasMouseDown(e) {
         startCanvasRegionCaptureDrag(hit);
       } else {
         if (!isCloneReady()) { showEditorToast('Segure Alt e arraste para capturar uma região antes de clonar.', 'info'); return; }
-        if (mosaicTransferMode === 'move') {
-          if (moveMosaicRegion(hit)) { pushEditHistorySnapshot(); saveStudioStateToStorage(); redraw(); }
-          return;
-        }
         const activePat = ensureSupertilePattern();
         const isMultiCell = activePat.rows > 1 || activePat.cols > 1;
         if (StudioState.editScope === 'same_tile' && isMultiCell) {
@@ -3466,7 +3542,7 @@ function renderSupertileBuilderCanvas() {
   if (StudioState.activeTool === 'stamp' && !isCloneReady() && !brushEditorPortal) {
     gfx.noStroke(); gfx.fill(165, 175, 190); gfx.textSize(11);
     gfx.textAlign(gfx.CENTER, gfx.CENTER);
-    gfx.text('Alt + arraste', size / 2, size / 2);
+
     ctx2d.drawImage(gfx.elt, 0, 0, size, size); gfx.remove();
     return;
   }
@@ -3574,7 +3650,7 @@ const TOOL_CONTEXT_LABELS = {
   inspect: 'Inspeção',
   paint: 'Pincel',
   rotate: 'Girar',
-  stamp: 'Carimbo',
+  stamp: 'Clonar',
   freeze: 'Preservar',
   pan: 'Mão',
   zoom: 'Zoom'
@@ -3588,6 +3664,7 @@ function syncContextPanel() {
     return;
   }
   const isGenerator = StudioState.workspace === 'generate';
+  if (StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move') { title.textContent = 'Seleção'; return; }
   title.textContent = isGenerator
     ? 'Geração'
     : (StudioState.activeTool === 'paint' && isEraserPattern() ? 'Borracha' : window.StudioCommands?.get('mosaic', StudioState.activeTool)?.name || TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
@@ -3618,7 +3695,7 @@ function syncEditWorkspaceUI() {
   }
 
   // 3. Left Toolbar Active Tool Highlight
-  const selecting = StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select';
+  const selecting = StudioState.studioMode !== 'tiles' && StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move';
   document.querySelectorAll('#left-toolbar .tool-btn[data-tool]').forEach((b) => {
     b.classList.toggle('active', b.dataset.tool === StudioState.activeTool && !(selecting && b.dataset.tool === 'stamp'));
   });
@@ -3627,7 +3704,20 @@ function syncEditWorkspaceUI() {
     button.classList.toggle('active',active);
     button.setAttribute('aria-pressed',String(active));
   });
-  document.getElementById('stampModeSection')?.classList.toggle('hidden',StudioState.activeTool !== 'stamp');
+  document.body.dataset.regionTool = selecting ? 'selection' : 'clone';
+  document.body.dataset.selectionShape = mosaicSelectionShape;
+  document.getElementById('selectionSummary')?.classList.toggle('hidden',!selecting);
+  const selectedPattern = mosaicRegion?.pattern;
+  const dimensions = document.getElementById('selectionDimensions'), cellCount = document.getElementById('selectionCellCount');
+  if (dimensions) dimensions.textContent = selectedPattern ? `${selectedPattern.cols} × ${selectedPattern.rows}` : '—';
+  if (cellCount) cellCount.textContent = selectedPattern ? String(selectedPattern.cells.flat().filter(Boolean).length) : '0';
+  const editHeading = document.getElementById('editPanelHeading');
+  if (editHeading) editHeading.textContent = selecting ? 'Histórico' : 'Edição & Simetria';
+  const brushHeading = document.getElementById('brushPanelHeading');
+  if (brushHeading) brushHeading.textContent = selecting ? 'Tamanho' : 'Pincel';
+  const clearRegionButton = document.getElementById('btnClearRegion');
+  if (clearRegionButton) clearRegionButton.disabled = !mosaicRegion;
+  syncSelectionControls(selecting);
 
   // 4. Edit Tool Segmented Control
   document.querySelectorAll('#editToolSegmented .seg-btn[data-edit-tool]').forEach((b) => {
@@ -3707,19 +3797,6 @@ function syncEditWorkspaceUI() {
   });
 
   // 7. Unified Supertile / Brush / Clone Panel Controls
-  document.querySelectorAll('#stampInteractionSegmented [data-stamp-mode]').forEach((btn) => {
-    const active = btn.dataset.stampMode === StudioState.stampInteractionMode;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-pressed', String(active));
-    if (btn.dataset.stampMode === 'apply') btn.disabled = !isCloneReady();
-  });
-
-  const cloneHint = document.getElementById('stampModeHint');
-  if (cloneHint) cloneHint.textContent = StudioState.stampInteractionMode === 'select'
-    ? 'Arraste para capturar.'
-    : isCloneReady() ? 'Pronto para aplicar.'
-      : 'Capture uma região com Alt+arraste.';
-
   // 7. Brush Size Display & Snap Status Badge
   const sizeValEl = document.getElementById('brushSizeValueText');
   const sizeSubEl = document.getElementById('brushSizeSubText');
@@ -3776,7 +3853,7 @@ function syncEditWorkspaceUI() {
     if (sizeSubEl) sizeSubEl.textContent = 'peças';
   }
 
-  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select' && !brushEditorPortal) {
+  if (typeof mosaicSelectionShape !== 'undefined' && mosaicSelectionShape === 'brush' && StudioState.activeTool === 'stamp' && (mosaicTransferMode === 'move' || StudioState.stampInteractionMode === 'select') && !brushEditorPortal) {
     if (sizeValEl) sizeValEl.textContent = `${selectionBrushDiameter}×${selectionBrushDiameter}`;
     if (sizeSubEl) sizeSubEl.textContent = 'peças';
     if (decreaseBrush) decreaseBrush.disabled = selectionBrushDiameter <= 1;
@@ -3816,7 +3893,7 @@ function syncEditWorkspaceUI() {
   }
   if (StudioState.activeTool === 'stamp' && !isCloneReady() && !brushEditorPortal) {
     if (brushNameEl) brushNameEl.textContent = 'Sem captura';
-    if (brushD4El) brushD4El.textContent = 'Alt + arraste';
+    if (brushD4El) brushD4El.textContent = '';
     if (brushBadgeEl) brushBadgeEl.textContent = 'Aguardando captura';
   }
 
@@ -3837,26 +3914,7 @@ function updateHoverStatusText() {
 
   const hit = StudioState.hoveredCell;
   if (!hit || !StudioState.mosaicData) {
-    if (StudioState.activeTool === 'freeze') {
-      const count = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
-      el.innerHTML = `<strong>Preservar (F):</strong> Clique para preservar na próxima geração • Clique direito inverte a ação • Escopo: <strong>${StudioState.editScope}</strong> • Preservados: <strong>${count}</strong>`;
-      return;
-    }
-    if (StudioState.workspace === 'edit') {
-      if (StudioState.activeTool === 'rotate') {
-        el.innerHTML = '<strong>Girar (R):</strong> Clique Esq gira +90° • Clique Dir gira -90° • C captura uma região';
-      } else if (StudioState.activeTool === 'stamp') {
-        el.innerHTML = StudioState.stampInteractionMode === 'select'
-          ? '<strong>Carimbo (S):</strong> Arraste e solte para capturar • Esc cancela'
-          : '<strong>Carimbo (S):</strong> Alt+arraste captura • Clique/arraste aplica • Clique direito gira';
-      } else if (StudioState.activeTool === 'paint' && isEraserPattern()) {
-        el.innerHTML = '<strong>Borracha (E):</strong> Clique/arraste para apagar • B restaura o pincel • S restaura o carimbo';
-      } else {
-        el.innerHTML = '<strong>Pincel (B):</strong> Clique/arraste para pintar • Clique Dir gira o pincel (+90°) • Alt+Arraste captura área';
-      }
-    } else {
-      el.textContent = 'Passe o cursor sobre o mosaico para inspecionar o bloco, sua órbita e rotação D4';
-    }
+    el.textContent = '';
     return;
   }
 
@@ -3963,13 +4021,7 @@ function initStudioUI() {
   syncAllInputsFromState();
   syncEditWorkspaceUI();
 
-  document.querySelectorAll('[data-region-mode]').forEach(btn => btn.addEventListener('click', () => {
-    activateStudioTool('stamp');
-    mosaicTransferMode = btn.dataset.regionMode;
-    document.querySelectorAll('[data-region-mode]').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
-    if (mosaicTransferMode === 'move' && !mosaicRegion) beginCloneCapture();
-    redraw();
-  }));
+  document.getElementById('btnClearRegion')?.addEventListener('click', () => { cancelToolGesture(); mosaicRegion = null; StudioState.stampInteractionMode = 'select'; syncEditWorkspaceUI(); redraw(); });
   document.querySelectorAll('[data-region-shape]').forEach(btn => btn.addEventListener('click', () => activateRegionSelection(btn.dataset.regionShape)));
   // --- Artboard Size Controls ---
   const wInput = document.getElementById('canvasW');
@@ -4141,7 +4193,7 @@ function initStudioUI() {
 
   const mosaicCommandContext = {
     selectRegion: activateRegionSelection,
-    selectTool: activateStudioTool, eraser: activateEraser, generate: triggerRandomSeed,
+    selectTool: tool => tool === 'stamp' ? activateCloneTool() : activateStudioTool(tool), eraser: activateEraser, generate: triggerRandomSeed,
     undo: undoMosaicEdit, redo: redoMosaicEdit, swap: swapStudioColors,
     toggle: () => window.SubtileStudioUI.toggleTilesStudio(),
     canUndo: () => StudioState.editHistoryIndex > 0,
@@ -4324,7 +4376,7 @@ function initStudioUI() {
   });
 
   // --- Workspace Mode Switcher, Left Toolbar & Edit Tools ---
-  const setActiveTool = activateStudioTool;
+  const setActiveTool = tool => tool === 'stamp' ? activateCloneTool() : activateStudioTool(tool);
 
   // Round 6: inspect is the generation context — no separate context button any more.
 
@@ -4457,19 +4509,6 @@ function initStudioUI() {
   });
 
 
-
-  // Stamp Interaction Mode ('select' vs 'apply')
-  document.querySelectorAll('#stampInteractionSegmented [data-stamp-mode]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.stampMode === 'select') { beginCloneCapture(); return; }
-      if (!isCloneReady()) return;
-      cancelToolGesture();
-      StudioState.stampInteractionMode = 'apply';
-      syncEditWorkspaceUI();
-      saveStudioStateToStorage();
-      redraw();
-    });
-  });
 
   document.getElementById('btnExpandBrushEditor')?.addEventListener('click', openBrushEditor);
   document.getElementById('btnCloseBrushEditor')?.addEventListener('click', () => closeBrushEditor());
@@ -4798,6 +4837,7 @@ function initStudioUI() {
       saveStudioStateToStorage();
     }
 
+    finishRegionMove();
     finishCanvasRegionCapture();
 
     if (StudioState.isPaintingDrag) {
@@ -4842,7 +4882,8 @@ function initStudioUI() {
 
     if (StudioState.studioMode !== 'tiles' && StudioState.activeTool === 'stamp' && e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      document.querySelector(`[data-region-mode="${mosaicTransferMode === 'move' ? 'stamp' : 'move'}"]`)?.click();
+      if (mosaicTransferMode === 'move') activateCloneTool();
+      else { mosaicTransferMode = 'move'; syncEditWorkspaceUI(); redraw(); }
       return;
     }
 

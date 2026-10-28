@@ -32,11 +32,15 @@
 
   // One stroke weight and viewBox for command icons; their buttons supply the name.
   const ICON_PATHS = {
-    import: '<path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/>',
-    export: '<path d="M12 15V3m-5 5 5-5 5 5M3 16v5h18v-5"/>',
+    unite: '<path fill="currentColor" stroke="none" d="M3 3H15V9H21V21H9V15H3Z"/>',
+    subtract: '<path d="M9 9V3H21V15H15" stroke-dasharray="2 2" opacity=".45"/><path fill="currentColor" stroke="none" d="M3 9H9V15H15V21H3Z"/>',
+    intersect: '<path d="M3 3H15V15H3ZM9 9H21V21H9Z" opacity=".45"/><path fill="currentColor" stroke="none" d="M9 9H15V15H9Z"/>',
+    exclude: '<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M3 3H15V15H3ZM9 9H21V21H9Z"/>',
+    import: '<path d="M12 3V15M7 10L12 15L17 10M3 16V21H21V16"/>',
+    export: '<path d="M12 15V3M7 8L12 3L17 8M3 16V21H21V16"/>',
     folder: '<path d="M3 6h7l2 3h9v12H3zM3 6V3h7l2 3"/>',
     reset: '<path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/>',
-    rotate: '<path d="M4 10a8 8 0 1 1 1 8M4 3v7h7"/>',
+    rotate: '<path d="M4 10A8 8 0 1 1 5 18M4 3V10H11"/>',
     flipX: '<path d="M12 2v20M3 6v12l6-6zM21 6v12l-6-6z"/>',
     flipY: '<path d="M2 12h20M6 3h12l-6 6zM6 21h12l-6-6z"/>',
     fill: '<path d="m4 11 8-8 8 8-8 8zM4 11h16M3 22h18"/>',
@@ -59,23 +63,23 @@
     alignTop: '<path d="M3 4h18M7 8h4v12H7zM15 8h4v8h-4z"/>',
     alignCenterY: '<path d="M3 12h18M6 4h4v16H6zM14 7h4v10h-4z"/>',
     alignBottom: '<path d="M3 20h18M7 4h4v12H7zM15 8h4v8h-4z"/>',
-    up: '<path d="m6 10 6-6 6 6M12 4v16"/>',
-    down: '<path d="m6 14 6 6 6-6M12 4v16"/>',
+    up: '<path d="M6 10L12 4L18 10M12 4V20"/>',
+    down: '<path d="M6 14L12 20L18 14M12 4V20"/>',
     left: '<path d="m14 6-6 6 6 6"/>',
     right: '<path d="m10 6 6 6-6 6"/>',
     copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/>',
     edit: '<path d="m14 5 5 5M4 20l5-1L21 7l-4-4L5 15z"/>',
     trash: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
-    undo: '<path d="m8 4-5 5 5 5M3 9h11a7 7 0 0 1 0 14"/>',
-    redo: '<path d="m16 4 5 5-5 5M21 9H10a7 7 0 0 0 0 14"/>',
+    undo: '<path d="M8 4L3 9L8 14M3 9H14A6 6 0 0 1 14 21"/>',
+    redo: '<path d="M16 4L21 9L16 14M21 9H10A6 6 0 0 0 10 21"/>',
     swap: '<path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/>',
     close: '<path d="m6 6 12 12M6 18 18 6"/>',
     plus: '<path d="M5 12h14M12 5v14"/>',
     minus: '<path d="M5 12h14"/>',
     chevronRight: '<path d="m9 5 7 7-7 7"/>',
     chevronDown: '<path d="m5 9 7 7 7-7"/>',
-    toFront: '<path d="M4 3h16M12 7v14m-6-8 6-6 6 6"/>',
-    toBack: '<path d="M4 21h16M12 3v14m-6-6 6 6 6-6"/>'
+    toFront: '<path d="M4 3H20M12 7V21M6 13L12 7L18 13"/>',
+    toBack: '<path d="M4 21H20M12 3V17M6 11L12 17L18 11"/>'
   };
   function icon(name) {
     const paths = ICON_PATHS[name];
