@@ -523,6 +523,7 @@ select option {
 /* ==================== LEFT TOOLBAR ==================== */
 #left-toolbar {
   width: var(--left-tool-w);
+  height: 100%;
   background: var(--bg-panel);
   border-right: 1px solid var(--border-subtle);
   display: flex;
@@ -3115,7 +3116,6 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .sidebar-history-container {
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 230px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3125,7 +3125,6 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .sidebar-history-list {
   flex: 1 1 auto;
   min-height: 50px;
-  max-height: 190px;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -4560,11 +4559,11 @@ body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn {
   cursor: pointer;
 }
 .sidebar-disclosure > summary:hover { color: var(--text-primary); }
-.sidebar-disclosure-body { display: flex; flex-direction: column; gap: 6px; padding: 2px 0 6px; min-height: 0; flex: 0 1 auto; }
+.sidebar-disclosure-body { display: flex; flex-direction: column; gap: 6px; padding: 2px 0 6px; min-height: 0; flex: 0 1 auto; overflow: hidden; }
 .sidebar-disclosure .sidebar-history-container,
 .sidebar-history-container { min-height: 0; }
 .sidebar-disclosure .sidebar-history-list,
-.sidebar-history-list { max-height: 190px; }
+.sidebar-history-list { min-height: 50px; }
 .sidebar-disclosure .tool-divider { margin: 0; }
 .tool-size-snap { display: flex; margin-top: 6px; }
 .tool-size-snap > .seg-btn { width: 100%; min-height: 28px; }
