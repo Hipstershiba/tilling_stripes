@@ -583,10 +583,10 @@ html, body {
 }
 
 .tool-btn.guide-toggle.active {
-  background: var(--bg-panel-header);
+  background: var(--bg-selected);
   border-color: transparent;
   color: var(--text-primary);
-  box-shadow: inset 3px 0 0 var(--text-secondary);
+  box-shadow: none;
 }
 
 /* ==================== CENTER VIEWPORT & ARTBOARD ==================== */
@@ -2983,10 +2983,10 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 }
 
 .tool-grid-btn.guide-toggle.active {
-  background: var(--bg-panel-header);
+  background: var(--bg-selected);
   border-color: transparent;
   color: var(--text-primary);
-  box-shadow: inset 3px 0 0 var(--text-secondary);
+  box-shadow: none;
 }
 
 /* Color Adjustment Row (Minimalist Studio Style) */
@@ -3613,13 +3613,13 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
   color: var(--accent-cyan);
 }
 
-/* Guide state has a neutral fill and a mark; the tool selection keeps its accent. */
+/* Guide and grid snap active states match the studio selection style */
 [id^="toggleTileGuide"].active,
 #btnTileSnapToggle.active {
-  background: var(--bg-panel-header);
+  background: var(--bg-selected);
   border-color: transparent;
   color: var(--text-primary);
-  box-shadow: inset 3px 0 0 var(--text-secondary);
+  box-shadow: none;
 }
 
 /* Swatches Panel Quick Entry & Family Edit Button */
@@ -4756,4 +4756,4 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 }
 
 body[data-studio-mode="tiles"] [id^="toggleTileGuide"].active,
-body[data-studio-mode="tiles"] #btnTileSnapToggle.active { background: var(--bg-panel-header); border-color: transparent; color: var(--text-primary); box-shadow: inset 3px 0 0 var(--text-secondary); }
+body[data-studio-mode="tiles"] #btnTileSnapToggle.active { background: var(--bg-selected); border-color: transparent; color: var(--text-primary); box-shadow: none; }
