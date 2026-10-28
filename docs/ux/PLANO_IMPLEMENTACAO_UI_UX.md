@@ -814,3 +814,17 @@ Captura em `_local/limpeza-ui/propriedades.png` permanece ignorada. Não se inic
 - [x] Gate completo: 51/51 suítes; AST/vault sincronizados; commit separado.
 
 Testes novos executam renderer real com DOM de teste, seleção parcial, expansão/busca, preservação do foco, isolamento e sincronização da simetria salva. No navegador em 8874, modo Rotacional independente sobreviveu ao reload; busca #0 + Nenhum desativou 121 peças, Todos reativou 121; isolar Faixa Central reduziu para duas e Restaurar seleção voltou a 121. Desmarcar uma variante produziu estado mixed. Capturas em `_local/t09` são ignoradas. A sessão Zen em 5500 foi preservada.
+
+### Ajuste de direção visual solicitado após T09 — 27/10/2026
+
+A preferência do usuário substitui a divulgação progressiva da simetria do bloco prevista na T09 e a posição global do rodapé adotada na correção da T07.
+
+- [x] Remover o seletor compacto e apresentar diretamente as cinco opções de simetria do bloco, mantendo a configuração salva.
+- [x] Restaurar o rodapé à coluna central, entre as duas laterais, nos dois ambientes.
+- [x] Suavizar contornos decorativos de campos, botões, listas e janelas; preservar contraste de texto, indicação de estado e foco por teclado.
+- [x] Usar o mesmo tratamento neutro/selecionado nas ferramentas e opções do mosaico e do editor; guias ligadas conservam marca discreta.
+- [x] Adaptar rodapé à largura da coluna: em 900×768 a coluna de 334 px manteve todos os controles visíveis, em duas linhas e sem cortes.
+- [x] Manter famílias alcançáveis com uma rolagem externa no gerador.
+- [ ] Concluir gate, sincronização e commit.
+
+Capturas em `_local/visual-unificado` permanecem ignoradas. A T10 não foi iniciada.

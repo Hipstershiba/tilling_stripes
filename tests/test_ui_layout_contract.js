@@ -188,13 +188,28 @@ console.log('✓ Left toolbar sections ordered: tools → visual guides → colo
 
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');
 
-const workspace = getElementBounds(html, 'workspace-body');
+const viewport = getElementBounds(html, 'workspace-viewport');
 const status = getElementBounds(html, 'status-bar');
-const shell = getElementBounds(html, 'app-shell');
-if (!(status.startIndex > workspace.endIndex && status.endIndex < shell.endIndex)) {
-  throw new Error('Status controls must span the application below the workspace, outside the canvas column.');
+if (!(status.startIndex > viewport.startIndex && status.endIndex < viewport.endIndex)) {
+  throw new Error('Status controls must stay inside the canvas column between the sidebars.');
 }
 const pasteboard = getElementBounds(html, 'artboard-pasteboard');
 if (!pasteboard.content.includes('id="editorToast"')) {
   throw new Error('Editor messages must stay inside the artboard area above the status bar.');
 }
+
+// 8. #btnRandomize must NOT include keyboard tag "G"
+const btnRandomizeBounds = getElementBounds(html, 'btnRandomize');
+if (btnRandomizeBounds && (btnRandomizeBounds.content.includes('<kbd') || />\s*G\s*</.test(btnRandomizeBounds.content))) {
+  throw new Error('Contract violation: #btnRandomize must not display the "G" kbd badge.');
+}
+console.log('✓ #btnRandomize has no "G" badge.');
+
+// 9. Right dock generation scrolling must stay internal to the swatches container
+if (/\s*#dock-workspace-generate\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
+  throw new Error('Contract violation: #dock-workspace-generate must not have overflow-y: auto (scroll belongs inside #familiesSwatchContainer).');
+}
+if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto')) {
+  throw new Error('Contract violation: .families-swatch-scroll must have overflow-y: auto.');
+}
+console.log('✓ Right dock scrolling is contained inside the tiles list (#familiesSwatchContainer).');

@@ -10,7 +10,7 @@
   --bg-control-hover: #353941;
   --bg-selected: #263d5b;
   --bg-primary: #27558b;
-  --border-subtle: #484d57;
+  --border-subtle: #36393f;
   --border-control: #818a99;
   --border-focus: #79adff;
   --text-primary: #eceef2;
@@ -90,7 +90,7 @@ html, body {
 :where(input, select, textarea)[aria-invalid="true"] { border-color: var(--color-error); box-shadow: inset 0 0 0 1px var(--color-error); }
 
 /* Input surfaces and icon actions have independent geometry. */
-:where(.bar-select, .subtile-text-input, .subtile-select) { border-color: var(--border-control); background: var(--bg-control); }
+:where(.bar-select, .subtile-text-input, .subtile-select) { border-color: var(--border-subtle); background: var(--bg-control); }
 :where(.mini-btn, .seg-btn, .bar-action-btn, .subtile-rail-btn) { padding-inline: 8px; }
 :where(.step-btn, .status-icon-btn, .status-reset-zoom-btn, #infoPopoverClose, .dock-toggle-btn, .lib-group-chevron) { min-width: 28px; min-height: 28px; }
 /* ==================== TOP CONTROL BAR ==================== */
@@ -169,7 +169,7 @@ html, body {
   display: inline-flex;
   align-items: center;
   background: var(--bg-control);
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-subtle);
   border-radius: 5px;
   height: var(--control-h);
   padding: 0 0 0 8px;
@@ -289,7 +289,7 @@ html, body {
 .icon-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
   color: var(--text-primary);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .icon-btn:disabled {
@@ -315,7 +315,7 @@ html, body {
 
 .bar-action-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .btn-primary-accent {
@@ -905,7 +905,7 @@ body.is-panning * {
 .dock-toggle-btn:hover {
   color: var(--text-primary);
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .dock-toggle-btn:focus-visible {
@@ -1495,7 +1495,7 @@ body.right-dock-collapsed .dock-toggle-btn {
 
 .mini-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .mini-btn.accent {
@@ -1578,7 +1578,7 @@ body.right-dock-collapsed .dock-toggle-btn {
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  border: 1px solid #525866;
+  border: 1px solid var(--border-control);
   background: #141518;
   display: inline-flex;
   align-items: center;
@@ -2254,7 +2254,7 @@ select:focus-visible {
   background: transparent; border: 0; color: var(--text-secondary);
   font-family: inherit; font-size: 12px; font-weight: 600; line-height: 1; padding: 0; cursor: pointer;
 }
-.info-btn::before { content: ""; position: absolute; width: 16px; height: 16px; border: 1px solid var(--border-control); border-radius: 50%; pointer-events: none; }
+.info-btn::before { content: ""; position: absolute; width: 16px; height: 16px; border: 1px solid var(--border-subtle); border-radius: 50%; pointer-events: none; }
 .info-btn:hover, .info-btn[aria-expanded="true"] { color: var(--accent-blue); }
 .info-btn:hover::before, .info-btn[aria-expanded="true"]::before { border-color: var(--accent-blue); }
 
@@ -2427,7 +2427,7 @@ select:focus-visible {
 .status-guide-btn:hover {
   color: var(--text-primary);
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .status-guide-btn.active,
@@ -2884,7 +2884,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .sidebar-seed-nav-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
   color: var(--text-primary);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .sidebar-seed-nav-btn:disabled {
@@ -2898,7 +2898,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
   display: flex;
   align-items: center;
   background: var(--bg-control);
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 0 5px;
   overflow: hidden;
@@ -2971,7 +2971,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .tool-grid-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
   color: var(--text-primary);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .tool-grid-btn.active {
@@ -3014,7 +3014,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .sidebar-color-chip:hover {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .color-chip-tag {
@@ -3070,7 +3070,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 .sidebar-color-swap-btn:hover {
   background: var(--bg-control-hover);
   color: var(--text-primary);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 /* Collapsible History Section */
@@ -3204,7 +3204,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .modal-dialog-card {
   background: var(--bg-panel);
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 20px;
   max-width: 440px;
@@ -3327,7 +3327,7 @@ body[data-active-tool="freeze"] #canvas-stage canvas {
 
 .sidebar-export-select:hover {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .sidebar-export-btn {
@@ -3546,7 +3546,7 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 
 .subtile-rail-action-btn:hover {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .subtile-rail-action-btn.primary {
@@ -3700,7 +3700,7 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 }
 
 .tile-live-variant-card:hover {
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
   background: #1b1d24;
 }
 
@@ -4163,7 +4163,7 @@ body[data-studio-mode="tiles"][data-vec-tool="direct"] #canvas-stage canvas {
 .vec-align-btn:hover:not(:disabled) {
   background: var(--bg-control-hover);
   color: var(--text-primary);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .vec-align-btn:disabled {
@@ -4209,7 +4209,7 @@ body[data-studio-mode="tiles"][data-vec-tool="direct"] #canvas-stage canvas {
   justify-content: space-between;
   gap: 4px;
   background: rgba(0, 0, 0, 0.22);
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 0 6px;
   min-height: var(--control-h);
@@ -4366,7 +4366,7 @@ body[data-studio-mode="tiles"][data-vec-tool="direct"] #canvas-stage canvas {
 
 .tile-layer-row:hover {
   background: var(--bg-control-hover);
-  border-color: var(--border-control);
+  border-color: var(--border-subtle);
 }
 
 .tile-layer-row.is-selected {
@@ -4521,9 +4521,9 @@ body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn {
 .tool-size-snap > .seg-btn { width: 100%; min-height: 28px; }
 
 /* Roomy brush editor: the live dock controls move into this modal. */
-.brush-expand-btn { width: 100%; min-height: 30px; padding: 5px 8px; cursor: pointer; color: var(--text-primary); background: var(--bg-control); border: 1px solid var(--border-control); border-radius: 5px; font-size: var(--font-ui); }
+.brush-expand-btn { width: 100%; min-height: 30px; padding: 5px 8px; cursor: pointer; color: var(--text-primary); background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 5px; font-size: var(--font-ui); }
 .brush-editor-dialog { z-index: 20000; }
-.brush-editor-window { width: min(1040px, 94vw); height: min(820px, 92vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-control); border-radius: 10px; background: var(--bg-panel, #202126); box-shadow: 0 20px 80px #000a; }
+.brush-editor-window { width: min(1040px, 94vw); height: min(820px, 92vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-panel, #202126); box-shadow: 0 20px 80px #000a; }
 .brush-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
 .brush-editor-header h2 { margin: 0; font-size: 16px; }
 .brush-editor-help { margin: 10px 18px 0; color: var(--text-secondary); font-size: 12px; }
@@ -4566,7 +4566,7 @@ body[data-cursor-mode="erase"] #canvas-stage canvas { cursor: url("data:image/sv
 .brush-editor-header-actions, .brush-editor-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .brush-editor-toolbar { margin: 12px 18px 0; padding: 10px; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 12px; }
 .brush-editor-toolbar label { display: flex; align-items: center; gap: 6px; }
-.brush-editor-toolbar input { width: 56px; min-height: 28px; padding: 3px 5px; color: var(--text-primary); background: var(--bg-panel,#202126); border: 1px solid var(--border-control); border-radius: 4px; }
+.brush-editor-toolbar input { width: 56px; min-height: 28px; padding: 3px 5px; color: var(--text-primary); background: var(--bg-panel,#202126); border: 1px solid var(--border-subtle); border-radius: 4px; }
 .brush-editor-toolbar .mini-btn, .brush-editor-header-actions .mini-btn { min-height: 30px; padding: 5px 9px; }
 .brush-editor-ink { flex-basis: 100%; color: var(--text-secondary); font-size: var(--font-ui); }
 #brushEditorHost .supertile-size-section { display: none; }
@@ -4673,8 +4673,7 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .vec-props-subblock[hidden] { display: none; }
 
 /* T09: composition first, family summaries before individual variants. */
-.generator-block-choice { width: 100%; min-height: 32px; padding: 6px 10px; text-align: left; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-control); color: var(--text-primary); font: inherit; cursor: pointer; }
-.block-sym-pill-grid[hidden], .generator-variants[hidden] { display: none; }
+.generator-variants[hidden] { display: none; }
 .block-sym-pill-grid { margin-top: 8px; }
 #familiesSwatchContainer .family-swatch-card.family-none { opacity: 1; }
 #familiesSwatchContainer .family-partial { border-left: 3px solid var(--accent-blue); }
@@ -4689,3 +4688,50 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 #familiesSwatchContainer .family-solo-btn:hover { color: var(--text-primary); background: var(--bg-control-hover); border-color: transparent; }
 #familiesSwatchContainer .family-solo-btn[aria-pressed="true"] { color: var(--text-primary); background: var(--bg-selected); border-color: var(--accent-blue); }
 .generator-family-expand[hidden] { display: none; }
+
+/* Shared quiet controls in both workspaces; focus stays explicit. */
+.sym-card, .block-sym-pill, .subtile-rail-btn, .tool-grid-btn { border-color: transparent; background: transparent; font-weight: 500; }
+.sym-card.active, .block-sym-pill.active, .subtile-rail-btn.active, .tool-grid-btn.active { border-color: transparent; color: var(--text-primary); background: var(--bg-selected); }
+.sym-card:hover, .block-sym-pill:hover, .subtile-rail-btn:hover, .tool-grid-btn:hover { border-color: transparent; background: var(--bg-control-hover); }
+.sym-card.active:hover, .block-sym-pill.active:hover, .subtile-rail-btn.active:hover, .tool-grid-btn.active:hover { background: var(--bg-selected); }
+#workspace-viewport { container-type: inline-size; }
+/* Keep the footer inside the artboard column without squeezing its controls. */
+@container (max-width: 1050px) {
+  #status-bar .status-center, #saveStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  #status-bar .status-right { margin-left: auto; }
+  #status-bar .status-spout-name { width: 80px; }
+}
+@container (max-width: 640px) {
+  #status-bar { flex-wrap: wrap; row-gap: 4px; }
+  #status-bar .status-left { width: 100%; }
+  #status-bar .status-right { width: 100%; margin-left: 0; justify-content: space-between; }
+}
+
+/* Swatches list is the internal scrolling surface in the generation dock */
+#dock-workspace-generate {
+  overflow: hidden;
+}
+#panel-symmetry {
+  flex-shrink: 0;
+}
+#panel-swatches {
+  flex: 1 1 auto;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+#panelSwatchesBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#familiesSwatchContainer {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow-y: auto;
+}
+
+body[data-studio-mode="tiles"] [id^="toggleTileGuide"].active,
+body[data-studio-mode="tiles"] #btnTileSnapToggle.active { background: var(--bg-panel-header); border-color: transparent; color: var(--text-primary); box-shadow: inset 3px 0 0 var(--text-secondary); }

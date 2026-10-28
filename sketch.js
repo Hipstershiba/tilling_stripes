@@ -1528,7 +1528,7 @@ function buildTileThumbnails() {
   }
 }
 
-const generatorUiState = {expanded: new Set(), isolation: null, blockExpanded: null};
+const generatorUiState = {expanded: new Set(), isolation: null};
 function sameGeneratorTiles(a, b) { return a.size === b.size && [...a].every(id => b.has(id)); }
 function toggleGeneratorIsolation(key, ids) {
   const previous = generatorUiState.isolation;
@@ -1662,11 +1662,6 @@ function buildSymmetryPanelUI() {
     }
   }
 
-  const blockChoice = document.getElementById('btnBlockSymmetryOptions');
-  if (blockChoice) blockChoice.onclick = () => {
-    generatorUiState.blockExpanded = !(generatorUiState.blockExpanded ?? !StudioState.syncBlockSymmetry);
-    syncSymmetryPanelUI();
-  };
   if (blockGrid) {
     blockGrid.innerHTML = '';
     const blockOptions = [
@@ -1716,7 +1711,6 @@ function buildSymmetryPanelUI() {
       btn.addEventListener('click', () => {
         if (opt.key === 'sync' ? StudioState.syncBlockSymmetry :
           !StudioState.syncBlockSymmetry && StudioState.blockSymmetryMode === opt.key) return;
-        generatorUiState.blockExpanded = opt.key !== 'sync';
         if (opt.key === 'sync') {
           StudioState.syncBlockSymmetry = true;
           StudioState.blockSymmetryMode = StudioState.gridSymmetryMode;
@@ -1792,14 +1786,6 @@ function syncSymmetryPanelUI() {
       : activeBlockMode.name;
   }
 
-  const blockChoice = document.getElementById('btnBlockSymmetryOptions');
-  const blockGrid = document.getElementById('blockSymmetryGrid');
-  const showBlockOptions = generatorUiState.blockExpanded ?? !StudioState.syncBlockSymmetry;
-  if (blockChoice) {
-    blockChoice.textContent = `${StudioState.syncBlockSymmetry ? 'Igual à composição' : activeBlockMode.name} ${showBlockOptions ? '⌃' : '⌄'}`;
-    blockChoice.setAttribute('aria-expanded', String(showBlockOptions));
-  }
-  if (blockGrid) blockGrid.hidden = !showBlockOptions;
   const blockDesc = document.getElementById('blockSymmetryDesc');
   if (blockDesc) {
     blockDesc.textContent = StudioState.syncBlockSymmetry
