@@ -105,7 +105,7 @@
         "body": []
     },
     'inspect': {
-        "title": "Inspecionar",
+        "title": "Inspeção",
         "body": [
             "Passe o cursor sobre uma peça para consultar o bloco, a família, a orientação e a órbita no rodapé."
         ]
@@ -123,7 +123,7 @@
         "title": "Desenhar peças",
         "body": [
             "Seleção (V): mova, redimensione ou gire pelas alças. Shift mantém proporções; Alt usa o centro.",
-            "Editar pontos (A): ajuste nós e curvas. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
+            "Seleção direta (A): ajuste nós e curvas. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
             "Caneta (P): clique cria cantos; arraste cria curvas. Clique no início para fechar, Enter conclui e Escape cancela.",
             "Encaixe alinha o desenho à grade. A divisão 1/6 ajuda a conectar as fitas nas bordas."
         ]
@@ -132,7 +132,7 @@
         "title": "Camadas e SVG",
         "body": [
             "Seleção: marque objetos nas camadas ou use Shift+clique no desenho. Ctrl+A seleciona todos os visíveis e destravados.",
-            "Combinar: selecione duas ou mais formas para unir, subtrair, intersectar ou excluir a sobreposição. Ctrl+Z desfaz.",
+            "Pathfinder: selecione duas ou mais formas para Unir, Menos frente, Interseção ou Excluir. Ctrl+Z desfaz.",
             "Ordem: o topo da lista fica à frente. Arraste para reordenar; duplo clique renomeia. Os ícones ocultam ou travam a forma.",
             "SVG: importe formas para editar ou exporte a peça atual. O desenho importado se ajusta aos limites da peça."
         ]
@@ -199,7 +199,7 @@
       'Roda no canvas: tamanho da ferramenta de edição; Ctrl+roda: zoom; Shift+roda: mover horizontalmente; Alt+roda: mover verticalmente.',
       'Ctrl+U alterna o encaixe nos blocos; Shift inverte momentaneamente o encaixe ao editar.',
       'Q ou Tab: ciclar escopos 1 a 6 (Shift inverte); Tab somente no canvas de edição. Em controles, Tab navega pelo foco.',
-      'Setas no canvas em Inspecionar: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
+      'Setas no canvas em Inspeção: navegar gerações. Escape cancela o gesto e retorna o foco à ferramenta.',
       'No editor de peças:', ...commands.help('tiles'),
       'Ctrl+D duplica formas selecionadas. Sem seleção, selecione formas; em peça protegida, use Criar cópia editável.',
       'Escape cancela Caneta/arrasto ou limpa a seleção, sem sair do editor. Ctrl+E ou Voltar ao mosaico muda de ambiente.',

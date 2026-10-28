@@ -1993,6 +1993,46 @@
     if (selectAllBtn) selectAllBtn.disabled = Boolean(fam.builtIn || fam.protected || !(famDoc.shapes || []).some((s) => s && !s.locked && s.visible !== false));
     if (deselectBtn) deselectBtn.disabled = !ve.state.selectedShapeIds.length;
 
+    const shapes = famDoc.shapes || [];
+    const selSet = new Set(ve.state.selectedShapeIds);
+    const selected = shapes.filter((s) => s && selSet.has(s.id));
+
+    // 2B. Pathfinder Boolean Operations (Unite, Subtract, Intersect, Exclude)
+    if (vb) {
+      const unlockedSelCount = selected.filter((s) => !s.locked && s.visible !== false).length;
+      const canBool = !fam.builtIn && !fam.protected && unlockedSelCount >= 2;
+      const boolBlock = document.createElement('div');
+      boolBlock.className = 'vec-props-subblock';
+      boolBlock.innerHTML = `
+        <div class="vec-subblock-title">
+          <span>Pathfinder</span>
+          <span style="font-weight:400;opacity:0.7;">${canBool ? `${unlockedSelCount} formas` : fam.builtIn || fam.protected ? 'Crie uma cópia' : 'Selecione 2+'}</span>
+        </div>
+        <div class="vec-bool-strip">
+          <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir formas selecionadas num contorno contínuo" ${!canBool ? 'disabled' : ''}>Unir</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Subtrair formas da frente sobre a forma de trás (furos compostos)" ${!canBool ? 'disabled' : ''}>Menos frente</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Manter apenas a área comum de interseção" ${!canBool ? 'disabled' : ''}>Interseção</button>
+          <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Diferença simétrica (XOR) vazando sobreposições" ${!canBool ? 'disabled' : ''}>Excluir</button>
+        </div>
+      `;
+      boolBlock.querySelectorAll('[data-bool-op]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const op = btn.dataset.boolOp;
+          const res = vb.applyBooleanOp(shapes, ve.state.selectedShapeIds, op);
+          if (!res.ok) {
+            notifyToast('Selecione ao menos 2 formas visíveis e destravadas.', 'info');
+            return;
+          }
+          ve.state.selectedShapeIds = res.resultIds;
+          ve.state.selectedNodes = [];
+          commitFamilyShapes(famDoc.id, res.shapes);
+          notifyToast(res.emptyResult ? 'Operação resultou em área vazia.' : `Booleana (${btn.textContent.trim()}) aplicada.`);
+        });
+      });
+      (pathfinder || container).appendChild(boolBlock);
+    }
+
+
     if (fam.builtIn || fam.protected) {
       if (selBadge) selBadge.textContent = 'Somente Leitura';
       container.innerHTML = `
@@ -2009,9 +2049,6 @@
       return;
     }
 
-    const shapes = famDoc.shapes || [];
-    const selSet = new Set(ve.state.selectedShapeIds);
-    const selected = shapes.filter((s) => s && selSet.has(s.id));
     if (summary && selected.length) summary.textContent = `${selected.length} objeto${selected.length === 1 ? '' : 's'} selecionado${selected.length === 1 ? '' : 's'}`;
 
     if (selBadge) {
@@ -2022,7 +2059,7 @@
           rect: 'Retângulo',
           ellipse: 'Elipse',
           polygon: 'Polígono',
-          arc: 'Arco/Fita',
+          arc: 'Arco',
           line: 'Linha',
           path: 'Caminho'
         };
@@ -2158,42 +2195,6 @@
       commitFamilyShapes(famDoc.id, nextShapes);
     });
     container.appendChild(alignBlock);
-
-    // 2B. Pathfinder Boolean Operations (Unite, Subtract, Intersect, Exclude)
-    if (vb) {
-      const unlockedSelCount = selected.filter((s) => !s.locked && s.visible !== false).length;
-      const canBool = unlockedSelCount >= 2;
-      const boolBlock = document.createElement('div');
-      boolBlock.className = 'vec-props-subblock';
-      boolBlock.hidden = !canBool;
-      boolBlock.innerHTML = `
-        <div class="vec-subblock-title">
-          <span>Combinar formas</span>
-          <span style="font-weight:400;opacity:0.7;">${canBool ? `${unlockedSelCount} formas` : 'Selecione 2+'}</span>
-        </div>
-        <div class="vec-bool-strip">
-          <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir formas selecionadas num contorno contínuo" ${!canBool ? 'disabled' : ''}>∪ Unir</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Subtrair formas da frente sobre a forma de trás (furos compostos)" ${!canBool ? 'disabled' : ''}>− Subtrair</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Manter apenas a área comum de interseção" ${!canBool ? 'disabled' : ''}>∩ Interseç.</button>
-          <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Diferença simétrica (XOR) vazando sobreposições" ${!canBool ? 'disabled' : ''}>⊕ Excluir</button>
-        </div>
-      `;
-      boolBlock.querySelectorAll('[data-bool-op]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const op = btn.dataset.boolOp;
-          const res = vb.applyBooleanOp(shapes, ve.state.selectedShapeIds, op);
-          if (!res.ok) {
-            notifyToast('Selecione ao menos 2 formas visíveis e destravadas.', 'info');
-            return;
-          }
-          ve.state.selectedShapeIds = res.resultIds;
-          ve.state.selectedNodes = [];
-          commitFamilyShapes(famDoc.id, res.shapes);
-          notifyToast(res.emptyResult ? 'Operação resultou em área vazia.' : `Booleana (${btn.textContent.trim()}) aplicada.`);
-        });
-      });
-      (pathfinder || container).appendChild(boolBlock);
-    }
 
     // 3. When NO shape is selected: show active drawing tool defaults
     if (selected.length === 0) {
@@ -2426,7 +2427,7 @@
               <button type="button" class="mini-btn" id="btnVecToggleSmooth">Alternar Canto/Suave</button>
               <button type="button" class="mini-btn" id="btnVecSubdivideSeg">+ Subdividir</button>
             </div>
-          ` : '<div class="vec-empty-hint">Use Nós (A) para arrastar vértices, alças Bezier ou Alt+Clique para inserir nós.</div>'}
+          ` : '<div class="vec-empty-hint">Use Seleção direta (A) para arrastar vértices, alças Bezier ou Alt+Clique para inserir nós.</div>'}
         `;
 
         geoBlock.querySelector('#vecPropPathClosed')?.addEventListener('change', (e) => {
@@ -2582,7 +2583,7 @@
       ellipse: 'Elipse',
       polygon: 'Polígono',
       triangle: 'Triângulo',
-      arc: 'Arco/Fita',
+      arc: 'Arco',
       line: 'Linha',
       path: 'Caminho'
     };
@@ -3276,7 +3277,7 @@
     } else if (fam.builtIn) {
       hover = `Mestre padrão protegido (slots 0..84) • Clique em <strong>Criar cópia editável</strong> para desenhar livremente`;
     } else {
-      hover = `Editor Vetorial ativo • V Seleção | A Nós | P Caneta | M Retâng. | L Elipse | G Polígono | U Arco/Fita | \\ Linha`;
+      hover = `Editor Vetorial ativo • V Seleção | A Seleção direta | P Caneta | M Retângulo | L Elipse | G Polígono | U Arco | \\ Linha`;
     }
 
     return { artboard, grid, hover };

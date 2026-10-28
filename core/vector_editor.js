@@ -24,12 +24,12 @@
 
   const VECTOR_TOOLS = [
     { id: 'select', label: 'Seleção', shortcut: 'V' },
-    { id: 'direct', label: 'Nós (Direta)', shortcut: 'A' },
-    { id: 'pen', label: 'Caneta Bezier', shortcut: 'P' },
+    { id: 'direct', label: 'Seleção direta', shortcut: 'A' },
+    { id: 'pen', label: 'Caneta', shortcut: 'P' },
     { id: 'rect', label: 'Retângulo', shortcut: 'M' },
     { id: 'ellipse', label: 'Elipse', shortcut: 'L' },
-    { id: 'polygon', label: 'Polígono / Estrela', shortcut: 'G' },
-    { id: 'arc', label: 'Arco / Fita', shortcut: 'U' },
+    { id: 'polygon', label: 'Polígono', shortcut: 'G' },
+    { id: 'arc', label: 'Arco', shortcut: 'U' },
     { id: 'line', label: 'Linha', shortcut: '\\' }
   ];
 

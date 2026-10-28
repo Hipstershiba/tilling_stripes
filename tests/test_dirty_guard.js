@@ -133,3 +133,28 @@ context.regenerateMosaic = () => {
 vm.runInContext(sketchSource.slice(sketchSource.indexOf('function requestTopologyChange('),sketchSource.indexOf('function swapStudioColors(')),context);
 context.requestTopologyChange({rows:1},stage);
 console.log('Topology undo after session restore PASSED');
+
+// Production preference survives reload in the same tab and also covers frozen-loss changes.
+const extractGuard = name => {const start=sketchSource.indexOf(`function ${name}(`);return sketchSource.slice(start,sketchSource.indexOf('\n}',start)+2);};
+const preferenceStore = new Map();
+function guardContext(storage = {getItem:key=>preferenceStore.get(key),setItem:(key,value)=>preferenceStore.set(key,value)}) {
+  let open = false, entered = 0;
+  const checkbox = {checked:false};
+  const elements = {dirtyGuardDontAsk:checkbox, dirtyGuardDialog:{classList:{add(){},remove(){}}}, btnDirtyGuardCancel:{focus(){}},dirtyGuardDesc:{}};
+  const ctx = {window:{sessionStorage:storage,StudioModal:{isOpen:()=>open,enter(){open=true;entered++;},leave(){open=false;}}},
+    document:{getElementById:id=>elements[id],activeElement:null},StudioState:{editHistoryIndex:1,frozenCells:new Map()},
+    isDocumentDirty:()=>true,cancelToolGesture(){},entered:()=>entered,checkbox};
+  vm.createContext(ctx);
+  vm.runInContext(extractGuard('readDirtyGuardPreference')+'\nlet dirtyGuardSessionSuppressed=readDirtyGuardPreference(); let pendingDirtyGuardAction=null;let dirtyGuardTriggerElement=null;\n'+extractGuard('requestParamChangeWithGuard')+'\n'+extractGuard('closeDirtyGuard'),ctx);
+  return ctx;
+}
+let g = guardContext(), guardApplied = 0, guardReverted = 0;
+g.requestParamChangeWithGuard(null,()=>guardReverted++,()=>guardApplied++);assert.equal(g.entered(),1);
+g.checkbox.checked=true;g.closeDirtyGuard(false);assert.equal(guardReverted,1);assert.equal(preferenceStore.size,0,'Cancel does not commit a preference');
+g.requestParamChangeWithGuard(null,null,()=>guardApplied++);g.checkbox.checked=true;g.closeDirtyGuard(true);assert.equal(guardApplied,1);
+g.requestParamChangeWithGuard(null,null,()=>guardApplied++,{frozenLoss:2});assert.equal(g.entered(),2);assert.equal(guardApplied,2,'Suppression includes recoverable frozen loss');
+g = guardContext();g.requestParamChangeWithGuard(null,null,()=>guardApplied++,{frozenLoss:1});assert.equal(g.entered(),0);assert.equal(guardApplied,3,'Reload honors tab-session preference');
+g = guardContext({getItem(){throw new Error('blocked');},setItem(){throw new Error('blocked');}});
+g.requestParamChangeWithGuard(null,null,()=>{});g.checkbox.checked=true;g.closeDirtyGuard(true);
+g.requestParamChangeWithGuard(null,null,()=>{});assert.equal(g.entered(),1,'Memory fallback works when sessionStorage is unavailable');
+console.log('Dirty guard session preference, reload, cancellation and storage fallback PASSED');

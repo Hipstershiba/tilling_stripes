@@ -99,3 +99,11 @@ const helpText = JSON.stringify(window.InfoUI.INFO_TOPICS.shortcuts);
 assert(helpText.includes('Ctrl+D: Duplicar formas')); assert(helpText.includes('Escape cancela'));
 assert(!commands.get('tiles', 'copyEditable').shortcut);
 console.log('✓ Shared catalog drives names, shortcuts, availability, callbacks, button titles and contextual help.');
+
+// Standard, compact tool names stay consistent in tooltips, help and controls.
+assert.equal(commands.get('tiles', 'direct').name, 'Seleção direta');
+assert.equal(commands.get('tiles', 'arc').name, 'Arco');
+assert.equal(commands.get('tiles', 'pen').name, 'Caneta');
+for (const entries of Object.values(commands.tools)) for (const [, name] of entries) {
+  assert(name.length <= 14, `Tool name needs a compact label: ${name}`);
+}

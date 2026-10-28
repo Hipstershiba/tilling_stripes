@@ -839,3 +839,15 @@ A revisão interrompida já havia sido incorporada em `fb9cb4e`. Dez commits pos
 - [x] Gate completo: 51/51 suítes; AST/vault sincronizados; correção residual registrada em commit separado.
 
 Captura atual em `_local/retomada-ui/editor.png`, ignorada pelo Git. T10 continua pendente.
+
+### Nomes das ferramentas, descoberta das booleanas e aviso repetido — 28/10/2026
+
+- [x] Revisar os quinze nomes de ferramentas: preservar denominações adequadas, usar Inspeção, Seleção direta e Arco; atualizar catálogo, metadados vetoriais, ajuda e rótulos iniciais.
+- [x] Permitir quebra de linha em Seleção direta, sem corte por reticências.
+- [x] Manter Pathfinder visível em Camadas/Propriedades, com ações disponíveis quando a seleção permite; usar Unir, Menos frente, Interseção e Excluir.
+- [x] Honrar a preferência do aviso em toda a sessão da aba, inclusive após reload e em perda de preservações recuperável por undo.
+- [x] Testar cancelamento, confirmação, recarga, perda de preservações e armazenamento indisponível com os handlers reais.
+- [x] No navegador: aviso apareceu na primeira mudança, não reapareceu na seguinte nem após reload/redução da grade; União levou duas formas a uma e undo restaurou duas.
+- [x] Gate completo: 51/51 suítes; AST/vault sincronizados; commit separado.
+
+Terminologia de referência: documentação oficial do Illustrator para Seleção direta e Pathfinder (Unir, Menos frente, Interseção, Excluir). Captura local em `_local/ferramentas-pathfinder`, ignorada pelo Git. T10 continua pendente.

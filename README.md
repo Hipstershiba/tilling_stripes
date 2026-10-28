@@ -409,7 +409,7 @@ Enter confirma um número válido; Escape restaura o valor anterior e cancela a 
 
 As três buscas (gerador, pincel e biblioteca) têm nome independente do placeholder, botão Limpar que retorna o foco ao campo e contador de resultados anunciado. O contador respeita os filtros existentes; não redefine a seleção de peças nem os atalhos do canvas. Os testes ficam em `tests/test_ui_fields.js`.
 
-Ajuste de densidade após T08: a busca ocupa uma linha, com limpeza por × apenas quando há texto. A contagem permanece anunciada, mas não ocupa uma linha visual; busca vazia de resultados mostra “Nenhum resultado”. Dicas de tamanho/encaixe ficam na ajuda. Guias ligadas mantêm a marca lateral sem borda adicional. Alinhar/transformar exige seleção; Combinar formas aparece com duas ou mais formas elegíveis. Rótulos completos, foco e validação numérica são preservados; erros exibem somente a mensagem necessária.
+Ajuste de densidade após T08: a busca ocupa uma linha, com limpeza por × apenas quando há texto. A contagem permanece anunciada, mas não ocupa uma linha visual; busca vazia de resultados mostra “Nenhum resultado”. Dicas de tamanho/encaixe ficam na ajuda. Guias ligadas mantêm a marca lateral sem borda adicional. Alinhar/transformar exige seleção; Pathfinder permanece visível e habilita operações com duas ou mais formas elegíveis. Rótulos completos, foco e validação numérica são preservados; erros exibem somente a mensagem necessária.
 
 ### Gerador por composição e famílias (T09)
 
@@ -420,3 +420,11 @@ Peças permitidas mostra famílias com miniatura, contador e seleção total/par
 Revisão visual após T09: as cinco opções do bloco ficam sempre visíveis. Botões de simetria e ferramentas dos dois ambientes compartilham superfícies neutras, preenchimento de seleção e foco explícito; contornos decorativos usam `--border-subtle` (#36393f). `--border-control` continua reservado aos indicadores funcionais que precisam de destaque. O rodapé pertence a `#workspace-viewport`; abaixo de 640 px de coluna ele quebra em duas linhas, mantendo Zoom/Spout/Ajuda acessíveis. Em colunas até 1050 px, os textos de inspeção/salvamento permanecem anunciados, sem disputar espaço visual com controles. O gerador usa rolagem externa para manter a lista de famílias alcançável com as opções do bloco abertas.
 
 O grupo de zoom do rodapé usa pintura isolada (`translateZ(0)`) e não recorta seus controles (`overflow: visible`), evitando desaparecimento visual ao alternar entre mosaico e editor ou redimensionar a janela. O rodapé continua limitado à coluna central pelo layout responsivo.
+
+### Ferramentas, Pathfinder e aviso de regeneração
+
+Nomes revisados no catálogo de comandos: Inspeção, Pincel, Girar, Carimbo, Preservar, Mão e Zoom no mosaico; Seleção, Seleção direta, Caneta, Retângulo, Elipse, Polígono, Arco e Linha no editor. Seleção direta pode ocupar duas linhas sem reticências; nomes completos e atalhos permanecem nos tooltips. Preservar mantém a denominação própria do produto, pois não bloqueia a edição manual.
+
+Pathfinder permanece visível nas abas Camadas/Propriedades, inclusive em peças protegidas. Unir, Menos frente, Interseção e Excluir ficam habilitados com duas ou mais formas visíveis e destravadas em uma cópia editável. Peças protegidas mostram a necessidade de criar cópia. As operações mantêm undo/redo.
+
+“Não perguntar nesta sessão” passa a respeitar a sessão da aba via sessionStorage, inclusive após reload e em mudanças de grade com perda de preservações. A preferência é gravada ao confirmar Regenerar; Cancelar não grava a opção. Se sessionStorage estiver indisponível, a preferência continua funcionando em memória até recarregar. Alterações continuam recuperáveis pelo histórico.

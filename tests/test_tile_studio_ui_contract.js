@@ -458,3 +458,26 @@ console.log('✓ Keyboard shortcut isolation between Mosaic and Subtile Studio v
 
 LibraryStore.resetToDefaults();
 console.log('--- ALL SUBTILE STUDIO UI & LIBRARY MANAGER CHECKS PASSED! ---');
+
+// A protected built-in must still expose the disabled Pathfinder instead of hiding the feature.
+const pathfinderVm = require('vm');
+class PathfinderElement {
+  constructor() {this.children=[];this.innerHTML='';}
+  contains() {return false;}
+  appendChild(child) {this.children.push(child);}
+  querySelectorAll() {return [];}
+}
+const propsForPathfinder = new PathfinderElement(), visiblePathfinder = new PathfinderElement();
+const pathfinderContext = {document:{activeElement:null,createElement:()=>new PathfinderElement(),getElementById:id=>({vecPropsContainer:propsForPathfinder,tilePathfinderContainer:visiblePathfinder}[id]||null)},
+  resolveDeps:()=>({ve:{VECTOR_TOOLS:[{id:'select',label:'Seleção'}],state:{activeTool:'select',selectedShapeIds:[]}},vb:{}}),
+  ensureValidSelection:()=>({builtIn:true,protected:true}),getSelectedFamilyDoc:()=>({id:'builtin',shapes:[]})};
+const pathfinderSource = fs.readFileSync(path.join(baseDir,'core/subtile_studio_ui.js'),'utf8');
+const pathfinderStart = pathfinderSource.indexOf('  function renderShapePropsPanel(');
+pathfinderVm.createContext(pathfinderContext);
+pathfinderVm.runInContext(pathfinderSource.slice(pathfinderStart,pathfinderSource.indexOf('\n  }',pathfinderStart)+4),pathfinderContext);
+pathfinderContext.renderShapePropsPanel();
+assert.equal(visiblePathfinder.children.length,1);
+assert.notEqual(visiblePathfinder.children[0].hidden,true);
+assert(visiblePathfinder.children[0].innerHTML.includes('Pathfinder'));
+assert.equal((visiblePathfinder.children[0].innerHTML.match(/ disabled/g)||[]).length,4);
+console.log('✓ Protected pieces keep Pathfinder discoverable with four disabled operations.');

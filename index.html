@@ -144,7 +144,7 @@
     <!-- Dialog de Proteção contra Perda de Edições (Rodada 4.2 / T2) -->
     <div id="dirtyGuardDialog" class="modal-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dirtyGuardTitle" aria-describedby="dirtyGuardDesc">
       <div class="modal-dialog-card">
-        <h3 id="dirtyGuardTitle" class="modal-dialog-title">Aviso de Edições em Risco</h3>
+        <h3 id="dirtyGuardTitle" class="modal-dialog-title">Regenerar mosaico?</h3>
         <p id="dirtyGuardDesc" class="modal-dialog-desc">
           Este mosaico possui edições manuais ou subtiles travados. Alterar este parâmetro irá regenerar o desenho.
           Suas alterações serão salvas no histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.
@@ -157,7 +157,7 @@
         </div>
         <div class="modal-dialog-actions">
           <button type="button" id="btnDirtyGuardCancel" class="btn-dialog-secondary">Cancelar</button>
-          <button type="button" id="btnDirtyGuardConfirm" class="btn-dialog-primary">Gerar mesmo assim</button>
+          <button type="button" id="btnDirtyGuardConfirm" class="btn-dialog-primary">Regenerar</button>
         </div>
       </div>
     </div>
@@ -255,7 +255,7 @@
                 <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
                 <path d="M13 13l6 6"></path>
               </svg>
-              <span class="tool-grid-label">Inspecionar</span>
+              <span class="tool-grid-label">Inspeção</span>
             </button>
             <button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn" aria-pressed="false" title="Abrir Estúdio de Subtiles e Gestão de Famílias (Atalho: Ctrl+E)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -476,7 +476,7 @@
                   <path d="m3 3 7 18 2.5-7.5L20 11 3 3z"></path>
                   <circle cx="12.5" cy="13.5" r="1.5" fill="currentColor"></circle>
                 </svg>
-                <span>Pontos</span>
+                <span>Seleção direta</span>
               </button>
               <button type="button" id="vecToolPen" class="subtile-rail-btn vec-tool-btn" data-vec-tool="pen" aria-pressed="false" title="Caneta Bezier — Clique p/ canto, Arraste p/ curva (Tecla P)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -490,7 +490,7 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                 </svg>
-                <span>Retâng.</span>
+                <span>Retângulo</span>
               </button>
               <button type="button" id="vecToolEllipse" class="subtile-rail-btn vec-tool-btn" data-vec-tool="ellipse" aria-pressed="false" title="Elipse / Círculo (Tecla L • Shift=1:1, Alt=Centro)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

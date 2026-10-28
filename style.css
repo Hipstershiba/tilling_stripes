@@ -4784,3 +4784,7 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 
 body[data-studio-mode="tiles"] [id^="toggleTileGuide"].active,
 body[data-studio-mode="tiles"] #btnTileSnapToggle.active { background: var(--bg-selected); border-color: transparent; color: var(--text-primary); box-shadow: none; }
+
+/* Tool names remain readable, including the standard two-word selection tool. */
+.vec-tool-btn span { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; }
+.vec-tool-btn { min-height: 36px; }

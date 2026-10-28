@@ -2925,13 +2925,17 @@ function isDocumentDirty(state = StudioState) {
   return hasEdits || hasFrozen;
 }
 
-let dirtyGuardSessionSuppressed = false;
+function readDirtyGuardPreference() {
+  try { return window.sessionStorage?.getItem('tiling_stripes_dirty_guard_suppressed') === 'true'; }
+  catch (_) { return false; }
+}
+let dirtyGuardSessionSuppressed = readDirtyGuardPreference();
 let pendingDirtyGuardAction = null;
 let dirtyGuardTriggerElement = null;
 
 function requestParamChangeWithGuard(triggerEl, revertFn, applyFn, { frozenLoss = 0 } = {}) {
   if (window.StudioModal?.isOpen()) { revertFn?.(); return; }
-  if (!frozenLoss && (dirtyGuardSessionSuppressed || !isDocumentDirty(StudioState))) {
+  if (dirtyGuardSessionSuppressed || (!frozenLoss && !isDocumentDirty(StudioState))) {
     applyFn();
     return;
   }
@@ -2945,20 +2949,11 @@ function requestParamChangeWithGuard(triggerEl, revertFn, applyFn, { frozenLoss 
     return;
   }
 
+  const preference = document.getElementById('dirtyGuardDontAsk');
+  if (preference) preference.checked = dirtyGuardSessionSuppressed;
   dirtyGuardTriggerElement = triggerEl;
-  const editCount = StudioState.editHistoryIndex > 0 ? StudioState.editHistoryIndex : 0;
-  const frozenCount = StudioState.frozenCells ? StudioState.frozenCells.size : 0;
-  let reason = '';
-  if (editCount > 0 && frozenCount > 0) {
-    reason = `Este mosaico tem ${editCount} edições manuais e ${frozenCount} subtiles travados.`;
-  } else if (editCount > 0) {
-    reason = `Este mosaico tem ${editCount} edições manuais.`;
-  } else {
-    reason = `Este mosaico tem ${frozenCount} subtiles travados.`;
-  }
-
   if (descEl) {
-    descEl.innerHTML = `${reason} ${frozenLoss ? `A nova grade removerá ${frozenLoss} preservações que ficam fora dos seus limites.` : 'As preservações que cabem na grade serão mantidas.'} Alterar este parâmetro irá regenerar o desenho. Suas alterações vão para o histórico e podem ser recuperadas com <kbd>Ctrl+Z</kbd>.`;
+    descEl.innerHTML = `${frozenLoss ? `A nova grade removerá ${frozenLoss} preservações fora dos limites.` : 'O mosaico será regenerado. As preservações dentro da grade serão mantidas.'} Você pode desfazer com <kbd>Ctrl+Z</kbd>.`;
   }
 
   pendingDirtyGuardAction = { revertFn, applyFn };
@@ -2973,6 +2968,7 @@ function closeDirtyGuard(confirmed) {
   const dontAskCheckbox = document.getElementById('dirtyGuardDontAsk');
   if (confirmed && dontAskCheckbox && dontAskCheckbox.checked) {
     dirtyGuardSessionSuppressed = true;
+    try { window.sessionStorage?.setItem('tiling_stripes_dirty_guard_suppressed', 'true'); } catch (_) {}
   }
 
   dialog?.classList.add('hidden');

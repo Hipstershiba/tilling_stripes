@@ -2,7 +2,7 @@
 (function () {
   const tools = {
     mosaic: [
-      ['inspect', 'Inspecionar', 'V', 'toolInspect'],
+      ['inspect', 'Inspeção', 'V', 'toolInspect'],
       ['paint', 'Pincel', 'B', 'toolPaint', 'Clique pinta; botão direito gira o pincel; Alt+arraste captura.'],
       ['rotate', 'Girar', 'R', 'toolRotate'],
       ['stamp', 'Carimbo', 'S', 'toolStamp', 'Alt+arraste captura; clique aplica.'],
@@ -12,12 +12,12 @@
     ],
     tiles: [
       ['select', 'Seleção', 'V', 'vecToolSelect', 'Shift mantém proporção/ângulo; Alt escala pelo centro.'],
-      ['direct', 'Editar pontos', 'A', 'vecToolDirect', 'Edita nós e alças Bezier.'],
+      ['direct', 'Seleção direta', 'A', 'vecToolDirect', 'Edita nós e alças Bezier.'],
       ['pen', 'Caneta', 'P', 'vecToolPen', 'Enter conclui; Escape cancela. Trocar ferramenta conclui um caminho válido, sem arrasto em andamento.'],
       ['rect', 'Retângulo', 'M', 'vecToolRect', 'Shift mantém 1:1; Alt desenha pelo centro.'],
       ['ellipse', 'Elipse', 'L', 'vecToolEllipse', 'Shift mantém 1:1; Alt desenha pelo centro.'],
       ['polygon', 'Polígono', 'G', 'vecToolPolygon'],
-      ['arc', 'Arco/Fita', 'U', 'vecToolArc'],
+      ['arc', 'Arco', 'U', 'vecToolArc', 'Desenha arcos, setores e fitas anulares.'],
       ['line', 'Linha', '\\', 'vecToolLine']
     ]
   };
