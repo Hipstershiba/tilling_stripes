@@ -451,11 +451,26 @@
             verts[2][0] * dw, verts[2][1] * dh
           );
         } else {
-          ctx.beginShape();
-          for (const [vx, vy] of verts) {
-            ctx.vertex(vx * dw, vy * dh);
+          const dc = ctx.drawingContext;
+          const rule = shape.fillRule === 'evenodd' ? 'evenodd' : 'nonzero';
+          let origFill = null;
+          if (dc && typeof dc.fill === 'function' && shape.fill !== false) {
+            origFill = dc.fill;
+            dc.fill = function(r) {
+              return origFill.call(this, r || rule);
+            };
           }
-          ctx.endShape('CLOSE');
+          try {
+            ctx.beginShape();
+            for (const [vx, vy] of verts) {
+              ctx.vertex(vx * dw, vy * dh);
+            }
+            ctx.endShape('CLOSE');
+          } finally {
+            if (origFill && dc) {
+              dc.fill = origFill;
+            }
+          }
         }
         break;
       }
@@ -505,26 +520,41 @@
         const contours = getNormalizedPathContours(shape);
         if (contours.length === 0) break;
         const closed = shape.closed !== false;
-
-        ctx.beginShape();
-        emitContourToContext(ctx, contours[0], closed, dw, dh);
-
-        if (contours.length > 1) {
-          for (let c = 1; c < contours.length; c++) {
-            if (typeof ctx.beginContour === 'function' && typeof ctx.endContour === 'function') {
-              ctx.beginContour();
-              emitContourToContext(ctx, contours[c], true, dw, dh);
-              ctx.endContour();
-            } else {
-              emitContourToContext(ctx, contours[c], true, dw, dh);
-            }
-          }
+        const dc = ctx.drawingContext;
+        const rule = shape.fillRule === 'evenodd' ? 'evenodd' : 'nonzero';
+        let origFill = null;
+        if (dc && typeof dc.fill === 'function' && shape.fill !== false) {
+          origFill = dc.fill;
+          dc.fill = function(r) {
+            return origFill.call(this, r || rule);
+          };
         }
 
-        if (closed) {
-          ctx.endShape('CLOSE');
-        } else {
-          ctx.endShape();
+        try {
+          ctx.beginShape();
+          emitContourToContext(ctx, contours[0], closed, dw, dh);
+
+          if (contours.length > 1) {
+            for (let c = 1; c < contours.length; c++) {
+              if (typeof ctx.beginContour === 'function' && typeof ctx.endContour === 'function') {
+                ctx.beginContour();
+                emitContourToContext(ctx, contours[c], true, dw, dh);
+                ctx.endContour();
+              } else {
+                emitContourToContext(ctx, contours[c], true, dw, dh);
+              }
+            }
+          }
+
+          if (closed) {
+            ctx.endShape('CLOSE');
+          } else {
+            ctx.endShape();
+          }
+        } finally {
+          if (origFill && dc) {
+            dc.fill = origFill;
+          }
         }
         break;
       }
@@ -558,12 +588,6 @@
     }
 
     try {
-      const hasCanvas2DEvenOdd = Boolean(
-        ctx.drawingContext &&
-        shapes.some((s) => s && s.type === 'path' && (s.fillRule === 'evenodd' || (Array.isArray(s.contours) && s.contours.length > 1)))
-      );
-      void hasCanvas2DEvenOdd;
-
       for (let i = 0; i < shapes.length; i++) {
         renderShape(ctx, shapes[i], dw, dh, color);
       }

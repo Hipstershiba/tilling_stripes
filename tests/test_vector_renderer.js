@@ -67,6 +67,21 @@ VectorRenderer.renderNormalizedShapes(minimalCtx, allPrimitiveShapes, 100, 100, 
 assert(minimalMockOps.length > 20, 'Minimal headless context should receive fallback draw calls for all 7 primitives');
 console.log('✓ All 7 vector primitives execute cleanly on minimal headless contexts.');
 
+// 1B. Canvas 2D drawingContext fillRule propagation
+const recordedFills = [];
+const mockCanvasCtx = {
+  ...minimalCtx,
+  drawingContext: {
+    fill: (rule) => recordedFills.push(rule)
+  },
+  endShape: () => {
+    mockCanvasCtx.drawingContext.fill();
+  }
+};
+VectorRenderer.renderNormalizedShapes(mockCanvasCtx, [allPrimitiveShapes[6]], 100, 100, 5, '#ffffff', false);
+assert.strictEqual(recordedFills[0], 'evenodd', 'Expected Canvas 2D drawingContext.fill to receive evenodd rule');
+console.log('✓ Canvas 2D drawingContext propagates fillRule correctly to native fill calls.');
+
 // 2. SimpleSVG rendering with clipPath, Bezier curves, rounded rect, and compound contours
 const svg = new SimpleSVG(120, 120);
 svg.push();
