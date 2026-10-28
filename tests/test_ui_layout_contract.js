@@ -213,3 +213,12 @@ if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto'
   throw new Error('Contract violation: .families-swatch-scroll must have overflow-y: auto.');
 }
 console.log('✓ Right dock scrolling is contained inside the tiles list (#familiesSwatchContainer).');
+
+// 10. Left toolbar history scrolling must stay internal to the history list
+if (/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
+  throw new Error('Contract violation: #left-toolbar default rule must not have overflow-y: auto (scroll belongs inside .sidebar-history-list).');
+}
+if (!css.includes('.sidebar-history-list') || !css.includes('overflow-y: auto')) {
+  throw new Error('Contract violation: .sidebar-history-list must have overflow-y: auto.');
+}
+console.log('✓ Left toolbar scrolling is contained inside the history list (.sidebar-history-list).');

@@ -1483,6 +1483,11 @@ function renderHistoryUI() {
     });
     listEl.appendChild(row);
   }
+
+  const activeRow = listEl.querySelector('.history-item.active');
+  if (activeRow) {
+    activeRow.scrollIntoView({ block: 'nearest' });
+  }
 }
 
 // ============================================================================
@@ -4039,6 +4044,12 @@ function initStudioUI() {
       btnToggleHistory.innerHTML = window.UiFormat.icon(isCollapsed ? 'chevronRight' : 'chevronDown');
       btnToggleHistory.setAttribute('aria-expanded', String(!isCollapsed));
       btnToggleHistory.title = isCollapsed ? 'Expandir Histórico' : 'Recolher Histórico';
+      if (!isCollapsed) {
+        const activeRow = historyList.querySelector('.history-item.active');
+        if (activeRow) {
+          activeRow.scrollIntoView({ block: 'nearest' });
+        }
+      }
     }
   });
 
