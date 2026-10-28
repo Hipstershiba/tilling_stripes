@@ -1964,7 +1964,9 @@
 
     const toolMeta = ve.VECTOR_TOOLS.find((t) => t.id === ve.state.activeTool) || ve.VECTOR_TOOLS[0];
     if (toolLabelEl) {
-      toolLabelEl.textContent = `${commands.get('tiles', ve.state.activeTool)?.name || toolMeta.label} (${toolMeta.shortcut})`;
+      const toolName = commands.get('tiles', ve.state.activeTool)?.name || toolMeta.label;
+      toolLabelEl.textContent = toolName;
+      toolLabelEl.title = toolMeta.shortcut ? `Tecla ${toolMeta.shortcut}` : '';
     }
     if (snapBadgeEl) {
       snapBadgeEl.textContent = ve.state.snapEnabled
@@ -2287,10 +2289,10 @@
       ` : ''}
       ${primary.type === 'path' && hasFill ? `
         <div class="vec-prop-field" style="margin-top:3px;">
-          <label>Regra</label>
-          <select id="vecPropFillRule">
-            <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''}>Par-Ímpar (Furos)</option>
-            <option value="nonzero" ${ruleVal === 'nonzero' ? 'selected' : ''}>Não-Zero</option>
+          <label title="Regra de preenchimento vetorial para contornos múltiplos e furos">Regra</label>
+          <select id="vecPropFillRule" title="Regra de preenchimento vetorial (Fill Rule)">
+            <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''} title="Par-Ímpar: contornos internos tornam-se furos/vazados automaticamente">Par-Ímpar (Furos)</option>
+            <option value="nonzero" ${ruleVal === 'nonzero' ? 'selected' : ''} title="Não-Zero: preenche de acordo com o sentido do traçado (horário / anti-horário)">Não-Zero</option>
           </select>
         </div>
       ` : ''}
