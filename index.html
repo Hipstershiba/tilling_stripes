@@ -335,6 +335,19 @@
 
         <div class="tool-divider mosaic-mode-only"></div>
 
+        <div id="stampModeSection" class="sidebar-section mosaic-mode-only" aria-label="Seleção de regiões">
+          <div class="sidebar-section-title">Seleção</div>
+          <div class="clone-capture-actions" id="stampInteractionSegmented">
+            <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Seleção retangular" title="Seleção retangular"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" class="mini-btn" data-region-shape="ellipse" aria-pressed="false" aria-label="Seleção elíptica" title="Seleção elíptica"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="7" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" class="mini-btn" data-region-shape="diamond" aria-pressed="false" aria-label="Seleção em losango" title="Seleção em losango"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9z" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="12" height="12"/><path d="M9 15v6h12V9h-6"/></svg></button>
+            <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
+            <button type="button" class="mini-btn" data-stamp-mode="select" aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M12 7v10M7 12h10"/></svg></button>
+          </div>
+          <p id="stampModeHint" class="sr-only" role="status"></p>
+        </div>
+
         <!-- Guias Visuais em 2 Colunas -->
         <div class="sidebar-section mosaic-mode-only" aria-label="Guias Visuais">
           <div class="sidebar-section-title">Guias Visuais</div>
@@ -1057,21 +1070,6 @@
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelEditBrushBody">
-
-              <!-- Contextual Clone Mode Bar (Visible only when Clonar (S) is active) -->
-              <div id="stampModeSection" class="prop-section stamp-mode-banner hidden">
-                <div class="clone-capture-actions" id="stampInteractionSegmented">
-                  <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T alterna com Mover)">⧉</button>
-                  <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T alterna com Estampar)">✥</button>
-                  <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Seleção retangular" title="Seleção retangular">□</button>
-                  <button type="button" class="mini-btn" data-region-shape="ellipse" aria-pressed="false" aria-label="Seleção elíptica" title="Seleção elíptica">○</button>
-                  <button type="button" class="mini-btn" data-region-shape="diamond" aria-pressed="false" aria-label="Seleção em losango" title="Seleção em losango">◇</button>
-
-                  <button type="button" class="mini-btn" data-stamp-mode="select"
-                    aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)">⌖</button>
-                </div>
-                <p id="stampModeHint" class="sr-only" role="status">Segure Alt e arraste para capturar. Solte e clique para aplicar.</p>
-              </div>
 
               <!-- Brush / Supertile Size & Block Alignment -->
               <div class="prop-section supertile-size-section">

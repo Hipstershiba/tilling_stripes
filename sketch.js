@@ -3653,12 +3653,7 @@ function syncEditWorkspaceUI() {
   });
 
   // 7. Unified Supertile / Brush / Clone Panel Controls
-  const stampModeSection = document.getElementById('stampModeSection');
-  if (stampModeSection) {
-    stampModeSection.classList.toggle('hidden', StudioState.activeTool !== 'stamp');
-  }
-
-  document.querySelectorAll('#stampInteractionSegmented .seg-btn[data-stamp-mode]').forEach((btn) => {
+  document.querySelectorAll('#stampInteractionSegmented [data-stamp-mode]').forEach((btn) => {
     const active = btn.dataset.stampMode === StudioState.stampInteractionMode;
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', String(active));
@@ -3908,6 +3903,7 @@ function initStudioUI() {
   syncEditWorkspaceUI();
 
   document.querySelectorAll('[data-region-mode]').forEach(btn => btn.addEventListener('click', () => {
+    activateStudioTool('stamp');
     mosaicTransferMode = btn.dataset.regionMode;
     document.querySelectorAll('[data-region-mode]').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
     if (mosaicTransferMode === 'move' && !mosaicRegion) beginCloneCapture();
@@ -4405,7 +4401,7 @@ function initStudioUI() {
 
 
   // Stamp Interaction Mode ('select' vs 'apply')
-  document.querySelectorAll('#stampInteractionSegmented .seg-btn[data-stamp-mode]').forEach((btn) => {
+  document.querySelectorAll('#stampInteractionSegmented [data-stamp-mode]').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.stampMode === 'select') { beginCloneCapture(); return; }
       if (!isCloneReady()) return;

@@ -863,3 +863,10 @@ Terminologia de referência: documentação oficial do Illustrator para Seleçã
 - [x] Gate completo: 52/52 suítes; capturas em `_local/editor-gestos`, ignoradas pelo Git.
 
 Este ajuste responde ao pedido de edição e mantém T10 pendente.
+
+### Posição das ferramentas de seleção — 28/10/2026
+
+- [x] Mover formas de seleção, Estampar/Recortar e mover e Capturar para a barra lateral esquerda, antes das guias.
+- [x] Manter controles disponíveis no mosaico; escolher uma forma inicia a captura e escolher um modo ativa o Carimbo.
+- [x] Usar ícones vetoriais, tooltips e nomes acessíveis, sem instruções permanentes.
+- [x] Validar no navegador acesso a partir da Inspeção, destaque ativo, botão Capturar e ocultação no editor de peças; gate 52/52 e AST/vault sincronizados.
