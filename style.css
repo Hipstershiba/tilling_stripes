@@ -4868,21 +4868,18 @@ body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn { justify-self:cen
 .selection-summary dl { display:flex; justify-content:space-between; gap:12px; margin:8px 0 0; }
 .selection-summary dt { color:var(--text-muted); font-size:var(--font-ui); }
 .selection-summary dd { margin:4px 0 0; font-variant-numeric:tabular-nums; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #right-dock { display:none; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panelEditScopeBody,
+body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-scope,
 body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .panel-header,
 body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .supertile-builder-card,
 body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .swatches-toolbar,
 body[data-region-tool="selection"][data-studio-mode="mosaic"] #editBrushPaletteContainer,
 body[data-region-tool="selection"][data-studio-mode="mosaic"] #brushSnapRow { display:none !important; }
-body[data-region-tool="selection"][data-selection-shape="rect"][data-studio-mode="mosaic"] #panel-edit-brush { display:none; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush { flex:0 0 auto; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panelEditBrushBody { display:block; flex:0 0 auto; }
+body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush { display:none; }
 body[data-cursor-mode="move"] #canvas-stage canvas { cursor:move !important; }
 #right-dock.collapsed { width:var(--dock-rail-w) !important; }
 
-#workspace-viewport > .selection-summary { position:absolute; top:10px; right:12px; z-index:40; display:flex; align-items:center; flex-wrap:wrap; gap:12px; max-width:calc(100% - 24px); padding:6px 8px; background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:6px; box-shadow:0 2px 8px #0003; }
-#workspace-viewport > .selection-summary.hidden { display:none; }
+#dock-workspace-edit > .selection-summary { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:12px; flex:0 0 auto; }
+#dock-workspace-edit > .selection-summary.hidden { display:none; }
 .selection-summary-heading { display:contents; }
 .selection-summary-heading > span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 .selection-summary #btnClearRegion { order:4; }

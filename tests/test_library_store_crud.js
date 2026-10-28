@@ -168,7 +168,7 @@ const TileRegistry = global.window.TileRegistry;
   console.log('✓ JSON export (customOnly), resetToDefaults, and merge import verified.');
 
   // 6. Async IndexedDB hydration precedence when localStorage is stale
-  await new Promise((r) => setTimeout(r, 25)); // Let async IDB put settle
+  await LibraryStore.retrySave(); // Wait for the queued IndexedDB write, independent of machine load.
   lsMap.clear(); // Simulate cleared/missing localStorage while IndexedDB still holds the custom library
   const freshInstance = LibraryStore.createLibraryStoreInstance();
   assert.strictEqual(freshInstance.getCompiled().totalTiles, 85, 'Sync boot with empty LS starts at 85 built-ins');

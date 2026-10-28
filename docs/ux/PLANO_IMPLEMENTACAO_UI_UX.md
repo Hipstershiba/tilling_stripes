@@ -900,3 +900,9 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Revisar no navegador arrasto, desfazer, alternância Seleção/Clonar, restauração dos controles e ambientes em 900×768; confirmar ícone de cópia idêntico ao da Biblioteca.
 - [x] Restaurar preenchimentos distintos no Pathfinder; padronizar setas e impedir que a renderização das propriedades sobrescreva os ícones compartilhados.
 - [x] Gate 52/52, incluindo regressão da renderização de ícones; sincronizar AST/vault e registrar apenas código, testes e documentação. Capturas locais ignoradas pelo Git.
+
+### Continuidade do painel de seleção — 28/10/2026
+
+- [x] Manter o painel direito visível ao selecionar, com controles contextuais dentro da lateral.
+- [x] Preservar a permanência da ferramenta de seleção e as sessões independentes de Pincel/Clonar.
+- [x] Validar no navegador painel visível, captura persistente, tamanho da seleção por pincel e restauração do pincel independente; gate 52/52 e conhecimento sincronizado. Registrar correção em commit separado.
