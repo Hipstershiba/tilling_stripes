@@ -2379,6 +2379,12 @@ function activateEraser() {
   redraw();
 }
 
+function activateRegionSelection(shape) {
+  if (!['rect','lasso','brush'].includes(shape)) return;
+  mosaicSelectionShape = shape;
+  beginCloneCapture();
+}
+
 function beginCloneCapture() {
   closeBrushEditor();
   activateStudioTool('stamp');
@@ -3612,9 +3618,16 @@ function syncEditWorkspaceUI() {
   }
 
   // 3. Left Toolbar Active Tool Highlight
+  const selecting = StudioState.activeTool === 'stamp' && StudioState.stampInteractionMode === 'select';
   document.querySelectorAll('#left-toolbar .tool-btn[data-tool]').forEach((b) => {
-    b.classList.toggle('active', b.dataset.tool === StudioState.activeTool);
+    b.classList.toggle('active', b.dataset.tool === StudioState.activeTool && !(selecting && b.dataset.tool === 'stamp'));
   });
+  document.querySelectorAll('[data-region-shape]').forEach(button => {
+    const active = selecting && button.dataset.regionShape === mosaicSelectionShape;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  document.getElementById('stampModeSection')?.classList.toggle('hidden',StudioState.activeTool !== 'stamp');
 
   // 4. Edit Tool Segmented Control
   document.querySelectorAll('#editToolSegmented .seg-btn[data-edit-tool]').forEach((b) => {
@@ -3957,11 +3970,7 @@ function initStudioUI() {
     if (mosaicTransferMode === 'move' && !mosaicRegion) beginCloneCapture();
     redraw();
   }));
-  document.querySelectorAll('[data-region-shape]').forEach(btn => btn.addEventListener('click', () => {
-    mosaicSelectionShape = btn.dataset.regionShape;
-    document.querySelectorAll('[data-region-shape]').forEach(b => b.setAttribute('aria-pressed',String(b===btn)));
-    beginCloneCapture();
-  }));
+  document.querySelectorAll('[data-region-shape]').forEach(btn => btn.addEventListener('click', () => activateRegionSelection(btn.dataset.regionShape)));
   // --- Artboard Size Controls ---
   const wInput = document.getElementById('canvasW');
   const hInput = document.getElementById('canvasH');
@@ -4131,6 +4140,7 @@ function initStudioUI() {
   };
 
   const mosaicCommandContext = {
+    selectRegion: activateRegionSelection,
     selectTool: activateStudioTool, eraser: activateEraser, generate: triggerRandomSeed,
     undo: undoMosaicEdit, redo: redoMosaicEdit, swap: swapStudioColors,
     toggle: () => window.SubtileStudioUI.toggleTilesStudio(),

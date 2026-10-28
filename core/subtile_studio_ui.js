@@ -2167,7 +2167,7 @@
       ` : ''}
       ${hasSel ? `
         <div class="vec-subblock-title" style="margin-top:5px;"><span>Transformar</span></div>
-        <div class="vec-d4-strip">
+        <div class="vec-transform-actions"><div class="vec-d4-strip">
           <button type="button" class="mini-btn" data-sel-d4="r90" title="Girar seleção +90° horário">↻ +90°</button>
           <button type="button" class="mini-btn" data-sel-d4="r270" title="Girar seleção -90° anti-horário">↺ -90°</button>
           <button type="button" class="mini-btn" data-sel-d4="mx" title="Espelhar seleção horizontalmente (mx)">↔ Esp. H</button>
@@ -2177,7 +2177,7 @@
           <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">⧉ Duplicar</button>
           ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Converter em Caminho</button>' : ''}
           <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">✕ Excluir</button>
-        </div>
+        </div></div>
       ` : ''}
     `;
 

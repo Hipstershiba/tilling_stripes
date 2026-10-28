@@ -244,19 +244,21 @@
       <aside id="left-toolbar" aria-label="Barra de Ferramentas e Guias">
         <!-- Ferramentas de Edição em 2 Colunas -->
         <div class="sidebar-section" aria-label="Ferramentas de Edição e Criação de Subtiles">
-          <div class="sidebar-section-title">Ferramentas</div>
+          <div class="sidebar-section-title sidebar-command-heading"><span>Ferramentas</span><button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn icon-only" aria-pressed="false" title="Editar peças" aria-label="Editar peças"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <path d="M14 17.5h7M17.5 14v7"></path>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg><span class="icon-label"><span class="studio-mode-btn-label">Editar peças</span></span></button></div>
           <div class="tools-grid-2col">
             <button id="toolInspect" class="tool-btn tool-grid-btn active mosaic-mode-only icon-only" data-tool="inspect"
               title="Inspeção" aria-label="Inspeção"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
                 <path d="M13 13l6 6"></path>
               </svg><span class="icon-label"><span class="tool-grid-label">Inspeção</span></span></button>
-            <button type="button" id="btnStudioTilesMode" class="studio-mode-btn tool-grid-btn icon-only" aria-pressed="false" title="Editar peças" aria-label="Editar peças"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-          <path d="M14 17.5h7M17.5 14v7"></path>
-          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-        </svg><span class="icon-label"><span class="studio-mode-btn-label">Editar peças</span></span></button>
+            <button type="button" id="toolSelectRect" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="rect" aria-pressed="false" aria-label="Retângulo" title="Retângulo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
+            <button type="button" id="toolSelectLasso" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="lasso" aria-pressed="false" aria-label="Laço" title="Laço"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 17c-8-2-6-12 4-13 10-1 12 9 5 13-5 3-12 2-11-1 1-2 5 0 4 3-1 2-3 3-5 3"/></svg></button>
+            <button type="button" id="toolSelectBrush" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-region-shape="brush" aria-pressed="false" aria-label="Pincel de seleção" title="Pincel de seleção"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg></button>
             <button id="toolPaint" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="paint"
               title="Pincel" aria-label="Pincel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path
@@ -308,12 +310,8 @@
 
         <div class="tool-divider mosaic-mode-only"></div>
 
-        <div id="stampModeSection" class="sidebar-section mosaic-mode-only" aria-label="Seleção de regiões">
-          <div class="sidebar-section-title">Seleção</div>
+        <div id="stampModeSection" class="sidebar-section mosaic-mode-only" aria-label="Ações da seleção">
           <div class="clone-capture-actions" id="stampInteractionSegmented">
-            <button type="button" class="mini-btn" data-region-shape="rect" aria-pressed="true" aria-label="Retângulo" title="Retângulo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" stroke-dasharray="3 2"/></svg></button>
-            <button type="button" class="mini-btn" data-region-shape="lasso" aria-pressed="false" aria-label="Laço" title="Laço"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 17c-8-2-6-12 4-13 10-1 12 9 5 13-5 3-12 2-11-1 1-2 5 0 4 3-1 2-3 3-5 3"/></svg></button>
-            <button type="button" class="mini-btn" data-region-shape="brush" aria-pressed="false" aria-label="Pincel de seleção" title="Pincel de seleção"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 9-10 3 3-10 9M10 13c-5-1-3 5-7 6 5 3 10 1 9-4z"/></svg></button>
             <button type="button" class="mini-btn" data-region-mode="stamp" aria-pressed="true" aria-label="Estampar" title="Estampar (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="12" height="12"/><path d="M9 15v6h12V9h-6"/></svg></button>
             <button type="button" class="mini-btn" data-region-mode="move" aria-pressed="false" aria-label="Recortar e mover" title="Recortar e mover (T)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
             <button type="button" class="mini-btn" data-stamp-mode="select" aria-label="Capturar região" title="Capturar região (C ou Alt+arraste)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M12 7v10M7 12h10"/></svg></button>
@@ -380,8 +378,7 @@
           <div class="sidebar-disclosure-body mosaic-mode-only">
         <!-- Gerador de Mosaico & Sementes -->
         <div class="sidebar-section sidebar-gen-section mosaic-mode-only" aria-label="Geração e Sementes">
-          <div class="sidebar-section-title">Gerador</div>
-          <button type="button" id="btnRandomize" class="sidebar-gen-btn icon-only" title="Gerar" aria-label="Gerar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 5h3l12 14h3M3 19h3l4-5M14 10l4-5h3m-4-3 4 3-4 3m0 8 4 3-4 3"/></svg><span class="icon-label"><span class="gen-btn-label">Gerar Mosaico</span></span></button>
+          <div class="sidebar-section-title sidebar-command-heading"><span>Gerador</span><button type="button" id="btnRandomize" class="sidebar-gen-btn icon-only" title="Gerar" aria-label="Gerar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 5h3l12 14h3M3 19h3l4-5M14 10l4-5h3m-4-3 4 3-4 3m0 8 4 3-4 3"/></svg><span class="icon-label"><span class="gen-btn-label">Gerar Mosaico</span></span></button></div>
           <div class="sidebar-seed-row" title="Navegação de Seeds">
             <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 6-6 6 6 6"/></svg></button>
             <div class="sidebar-seed-chip" title="Semente atual">
@@ -959,11 +956,12 @@
                     <span class="brush-size-sub" id="brushSizeSubText">peças</span>
                   </div>
                   <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5v14"/></svg></button>
-                </div>
-                <div class="brush-snap-row" id="brushSnapRow">
+                  <div class="brush-snap-row" id="brushSnapRow">
                   <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="6"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
                     <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
                 </div>
+                </div>
+
               </div>
 
               <!-- Interactive Supertile Builder & Brush Preview Card -->
@@ -973,8 +971,8 @@
                   <canvas id="supertileBuilderCanvas" width="104" height="104" tabindex="0" aria-label="Grade do pincel: clique para pintar, botão direito para girar e Alt para amostrar uma célula"></canvas>
                 </div>
                 <div class="active-brush-controls">
-                  <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label">Ampliar editor</span></button>
                   <div class="active-brush-title-row">
+                    <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M8 8l-5-5M16 8l5-5M8 16l-5 5M16 16l5 5"/></svg><span class="icon-label">Ampliar editor</span></button>
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
                   </div>

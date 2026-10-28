@@ -38,6 +38,9 @@
     add(context, 'redo', `Refazer ${target}`, 'Ctrl+Shift+Z', [context === 'mosaic' ? 'btnEditRedo' : 'btnVecRedo'], ctx => ctx.redo(), {aliases: ['Ctrl+Y'], available: ctx => ctx.canRedo?.() !== false});
     add(context, 'toggle', context === 'mosaic' ? 'Editar peças' : 'Voltar ao mosaico', 'Ctrl+E', ['btnStudioTilesMode'], ctx => ctx.toggle(), {label: '.studio-mode-btn-label'});
   }
+  add('mosaic', 'selectRect', 'Retângulo', 'Shift+M', ['toolSelectRect'], ctx => ctx.selectRegion('rect'));
+  add('mosaic', 'selectLasso', 'Laço', 'L', ['toolSelectLasso'], ctx => ctx.selectRegion('lasso'));
+  add('mosaic', 'selectBrush', 'Pincel de seleção', 'W', ['toolSelectBrush'], ctx => ctx.selectRegion('brush'));
   add('mosaic', 'generate', 'Gerar mosaico', 'G', ['btnRandomize'], ctx => ctx.generate());
   add('mosaic', 'eraser', 'Borracha', 'E', [], ctx => ctx.eraser());
   add('mosaic', 'swap', 'Inverter cores', 'X', ['btnSwapColors'], ctx => ctx.swap());

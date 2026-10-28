@@ -107,3 +107,20 @@ assert.equal(commands.get('tiles', 'pen').name, 'Caneta');
 for (const entries of Object.values(commands.tools)) for (const [, name] of entries) {
   assert(name.length <= 14, `Tool name needs a compact label: ${name}`);
 }
+
+// Region tools share the command catalog; modifier shortcuts do not steal guide keys.
+const regions=[];
+const selectionContext={selectRegion:shape=>regions.push(shape)};
+for (const [key,extra,shape] of [['m',{shiftKey:true},'rect'],['l',{},'lasso'],['w',{},'brush']]) {
+  assert.strictEqual(commands.dispatch('mosaic',event(key,extra),selectionContext),true);
+  assert.strictEqual(regions.pop(),shape);
+}
+assert.strictEqual(commands.dispatch('mosaic',event('m'),selectionContext),false,'M remains the subtile guide');
+assert.strictEqual(commands.dispatch('mosaic',event('l',{ctrlKey:true}),selectionContext),false);
+assert.strictEqual(commands.dispatch('mosaic',event('w',{ctrlKey:true}),selectionContext),false);
+assert.strictEqual(commands.dispatch('mosaic',event('l',{repeat:true}),selectionContext),false);
+const tileTools=[];
+assert.strictEqual(commands.dispatch('tiles',event('l'),{selectTool:tool=>tileTools.push(tool)}),true);
+assert.deepStrictEqual(tileTools,['ellipse'],'L still draws ellipses in the vector editor');
+assert.strictEqual(commands.dispatch('tiles',event('w'),selectionContext),false);
+console.log('✓ Region shortcuts preserve guides, browser modifiers and vector tools.');

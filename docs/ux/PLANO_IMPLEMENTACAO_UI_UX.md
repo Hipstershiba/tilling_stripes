@@ -879,3 +879,12 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Preservar texto em valores, abas, itens do usuário e confirmações; manter opções da simetria do bloco diretamente disponíveis.
 - [x] Revisar no navegador captura por pincel, recorte, desfazer, ferramentas, gerador, biblioteca, propriedades e editor ampliado; conferir janela de 900×768.
 - [x] Gate completo: 52/52 suítes, incluindo laço côncavo, gesto sem área, interpolação do pincel, máscaras, cancelamento e preservação do documento. Sincronizar AST/vault e registrar apenas código, testes e documentação; capturas em `_local/laco-icones` ignoradas pelo Git.
+
+### Distribuição dos ícones e atalhos das ferramentas de seleção — 28/10/2026
+
+- [x] Integrar Retângulo, Laço e Pincel de seleção à grade principal de ferramentas.
+- [x] Adicionar Shift+M, L e W pelo catálogo compartilhado, preservando M da guia e L do editor vetorial.
+- [x] Reduzir a barra esquerda para 176 px, usar botões de 34×34 px e compactar ações nos títulos, guias, simetrias, escopos, biblioteca e propriedades.
+- [x] Reunir Encaixe à linha de tamanho e Ampliar à identificação do pincel; manter histórico e exportação acessíveis.
+- [x] Verificar atalhos no navegador, digitação em busca, separação dos ambientes e janela de 900×768.
+- [x] Gate 52/52, AST/vault sincronizados e alteração registrada separadamente; somente código, testes e documentação. Evidências em `_local/layout-atalhos`, ignoradas pelo Git.

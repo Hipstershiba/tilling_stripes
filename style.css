@@ -37,7 +37,7 @@
   --space-3: 12px;
   --top-bar-h: 46px;
   --status-bar-h: 36px;
-  --left-tool-w: 216px;
+  --left-tool-w: 176px;
   --right-dock-w: 350px;
   --dock-rail-w: 44px;
 }
@@ -4818,3 +4818,36 @@ button.icon-only > svg { flex-shrink:0; }
 @media (max-width:700px) { #brushEditorHost #panelEditBrushBody { grid-template-rows:auto auto minmax(180px,1fr); grid-template-areas:"preview" "search" "palette"; } }
 
 .family-solo-btn .ui-icon { display:block; margin:auto; }
+
+/* Icon commands use a common target instead of filling former text columns. */
+:root { --icon-action-size:34px; }
+#left-toolbar .tools-grid-2col { grid-template-columns:repeat(2,var(--icon-action-size)); justify-content:center; gap:4px; }
+#left-toolbar .tools-grid-2col > button { width:var(--icon-action-size); min-width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; justify-content:center; }
+#left-toolbar .tools-grid-2col:has(> select) { grid-template-columns:var(--icon-action-size) minmax(0,1fr); }
+#left-toolbar .tools-grid-2col > select { min-width:0; width:100%; }
+body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn { justify-self:center; }
+#left-toolbar [data-region-shape] svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+#left-toolbar .clone-capture-actions { justify-content:center; gap:4px; }
+#left-toolbar .clone-capture-actions .mini-btn { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); }
+#left-toolbar :is(#btnRandomize,#btnExport) { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); min-width:var(--icon-action-size); height:var(--icon-action-size); align-self:center; padding:0; }
+:is(.vec-align-strip,.vec-d4-strip,.vec-bool-strip,.vec-preset-chips,.tile-layers-toolbar) { grid-template-columns:repeat(var(--action-columns,4),var(--icon-action-size)); justify-content:start; gap:4px; }
+.vec-align-strip { --action-columns:6; }
+.vec-inline-actions .mini-btn { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); padding:0; }
+:is(.vec-align-strip,.vec-d4-strip,.vec-bool-strip,.vec-preset-chips,.tile-layers-toolbar) > button { width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; }
+:is(.swatch-bulk-actions,.lib-mgr-actions-bar):has(> .icon-only) { display:flex; flex-wrap:wrap; gap:4px; }
+:is(.swatch-bulk-actions,.lib-mgr-actions-bar) > .icon-only { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); padding:0; }
+:is(#gridSymmetryGrid,#blockSymmetryGrid,#editScopeGrid,#canvasCenterSymControl) { display:flex; flex-wrap:wrap; gap:4px; }
+:is(#gridSymmetryGrid,#blockSymmetryGrid,#editScopeGrid,#canvasCenterSymControl) > button { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; }
+#brushSnapRow { display:contents; }
+#btnToggleBrushSnap,#btnExpandBrushEditor { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; }
+.d4-mini-grid,.supertile-builder-actions { display:flex; flex-wrap:wrap; gap:4px; }
+.d4-mini-grid > button,.supertile-builder-actions > button { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); padding:0; }
+
+#left-toolbar .sidebar-command-heading { display:flex; align-items:center; justify-content:space-between; min-height:28px; }
+#left-toolbar .sidebar-command-heading :is(#btnStudioTilesMode,#btnRandomize) { flex:0 0 28px; width:28px; min-width:28px; height:28px; min-height:28px; margin:0; padding:0; justify-content:center; }
+#left-toolbar [aria-label="Guias Visuais"] .tools-grid-2col { grid-template-columns:repeat(4,var(--icon-action-size)); }
+#left-toolbar .tool-divider { margin:0; }
+
+.vec-transform-actions { display:flex; flex-wrap:wrap; gap:4px; }
+.vec-transform-actions > :is(.vec-d4-strip,.vec-inline-actions) { display:contents; }
+.vec-transform-actions button { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; }
