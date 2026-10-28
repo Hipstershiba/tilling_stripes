@@ -3826,7 +3826,7 @@ function initStudioUI() {
     saveStudioStateToStorage();
     if (saveStatus.snapshot().scopes.some(scope => scope.scope === 'library')) window.LibraryStore?.retrySave();
   });
-  document.getElementById('btnBackupUnsavedLibrary')?.addEventListener('click', () => document.getElementById('btnQuickLibraryBackup')?.click());
+  document.getElementById('btnBackupUnsavedLibrary')?.addEventListener('click', () => document.getElementById('btnExportLibraryJson')?.click());
   document.getElementById('btnExportUnsavedMosaic')?.addEventListener('click', () => document.getElementById('btnExport')?.click());
   document.getElementById('btnDirtyGuardCancel')?.addEventListener('click', () => closeDirtyGuard(false));
   document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));

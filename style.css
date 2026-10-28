@@ -4626,7 +4626,6 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 #dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-bar,
 #dock-workspace-tiles[data-inspector-panel="variants"] > .tile-selection-help { display: none; }
 
-.library-backup-shortcut { flex: 0 0 auto; margin-top: 8px; min-height: 32px; }
 #subtileConfirmBackupOption { margin: 14px 0; align-items: flex-start; line-height: 1.5; }
 #subtileConfirmBackup { flex: 0 0 auto; margin-top: 3px; accent-color: var(--accent-blue); }
 .swatches-group-heading { display: flex; align-items: center; gap: 6px; }

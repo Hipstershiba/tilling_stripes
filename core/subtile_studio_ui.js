@@ -3460,7 +3460,6 @@
     };
 
     document.getElementById('btnExportLibraryJson')?.addEventListener('click', exportFull);
-    document.getElementById('btnQuickLibraryBackup')?.addEventListener('click', exportFull);
     document.getElementById('btnLibMgrExportCustom')?.addEventListener('click', exportCustomOnly);
 
     const fileInput = document.getElementById('libraryJsonFileInput');
