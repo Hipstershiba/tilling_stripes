@@ -150,15 +150,21 @@ for (const [selector, order] of orderRules) {
 }
 console.log('✓ Flex order is left-toolbar (0) → canvas (1) → utility-rail (2) → right-dock (3).');
 
-// 6. Illustrator geography: document controls in the static right dock; the top
-// bar carries only the active tool's options.
+// 6. Illustrator geography: top bar is contextual; main dock has two stacked
+// panels; sparse panels open as persistent flyouts from the utility rail.
 const topBarBounds = getElementBounds(html, 'top-control-bar');
 if (!topBarBounds) throw new Error('Missing #top-control-bar in index.html');
+const utilityRailBoundsEarly = getElementBounds(html, 'utility-rail');
+if (!utilityRailBoundsEarly) throw new Error('Missing #utility-rail in index.html');
 
 const documentPanelBounds = getElementBounds(html, 'panel-document');
 if (!documentPanelBounds) throw new Error('Missing #panel-document in index.html');
-if (!rightDockBounds.content.includes('id="panel-document"')) {
-  throw new Error('Contract violation: #panel-document must be inside #right-dock.');
+if (!utilityRailBoundsEarly.content.includes('id="railFlyoutDocument"')) {
+  throw new Error('Contract violation: #railFlyoutDocument must live inside #utility-rail.');
+}
+const documentFlyoutBounds = getElementBounds(html, 'railFlyoutDocument');
+if (!documentFlyoutBounds.content.includes('id="panel-document"')) {
+  throw new Error('Contract violation: #panel-document must live inside #railFlyoutDocument.');
 }
 if (!documentPanelBounds.content.includes('id="paddingInput"')) {
   throw new Error('Contract violation: #paddingInput must be inside #panel-document.');
@@ -174,7 +180,7 @@ for (const id of ['canvasW', 'canvasH', 'gridRows', 'gridCols', 'gridMargin']) {
     throw new Error(`Contract violation: #${id} must not be inside #top-control-bar.`);
   }
 }
-console.log('✓ Document controls moved to #panel-document inside the static right dock.');
+console.log('✓ Document controls live in #panel-document, inside the rail flyout.');
 
 const toolContextIds = ['topToolContext', 'ctxPaint', 'rotateToolOptionsWrap', 'freezeToolOptionsWrap'];
 for (const id of toolContextIds) {
@@ -187,12 +193,28 @@ if (html.includes('id="dock-workspace-edit"')) {
 }
 const generatePaneContent = getElementBounds(html, 'dock-workspace-generate');
 if (!generatePaneContent) throw new Error('Missing #dock-workspace-generate in index.html');
-for (const id of ['panel-edit-scope', 'panel-edit-brush']) {
+for (const id of ['panel-symmetry', 'panel-edit-brush']) {
   if (!generatePaneContent.content.includes(`id="${id}"`)) {
-    throw new Error(`Contract violation: #${id} must live in the static dock pane.`);
+    throw new Error(`Contract violation: #${id} must live in the stacked dock pane.`);
   }
 }
-console.log('✓ Top bar owns the tool options; the dock keeps static properties (no #dock-workspace-edit).');
+for (const [flyoutId, panelId] of [
+  ['railFlyoutPieces', 'panel-swatches'],
+  ['railFlyoutScope', 'panel-edit-scope']
+]) {
+  const flyoutBounds = getElementBounds(html, flyoutId);
+  if (!flyoutBounds) throw new Error(`Missing #${flyoutId} in index.html`);
+  if (!utilityRailBoundsEarly.content.includes(`id="${flyoutId}"`)) {
+    throw new Error(`Contract violation: #${flyoutId} must live inside #utility-rail.`);
+  }
+  if (!flyoutBounds.content.includes(`id="${panelId}"`)) {
+    throw new Error(`Contract violation: #${panelId} must live inside #${flyoutId}.`);
+  }
+  if (generatePaneContent.content.includes(`id="${panelId}"`)) {
+    throw new Error(`Contract violation: #${panelId} must not be in the main dock.`);
+  }
+}
+console.log('✓ Main dock = Simetria + Pincel; Peças/Documento/Escopo are rail flyouts.');
 
 const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed'];
 for (const scId of seedControlIds) {
@@ -271,16 +293,15 @@ for (const exportId of ['btnExport', 'exportFormatSelect']) {
   }
 }
 
-// Dock geography: header → generator → tabs → active pane → export footer.
+// Dock geography: header → generator → stacked panes → export footer.
 const dockHeaderIdx = rightDockBounds.content.indexOf('id="dock-header"');
 const dockGenIdx = rightDockBounds.content.indexOf('id="dock-generator"');
-const dockTabsIdx = rightDockBounds.content.indexOf('id="dockTabs"');
 const dockPaneIdx = rightDockBounds.content.indexOf('id="dock-workspace-generate"');
 const dockExportIdx = rightDockBounds.content.indexOf('id="dock-export"');
-if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockTabsIdx > dockGenIdx && dockPaneIdx > dockTabsIdx && dockExportIdx > dockPaneIdx)) {
-  throw new Error('Contract violation: dock order must be header < generator < tabs < panes < export.');
+if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockPaneIdx > dockGenIdx && dockExportIdx > dockPaneIdx)) {
+  throw new Error('Contract violation: dock order must be header < generator < stacked panes < export.');
 }
-console.log('✓ Right dock: header → generator → tabs → active pane → export; history stays in the utility rail.');
+console.log('✓ Right dock: header → generator → stacked panes → export; sparse panels live in the rail.');
 
 // The left toolbar is tools + guides + colors only.
 const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
@@ -320,43 +341,42 @@ if (!/#dock-workspace-generate\s*\{[^}]*overflow:\s*hidden/.test(css)) {
   throw new Error('Contract violation: #dock-workspace-generate must not scroll as a column.');
 }
 if (!/#dock-workspace-generate > \.dock-panel > \.panel-body\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
-  throw new Error('Contract violation: the active tab body must own the vertical scroll.');
+  throw new Error('Contract violation: each stacked panel body must own its vertical scroll.');
 }
 if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto')) {
   throw new Error('Contract violation: .families-swatch-scroll must have overflow-y: auto.');
 }
-console.log('✓ No sidebar scrolls; the active tab and the tiles list keep their own scroll.');
+console.log('✓ No sidebar scrolls; each panel and the tiles list keep their own scroll.');
 
-// 9b. Tabs live inside the dock (Illustrator panel group); the rail stays a document rail.
-const tabsBounds = getElementBounds(html, 'dockTabs');
-if (!tabsBounds) throw new Error('Missing #dockTabs in index.html');
-if (!rightDockBounds.content.includes('id="dockTabs"')) {
-  throw new Error('Contract violation: #dockTabs must live inside #right-dock.');
+// 9b. Sparse panels open as persistent flyouts from the right rail.
+if (html.includes('id="dockTabs"')) {
+  throw new Error('Contract violation: the dock no longer uses a tab strip; Simetria and Pincel are stacked.');
 }
-if (railBounds.content.includes('id="dockTabs"')) {
-  throw new Error('Contract violation: the panel tabs must not live in #utility-rail.');
-}
-const dockTabIds = ['dockTabDocument', 'dockTabSymmetry', 'dockTabPieces', 'dockTabScope', 'dockTabBrush'];
-for (const tabId of dockTabIds) {
-  const tabBounds = getElementBounds(html, tabId);
-  if (!tabBounds) throw new Error(`Missing #${tabId} in index.html`);
-  if (!/role="tab"/.test(tabBounds.content)) throw new Error(`#${tabId} must have role="tab".`);
-  const panelId = /aria-controls="([^"]+)"/.exec(tabBounds.content)?.[1];
-  if (!panelId || !generatePaneContent.content.includes(`id="${panelId}"`)) {
-    throw new Error(`#${tabId} must control a panel inside #dock-workspace-generate.`);
+const railToggleIds = ['railTogglePieces', 'railToggleDocument', 'railToggleScope'];
+for (const toggleId of railToggleIds) {
+  const toggleBounds = getElementBounds(html, toggleId);
+  if (!toggleBounds) throw new Error(`Missing #${toggleId} in index.html`);
+  if (!railBounds.content.includes(`id="${toggleId}"`)) {
+    throw new Error(`Contract violation: #${toggleId} must live inside #utility-rail.`);
   }
-  const panelTag = new RegExp(`<section[^>]*id="${panelId}"[^>]*>`).exec(html)?.[0] || '';
-  if (!/role="tabpanel"/.test(panelTag) || !/data-dock-panel=/.test(panelTag)) {
-    throw new Error(`#${panelId} must be a tabpanel with data-dock-panel.`);
+  if (!/aria-expanded="false"/.test(toggleBounds.content)) {
+    throw new Error(`#${toggleId} must start collapsed (aria-expanded="false").`);
+  }
+  const flyoutId = /aria-controls="([^"]+)"/.exec(toggleBounds.content)?.[1];
+  if (!flyoutId || !railBounds.content.includes(`id="${flyoutId}"`)) {
+    throw new Error(`#${toggleId} must control a flyout inside #utility-rail.`);
   }
 }
 if (!railBounds.content.includes('id="railOpenLibrary"')) {
   throw new Error('Contract violation: the utility rail must keep its Library shortcut.');
 }
-if (!(tabsBounds.startIndex > generatorBounds.startIndex && tabsBounds.endIndex < generatePaneBounds.startIndex)) {
-  throw new Error('Contract violation: the dock tab strip must sit between the generator and the panel area.');
+if (!/\.rail-flyout\s*\{[^}]*right:\s*calc\(100%\s*\+\s*10px\)/s.test(css)) {
+  throw new Error('Contract violation: rail flyouts must open to the left of the rail.');
 }
-console.log('✓ Dock tabs live inside #right-dock; the rail stays history + Library.');
+if (!/\.rail-flyout > \.dock-panel > \.panel-body\s*\{[^}]*overflow-y:\s*auto/s.test(css)) {
+  throw new Error('Contract violation: flyout panels must scroll internally.');
+}
+console.log('✓ Rail flyouts for Peças/Documento/Escopo; main dock keeps only Simetria + Pincel.');
 
 // 10. Both environments share outer toolbar scrolling; history stays in its flyout.
 if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {

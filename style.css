@@ -6818,11 +6818,11 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 #brushEditorHost #brushSizeControl .brush-size-badge { min-width: 90px; }
 
 /* ============================================================================
-   V2 — ABAS DO DOCK E ROLAGEM INTERNA (29/10/2026)
+   V2 — DOCK EMPILHADO E FLYOUTS DO TRILHO (29/10/2026)
    ----------------------------------------------------------------------------
-   As abas ficam dentro do dock, como o grupo de painéis do Illustrator. O
-   trilho utilitário continua com histórico e Biblioteca. A barra direita não
-   rola: cada aba preenche a altura restante e só o corpo ativo rola.
+   Simetria e Pincel dividem o dock como painéis empilhados do Illustrator.
+   Peças, Documento e Escopo abrem em flyouts persistentes no trilho direito.
+   A barra direita não rola: cada painel preenche sua altura e rola por dentro.
    ============================================================================ */
 
 #utility-rail { gap: 6px; padding: 10px 0; }
@@ -6848,62 +6848,25 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 
 .utility-rail-spacer { flex: 1 1 auto; min-height: 8px; }
 
-/* Abas horizontais do dock, no topo do grupo de painéis. */
-#dockTabs {
-  display: flex;
-  flex: 0 0 auto;
-  height: 34px;
-  padding: 0 6px;
-  background: #1f2126;
-  border-bottom: 1px solid #2b2e35;
-}
-
-.dock-tab {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 34px;
-  padding: 0 2px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color var(--transition-ui), background-color var(--transition-ui), border-color var(--transition-ui);
-}
-.dock-tab:hover { color: var(--text-primary); background: #24272d; }
-.dock-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent-blue);
-  background: #24272d;
-}
-
-/* Dock: uma aba visível por vez, sem rolagem da coluna inteira. */
+/* Dock: dois painéis empilhados, sem rolagem da coluna inteira. */
 #dock-workspace-generate {
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-#dock-workspace-generate > .dock-panel { flex: 0 0 auto; }
-
-#dock-workspace-generate > .dock-panel:not(.hidden) {
-  flex: 1 1 auto;
+#dock-workspace-generate > .dock-panel {
+  flex: 1 1 0;
   min-height: 0;
 }
+
+#dock-workspace-generate > .dock-panel.collapsed { flex: 0 0 auto; }
 
 #dock-workspace-generate > .dock-panel > .panel-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
 }
-
-#dock-workspace-generate > .dock-panel > .panel-header { cursor: default; }
 
 /* Peças: a lista rola dentro do corpo, não a coluna. */
 #panel-swatches.dock-panel-flex:not(.hidden) { flex: 1 1 auto; min-height: 0; }
@@ -6937,3 +6900,65 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 #panel-document > .panel-body,
 #panel-symmetry > .panel-body,
 #panel-edit-scope > .panel-body { overflow-y: auto; }
+
+/* Flyouts do trilho direito: abrem à esquerda e ficam abertos até o usuário
+   recolher o mesmo item ou abrir outro. Não fecham ao clicar no canvas. */
+.rail-flyout {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 10px);
+  width: min(320px, calc(100vw - var(--right-dock-w) - 80px));
+  max-height: calc(100vh - 140px);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-panel);
+  border: 1px solid #2e3138;
+  border-radius: var(--radius-card);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.62);
+}
+.rail-flyout.hidden { display: none !important; }
+.rail-flyout > .dock-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+}
+.rail-flyout > .dock-panel > .panel-header {
+  flex: 0 0 auto;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+.rail-flyout > .dock-panel > .panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#railFlyoutPieces > .dock-panel > .panel-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#railFlyoutPieces #familiesSwatchContainer {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: none;
+}
+
+/* Histórico: a lista é o próprio flyout, ancorado no botão do trilho. */
+#dock-history .sidebar-history-list {
+  width: min(320px, calc(100vw - var(--right-dock-w) - 80px));
+  max-height: calc(100vh - 140px);
+  z-index: 80;
+}
+
+/* Empilhamento dos dois painéis principais: mesma altura, rolagem interna. */
+#dock-workspace-generate > #panel-symmetry,
+#dock-workspace-generate > #panel-edit-brush { flex: 1 1 0; }
+#dock-workspace-generate > #panel-symmetry.collapsed,
+#dock-workspace-generate > #panel-edit-brush.collapsed { flex: 0 0 auto; }
+
+/* Alinha cada flyout ao seu botão no trilho. */
+#railFlyoutPieces { top: 48px; max-height: calc(100vh - 160px); }
+#railFlyoutDocument { top: 84px; max-height: calc(100vh - 200px); }
+#railFlyoutScope { top: 120px; max-height: calc(100vh - 240px); }

@@ -22,11 +22,11 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
    - `#top-control-bar` (above the body) — **Control Bar** for the active tool only: `#topToolContext`, `#ctxPaint`, `#rotateToolOptionsWrap`, `#freezeToolOptionsWrap` and `#selectionSummary`. Static document controls MUST NOT return here.
    - `#left-toolbar` (order: 0) — 2-column tool column: tools, visual guides, swatches.
    - `#workspace-viewport` (order: 1) — Canvas with 2D pan and zoom via CSS transforms.
-   - `#utility-rail` (order: 2) — 40px document rail: **Histórico** flyout (`#dock-history`) and the Biblioteca shortcut (`#railOpenLibrary`). Panel tabs MUST NOT live here.
-   - `#right-dock` (order: 3) — **Static** property dock: collapsible 44px drawer toggle (`#btnToggleRightDock`), `#dock-generator` (top strip), horizontal tabs `#dockTabs` (Documento, Simetria, Peças, Escopo, Pincel), the single active tab of `#dock-workspace-generate` (`#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope`, `#panel-edit-brush`), `#dock-workspace-tiles` in pieces mode, and `#dock-export` (footer). It MUST NOT swap panels when the tool changes.
-   - **No sidebar scrolls as a whole.** `#left-toolbar`, `#utility-rail`, `#right-dock` and `#dock-workspace-generate` keep their own layout; only sections inside them scroll (`panel-body`, swatch list, brush palette, history flyout).
-   - NEVER create `#left-rail`, `#workspaceSwitcher`, `#btnContextGenerator`, or `#dock-workspace-edit`.
-   - The control registry consists of **exactly 60 frozen control IDs**; new tab buttons are additive IDs, never replacements.
+   - `#utility-rail` (order: 2) — 40px document rail: **Histórico** (`#dock-history`), persistent flyouts for **Peças** (`#railFlyoutPieces`), **Documento** (`#railFlyoutDocument`) and **Escopo** (`#railFlyoutScope`), plus the Biblioteca shortcut (`#railOpenLibrary`). Flyouts open left and stay open until the same button is clicked again or another rail item opens; they MUST NOT close on outside click. Panel tabs MUST NOT live here.
+   - `#right-dock` (order: 3) — **Static** property dock: collapsible 44px drawer toggle (`#btnToggleRightDock`), `#dock-generator` (top strip), two stacked panels `#panel-symmetry` and `#panel-edit-brush` inside `#dock-workspace-generate`, `#dock-workspace-tiles` in pieces mode, and `#dock-export` (footer). It MUST NOT swap panels or tabs when the tool changes.
+   - **No sidebar scrolls as a whole.** `#left-toolbar`, `#utility-rail`, `#right-dock` and `#dock-workspace-generate` keep their own layout; only sections inside them scroll (`panel-body`, flyout body, swatch list, brush palette, history list).
+   - NEVER create `#left-rail`, `#workspaceSwitcher`, `#btnContextGenerator`, `#dock-workspace-edit`, or a `#dockTabs` strip.
+   - The control registry consists of **exactly 60 frozen control IDs**; new rail/flyout buttons are additive IDs, never replacements.
 
 3. **Persistence and Snapshots:**
    - Canonical localStorage key: `tiling_stripes_studio_v3_state` (NEVER v2).

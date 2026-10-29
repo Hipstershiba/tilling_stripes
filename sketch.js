@@ -1570,7 +1570,12 @@ function renderHistoryUI() {
 
   const activeRow = listEl.querySelector('.history-item.active');
   if (activeRow) {
-    activeRow.scrollIntoView({ block: 'nearest' });
+    const box = listEl.getBoundingClientRect();
+    const target = activeRow.getBoundingClientRect();
+    if (box.height && target.height) {
+      if (target.top < box.top) listEl.scrollTop -= box.top - target.top;
+      else if (target.bottom > box.bottom) listEl.scrollTop += target.bottom - box.bottom;
+    }
   }
 }
 
@@ -3746,55 +3751,43 @@ function syncContextPanel() {
   }
 }
 
-const DOCK_TAB_PANELS = [
-  ['symmetry', 'panel-symmetry'],
-  ['pieces', 'panel-swatches'],
-  ['document', 'panel-document'],
-  ['scope', 'panel-edit-scope'],
-  ['brush', 'panel-edit-brush']
+const RAIL_FLYOUTS = [
+  { id: 'history', buttonId: 'btnToggleHistory', flyoutId: 'seedHistoryList' },
+  { id: 'pieces', buttonId: 'railTogglePieces', flyoutId: 'railFlyoutPieces' },
+  { id: 'document', buttonId: 'railToggleDocument', flyoutId: 'railFlyoutDocument' },
+  { id: 'scope', buttonId: 'railToggleScope', flyoutId: 'railFlyoutScope' }
 ];
-let activeDockTab = 'symmetry';
+let activeRailFlyout = null;
 
-function setDockTab(tab, focus = false) {
-  const entry = DOCK_TAB_PANELS.find(([id]) => id === tab) || DOCK_TAB_PANELS[0];
-  activeDockTab = entry[0];
-  DOCK_TAB_PANELS.forEach(([id, panelId]) => {
-    const panel = document.getElementById(panelId);
-    const button = document.querySelector?.(`#dockTabs [data-dock-tab="${id}"]`);
-    const selected = id === entry[0];
-    if (panel) {
-      panel.classList.toggle('hidden', !selected);
-      panel.classList.remove('collapsed');
-      panel.querySelector('.panel-body')?.classList.remove('hidden');
-    }
-    if (button) {
-      button.classList.toggle('active', selected);
-      button.setAttribute('aria-selected', selected ? 'true' : 'false');
-      button.tabIndex = selected ? 0 : -1;
-    }
-  });
-  if (focus) document.querySelector?.(`#dockTabs [data-dock-tab="${entry[0]}"]`)?.focus();
+function scrollHistoryToActive() {
+  const list = document.getElementById('seedHistoryList');
+  const active = list?.querySelector('.history-item.active');
+  if (!list || !active) return;
+  const box = list.getBoundingClientRect();
+  const target = active.getBoundingClientRect();
+  if (!box.height || !target.height) return;
+  if (target.top < box.top) list.scrollTop -= box.top - target.top;
+  else if (target.bottom > box.bottom) list.scrollTop += target.bottom - box.bottom;
 }
 
-function initDockPanelTabs() {
-  const tabs = document.getElementById('dockTabs');
-  if (!tabs) return;
-  tabs.querySelectorAll('[data-dock-tab]').forEach((button) => {
-    button.addEventListener('click', () => setDockTab(button.dataset.dockTab));
+function setRailFlyout(id) {
+  const next = activeRailFlyout === id ? null : id;
+  activeRailFlyout = next;
+  RAIL_FLYOUTS.forEach((item) => {
+    const button = document.getElementById(item.buttonId);
+    const flyout = document.getElementById(item.flyoutId);
+    const open = item.id === next;
+    flyout?.classList.toggle('hidden', !open);
+    button?.classList.toggle('active', open);
+    button?.setAttribute('aria-expanded', String(open));
   });
-  tabs.addEventListener('keydown', (event) => {
-    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-    event.preventDefault();
-    const items = [...tabs.querySelectorAll('[data-dock-tab]')];
-    const index = items.findIndex((button) => button.dataset.dockTab === activeDockTab);
-    let next = index;
-    if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = items.length - 1;
-    else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (index - 1 + items.length) % items.length;
-    else next = (index + 1) % items.length;
-    setDockTab(items[next].dataset.dockTab, true);
+  if (next === 'history') requestAnimationFrame(scrollHistoryToActive);
+}
+
+function initRailFlyouts() {
+  RAIL_FLYOUTS.forEach((item) => {
+    document.getElementById(item.buttonId)?.addEventListener('click', () => setRailFlyout(item.id));
   });
-  setDockTab(activeDockTab);
 }
 
 function syncEditWorkspaceUI() {
@@ -4137,8 +4130,9 @@ function initStudioUI() {
   document.getElementById('btnDirtyGuardCancel')?.addEventListener('click', () => closeDirtyGuard(false));
   document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));
   window.InfoUI?.init();
-  initDockPanelTabs();
+  initRailFlyouts();
   document.getElementById('railOpenLibrary')?.addEventListener('click', () => {
+    setRailFlyout(null);
     window.WorkspaceNavigation?.openLibrary?.();
   });
 
@@ -4297,22 +4291,6 @@ function initStudioUI() {
   const btnRandomize = document.getElementById('btnRandomize');
   const btnPrevSeed = document.getElementById('btnPrevSeed');
   const btnNextSeed = document.getElementById('btnNextSeed');
-  const btnToggleHistory = document.getElementById('btnToggleHistory');
-  const seedPopover = document.getElementById('seedHistoryPopover');
-
-  const positionSeedPopover = () => {
-    if (!btnToggleHistory || !seedPopover) return;
-    const rect = btnToggleHistory.getBoundingClientRect();
-    const popWidth = 290;
-    if (rect.left < 100) {
-      seedPopover.style.left = `${Math.round(rect.right + 8)}px`;
-      seedPopover.style.top = `${Math.round(Math.max(8, Math.min(window.innerHeight - 320, rect.top)))}px`;
-    } else {
-      const left = Math.max(8, Math.min(window.innerWidth - popWidth - 8, rect.right - popWidth));
-      seedPopover.style.top = `${Math.round(rect.bottom + 6)}px`;
-      seedPopover.style.left = `${Math.round(left)}px`;
-    }
-  };
 
   seedInput?.addEventListener('change', () => {
     const val = parseInt(seedInput.value, 10);
@@ -4341,45 +4319,6 @@ function initStudioUI() {
   btnRandomize?.addEventListener('click', () => runMosaicCommand('generate'));
   btnPrevSeed?.addEventListener('click', () => restoreGenerationHistory(StudioState.historyIndex - 1));
   btnNextSeed?.addEventListener('click', () => restoreGenerationHistory(StudioState.historyIndex + 1));
-
-  btnToggleHistory?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const historyList = document.getElementById('seedHistoryList');
-    const historyContainer = historyList?.closest('.sidebar-history-container');
-    if (historyList) {
-      const isCollapsed = historyList.classList.toggle('collapsed');
-      if (historyContainer) historyContainer.classList.toggle('is-collapsed', isCollapsed);
-      btnToggleHistory.classList.toggle('active', !isCollapsed);
-      btnToggleHistory.setAttribute('aria-expanded', String(!isCollapsed));
-      btnToggleHistory.title = isCollapsed ? 'Abrir histórico de gerações' : 'Fechar histórico';
-      if (!isCollapsed) {
-        const activeRow = historyList.querySelector('.history-item.active');
-        if (activeRow) {
-          activeRow.scrollIntoView({ block: 'nearest' });
-        }
-      }
-    }
-  });
-
-  window.addEventListener('resize', () => {
-    if (seedPopover && !seedPopover.classList.contains('hidden')) {
-      positionSeedPopover();
-    }
-  });
-
-  document.addEventListener('click', (e) => {
-    if (seedPopover && !seedPopover.contains(e.target) && !btnToggleHistory?.contains(e.target)) {
-      seedPopover.classList.add('hidden');
-      btnToggleHistory?.classList.remove('active');
-    }
-    // O flyout do Histórico fecha ao clicar fora dele (canvas, painéis, etc.).
-    // composedPath mantém o caminho original mesmo quando a lista é re-renderizada.
-    const historyList = document.getElementById('seedHistoryList');
-    const historyContainer = document.getElementById('dock-history');
-    if (historyList && !historyList.classList.contains('collapsed') && historyContainer && !e.composedPath().includes(historyContainer)) {
-      btnToggleHistory?.click();
-    }
-  });
 
   // --- Export Controls ---
   document.getElementById('btnExport')?.addEventListener('click', () => {

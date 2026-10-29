@@ -530,55 +530,57 @@
       <aside id="utility-rail" class="mosaic-mode-only" aria-label="Ferramentas de Documento">
         <div id="dock-history" class="sidebar-history-container is-collapsed" aria-label="Histórico de Gerações">
           <button type="button" id="btnToggleHistory" class="dock-history-btn" title="Histórico de gerações" aria-label="Histórico de Gerações" aria-expanded="false" aria-controls="seedHistoryList"><span class="icon-slot" data-icon-slot="history"></span></button>
-          <div id="seedHistoryList" class="sidebar-history-list collapsed"></div>
+          <div id="seedHistoryList" class="sidebar-history-list hidden" role="region" aria-label="Histórico de gerações"></div>
         </div>
 
-        <div class="utility-rail-spacer" aria-hidden="true"></div>
+        <button type="button" id="railTogglePieces" class="rail-utility-btn" title="Peças permitidas" aria-label="Peças permitidas" aria-expanded="false" aria-controls="railFlyoutPieces"><span class="icon-slot" data-icon-slot="pieces" data-icon-size="18"></span></button>
+        <button type="button" id="railToggleDocument" class="rail-utility-btn" title="Documento: Prancheta &amp; Grade" aria-label="Documento" aria-expanded="false" aria-controls="railFlyoutDocument"><span class="icon-slot" data-icon-slot="grid" data-icon-size="18"></span></button>
+        <button type="button" id="railToggleScope" class="rail-utility-btn" title="Escopo de edição" aria-label="Escopo de edição" aria-expanded="false" aria-controls="railFlyoutScope"><span class="icon-slot" data-icon-slot="scopeCanvas" data-icon-size="18"></span></button>
 
-        <button type="button" id="railOpenLibrary" class="rail-utility-btn" title="Biblioteca" aria-label="Abrir Biblioteca"><span class="icon-slot" data-icon-slot="folder" data-icon-size="18"></span></button>
-      </aside>
+        <div id="railFlyoutPieces" class="rail-flyout hidden" role="region" aria-label="Peças permitidas">
+          <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
+          <section class="dock-panel dock-panel-flex" id="panel-swatches">
+            <header class="panel-header">
+              <div class="panel-title-wrap">
+                <span class="icon-slot" data-icon-slot="pieces" data-icon-size="14"></span>
+                <span>Peças permitidas</span>
+              </div>
+              <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
+            </header>
 
-      <!-- RIGHT DOCK PANELS (static: document, pattern, pieces, scope and ink) -->
-      <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
-        <!-- Dock Header: static title + collapse toggle -->
-        <header id="dock-header">
-          <span id="ctxPanelTitle" class="dock-context-title">Propriedades</span>
-          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
-            <span class="dock-toggle-icon">»</span>
-          </button>
-        </header>
+            <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
+              <div class="swatches-toolbar">
+                <div class="swatches-search-row">
+                  <input type="search" id="tileSearchInput" aria-label="Buscar famílias ou peças permitidas" class="swatch-search"
+                    placeholder="Buscar...">
+                  <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut icon-only"
+                    title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label">+ Subtile</span></button>
+                </div>
+                <div class="swatch-bulk-actions">
+                  <button type="button" id="btnSelectAllTiles" class="mini-btn icon-only"
+                    title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
+                  <button type="button" id="btnSelectNoTiles" class="mini-btn icon-only"
+                    title="Nenhum" aria-label="Nenhum"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Nenhum</span></button>
+                  <button type="button" id="btnInvertTiles" class="mini-btn icon-only"
+                    title="Inverter" aria-label="Inverter"><span class="icon-slot" data-icon-slot="invert"></span><span class="icon-label">Inverter</span></button>
+                  <button type="button" id="btnRandomFamilies" class="mini-btn accent icon-only"
+                    title="Sortear" aria-label="Sortear"><span class="icon-slot" data-icon-slot="random"></span><span class="icon-label">Sortear seleção</span></button>
+                </div>
+              </div>
 
-        <!-- Gerador & Semente: comando de documento, sempre visível no modo mosaico -->
-        <section id="dock-generator" class="dock-generator mosaic-mode-only" aria-label="Gerador e Semente">
-          <button type="button" id="btnRandomize" class="sidebar-gen-btn gen-primary-btn" title="Gerar mosaico (G)" aria-label="Gerar"><span class="icon-slot" data-icon-slot="dice"></span><span class="gen-btn-label">Gerar</span></button>
-          <div class="sidebar-seed-row" title="Navegação de Seeds">
-            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><span class="icon-slot" data-icon-slot="left"></span></button>
-            <div class="sidebar-seed-chip" title="Semente atual">
-              <span class="sidebar-seed-hash">#</span>
-              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
+              <div id="familiesSwatchContainer" class="families-swatch-scroll">
+                <!-- Populated by JS -->
+              </div>
             </div>
-            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled><span class="icon-slot" data-icon-slot="right"></span></button>
-          </div>
-        </section>
+          </section>
 
-        <!-- Abas do dock (Illustrator panel group): uma visível por vez -->
-        <nav id="dockTabs" class="dock-tabs" role="tablist" aria-label="Painéis de propriedades">
-          <button type="button" id="dockTabDocument" class="dock-tab" role="tab" data-dock-tab="document" aria-selected="false" aria-controls="panel-document" tabindex="-1" title="Documento: Prancheta &amp; Grade">Documento</button>
-          <button type="button" id="dockTabSymmetry" class="dock-tab active" role="tab" data-dock-tab="symmetry" aria-selected="true" aria-controls="panel-symmetry" tabindex="0" title="Simetria &amp; Estrutura">Simetria</button>
-          <button type="button" id="dockTabPieces" class="dock-tab" role="tab" data-dock-tab="pieces" aria-selected="false" aria-controls="panel-swatches" tabindex="-1" title="Peças permitidas">Peças</button>
-          <button type="button" id="dockTabScope" class="dock-tab" role="tab" data-dock-tab="scope" aria-selected="false" aria-controls="panel-edit-scope" tabindex="-1" title="Escopo de edição">Escopo</button>
-          <button type="button" id="dockTabBrush" class="dock-tab" role="tab" data-dock-tab="brush" aria-selected="false" aria-controls="panel-edit-brush" tabindex="-1" title="Pincel e paleta">Pincel</button>
-        </nav>
+          <!-- Spout output moved to the status bar (one switch + sender name) -->
 
-        <!-- ================================================================
-             DOCK ESTÁTICO (Propriedades independentes da ferramenta ativa)
-             Documento, Simetria, Peças, Escopo e Pincel permanecem no mesmo
-             lugar; só a barra superior troca com a ferramenta.
-             ================================================================ -->
-        <div id="dock-workspace-generate" class="dock-workspace-pane">
+        </div>
 
+        <div id="railFlyoutDocument" class="rail-flyout hidden" role="region" aria-label="Documento">
           <!-- PANEL 0: DOCUMENTO — Prancheta & Grade (aba do trilho direito) -->
-          <section class="dock-panel hidden" id="panel-document" data-dock-panel="document" role="tabpanel" aria-labelledby="dockTabDocument">
+          <section class="dock-panel" id="panel-document">
             <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="grid" data-icon-size="14"></span>
@@ -672,13 +674,117 @@
             </div>
           </section>
 
-          <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
-          <section class="dock-panel" id="panel-symmetry" data-dock-panel="symmetry" role="tabpanel" aria-labelledby="dockTabSymmetry">
+        </div>
+
+        <div id="railFlyoutScope" class="rail-flyout hidden" role="region" aria-label="Escopo de edição">
+          <!-- PAINEL 4: ESCOPO DE EDIÇÃO (estático) -->
+
+          <section class="dock-panel" id="panel-edit-scope">
             <header class="panel-header">
+              <div class="panel-title-wrap">
+                <span class="icon-slot" data-icon-slot="edit" data-icon-size="14"></span>
+                <span id="editPanelHeading">Escopo</span>
+              </div>
+              <div class="edit-undo-bar">
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
+                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><span class="icon-slot" data-icon-slot="redo"></span></button>
+              </div>
+            </header>
+
+            <div class="panel-body" id="panelEditScopeBody">
+              <!-- D4 Selection / Propagation Scope -->
+              <div class="prop-section">
+                <div class="prop-label-row">
+                  <div class="prop-label-with-info">
+                    <label class="prop-label">Escopo de Simetria</label>
+                    <button type="button" class="info-btn" data-info-topic="scopes" aria-label="Saiba mais sobre escopos de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                  <span id="editScopeChip" class="prop-badge secondary" title="Escopo de propagação ativo"></span>
+                  <span id="d4EditedBadge" class="prop-badge d4-edited-badge hidden" title="A edição manual introduziu assimetria no D4">D4 editado</span>
+                </div>
+                <div id="editScopeGrid" class="edit-scope-grid">
+                  <!-- Populated by JS: 6 compact scope pills -->
+                </div>
+                <div id="sameTileNotice" class="notice-banner hidden">
+                  <span>Iguais exige pincel 1×1.</span>
+                  <button type="button" class="link-btn" data-info-topic="same-tile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">Saiba mais</button>
+                </div>
+                <div id="d4SymmetryWarning" class="notice-banner warning hidden" role="alert">
+                  <span>Esta edição quebra o D4 estrito.</span>
+                  <div class="notice-actions">
+                    <button type="button" id="btnD4Undo" class="notice-action-btn">Desfazer</button>
+                    <button type="button" id="btnD4Continue" class="notice-action-btn primary">Continuar</button>
+                  </div>
+                </div>
+
+                <!-- Sub-selector for Global Canvas Center Symmetry -->
+                <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
+                  <div class="prop-label-row" style="margin-bottom: 4px;">
+                    <div class="prop-label-with-info">
+                      <span class="prop-sub-label">Simetria pelo Centro</span>
+                      <button type="button" class="info-btn" data-info-topic="center-symmetry" aria-label="Saiba mais sobre simetria de centro" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                    </div>
+                  </div>
+                  <div class="canvas-center-sym-grid" id="canvasCenterSymControl">
+                    <button type="button" class="seg-btn active icon-only" data-center-sym="mandala_d4" title="Mandala" aria-label="Mandala"><span class="icon-slot" data-icon-slot="mandala"></span><span class="icon-label">Mandala</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="kaleidoscope" title="Caleidoscópio" aria-label="Caleidoscópio"><span class="icon-slot" data-icon-slot="kaleidoscope"></span><span class="icon-label">Caleid.</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="rotational_c4" title="Rotacional" aria-label="Rotacional"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro 4×</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="bilateral_d2" title="Espelhos XY" aria-label="Espelhos XY"><span class="icon-slot" data-icon-slot="bilateral"></span><span class="icon-label">Esp. XY</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_x" title="Espelho H" aria-label="Espelho H"><span class="icon-slot" data-icon-slot="flipX"></span><span class="icon-label">Esp. X</span></button>
+                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_y" title="Espelho V" aria-label="Espelho V"><span class="icon-slot" data-icon-slot="flipY"></span><span class="icon-label">Esp. Y</span></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+
+        <div class="utility-rail-spacer" aria-hidden="true"></div>
+
+        <button type="button" id="railOpenLibrary" class="rail-utility-btn" title="Biblioteca" aria-label="Abrir Biblioteca"><span class="icon-slot" data-icon-slot="folder" data-icon-size="18"></span></button>
+      </aside>
+
+      <!-- RIGHT DOCK PANELS (static: document, pattern, pieces, scope and ink) -->
+      <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
+        <!-- Dock Header: static title + collapse toggle -->
+        <header id="dock-header">
+          <span id="ctxPanelTitle" class="dock-context-title">Propriedades</span>
+          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
+            <span class="dock-toggle-icon">»</span>
+          </button>
+        </header>
+
+        <!-- Gerador & Semente: comando de documento, sempre visível no modo mosaico -->
+        <section id="dock-generator" class="dock-generator mosaic-mode-only" aria-label="Gerador e Semente">
+          <button type="button" id="btnRandomize" class="sidebar-gen-btn gen-primary-btn" title="Gerar mosaico (G)" aria-label="Gerar"><span class="icon-slot" data-icon-slot="dice"></span><span class="gen-btn-label">Gerar</span></button>
+          <div class="sidebar-seed-row" title="Navegação de Seeds">
+            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><span class="icon-slot" data-icon-slot="left"></span></button>
+            <div class="sidebar-seed-chip" title="Semente atual">
+              <span class="sidebar-seed-hash">#</span>
+              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
+            </div>
+            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled><span class="icon-slot" data-icon-slot="right"></span></button>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             DOCK ESTÁTICO (Simetria e Pincel empilhados)
+             Documento, Peças e Escopo abrem no trilho direito; a barra
+             superior continua sendo o contexto da ferramenta ativa.
+             ================================================================ -->
+        <div id="dock-workspace-generate" class="dock-workspace-pane">
+
+          <!-- PAINEL 1: SIMETRIA & ESTRUTURA (empilhado, com rolagem interna) -->
+          <section class="dock-panel" id="panel-symmetry">
+            <header class="panel-header" data-collapse-target="panelSymmetryBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelSymmetryBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="symmetry" data-icon-size="14"></span>
                 <span>Simetria &amp; Estrutura</span>
               </div>
+              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelSymmetryBody">
@@ -772,115 +878,15 @@
             </div>
           </section>
 
-          <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
-          <section class="dock-panel dock-panel-flex hidden" id="panel-swatches" data-dock-panel="pieces" role="tabpanel" aria-labelledby="dockTabPieces">
-            <header class="panel-header">
-              <div class="panel-title-wrap">
-                <span class="icon-slot" data-icon-slot="pieces" data-icon-size="14"></span>
-                <span>Peças permitidas</span>
-              </div>
-              <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
-            </header>
-
-            <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
-              <div class="swatches-toolbar">
-                <div class="swatches-search-row">
-                  <input type="search" id="tileSearchInput" aria-label="Buscar famílias ou peças permitidas" class="swatch-search"
-                    placeholder="Buscar...">
-                  <button type="button" id="btnSwatchesManageTiles" class="mini-btn subtile-manage-shortcut icon-only"
-                    title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label">+ Subtile</span></button>
-                </div>
-                <div class="swatch-bulk-actions">
-                  <button type="button" id="btnSelectAllTiles" class="mini-btn icon-only"
-                    title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
-                  <button type="button" id="btnSelectNoTiles" class="mini-btn icon-only"
-                    title="Nenhum" aria-label="Nenhum"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Nenhum</span></button>
-                  <button type="button" id="btnInvertTiles" class="mini-btn icon-only"
-                    title="Inverter" aria-label="Inverter"><span class="icon-slot" data-icon-slot="invert"></span><span class="icon-label">Inverter</span></button>
-                  <button type="button" id="btnRandomFamilies" class="mini-btn accent icon-only"
-                    title="Sortear" aria-label="Sortear"><span class="icon-slot" data-icon-slot="random"></span><span class="icon-label">Sortear seleção</span></button>
-                </div>
-              </div>
-
-              <div id="familiesSwatchContainer" class="families-swatch-scroll">
-                <!-- Populated by JS -->
-              </div>
-            </div>
-          </section>
-
-          <!-- Spout output moved to the status bar (one switch + sender name) -->
-
-          <!-- PAINEL 4: ESCOPO DE EDIÇÃO (estático) -->
-
-          <section class="dock-panel hidden" id="panel-edit-scope" data-dock-panel="scope" role="tabpanel" aria-labelledby="dockTabScope">
-            <header class="panel-header">
-              <div class="panel-title-wrap">
-                <span class="icon-slot" data-icon-slot="edit" data-icon-size="14"></span>
-                <span id="editPanelHeading">Escopo</span>
-              </div>
-              <div class="edit-undo-bar">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
-                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><span class="icon-slot" data-icon-slot="redo"></span></button>
-              </div>
-            </header>
-
-            <div class="panel-body" id="panelEditScopeBody">
-              <!-- D4 Selection / Propagation Scope -->
-              <div class="prop-section">
-                <div class="prop-label-row">
-                  <div class="prop-label-with-info">
-                    <label class="prop-label">Escopo de Simetria</label>
-                    <button type="button" class="info-btn" data-info-topic="scopes" aria-label="Saiba mais sobre escopos de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                  <span id="editScopeChip" class="prop-badge secondary" title="Escopo de propagação ativo"></span>
-                  <span id="d4EditedBadge" class="prop-badge d4-edited-badge hidden" title="A edição manual introduziu assimetria no D4">D4 editado</span>
-                </div>
-                <div id="editScopeGrid" class="edit-scope-grid">
-                  <!-- Populated by JS: 6 compact scope pills -->
-                </div>
-                <div id="sameTileNotice" class="notice-banner hidden">
-                  <span>Iguais exige pincel 1×1.</span>
-                  <button type="button" class="link-btn" data-info-topic="same-tile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">Saiba mais</button>
-                </div>
-                <div id="d4SymmetryWarning" class="notice-banner warning hidden" role="alert">
-                  <span>Esta edição quebra o D4 estrito.</span>
-                  <div class="notice-actions">
-                    <button type="button" id="btnD4Undo" class="notice-action-btn">Desfazer</button>
-                    <button type="button" id="btnD4Continue" class="notice-action-btn primary">Continuar</button>
-                  </div>
-                </div>
-
-                <!-- Sub-selector for Global Canvas Center Symmetry -->
-                <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
-                  <div class="prop-label-row" style="margin-bottom: 4px;">
-                    <div class="prop-label-with-info">
-                      <span class="prop-sub-label">Simetria pelo Centro</span>
-                      <button type="button" class="info-btn" data-info-topic="center-symmetry" aria-label="Saiba mais sobre simetria de centro" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                    </div>
-                  </div>
-                  <div class="canvas-center-sym-grid" id="canvasCenterSymControl">
-                    <button type="button" class="seg-btn active icon-only" data-center-sym="mandala_d4" title="Mandala" aria-label="Mandala"><span class="icon-slot" data-icon-slot="mandala"></span><span class="icon-label">Mandala</span></button>
-                    <button type="button" class="seg-btn icon-only" data-center-sym="kaleidoscope" title="Caleidoscópio" aria-label="Caleidoscópio"><span class="icon-slot" data-icon-slot="kaleidoscope"></span><span class="icon-label">Caleid.</span></button>
-                    <button type="button" class="seg-btn icon-only" data-center-sym="rotational_c4" title="Rotacional" aria-label="Rotacional"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro 4×</span></button>
-                    <button type="button" class="seg-btn icon-only" data-center-sym="bilateral_d2" title="Espelhos XY" aria-label="Espelhos XY"><span class="icon-slot" data-icon-slot="bilateral"></span><span class="icon-label">Esp. XY</span></button>
-                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_x" title="Espelho H" aria-label="Espelho H"><span class="icon-slot" data-icon-slot="flipX"></span><span class="icon-label">Esp. X</span></button>
-                    <button type="button" class="seg-btn icon-only" data-center-sym="mirror_y" title="Espelho V" aria-label="Espelho V"><span class="icon-slot" data-icon-slot="flipY"></span><span class="icon-label">Esp. Y</span></button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          <!-- PAINEL 5: PINCEL (estático; construtor e paleta) -->
-          <section class="dock-panel dock-panel-flex hidden" id="panel-edit-brush" data-dock-panel="brush" role="tabpanel" aria-labelledby="dockTabBrush">
-            <header class="panel-header">
+          <!-- PAINEL 2: PINCEL (empilhado; construtor fixo e paleta com rolagem) -->
+          <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
+            <header class="panel-header" data-collapse-target="panelEditBrushBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditBrushBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="brush" data-icon-size="14"></span>
                 <span id="brushPanelHeading">Pincel</span>
               </div>
               <span id="activeBrushBadge" class="panel-counter-pill">1×1 • #2</span>
+              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelEditBrushBody">
