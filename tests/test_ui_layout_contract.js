@@ -311,14 +311,45 @@ if (btnRandomizeBounds && (btnRandomizeBounds.content.includes('<kbd') || />\s*G
 }
 console.log('✓ #btnRandomize has no "G" badge.');
 
-// 9. The static dock scrolls; the tiles list keeps its own bounded scroll.
-if (!/\s*#dock-workspace-generate\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
-  throw new Error('Contract violation: the static dock pane must scroll as a column.');
+// 9. No sidebar scrolls as a whole: the active tab's body scrolls internally.
+if (!/#right-dock\s*\{[^}]*overflow:\s*hidden/.test(css)) {
+  throw new Error('Contract violation: #right-dock must not scroll as a column.');
+}
+if (!/#dock-workspace-generate\s*\{[^}]*overflow:\s*hidden/.test(css)) {
+  throw new Error('Contract violation: #dock-workspace-generate must not scroll as a column.');
+}
+if (!/#dock-workspace-generate > \.dock-panel > \.panel-body\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
+  throw new Error('Contract violation: the active tab body must own the vertical scroll.');
 }
 if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto')) {
   throw new Error('Contract violation: .families-swatch-scroll must have overflow-y: auto.');
 }
-console.log('✓ Static dock column scrolls; the tiles list keeps its own scroll.');
+console.log('✓ No sidebar scrolls; the active tab and the tiles list keep their own scroll.');
+
+// 9b. The second right rail hosts history plus the vertical dock tabs.
+const tabsBounds = getElementBounds(html, 'dockPanelTabs');
+if (!tabsBounds) throw new Error('Missing #dockPanelTabs in index.html');
+if (!railBounds.content.includes('id="dockPanelTabs"')) {
+  throw new Error('Contract violation: #dockPanelTabs must live inside #utility-rail.');
+}
+const dockTabIds = ['dockTabSymmetry', 'dockTabPieces', 'dockTabDocument', 'dockTabScope', 'dockTabBrush'];
+for (const tabId of dockTabIds) {
+  const tabBounds = getElementBounds(html, tabId);
+  if (!tabBounds) throw new Error(`Missing #${tabId} in index.html`);
+  if (!/role="tab"/.test(tabBounds.content)) throw new Error(`#${tabId} must have role="tab".`);
+  const panelId = /aria-controls="([^"]+)"/.exec(tabBounds.content)?.[1];
+  if (!panelId || !generatePaneContent.content.includes(`id="${panelId}"`)) {
+    throw new Error(`#${tabId} must control a panel inside #dock-workspace-generate.`);
+  }
+  const panelTag = new RegExp(`<section[^>]*id="${panelId}"[^>]*>`).exec(html)?.[0] || '';
+  if (!/role="tabpanel"/.test(panelTag) || !/data-dock-panel=/.test(panelTag)) {
+    throw new Error(`#${panelId} must be a tabpanel with data-dock-panel.`);
+  }
+}
+if (!railBounds.content.includes('id="railOpenLibrary"')) {
+  throw new Error('Contract violation: the utility rail must keep its Library shortcut.');
+}
+console.log('✓ Utility rail = history + 5 vertical dock tabs + Library shortcut.');
 
 // 10. Both environments share outer toolbar scrolling; history stays in its flyout.
 if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {

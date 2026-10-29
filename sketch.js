@@ -3746,6 +3746,57 @@ function syncContextPanel() {
   }
 }
 
+const DOCK_TAB_PANELS = [
+  ['symmetry', 'panel-symmetry'],
+  ['pieces', 'panel-swatches'],
+  ['document', 'panel-document'],
+  ['scope', 'panel-edit-scope'],
+  ['brush', 'panel-edit-brush']
+];
+let activeDockTab = 'symmetry';
+
+function setDockTab(tab, focus = false) {
+  const entry = DOCK_TAB_PANELS.find(([id]) => id === tab) || DOCK_TAB_PANELS[0];
+  activeDockTab = entry[0];
+  DOCK_TAB_PANELS.forEach(([id, panelId]) => {
+    const panel = document.getElementById(panelId);
+    const button = document.querySelector?.(`#dockPanelTabs [data-dock-tab="${id}"]`);
+    const selected = id === entry[0];
+    if (panel) {
+      panel.classList.toggle('hidden', !selected);
+      panel.classList.remove('collapsed');
+      panel.querySelector('.panel-body')?.classList.remove('hidden');
+    }
+    if (button) {
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+    }
+  });
+  if (focus) document.querySelector?.(`#dockPanelTabs [data-dock-tab="${entry[0]}"]`)?.focus();
+}
+
+function initDockPanelTabs() {
+  const tabs = document.getElementById('dockPanelTabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('[data-dock-tab]').forEach((button) => {
+    button.addEventListener('click', () => setDockTab(button.dataset.dockTab));
+  });
+  tabs.addEventListener('keydown', (event) => {
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const items = [...tabs.querySelectorAll('[data-dock-tab]')];
+    const index = items.findIndex((button) => button.dataset.dockTab === activeDockTab);
+    let next = index;
+    if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = items.length - 1;
+    else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (index - 1 + items.length) % items.length;
+    else next = (index + 1) % items.length;
+    setDockTab(items[next].dataset.dockTab, true);
+  });
+  setDockTab(activeDockTab);
+}
+
 function syncEditWorkspaceUI() {
   syncFreezeUI();
   syncContextPanel();
@@ -4086,6 +4137,10 @@ function initStudioUI() {
   document.getElementById('btnDirtyGuardCancel')?.addEventListener('click', () => closeDirtyGuard(false));
   document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));
   window.InfoUI?.init();
+  initDockPanelTabs();
+  document.getElementById('railOpenLibrary')?.addEventListener('click', () => {
+    window.WorkspaceNavigation?.openLibrary?.();
+  });
 
   document.getElementById('btnD4Undo')?.addEventListener('click', () => {
     undoMosaicEdit();

@@ -526,12 +526,26 @@
 
       </main>
 
-      <!-- UTILITY RAIL (document tools that open flyouts to the canvas) -->
-      <aside id="utility-rail" class="mosaic-mode-only" aria-label="Ferramentas de Documento">
+      <!-- UTILITY RAIL: histórico (flyout) + abas verticais do dock estático -->
+      <aside id="utility-rail" class="mosaic-mode-only" aria-label="Histórico e Painéis de Propriedades">
         <div id="dock-history" class="sidebar-history-container is-collapsed" aria-label="Histórico de Gerações">
           <button type="button" id="btnToggleHistory" class="dock-history-btn" title="Histórico de gerações" aria-label="Histórico de Gerações" aria-expanded="false" aria-controls="seedHistoryList"><span class="icon-slot" data-icon-slot="history"></span></button>
           <div id="seedHistoryList" class="sidebar-history-list collapsed"></div>
         </div>
+
+        <div class="utility-rail-divider" aria-hidden="true"></div>
+
+        <div id="dockPanelTabs" class="dock-panel-tabs" role="tablist" aria-label="Painéis do dock" aria-orientation="vertical">
+          <button type="button" id="dockTabSymmetry" class="dock-panel-tab active" role="tab" data-dock-tab="symmetry" aria-selected="true" aria-controls="panel-symmetry" tabindex="0" title="Simetria &amp; Estrutura" aria-label="Simetria e Estrutura"><span class="icon-slot" data-icon-slot="symmetry" data-icon-size="18"></span></button>
+          <button type="button" id="dockTabPieces" class="dock-panel-tab" role="tab" data-dock-tab="pieces" aria-selected="false" aria-controls="panel-swatches" tabindex="-1" title="Peças permitidas" aria-label="Peças permitidas"><span class="icon-slot" data-icon-slot="pieces" data-icon-size="18"></span></button>
+          <button type="button" id="dockTabDocument" class="dock-panel-tab" role="tab" data-dock-tab="document" aria-selected="false" aria-controls="panel-document" tabindex="-1" title="Documento: Prancheta &amp; Grade" aria-label="Documento"><span class="icon-slot" data-icon-slot="grid" data-icon-size="18"></span></button>
+          <button type="button" id="dockTabScope" class="dock-panel-tab" role="tab" data-dock-tab="scope" aria-selected="false" aria-controls="panel-edit-scope" tabindex="-1" title="Escopo de edição" aria-label="Escopo de edição"><span class="icon-slot" data-icon-slot="scopeCanvas" data-icon-size="18"></span></button>
+          <button type="button" id="dockTabBrush" class="dock-panel-tab" role="tab" data-dock-tab="brush" aria-selected="false" aria-controls="panel-edit-brush" tabindex="-1" title="Pincel" aria-label="Pincel"><span class="icon-slot" data-icon-slot="brush" data-icon-size="18"></span></button>
+        </div>
+
+        <div class="utility-rail-spacer" aria-hidden="true"></div>
+
+        <button type="button" id="railOpenLibrary" class="dock-panel-tab" title="Biblioteca" aria-label="Abrir Biblioteca"><span class="icon-slot" data-icon-slot="folder" data-icon-size="18"></span></button>
       </aside>
 
       <!-- RIGHT DOCK PANELS (static: document, pattern, pieces, scope and ink) -->
@@ -564,16 +578,15 @@
              ================================================================ -->
         <div id="dock-workspace-generate" class="dock-workspace-pane">
 
-          <!-- PANEL 0: DOCUMENTO — Prancheta & Grade (movidos do topo, recolhido por padrão) -->
-          <section class="dock-panel collapsed" id="panel-document">
-            <header class="panel-header" data-collapse-target="panelDocumentBody" role="button" tabindex="0" aria-expanded="false" aria-controls="panelDocumentBody">
+          <!-- PANEL 0: DOCUMENTO — Prancheta & Grade (aba do trilho direito) -->
+          <section class="dock-panel hidden" id="panel-document" data-dock-panel="document" role="tabpanel" aria-labelledby="dockTabDocument">
+            <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="grid" data-icon-size="14"></span>
                 <span>Documento</span>
               </div>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
-            <div class="panel-body document-panel-body hidden" id="panelDocumentBody">
+            <div class="panel-body document-panel-body" id="panelDocumentBody">
               <div class="document-block" aria-label="Prancheta">
                 <span class="prop-label">Prancheta</span>
                 <div class="document-controls">
@@ -661,13 +674,12 @@
           </section>
 
           <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
-          <section class="dock-panel" id="panel-symmetry">
-            <header class="panel-header" data-collapse-target="panelSymmetryBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelSymmetryBody">
+          <section class="dock-panel" id="panel-symmetry" data-dock-panel="symmetry" role="tabpanel" aria-labelledby="dockTabSymmetry">
+            <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="symmetry" data-icon-size="14"></span>
                 <span>Simetria &amp; Estrutura</span>
               </div>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelSymmetryBody">
@@ -762,14 +774,13 @@
           </section>
 
           <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
-          <section class="dock-panel dock-panel-flex" id="panel-swatches">
-            <header class="panel-header" data-collapse-target="panelSwatchesBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelSwatchesBody">
+          <section class="dock-panel dock-panel-flex hidden" id="panel-swatches" data-dock-panel="pieces" role="tabpanel" aria-labelledby="dockTabPieces">
+            <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="pieces" data-icon-size="14"></span>
                 <span>Peças permitidas</span>
               </div>
               <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
@@ -802,18 +813,17 @@
 
           <!-- PAINEL 4: ESCOPO DE EDIÇÃO (estático) -->
 
-          <section class="dock-panel" id="panel-edit-scope">
-            <header class="panel-header" data-collapse-target="panelEditScopeBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditScopeBody">
+          <section class="dock-panel hidden" id="panel-edit-scope" data-dock-panel="scope" role="tabpanel" aria-labelledby="dockTabScope">
+            <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="edit" data-icon-size="14"></span>
                 <span id="editPanelHeading">Escopo</span>
               </div>
-              <div class="edit-undo-bar" onclick="event.stopPropagation();">
+              <div class="edit-undo-bar">
                 <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
                 <span id="editHistoryStepLabel" class="edit-step-label">0</span>
                 <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><span class="icon-slot" data-icon-slot="redo"></span></button>
               </div>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelEditScopeBody">
@@ -865,14 +875,13 @@
           </section>
 
           <!-- PAINEL 5: PINCEL (estático; construtor e paleta) -->
-          <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
-            <header class="panel-header" data-collapse-target="panelEditBrushBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditBrushBody">
+          <section class="dock-panel dock-panel-flex hidden" id="panel-edit-brush" data-dock-panel="brush" role="tabpanel" aria-labelledby="dockTabBrush">
+            <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="brush" data-icon-size="14"></span>
                 <span id="brushPanelHeading">Pincel</span>
               </div>
               <span id="activeBrushBadge" class="panel-counter-pill">1×1 • #2</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelEditBrushBody">

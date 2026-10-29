@@ -6816,3 +6816,114 @@ body.right-dock-collapsed #dock-export { display: none !important; }
   min-width: 0;
 }
 #brushEditorHost #brushSizeControl .brush-size-badge { min-width: 90px; }
+
+/* ============================================================================
+   V2 — TRILHO DE ABAS E DOCK SEM ROLAGEM EXTERNA (29/10/2026)
+   ----------------------------------------------------------------------------
+   O trilho utilitário passa a hospedar o histórico e as abas verticais do dock.
+   A barra direita não rola: cada aba preenche a altura restante e só o corpo
+   ativo rola internamente.
+   ============================================================================ */
+
+#utility-rail { gap: 4px; padding: 8px 0; }
+
+.utility-rail-divider {
+  width: 20px;
+  height: 1px;
+  flex: 0 0 auto;
+  margin: 2px 0;
+  background: #2b2e35;
+}
+
+.dock-panel-tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.dock-panel-tab {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  border-radius: var(--radius-chip);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color var(--transition-ui), color var(--transition-ui), border-color var(--transition-ui);
+}
+
+.dock-panel-tab:hover { background: #2a2e35; color: var(--text-primary); }
+.dock-panel-tab.active {
+  background: var(--bg-selected);
+  border-color: transparent;
+  color: var(--accent-blue);
+  box-shadow: inset 0 0 0 1px rgba(122, 168, 255, 0.38);
+}
+.dock-panel-tab svg { width: 16px; height: 16px; }
+
+.utility-rail-spacer { flex: 1 1 auto; min-height: 8px; }
+
+/* Dock: uma aba visível por vez, sem rolagem da coluna inteira. */
+#dock-workspace-generate {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#dock-workspace-generate > .dock-panel { flex: 0 0 auto; }
+
+#dock-workspace-generate > .dock-panel:not(.hidden) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#dock-workspace-generate > .dock-panel > .panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#dock-workspace-generate > .dock-panel > .panel-header { cursor: default; }
+
+/* Peças: a lista rola dentro do corpo, não a coluna. */
+#panel-swatches.dock-panel-flex:not(.hidden) { flex: 1 1 auto; min-height: 0; }
+#panel-swatches > .panel-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#panel-swatches #familiesSwatchContainer {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: none;
+}
+
+/* Pincel: construtor e busca fixos; a paleta rola dentro do corpo. */
+#panel-edit-brush.dock-panel-flex:not(.hidden) { flex: 1 1 auto; min-height: 0; }
+#panel-edit-brush > .panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+#panel-edit-brush #editBrushPaletteContainer {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: none;
+  overflow-y: auto;
+}
+
+/* Documento, Simetria e Escopo rolam apenas dentro da própria aba. */
+#panel-document > .panel-body,
+#panel-symmetry > .panel-body,
+#panel-edit-scope > .panel-body { overflow-y: auto; }

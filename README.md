@@ -196,15 +196,17 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
    - Zona central: Dimensões em pixels, contagem de grade/órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em resoluções compactas.
    - Zona direita: Controles de streaming Spout (`#spoutToggle`, `#spoutName`), indicador de status de conexão e Central de Ajuda (`#btnHelp` / `?`).
 
-4. **Trilho de Utilitários (`#utility-rail` — Ferramentas de Documento)**:
-   - Faixa vertical de 40 px entre o canvas e o dock direita, pensada para ferramentas de documento que abrem flyout para a esquerda, sobre o canvas.
-   - Primeiro ocupante: **Histórico (`#dock-history`)** com o botão `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho, com rolagem interna, sem cobrir nem encolher o dock.
+4. **Trilho de Utilitários (`#utility-rail` — Histórico e Abas)**:
+   - Faixa vertical de 40 px entre o canvas e o dock direito; é a segunda barra da direita e concentra as ferramentas de documento que não pertencem ao dock.
+   - **Histórico (`#dock-history`)**: botão `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho, com rolagem interna, sem cobrir nem encolher o dock.
+   - **Abas verticais (`#dockPanelTabs`)**: Simetria, Peças, Documento, Escopo e Pincel controlam qual painel do dock está visível, com `role="tab"`, setas/Home/End e `aria-selected`.
+   - **Biblioteca (`#railOpenLibrary`)**: atalho para a página própria no rodapé do trilho.
    - O trilho é `mosaic-mode-only`: some no criador de peças, devolvendo a largura ao canvas.
 
 5. **Dock Lateral Direito (`#right-dock` — Painéis Estáticos)**:
    - **Gerador (`#dock-generator`)**: faixa fixa logo abaixo do cabeçalho do dock, com o botão **Gerar** (`G`) e a navegação de sementes (`#seedInput`, `#btnPrevSeed`, `#btnNextSeed`). Permanece visível no modo mosaico.
    - **Exportar (`#dock-export`)**: faixa fixa no rodapé do dock, com seletor PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`).
-   - **Painéis estáticos**: `#panel-symmetry` (Simetria & Estrutura), `#panel-swatches` (Peças permitidas), `#panel-document` (Prancheta & Grade, movido do topo), `#panel-edit-scope` (Escopo de edição) e `#panel-edit-brush` (construtor e paleta do pincel). Eles não trocam quando a ferramenta muda; o usuário recolhe ou expande cada cabeçalho. A coluna rola internamente e cada lista mantém sua própria rolagem.
+   - **Painéis estáticos em abas**: `#panel-symmetry` (Simetria & Estrutura), `#panel-swatches` (Peças permitidas), `#panel-document` (Prancheta & Grade, movido do topo), `#panel-edit-scope` (Escopo de edição) e `#panel-edit-brush` (construtor e paleta do pincel). A ferramenta ativa não troca a aba; o trilho escolhe o painel. O dock não rola: só o corpo da aba ativa (`overflow-y: auto`) e as listas internas rolam.
    - **Gaveta Recolhida (`body.right-dock-collapsed`)**: Dock recolhe para régua vertical de 44 px (`--dock-rail-w: 44px`), ocultando os painéis roláveis, o gerador e a exportação e expandindo a área útil do canvas.
 
 ### Iconografia
@@ -264,7 +266,7 @@ node tests/run_all.js
    - `test_viewport_pan_zoom.js`: Navegação de viewport, pan 2D contínuo via CSS transforms, atalhos de centralização 100% e ajuste.
    - `test_brush_sizing_snap.js`: Pincel com tamanhos inteiros não-cíclicos, ajuste ao bloco (`Ctrl+U` / `Shift`) e atalho da borracha (`E`).
    - `test_ui_control_registry.js`: Congelamento do inventário dos 60 controles com ID único em `index.html`.
-   - `test_ui_layout_contract.js`: Contrato estrutural das superfícies: Prancheta/Grade em `#panel-document`, grupos contextuais no topo, ausência de `#dock-workspace-edit` e posições de dock, gaveta, zoom, cores e ferramentas.
+   - `test_ui_layout_contract.js`: Contrato estrutural das superfícies: Prancheta/Grade em `#panel-document`, grupos contextuais no topo, abas no trilho, ausência de `#dock-workspace-edit`, regra de não rolagem das barras e posições de dock, gaveta, zoom, cores e ferramentas.
    - `test_visual_tokens.js`: Tokens CSS resolvidos, contraste dos papéis semânticos e renderização segura dos ícones de comando.
    - `test_visual_system_v2.js`: Contrato da reforma visual (rótulo de Gerar, escala tipográfica, geografia e alvos mínimos).
    - `test_icon_system.js`: Registro único de ícones, grade 24 × 24, pesos ópticos, aliases explícitos e hidratação dos slots do `index.html`.
@@ -536,4 +538,6 @@ Regra permanente: o chrome não carrega texto explicativo. Cada controle começa
 
 A interface deixou de espelhar o modelo antigo (topo estático, dock direito contextual) e passou a seguir o Illustrator: ferramentas na coluna esquerda, **ajustes da ferramenta ativa na barra superior** e **painéis de documento estáticos à direita**. `#topToolContext` identifica a ferramenta e a barra mostra somente o grupo dela: Pincel/Carimbo (`#brushSizeControl`, encaixe e Ampliar), Girar/Espelhar (`#rotateToolOptionsWrap`), Preservar (`#freezeToolOptionsWrap`) e o resumo de seleção (`#selectionSummary`). Inspeção, Mão e Zoom mantêm a barra só com a identidade.
 
-As cartas de Prancheta e Grade saíram do topo e viraram `#panel-document` no dock; o painel começa recolhido para manter Simetria e Peças visíveis e abre com um clique. `#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope` e `#panel-edit-brush` dividem a mesma coluna rolável e não trocam quando a ferramenta muda; cada cabeçalho continua recolhível e a paleta mantém rolagem própria. `#dock-workspace-edit` foi removido. O editor de peças mantém `#dock-workspace-tiles` e alterna as superfícies como antes. O documento de teste `tests/test_ui_layout_contract.js` agora exige os controles de documento em `#panel-document`, os grupos contextuais no topo e a ausência de `#dock-workspace-edit`.
+As cartas de Prancheta e Grade saíram do topo e viraram `#panel-document`. `#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope` e `#panel-edit-brush` são abas exclusivas do dock: só uma fica visível e a ferramenta ativa não troca a aba escolhida. O dock em si não rola (`#right-dock` e `#dock-workspace-generate` usam `overflow: hidden`); o corpo da aba ativa é que rola, e a lista de peças e a paleta do pincel mantêm rolagem própria. `#dock-workspace-edit` foi removido. O editor de peças mantém `#dock-workspace-tiles` e alterna as superfícies como antes. O documento de teste `tests/test_ui_layout_contract.js` exige os controles em `#panel-document`, as abas no trilho, a ausência de `#dock-workspace-edit` e a regra de não rolagem da barra.
+
+A segunda barra da direita (`#utility-rail`) deixou de ser um trilho só de histórico e passou a concentrar as ferramentas de documento que não pertencem ao dock: **Histórico** em flyout, as **cinco abas verticais** do dock (Simetria, Peças, Documento, Escopo, Pincel) e o atalho **Biblioteca**. Gerador e Exportar continuam no dock; zoom e Spout no rodapé; ferramentas e guias à esquerda — sem duplicar o que já tem casa. As abas usam `role="tablist"`, setas/Home/End e `aria-selected`; o painel ativo usa `role="tabpanel"`.
