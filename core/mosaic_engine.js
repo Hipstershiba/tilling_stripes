@@ -1105,7 +1105,7 @@
     const K = isBlockSize ? N : Math.max(1, parseInt(options.rotateSize, 10) || 1);
     const snapToBlock = Boolean(options.snapToBlock || isBlockSize);
     const rotateGroupMode = options.rotateGroupMode || 'group'; // 'group' | 'individual'
-    const rotateBehavior = options.rotateBehavior || 'd4_r90'; // 'd4_r90' | 'family'
+    const rotateBehavior = ['mx','my'].includes(options.transformKey) ? 'd4_r90' : options.rotateBehavior || 'd4_r90'; // 'd4_r90' | 'family'
     const step = options.step < 0 ? -1 : 1;
     const scopeMode = options.scopeMode || 'canvas_center';
     const canvasCenterSymmetry = options.canvasCenterSymmetry || 'mandala_d4';
@@ -1131,7 +1131,7 @@
     );
     if (!captured) return { placements: [], anchorBounds: null };
 
-    const rotKey = step < 0 ? 'r270' : 'r90';
+    const rotKey = ['mx','my'].includes(options.transformKey) ? options.transformKey : step < 0 ? 'r270' : 'r90';
     let rotatedPattern;
 
     if (K > 1 && rotateGroupMode === 'group') {

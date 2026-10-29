@@ -783,7 +783,7 @@ function isEffectiveBrushSnap() {
 
 function getEditPreviewState() {
   const isEditTool = StudioState.activeTool === 'paint' ||
-    StudioState.activeTool === 'rotate' ||
+    ['rotate','mirror'].includes(StudioState.activeTool) ||
     StudioState.activeTool === 'stamp';
   if (!isEditTool || StudioState.isSpaceDown || StudioState.isPanning || !StudioState.mosaicData) {
     return null;
@@ -862,7 +862,7 @@ function getEditPreviewState() {
     return {tool: 'stamp', scopeMode: StudioState.editScope, regionPlacements: []};
   }
 
-  if (StudioState.activeTool === 'rotate') {
+  if (['rotate','mirror'].includes(StudioState.activeTool)) {
     const resolved = window.MosaicEngine.resolveRotateRegionPlacements(
       StudioState.mosaicData,
       hit,
@@ -870,7 +870,8 @@ function getEditPreviewState() {
         rotateSize: StudioState.rotateSizeMode,
         snapToBlock: StudioState.rotateSnapToBlock,
         rotateGroupMode: StudioState.rotateGroupMode,
-        rotateBehavior: StudioState.rotateBehavior,
+        rotateBehavior: StudioState.activeTool==='mirror'?'d4_r90':StudioState.rotateBehavior,
+        transformKey: StudioState.activeTool==='mirror'?'mx':undefined,
         step: 1,
         scopeMode: StudioState.editScope,
         canvasCenterSymmetry: StudioState.canvasCenterSymmetry
@@ -930,7 +931,7 @@ function draw() {
   window.MosaicEngine.renderMosaicToContext(window, StudioState.mosaicData, layoutConfig);
   const isEditTool = (StudioState.workspace === 'edit' && (
     StudioState.activeTool === 'paint' ||
-    StudioState.activeTool === 'rotate' ||
+    ['rotate','mirror'].includes(StudioState.activeTool) ||
     StudioState.activeTool === 'stamp'
   )) || StudioState.activeTool === 'freeze';
   window.MosaicEngine.renderGuidesAndOverlays(
@@ -2078,7 +2079,7 @@ function mouseMoved() {
     StudioState.hoveredCell = hit;
     updateHoverStatusText();
     const isEditTool = StudioState.activeTool === 'paint' ||
-      StudioState.activeTool === 'rotate' ||
+      ['rotate','mirror'].includes(StudioState.activeTool) ||
       StudioState.activeTool === 'stamp' ||
       StudioState.activeTool === 'freeze';
     if (StudioState.guides.highlightHoverOrbit || isEditTool) {
@@ -2096,7 +2097,8 @@ function performSubtileRotateStep(hit, step = 1) {
       rotateSize: StudioState.rotateSizeMode,
       snapToBlock: StudioState.rotateSnapToBlock,
       rotateGroupMode: StudioState.rotateGroupMode,
-      rotateBehavior: StudioState.rotateBehavior,
+      rotateBehavior: StudioState.activeTool==='mirror'?'d4_r90':StudioState.rotateBehavior,
+        transformKey: StudioState.activeTool==='mirror'?(step<0?'my':'mx'):undefined,
       step,
       scopeMode: StudioState.editScope,
       canvasCenterSymmetry: StudioState.canvasCenterSymmetry
@@ -2354,7 +2356,7 @@ function restoreBrushToolSessions(saved) {
 }
 
 function activateStudioTool(tool, restorePaint = true) {
-  if (!['inspect','paint','rotate','stamp','freeze','pan','zoom'].includes(tool)) return;
+  if (!['inspect','paint','rotate','mirror','stamp','freeze','pan','zoom'].includes(tool)) return;
   const previousTool = StudioState.activeTool;
   if (previousTool !== tool || (tool === 'paint' && restorePaint && isEraserPattern())) {
     cancelToolGesture();
@@ -2396,7 +2398,7 @@ function activateStudioTool(tool, restorePaint = true) {
   saveScheduler.flush();
   StudioState.activeTool = tool;
   if (tool === 'stamp' && !isCloneReady()) StudioState.stampInteractionMode = 'select';
-  if (['paint','rotate','stamp','freeze'].includes(tool)) StudioState.workspace = 'edit';
+  if (['paint','rotate','mirror','stamp','freeze'].includes(tool)) StudioState.workspace = 'edit';
   else if (tool === 'inspect') StudioState.workspace = 'generate';
   document.getElementById('artboard-pasteboard')?.classList.toggle('panning', tool === 'pan' || StudioState.isSpaceDown);
   renderSupertileBuilderCanvas();
@@ -2693,7 +2695,7 @@ function cycleActiveToolSize(direction) {
     syncEditWorkspaceUI(); redraw();
     return true;
   }
-  if (StudioState.activeTool === 'freeze' || StudioState.activeTool === 'rotate') {
+  if (StudioState.activeTool === 'freeze' || ['rotate','mirror'].includes(StudioState.activeTool)) {
     const info = getToolSizeInfo();
     const next = Math.max(info.min, Math.min(info.max, info.dim + direction));
     if (next === info.dim) return false;
@@ -3039,7 +3041,7 @@ function handleCanvasMouseDown(e) {
   }
 
   // Rotate / Cycle Tool ('rotate')
-  if (StudioState.activeTool === 'rotate') {
+  if (['rotate','mirror'].includes(StudioState.activeTool)) {
     e.preventDefault();
     const step = e.button === 2 ? -1 : 1;
     const didChange = performSubtileRotateStep(hit, step);
@@ -3655,6 +3657,7 @@ const TOOL_CONTEXT_LABELS = {
   inspect: 'Inspeção',
   paint: 'Pincel',
   rotate: 'Girar',
+  mirror: 'Espelhar',
   stamp: 'Clonar',
   freeze: 'Preservar',
   pan: 'Mão',
@@ -3773,10 +3776,14 @@ function syncEditWorkspaceUI() {
   }
 
   // 6. Contextual Rotate Tool Controls (and hide Brush Panel when Rotate tool is active)
-  const isRotateTool = StudioState.activeTool === 'rotate';
+  document.getElementById('rotateBehaviorControl')?.classList.toggle('hidden',StudioState.activeTool==='mirror');
+  document.getElementById('rotateBehaviorControl')?.previousElementSibling?.classList.toggle('hidden',StudioState.activeTool==='mirror');
+  const isRotateTool = ['rotate','mirror'].includes(StudioState.activeTool);
   const rotateOpts = document.getElementById('rotateToolOptionsWrap');
   if (rotateOpts) {
     rotateOpts.classList.toggle('hidden', !isRotateTool);
+    const areaLabel=rotateOpts.querySelector?.('.prop-label');
+    if(areaLabel) areaLabel.textContent=StudioState.activeTool==='mirror'?'Área':'Tamanho do Giro';
   }
   const brushPanel = document.getElementById('panel-edit-brush');
   if (brushPanel) {
@@ -4755,7 +4762,7 @@ function initStudioUI() {
     // Directly cycle tool/brush size using the mouse wheel!
     const isEditTool = StudioState.activeTool === 'paint' ||
       StudioState.activeTool === 'stamp' ||
-      StudioState.activeTool === 'rotate' ||
+      ['rotate','mirror'].includes(StudioState.activeTool) ||
       StudioState.activeTool === 'freeze';
 
     if (isEditTool && StudioState.studioMode !== 'tiles') {
@@ -4961,7 +4968,7 @@ function initStudioUI() {
     const k = e.key.toLowerCase();
     if (e.shiftKey && /^[a-z]$/.test(k) && !['b', 'f', 'q'].includes(k)) return;
     const isEditTool = StudioState.activeTool === 'paint' ||
-      StudioState.activeTool === 'rotate' ||
+      ['rotate','mirror'].includes(StudioState.activeTool) ||
       StudioState.activeTool === 'stamp' ||
       StudioState.activeTool === 'freeze';
 

@@ -169,3 +169,14 @@ assert.strictEqual(JSON.stringify(f.cells),dragBefore,'cancelled movement preser
   assert.equal(drag.context.regionMoveGesture,null);
 }
 console.log('Shift additive mosaic selection, masks, overlap and cancellation PASSED');
+
+for(const transformKey of ['mx','my']) for(const rotateSize of ['1','2']) {
+ const f=fixture(), before=JSON.stringify(f.cells), hit={row:0,col:0,subRow:0,subCol:0};
+ for(let i=0;i<2;i++) {
+  const result=engine.resolveRotateRegionPlacements(f.state.mosaicData,hit,{rotateSize,rotateGroupMode:'group',rotateBehavior:'family',scopeMode:'single',transformKey});
+  assert(result.placements.length>0);
+  engine.applyStampPlacements(f.state.mosaicData,result.placements);
+ }
+ assert.equal(JSON.stringify(f.cells),before,'two reflections restore geometry and orientation: '+transformKey+' '+rotateSize);
+}
+console.log('Horizontal and vertical mirrors are involutions for cells and groups PASSED');

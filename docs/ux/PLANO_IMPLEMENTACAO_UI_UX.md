@@ -942,3 +942,8 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Completar adição por clique e marquee na Seleção direta, preservando V e Curvar.
 - [x] Cobrir máscara, sobreposição, cancelamento, objetos, âncoras e marquee sem mutação.
 - [x] Validar soma de três áreas e adição de objetos na Seleção direta no navegador; gate 52/52, conhecimento sincronizado e commit separado. Evidências em `_local/shift-selecao`, ignoradas pelo Git.
+
+### Espelhar no mosaico
+
+- [x] Adicionar Espelhar (O), horizontal no clique e vertical no botão direito, com área, escopo, prévia e histórico.
+- [x] Testar involução em peças e grupos e executar gate/sincronização antes do commit.
