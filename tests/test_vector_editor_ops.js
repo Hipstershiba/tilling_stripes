@@ -671,10 +671,15 @@ console.log('Body drag and Alt-drag duplication PASSED');
   for (const f of [1/16,1/8,1/6,1/4]) {
     const arc=ve.toggleSegmentCurve(line,0,0,f);
     approx(arc.fraction,f,1e-9);
-    const reversed=ve.toggleSegmentCurve(arc.shape,0,0);
+    const reversed=ve.toggleSegmentCurve(arc.shape,0,0,0);
     assert(!reversed.curved);
     assert.deepStrictEqual(ve.sampleContourPoints(reversed.shape.contours[0],false,10),[[-.3,0],[.3,0]]);
   }
+  assert.deepStrictEqual(ve.toggleSegmentCurve(quarter.shape,0,0).shape,quarter.shape,'reapplying quarter does not flatten the curve');
+  assert.deepStrictEqual(ve.toggleSegmentCurve(line,0,0,0).shape,line,'Reta keeps an existing line intact');
+  const reduced=ve.toggleSegmentCurve(quarter.shape,0,0,.125);
+  approx(reduced.fraction,.125,1e-9);
+  assert(reduced.shape.contours[0][0].out[1]<ns[0].out[1],'applying another fraction reshapes an existing curve');
   const collinear=ve.convertShapeToPath(line);
   collinear.contours[0][0].out=[.2,0];collinear.contours[0][1].in=[-.2,0];
   assert(ve.toggleSegmentCurve(collinear,0,0).curved,'collinear Bezier handles still describe a straight segment');
@@ -721,8 +726,10 @@ console.log('Body drag and Alt-drag duplication PASSED');
   const reversedByShift=ve.onPointerDown(mid[0],mid[1],{shiftKey:true},{...doc,shapes:res.commitShapes},.01);
   assert(reversedByShift.commitShapes[0].contours[0][0].out[1]<0,'Shift-click reverses an existing curve');
   assert(!ve.reverseSelectedCurve({...doc,id:'another-family',shapes:res.commitShapes}).commitShapes);
+  assert(!ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01).commitShapes,'repeated click adds no edit history');
+  ve.state.toolDefaults.curveFraction=0;
   const straight=ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01);
-  assert(straight.commitShapes && !straight.commitShapes[0].contours[0][0].out,'clicking curve straightens it');
+  assert(straight.commitShapes && !straight.commitShapes[0].contours[0][0].out,'Reta straightens the clicked curve');
   assert(!ve.onPointerDown(0,0,{}, {...doc,shapes:[{...line,locked:true}]},.01).commitShapes);
   assert(ve.onPointerDown(0,0,{}, {...doc,protected:true},.01).readOnlyBlocked);
 }

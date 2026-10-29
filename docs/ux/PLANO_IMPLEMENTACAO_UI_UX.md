@@ -920,3 +920,9 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Shift+clique reflete a curva existente; clique simples mantém reta/curva.
 - [x] Inverter lado também atua na última curva editada, com histórico e validação de limites.
 - [x] Validar botão, Shift+clique e três passos de desfazer no navegador; gate 52/52, conhecimento sincronizado e commit separado. Captura em `_local/curvar/inverter.png`, ignorada pelo Git.
+
+### Reta na lista de frações — 28/10/2026
+
+- [x] Incluir Reta e aplicar a fração escolhida a segmentos novos ou já curvos, sem alternância automática.
+- [x] Preservar inversão, lado existente e histórico sem edições repetidas.
+- [x] Validar no navegador clique repetido, mudança de fração, Reta e desfazer sem passos redundantes; gate 52/52, conhecimento sincronizado e commit separado. Evidência em `_local/curvar/reta.png`, ignorada pelo Git.

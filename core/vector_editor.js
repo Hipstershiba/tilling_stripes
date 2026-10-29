@@ -1204,12 +1204,16 @@
         a.out=out; b.in=incoming;
         return {shape:path,curved:true,limited:false};
       }
+    }
+    if (Number(fraction) === 0) {
+      if (!hasCurve && shape.type !== 'path') return {shape:deepClone(shape),curved:false,fraction:0,limited:false};
       delete a.out; delete b.in;
       return { shape: path, curved: false, fraction: 0, limited: false };
     }
     if (!Number.isFinite(length) || length < 1e-8) return null;
     const requested = clamp(Number(fraction) || .25, 1/360, .25)*TWO_PI;
-    const sign = Number(direction) < 0 ? -1 : 1;
+    const existingHandle=hasCurve && [a.out,b.in].find(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10);
+    const sign = existingHandle ? Math.sign(dx*existingHandle[1]-dy*existingHandle[0]) : Number(direction) < 0 ? -1 : 1;
     const makeHandles = angle => {
       const half = angle/2, h = (4/3)*Math.tan(angle/4)*length/(2*Math.sin(half));
       const tx=dx/length, ty=dy/length, cs=Math.cos(half), sn=Math.sin(half)*sign;
@@ -1226,7 +1230,9 @@
       angle=lo;
     }
     if (angle < Math.PI/180) return null;
-    [a.out,b.in] = makeHandles(angle);
+    const [out,incoming]=makeHandles(angle);
+    const same=(old,next)=>old && old.every((x,i)=>Math.abs(x-next[i])<1e-10);
+    if (!same(a.out,out) || !same(b.in,incoming)) [a.out,b.in]=[out,incoming];
     return { shape:path, curved:true, fraction:angle/TWO_PI, limited:angle<requested-1e-7 };
   }
 
@@ -2184,10 +2190,11 @@
         const result=toggleSegmentCurve(path,hit.contourIdx,hit.segIdx,
           editorState.toolDefaults.curveFraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1), mods.shiftKey);
         if (!result) return {handled:true, curveBlocked:true};
-        baseShapes[i]=result.shape;
         editorState.selectedShapeIds=[shape.id]; editorState.selectedNodes=[];
         editorState.curveSegment={familyId:familyDoc.id,shapeId:shape.id,contourIdx:hit.contourIdx,segIdx:hit.segIdx};
         editorState.activeSnapGuides={guideX:null,guideY:null};
+        if (JSON.stringify(result.shape)===JSON.stringify(shape)) return {handled:true};
+        baseShapes[i]=result.shape;
         return {handled:true,commitShapes:baseShapes,curveLimited:result.limited,curveAngle:result.fraction*360};
       }
       return {handled:true};

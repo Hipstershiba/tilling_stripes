@@ -19,7 +19,7 @@
       ['polygon', 'Polígono', 'G', 'vecToolPolygon'],
       ['arc', 'Arco', 'U', 'vecToolArc', 'Desenha arcos, setores e fitas anulares.'],
       ['line', 'Linha', '\\', 'vecToolLine'],
-      ['curve', 'Curvar', 'C', 'vecToolCurve', 'Clique alterna reta e curva; Shift+clique inverte a curva.']
+      ['curve', 'Curvar', 'C', 'vecToolCurve', 'Clique aplica a fração escolhida; Shift+clique inverte a curva.']
     ]
   };
   const definitions = [];
