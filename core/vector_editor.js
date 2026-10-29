@@ -1182,7 +1182,7 @@
 
   // One circular-arc cubic (at most 90°), with fixed endpoints. Adjacent handles
   // are independent: changing this segment must not reshape its neighbours.
-  function toggleSegmentCurve(shape, contourIdx, segIdx, fraction = .25, direction = 1) {
+  function toggleSegmentCurve(shape, contourIdx, segIdx, fraction = .25, direction = 1, reverse = false) {
     const path = normalizePathShape(shape), nodes = path?.contours?.[contourIdx];
     const count = nodes?.length || 0;
     if (segIdx < 0 || segIdx >= (path?.closed === false ? count-1 : count)) return null;
@@ -1191,6 +1191,19 @@
     const hasCurve = [a.out,b.in].some(h => h && (length < 1e-8
       ? Math.hypot(...h)>1e-10 : Math.abs(dx*h[1]-dy*h[0])/length>1e-10));
     if (hasCurve) {
+      if (reverse) {
+        if (length < 1e-8) return null;
+        const tx=dx/length, ty=dy/length;
+        const reflect = h => {
+          const along=h[0]*tx+h[1]*ty;
+          return [2*along*tx-h[0],2*along*ty-h[1]];
+        };
+        const out=reflect(a.out || [0,0]), incoming=reflect(b.in || [0,0]);
+        if (!cubicFitsTile([a.x,a.y],[a.x+out[0],a.y+out[1]],
+          [b.x+incoming[0],b.y+incoming[1]],[b.x,b.y])) return null;
+        a.out=out; b.in=incoming;
+        return {shape:path,curved:true,limited:false};
+      }
       delete a.out; delete b.in;
       return { shape: path, curved: false, fraction: 0, limited: false };
     }
@@ -1596,6 +1609,7 @@
     gridDiv: 6, // 0 (off), 2, 3, 4, 6, 8, 12, 16
     snapPorts: null, // null = auto (gridDiv % 3 === 0), boolean = explicit override
     selectedShapeIds: [],
+    curveSegment: null, // last segment edited with Curvar (transient, never persisted)
     selectedNodes: [], // [{ shapeId, contourIdx, nodeIdx }]
     activeSnapGuides: { guideX: null, guideY: null },
     clipboard: [],
@@ -2056,9 +2070,27 @@
       editorState.dragOp = null;
       editorState.penSession = null;
       editorState.selectedShapeIds = [];
+      editorState.curveSegment = null;
       editorState.selectedNodes = [];
       editorState.activeSnapGuides = { guideX: null, guideY: null };
     }
+  }
+
+  function reverseSelectedCurve(familyDoc) {
+    const ref=editorState.curveSegment;
+    if (!ref || ref.familyId!==familyDoc?.id || familyDoc.builtIn || familyDoc.protected ||
+      !editorState.selectedShapeIds.includes(ref.shapeId)) return {};
+    const shapes=deepClone(familyDoc.shapes || []), i=shapes.findIndex(s=>s.id===ref.shapeId);
+    const shape=shapes[i];
+    if (!shape || shape.locked || shape.visible===false || shape.type!=='path') return {};
+    const nodes=shape.contours?.[ref.contourIdx], a=nodes?.[ref.segIdx], b=nodes?.[(ref.segIdx+1)%nodes.length];
+    if (!a || !b) return {};
+    const dx=b.x-a.x, dy=b.y-a.y;
+    if (![a.out,b.in].some(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10)) return {};
+    const result=toggleSegmentCurve(shape,ref.contourIdx,ref.segIdx,.25,1,true);
+    if (!result) return {curveBlocked:true};
+    shapes[i]=result.shape;
+    return {commitShapes:shapes};
   }
 
   function finalizePenPath(familyDoc, closed = false) {
@@ -2129,6 +2161,7 @@
     ensureFamilyHistory(familyDoc.id, familyDoc);
     const baseShapes = deepClone(familyDoc.shapes || []);
     const tool = editorState.activeTool;
+    if (tool !== 'curve') editorState.curveSegment=null;
     const objPts = extractObjectSnapPoints(baseShapes, editorState.selectedShapeIds);
     const effSnapPorts = typeof editorState.snapPorts === 'boolean'
       ? editorState.snapPorts
@@ -2149,10 +2182,11 @@
         const path=normalizePathShape(shape), hit=findClosestSegmentOnPath(path,u,v);
         if (!hit || hit.dist>hitRadiusNorm) continue;
         const result=toggleSegmentCurve(path,hit.contourIdx,hit.segIdx,
-          editorState.toolDefaults.curveFraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1));
+          editorState.toolDefaults.curveFraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1), mods.shiftKey);
         if (!result) return {handled:true, curveBlocked:true};
         baseShapes[i]=result.shape;
         editorState.selectedShapeIds=[shape.id]; editorState.selectedNodes=[];
+        editorState.curveSegment={familyId:familyDoc.id,shapeId:shape.id,contourIdx:hit.contourIdx,segIdx:hit.segIdx};
         editorState.activeSnapGuides={guideX:null,guideY:null};
         return {handled:true,commitShapes:baseShapes,curveLimited:result.limited,curveAngle:result.fraction*360};
       }
@@ -2794,6 +2828,7 @@
     togglePathNodeSmooth,
     subdividePathSegment,
     toggleSegmentCurve,
+    reverseSelectedCurve,
     deletePathNodes,
     createRectFromDrag,
     createEllipseFromDrag,

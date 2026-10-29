@@ -914,3 +914,9 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Limitar abertura à peça, respeitar bloqueios e integrar desfazer/refazer.
 - [x] Testar geometria circular, frações, extremos, fechamento, alças vizinhas, hit-test e histórico.
 - [x] Revisar no navegador ida/volta, fração, lado e desfazer; gate 52/52, sincronização do conhecimento e commit apenas dos arquivos necessários. Evidências em `_local/curvar`, ignoradas pelo Git.
+
+### Inverter curva existente — 28/10/2026
+
+- [x] Shift+clique reflete a curva existente; clique simples mantém reta/curva.
+- [x] Inverter lado também atua na última curva editada, com histórico e validação de limites.
+- [x] Validar botão, Shift+clique e três passos de desfazer no navegador; gate 52/52, conhecimento sincronizado e commit separado. Captura em `_local/curvar/inverter.png`, ignorada pelo Git.

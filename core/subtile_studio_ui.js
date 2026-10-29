@@ -3374,6 +3374,9 @@
       ve.state.toolDefaults.curveDirection *= -1;
       e.currentTarget.classList.toggle('active', ve.state.toolDefaults.curveDirection < 0);
       e.currentTarget.setAttribute('aria-pressed', String(ve.state.toolDefaults.curveDirection < 0));
+      const doc=getSelectedFamilyDoc(), result=ve.reverseSelectedCurve(doc);
+      if (result.curveBlocked) notifyToast('A curva invertida ultrapassa a peça.', 'warn');
+      if (result.commitShapes) commitFamilyShapes(doc.id,result.commitShapes);
     });
     const selectObjects = (all) => {
       const doc = getSelectedFamilyDoc();
