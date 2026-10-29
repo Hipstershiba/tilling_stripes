@@ -18,7 +18,8 @@
       ['ellipse', 'Elipse', 'L', 'vecToolEllipse', 'Shift mantém 1:1; Alt desenha pelo centro.'],
       ['polygon', 'Polígono', 'G', 'vecToolPolygon'],
       ['arc', 'Arco', 'U', 'vecToolArc', 'Desenha arcos, setores e fitas anulares.'],
-      ['line', 'Linha', '\\', 'vecToolLine']
+      ['line', 'Linha', '\\', 'vecToolLine'],
+      ['curve', 'Curvar', 'C', 'vecToolCurve', 'Clique alterna reta e curva; Shift inverte o lado.']
     ]
   };
   const definitions = [];

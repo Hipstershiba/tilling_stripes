@@ -906,3 +906,11 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Manter o painel direito visível ao selecionar, com controles contextuais dentro da lateral.
 - [x] Preservar a permanência da ferramenta de seleção e as sessões independentes de Pincel/Clonar.
 - [x] Validar no navegador painel visível, captura persistente, tamanho da seleção por pincel e restauração do pincel independente; gate 52/52 e conhecimento sincronizado. Registrar correção em commit separado.
+
+### Ferramenta Curvar — 28/10/2026
+
+- [x] Alternar reta/arco no segmento clicado, com pontas e segmentos vizinhos preservados.
+- [x] Adicionar Curvar (C) e controles de fração/lado na barra esquerda, sem instruções permanentes.
+- [x] Limitar abertura à peça, respeitar bloqueios e integrar desfazer/refazer.
+- [x] Testar geometria circular, frações, extremos, fechamento, alças vizinhas, hit-test e histórico.
+- [x] Revisar no navegador ida/volta, fração, lado e desfazer; gate 52/52, sincronização do conhecimento e commit apenas dos arquivos necessários. Evidências em `_local/curvar`, ignoradas pelo Git.

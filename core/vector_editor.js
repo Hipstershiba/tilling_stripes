@@ -30,7 +30,8 @@
     { id: 'ellipse', label: 'Elipse', shortcut: 'L' },
     { id: 'polygon', label: 'Polígono', shortcut: 'G' },
     { id: 'arc', label: 'Arco', shortcut: 'U' },
-    { id: 'line', label: 'Linha', shortcut: '\\' }
+    { id: 'line', label: 'Linha', shortcut: '\\' },
+    { id: 'curve', label: 'Curvar', shortcut: 'C' }
   ];
 
   function resolveDeps() {
@@ -1158,6 +1159,64 @@
     return p;
   }
 
+  // Test the actual cubic extrema, rather than the control polygon or samples.
+  function cubicFitsTile(a, b, c, d) {
+    for (const axis of [0, 1]) {
+      const p = [a[axis], b[axis], c[axis], d[axis]];
+      const A = -p[0] + 3*p[1] - 3*p[2] + p[3];
+      const B = 2*(p[0] - 2*p[1] + p[2]), C = p[1] - p[0];
+      const ts = [0, 1];
+      if (Math.abs(A) < 1e-12) {
+        if (Math.abs(B) > 1e-12) ts.push(-C/B);
+      } else {
+        const disc = B*B - 4*A*C;
+        if (disc >= 0) ts.push((-B+Math.sqrt(disc))/(2*A), (-B-Math.sqrt(disc))/(2*A));
+      }
+      for (const t of ts.filter(t => t >= 0 && t <= 1)) {
+        const q = 1-t, x = q*q*q*p[0] + 3*q*q*t*p[1] + 3*q*t*t*p[2] + t*t*t*p[3];
+        if (!Number.isFinite(x) || x < -.5-1e-10 || x > .5+1e-10) return false;
+      }
+    }
+    return true;
+  }
+
+  // One circular-arc cubic (at most 90°), with fixed endpoints. Adjacent handles
+  // are independent: changing this segment must not reshape its neighbours.
+  function toggleSegmentCurve(shape, contourIdx, segIdx, fraction = .25, direction = 1) {
+    const path = normalizePathShape(shape), nodes = path?.contours?.[contourIdx];
+    const count = nodes?.length || 0;
+    if (segIdx < 0 || segIdx >= (path?.closed === false ? count-1 : count)) return null;
+    const a = nodes[segIdx], b = nodes[(segIdx+1)%count];
+    const dx = b.x-a.x, dy = b.y-a.y, length = Math.hypot(dx,dy);
+    const hasCurve = [a.out,b.in].some(h => h && (length < 1e-8
+      ? Math.hypot(...h)>1e-10 : Math.abs(dx*h[1]-dy*h[0])/length>1e-10));
+    if (hasCurve) {
+      delete a.out; delete b.in;
+      return { shape: path, curved: false, fraction: 0, limited: false };
+    }
+    if (!Number.isFinite(length) || length < 1e-8) return null;
+    const requested = clamp(Number(fraction) || .25, 1/360, .25)*TWO_PI;
+    const sign = Number(direction) < 0 ? -1 : 1;
+    const makeHandles = angle => {
+      const half = angle/2, h = (4/3)*Math.tan(angle/4)*length/(2*Math.sin(half));
+      const tx=dx/length, ty=dy/length, cs=Math.cos(half), sn=Math.sin(half)*sign;
+      return [[h*(tx*cs-ty*sn), h*(ty*cs+tx*sn)], [-h*(tx*cs+ty*sn), -h*(ty*cs-tx*sn)]];
+    };
+    const fits = angle => {
+      const [out, incoming] = makeHandles(angle);
+      return cubicFitsTile([a.x,a.y], [a.x+out[0],a.y+out[1]], [b.x+incoming[0],b.y+incoming[1]], [b.x,b.y]);
+    };
+    let angle = requested;
+    if (!fits(angle)) {
+      let lo=0, hi=angle;
+      for (let i=0;i<45;i++) { const mid=(lo+hi)/2; if (fits(mid)) lo=mid; else hi=mid; }
+      angle=lo;
+    }
+    if (angle < Math.PI/180) return null;
+    [a.out,b.in] = makeHandles(angle);
+    return { shape:path, curved:true, fraction:angle/TWO_PI, limited:angle<requested-1e-7 };
+  }
+
   function movePathNodes(pathShape, nodeRefs, du, dv) {
     const out = normalizePathShape(pathShape);
     const keySet = new Set((nodeRefs || []).map((r) => `${r.contourIdx}:${r.nodeIdx}`));
@@ -1552,7 +1611,9 @@
       polygonStarRatio: 0,
       arcInnerRatio: 0.5,
       arcMode: 'pie',
-      lineWeight: roundCoord(1 / 6)
+      lineWeight: roundCoord(1 / 6),
+      curveFraction: .25,
+      curveDirection: 1
     }
   };
 
@@ -2080,6 +2141,23 @@
       objectPoints: objPts
     });
     editorState.activeSnapGuides = { guideX: snapped.guideX, guideY: snapped.guideY };
+
+    if (tool === 'curve') {
+      for (let i=baseShapes.length-1;i>=0;i--) {
+        const shape=baseShapes[i];
+        if (!shape || shape.locked || shape.visible === false) continue;
+        const path=normalizePathShape(shape), hit=findClosestSegmentOnPath(path,u,v);
+        if (!hit || hit.dist>hitRadiusNorm) continue;
+        const result=toggleSegmentCurve(path,hit.contourIdx,hit.segIdx,
+          editorState.toolDefaults.curveFraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1));
+        if (!result) return {handled:true, curveBlocked:true};
+        baseShapes[i]=result.shape;
+        editorState.selectedShapeIds=[shape.id]; editorState.selectedNodes=[];
+        editorState.activeSnapGuides={guideX:null,guideY:null};
+        return {handled:true,commitShapes:baseShapes,curveLimited:result.limited,curveAngle:result.fraction*360};
+      }
+      return {handled:true};
+    }
 
     // --- PEN TOOL ('pen') ---
     if (tool === 'pen') {
@@ -2715,6 +2793,7 @@
     setPathHandle,
     togglePathNodeSmooth,
     subdividePathSegment,
+    toggleSegmentCurve,
     deletePathNodes,
     createRectFromDrag,
     createEllipseFromDrag,

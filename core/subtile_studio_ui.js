@@ -3196,6 +3196,8 @@
       return true;
     }
 
+    if (res.curveBlocked) notifyToast('Sem espaço para curvar deste lado.', 'warn');
+    if (res.curveLimited) notifyToast(`Curva limitada a ${res.curveAngle.toFixed(1)}°.`);
     if (res.commitShapes) {
       commitFamilyShapes(famDoc.id, res.commitShapes);
     } else {
@@ -3363,6 +3365,15 @@
     ['tileReadOnlyNotice', 'tileCustomMetaBox'].forEach((id) => {
       const el = document.getElementById(id);
       if (libraryDetails && el) libraryDetails.appendChild(el);
+    });
+    document.getElementById('curveFraction')?.addEventListener('change', (e) => {
+      if (ve) ve.state.toolDefaults.curveFraction = Number(e.target.value);
+    });
+    document.getElementById('btnCurveSide')?.addEventListener('click', (e) => {
+      if (!ve) return;
+      ve.state.toolDefaults.curveDirection *= -1;
+      e.currentTarget.classList.toggle('active', ve.state.toolDefaults.curveDirection < 0);
+      e.currentTarget.setAttribute('aria-pressed', String(ve.state.toolDefaults.curveDirection < 0));
     });
     const selectObjects = (all) => {
       const doc = getSelectedFamilyDoc();

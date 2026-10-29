@@ -653,3 +653,61 @@ for (const tool of ['direct', 'select']) {
   assert.deepStrictEqual(VectorEditor.state.selectedShapeIds,[copies[1].id]);
 }
 console.log('Body drag and Alt-drag duplication PASSED');
+
+// Segment curvature: circular quarter, partial sweeps, bounds and reversible interaction.
+{
+  const ve=VectorEditor;
+  const line={id:'curve-line',type:'line',x1:-.3,y1:0,x2:.3,y2:0,strokeWeight:.02};
+  const original=JSON.stringify(line);
+  const quarter=ve.toggleSegmentCurve(line,0,0);
+  assert(quarter.curved && !quarter.limited);
+  assert.equal(JSON.stringify(line),original,'pure conversion preserves input');
+  const ns=quarter.shape.contours[0];
+  assert.deepStrictEqual([ns[0].x,ns[0].y,ns[1].x,ns[1].y],[-.3,0,.3,0]);
+  const r=.6/Math.sqrt(2);
+  for (const [x,y] of ve.sampleContourPoints(ns,false,100)) {
+    assert(Math.abs(Math.hypot(x,y+.3)-r)<r*.00028,'standard cubic approximates a circular quarter');
+  }
+  for (const f of [1/16,1/8,1/6,1/4]) {
+    const arc=ve.toggleSegmentCurve(line,0,0,f);
+    approx(arc.fraction,f,1e-9);
+    const reversed=ve.toggleSegmentCurve(arc.shape,0,0);
+    assert(!reversed.curved);
+    assert.deepStrictEqual(ve.sampleContourPoints(reversed.shape.contours[0],false,10),[[-.3,0],[.3,0]]);
+  }
+  const collinear=ve.convertShapeToPath(line);
+  collinear.contours[0][0].out=[.2,0];collinear.contours[0][1].in=[-.2,0];
+  assert(ve.toggleSegmentCurve(collinear,0,0).curved,'collinear Bezier handles still describe a straight segment');
+  const backwards=ve.toggleSegmentCurve(line,0,0,.25,-1);
+  approx(backwards.shape.contours[0][0].out[1],-ns[0].out[1],1e-9);
+  const nearEdge={...line,x1:.45,y1:-.4,x2:.49,y2:.4};
+  const limited=ve.toggleSegmentCurve(nearEdge,0,0,.25,-1);
+  assert(limited.limited && limited.fraction>0 && limited.fraction<.25);
+  for(const pt of ve.sampleContourPoints(limited.shape.contours[0],false,1000)) {
+    assert(pt.every(v=>v>=-.500000001 && v<=.500000001),'limited curve remains inside tile');
+  }
+  assert.equal(ve.toggleSegmentCurve({...line,y1:-.5,y2:-.5},0,0,.25,-1),null,'outward edge has no arc space');
+  assert(ve.toggleSegmentCurve({...line,y1:-.5,y2:-.5},0,0,.25,1),'opposite side fits');
+  assert.equal(ve.toggleSegmentCurve({...line,x2:-.3},0,0),null,'zero-length segment is ignored');
+  const closed={id:'closed-curve',type:'path',closed:true,fill:true,contours:[[{x:-.2,y:-.2,out:[.03,0]},{x:.2,y:-.2},{x:.2,y:.2},{x:-.2,y:.2,in:[.02,0]}]]};
+  const last=ve.toggleSegmentCurve(closed,0,3);
+  assert.deepStrictEqual(last.shape.contours[0][0].out,[.03,0],'next segment tangent is preserved');
+  assert.deepStrictEqual(last.shape.contours[0][3].in,[.02,0],'previous segment tangent is preserved');
+  assert(last.shape.closed && last.shape.fill,'closing edge conversion preserves topology/style');
+  const doc={id:'curve-interaction',builtIn:false,protected:false,shapes:[line]};
+  ve.resetTransientForFamilySwitch(doc.id);ve.state.activeTool='curve';ve.state.toolDefaults.curveFraction=.25;
+  ve.state.toolDefaults.curveDirection=1;
+  assert(!ve.onPointerDown(.4,.4,{},doc,.01).commitShapes,'empty canvas is a no-op');
+  const res=ve.onPointerDown(0,0,{},doc,.01);
+  assert(res.commitShapes && ve.state.activeTool==='curve');
+  ve.recordFamilySnapshot(doc.id,res.commitShapes,false);
+  const undo=ve.stepUndo(doc.id,{...doc,shapes:res.commitShapes});
+  assert.deepStrictEqual(undo.shapes,[line]);
+  assert.deepStrictEqual(ve.stepRedo(doc.id,doc).shapes,res.commitShapes);
+  const mid=ve.sampleContourPoints(res.commitShapes[0].contours[0],false,2)[1];
+  const straight=ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01);
+  assert(straight.commitShapes && !straight.commitShapes[0].contours[0][0].out,'clicking curve straightens it');
+  assert(!ve.onPointerDown(0,0,{}, {...doc,shapes:[{...line,locked:true}]},.01).commitShapes);
+  assert(ve.onPointerDown(0,0,{}, {...doc,protected:true},.01).readOnlyBlocked);
+}
+console.log('Circular segment toggle, limits, neighbours, history and protected shapes PASSED');
