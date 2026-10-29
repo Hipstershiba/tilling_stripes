@@ -137,3 +137,35 @@ f.context.updateRegionMove({row:0,col:0,subRow:1,subCol:2});
 f.context.cancelCloneCapture();
 assert.strictEqual(f.context.finishRegionMove(),false);
 assert.strictEqual(JSON.stringify(f.cells),dragBefore,'cancelled movement preserves source');
+
+// Shift unions masks, retains gaps, and reads current cell contents without editing the mosaic.
+{
+  const state=captureState, c=captureContext;
+  c.mosaicTransferMode='move';c.mosaicSelectionShape='rect';c.selectionBrushDiameter=1;
+  c.isEffectiveBrushSnap=()=>true; // Shift must not also expand selection to whole blocks.
+  c.startCanvasRegionCaptureDrag(hit(.5,.5));c.finishCanvasRegionCapture();
+  assert.equal(state.supertilePattern.cells.flat().filter(Boolean).length,1);
+  const first=JSON.stringify(c.mosaicRegion.pattern);
+  c.startCanvasRegionCaptureDrag(hit(3.5,3.5),true);c.finishCanvasRegionCapture();
+  assert.equal(state.supertilePattern.rows,4);assert.equal(state.supertilePattern.cols,4);
+  assert.equal(state.supertilePattern.cells.flat().filter(Boolean).length,2);
+  assert.equal(state.supertilePattern.cells[1][1],null,'gap is outside the union');
+  c.startCanvasRegionCaptureDrag(hit(.5,.5),true);c.finishCanvasRegionCapture();
+  assert.equal(state.supertilePattern.cells.flat().filter(Boolean).length,2,'overlap is not counted twice');
+  c.mosaicSelectionShape='brush';c.startCanvasRegionCaptureDrag(hit(3.5,.5),true);c.finishCanvasRegionCapture();
+  assert.equal(state.supertilePattern.cells.flat().filter(Boolean).length,3,'brush can extend rectangle selection');
+  const kept=JSON.stringify(c.mosaicRegion);
+  c.startCanvasRegionCaptureDrag(hit(.5,3.5),true);c.cancelCloneCapture();
+  assert.equal(JSON.stringify(c.mosaicRegion),kept,'cancel preserves original mask');
+  assert.equal(JSON.stringify(captureFixture.cells),unchanged,'additive capture does not edit cells');
+  const pattern=JSON.parse(first), added=engine.captureSubtileRegion(state.mosaicData,3,3,3,3);
+  const initial=JSON.stringify(pattern), combined=engine.mergeRegionSelections(state.mosaicData,pattern,added);
+  assert.equal(JSON.stringify(pattern),initial,'merge does not mutate previous mask');
+  assert.equal(combined.cells.flat().filter(Boolean).length,2);
+  const drag=fixture();let args;
+  drag.context.startCanvasRegionCaptureDrag=(...values)=>{args=values;};
+  drag.context.beginRegionInteraction({row:0,col:0,subRow:0,subCol:0},true);
+  assert.equal(args[1],true,'Shift inside selection starts additive capture, not moving');
+  assert.equal(drag.context.regionMoveGesture,null);
+}
+console.log('Shift additive mosaic selection, masks, overlap and cancellation PASSED');

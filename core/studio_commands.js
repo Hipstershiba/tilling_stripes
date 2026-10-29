@@ -12,7 +12,7 @@
     ],
     tiles: [
       ['select', 'Seleção', 'V', 'vecToolSelect', 'Shift mantém proporção/ângulo; Alt escala pelo centro.'],
-      ['direct', 'Seleção direta', 'A', 'vecToolDirect', 'Edita nós e alças Bezier.'],
+      ['direct', 'Seleção direta', 'A', 'vecToolDirect', 'Edita nós e alças Bezier. Shift adiciona à seleção.'],
       ['pen', 'Caneta', 'P', 'vecToolPen', 'Enter conclui; Escape cancela. Trocar ferramenta conclui um caminho válido, sem arrasto em andamento.'],
       ['rect', 'Retângulo', 'M', 'vecToolRect', 'Shift mantém 1:1; Alt desenha pelo centro.'],
       ['ellipse', 'Elipse', 'L', 'vecToolEllipse', 'Shift mantém 1:1; Alt desenha pelo centro.'],
@@ -39,8 +39,8 @@
     add(context, 'redo', `Refazer ${target}`, 'Ctrl+Shift+Z', [context === 'mosaic' ? 'btnEditRedo' : 'btnVecRedo'], ctx => ctx.redo(), {aliases: ['Ctrl+Y'], available: ctx => ctx.canRedo?.() !== false});
     add(context, 'toggle', context === 'mosaic' ? 'Editar peças' : 'Voltar ao mosaico', 'Ctrl+E', ['btnStudioTilesMode'], ctx => ctx.toggle(), {label: '.studio-mode-btn-label'});
   }
-  add('mosaic', 'selectRect', 'Retângulo', 'Shift+M', ['toolSelectRect'], ctx => ctx.selectRegion('rect'));
-  add('mosaic', 'selectBrush', 'Pincel de seleção', 'W', ['toolSelectBrush'], ctx => ctx.selectRegion('brush'));
+  add('mosaic', 'selectRect', 'Retângulo', 'Shift+M', ['toolSelectRect'], ctx => ctx.selectRegion('rect'), {detail:'Shift+arraste adiciona à seleção.'});
+  add('mosaic', 'selectBrush', 'Pincel de seleção', 'W', ['toolSelectBrush'], ctx => ctx.selectRegion('brush'), {detail:'Shift+arraste adiciona à seleção.'});
   add('mosaic', 'generate', 'Gerar mosaico', 'G', ['btnRandomize'], ctx => ctx.generate());
   add('mosaic', 'eraser', 'Borracha', 'E', [], ctx => ctx.eraser());
   add('mosaic', 'swap', 'Inverter cores', 'X', ['btnSwapColors'], ctx => ctx.swap());

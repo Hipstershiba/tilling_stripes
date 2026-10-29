@@ -807,6 +807,7 @@ function getEditPreviewState() {
       stampBlock: null,
       dragSelectionRect,
       selectionShape: mosaicSelectionShape,
+      selectedCells: captureGesture?.baseSelection ? captureGesture.baseSelection.cells.flatMap((row,y)=>row.flatMap((cell,x)=>cell?[{gr:captureGesture.baseSelection.minGlobalRow+y,gc:captureGesture.baseSelection.minGlobalCol+x}]:[])) : [],
       selectionPoints: captureGesture?.points,
       selectionCells: captureGesture ? window.MosaicEngine.getRegionGestureCells(captureGesture) : [],
       hoveredCell: hit
@@ -2161,8 +2162,8 @@ function regionTargetHit(row,col) {
   const N=StudioState.mosaicData.subtilesPerSide;
   return {row:Math.floor(row/N),col:Math.floor(col/N),subRow:row%N,subCol:col%N};
 }
-function beginRegionInteraction(hit) {
-  if (StudioState.stampInteractionMode === 'select' || !regionContainsHit(hit)) { startCanvasRegionCaptureDrag(hit); return; }
+function beginRegionInteraction(hit, additive=false) {
+  if (additive || StudioState.stampInteractionMode === 'select' || !regionContainsHit(hit)) { startCanvasRegionCaptureDrag(hit,additive); return; }
   const N=StudioState.mosaicData.subtilesPerSide;
   regionMoveGesture={startRow:hit.row*N+hit.subRow,startCol:hit.col*N+hit.subCol,
     targetHit:regionTargetHit(mosaicRegion.row,mosaicRegion.col)};
@@ -2289,7 +2290,7 @@ function syncCanvasCursor() {
   else if (StudioState.studioMode === 'tiles') mode = 'vector';
   else if (StudioState.isSelectingStampDrag ||
     ((mode === 'paint' || mode === 'stamp') && StudioState.isAltDown)) mode = 'capture';
-  else if (mode === 'stamp' && mosaicTransferMode === 'move') mode = regionContainsHit(StudioState.hoveredCell) ? 'move' : 'capture';
+  else if (mode === 'stamp' && mosaicTransferMode === 'move') mode = !StudioState.isShiftDown && regionContainsHit(StudioState.hoveredCell) ? 'move' : 'capture';
   else if (mode === 'stamp') mode = StudioState.stampInteractionMode === 'select' ? 'capture' : isCloneReady() ? 'clone' : 'unavailable';
   else if (mode === 'paint' && StudioState.editBrushTileId === 84) mode = 'erase';
   if (StudioState.editScope === 'same_tile' && ['paint','erase','clone','rotate'].includes(mode)) {
@@ -2841,7 +2842,7 @@ function updateCaptureDragBounds(hit) {
     StudioState.stampDragCurrGC = captureGesture.maxGC;
     return;
   }
-  if (isEffectiveBrushSnap()) {
+  if (mosaicTransferMode !== 'move' && isEffectiveBrushSnap()) {
     StudioState.stampDragStartGR = Math.min(origin.row, hit.row) * N;
     StudioState.stampDragStartGC = Math.min(origin.col, hit.col) * N;
     StudioState.stampDragCurrGR = (Math.max(origin.row, hit.row) + 1) * N - 1;
@@ -2853,10 +2854,13 @@ function updateCaptureDragBounds(hit) {
     StudioState.stampDragCurrGC = hit.col * N + hit.subCol;
   }
 }
-function startCanvasRegionCaptureDrag(hit) {
+function startCanvasRegionCaptureDrag(hit, additive=false) {
   if (!StudioState.mosaicData || !hit) return;
   if (StudioState.activeTool !== 'stamp') activateStudioTool('stamp');
   captureGesture = window.MosaicEngine.createRegionGesture(mosaicSelectionShape, StudioState.mosaicData.rows*StudioState.mosaicData.subtilesPerSide, StudioState.mosaicData.cols*StudioState.mosaicData.subtilesPerSide, mosaicSelectionShape === 'brush' ? selectionBrushDiameter : 1);
+  if(additive && mosaicTransferMode==='move' && mosaicRegion) {
+    captureGesture.baseSelection=JSON.parse(JSON.stringify({...mosaicRegion.pattern,minGlobalRow:mosaicRegion.row,minGlobalCol:mosaicRegion.col}));
+  }
   captureOriginHit = {...hit};
   StudioState.isSelectingStampDrag = true;
   StudioState.stampInteractionMode = 'select';
@@ -2870,7 +2874,7 @@ function finishCanvasRegionCapture() {
   if (!StudioState.isSelectingStampDrag) return false;
   StudioState.isSelectingStampDrag = false;
   if (StudioState.mosaicData) {
-    const captured = window.MosaicEngine.captureSubtileRegion(
+    let captured = window.MosaicEngine.captureSubtileRegion(
       StudioState.mosaicData,
       StudioState.stampDragStartGR,
       StudioState.stampDragStartGC,
@@ -2886,6 +2890,7 @@ function finishCanvasRegionCapture() {
           if (!selected.has(`${captured.minGlobalRow+y},${captured.minGlobalCol+x}`)) captured.cells[y][x] = null;
         }
       }
+      if(captureGesture?.baseSelection && mosaicRegion) captured=window.MosaicEngine.mergeRegionSelections(StudioState.mosaicData,captureGesture.baseSelection,captured);
       captureGesture = null;
       mosaicRegion = {pattern: JSON.parse(JSON.stringify(captured)), row: captured.minGlobalRow, col: captured.minGlobalCol};
       StudioState.supertilePattern = captured;
@@ -3049,7 +3054,7 @@ function handleCanvasMouseDown(e) {
   if (StudioState.activeTool === 'stamp') {
     e.preventDefault();
     if (mosaicTransferMode === 'move') {
-      if (e.button === 0) beginRegionInteraction(hit);
+      if (e.button === 0) beginRegionInteraction(hit,e.shiftKey);
       else if (e.button === 2) cancelCloneCapture();
       return;
     }

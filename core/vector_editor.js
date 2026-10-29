@@ -2351,7 +2351,7 @@
       // 2. Hit-test anchor nodes (auto-converting parametric shapes to 'path' on vertex grab!)
       for (let sIdx = baseShapes.length - 1; sIdx >= 0; sIdx--) {
         const sh = baseShapes[sIdx];
-        if (!sh || !selSet.has(sh.id) || sh.locked || sh.visible === false) continue;
+        if (!sh || (!selSet.has(sh.id) && !mods.shiftKey) || sh.locked || sh.visible === false) continue;
         const asPath = sh.type === 'path' ? sh : convertShapeToPath(sh);
         const { vr } = resolveDeps();
         const contours = vr ? vr.getNormalizedPathContours(asPath) : (asPath.contours || []);
@@ -2363,6 +2363,7 @@
               if (sh.type !== 'path') {
                 baseShapes[sIdx] = asPath;
               }
+              if(!editorState.selectedShapeIds.includes(asPath.id)) editorState.selectedShapeIds.push(asPath.id);
               const ref = { shapeId: asPath.id, contourIdx: cIdx, nodeIdx: nIdx };
               const exists = editorState.selectedNodes.some(
                 (r) => r.shapeId === ref.shapeId && r.contourIdx === cIdx && r.nodeIdx === nIdx
@@ -2418,8 +2419,8 @@
       // 4. Otherwise hit-test topmost shape to focus its nodes, or start marquee
       const hitSh = hitTestShapesTopmost(baseShapes, u, v, hitRadiusNorm);
       if (hitSh) {
-        if (!editorState.selectedShapeIds.includes(hitSh.id)) editorState.selectedShapeIds = [hitSh.id];
-        editorState.selectedNodes = [];
+        if (!editorState.selectedShapeIds.includes(hitSh.id)) editorState.selectedShapeIds = mods.shiftKey ? [...editorState.selectedShapeIds,hitSh.id] : [hitSh.id];
+        if(!mods.shiftKey) editorState.selectedNodes = [];
         editorState.dragOp = {type: 'move-selection', u0: u, v0: v, baseShapes,
           startBox: computeSelectionBounds(baseShapes.filter(sh => editorState.selectedShapeIds.includes(sh.id))), changed: false, initialSelection: [...editorState.selectedShapeIds], duplicate: Boolean(mods.altKey)};
         editorState.workingFamilyId = familyDoc.id;
@@ -2427,8 +2428,10 @@
         return { handled: true };
       }
 
-      editorState.selectedNodes = [];
-      editorState.dragOp = { type: 'marquee', mode: 'direct', u0: u, v0: v, u1: u, v1: v, baseShapes };
+      const initialNodes=mods.shiftKey?deepClone(editorState.selectedNodes):[];
+      const initialSelection=mods.shiftKey?[...editorState.selectedShapeIds]:[];
+      if(!mods.shiftKey) {editorState.selectedNodes=[];editorState.selectedShapeIds=[];}
+      editorState.dragOp = { type: 'marquee', mode: 'direct', u0: u, v0: v, u1: u, v1: v, baseShapes, initialNodes, initialSelection };
       return { handled: true };
     }
 
@@ -2766,8 +2769,9 @@
           const nodeHits = [];
           const { vr } = resolveDeps();
           for (const sh of (op.baseShapes || [])) {
-            if (!sh || !editorState.selectedShapeIds.includes(sh.id) || sh.type !== 'path') continue;
-            const contours = vr ? vr.getNormalizedPathContours(sh) : (sh.contours || []);
+            if (!sh || sh.locked || sh.visible===false) continue;
+            const asPath=sh.type==='path'?sh:convertShapeToPath(sh);
+            const contours = vr ? vr.getNormalizedPathContours(asPath) : (asPath.contours || []);
             contours.forEach((nodes, cIdx) => {
               nodes.forEach((nd, nIdx) => {
                 if (nd.x >= minX && nd.x <= maxX && nd.y >= minY && nd.y <= maxY) {
@@ -2776,7 +2780,9 @@
               });
             });
           }
-          editorState.selectedNodes = nodeHits;
+          const refs=new Map([...(op.initialNodes || []),...nodeHits].map(ref=>[`${ref.shapeId}:${ref.contourIdx}:${ref.nodeIdx}`,ref]));
+          editorState.selectedNodes = [...refs.values()];
+          editorState.selectedShapeIds=[...new Set([...(op.initialSelection || []),...nodeHits.map(ref=>ref.shapeId)])];
         }
       }
       editorState.workingFamilyId = null;

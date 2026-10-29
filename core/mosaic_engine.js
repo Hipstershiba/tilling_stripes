@@ -717,6 +717,20 @@
     return [];
   }
 
+  function mergeRegionSelections(mosaicData, previous, added) {
+    if (!previous) return added;
+    const minR=Math.min(previous.minGlobalRow,added.minGlobalRow), minC=Math.min(previous.minGlobalCol,added.minGlobalCol);
+    const maxR=Math.max(previous.minGlobalRow+previous.rows-1,added.minGlobalRow+added.rows-1);
+    const maxC=Math.max(previous.minGlobalCol+previous.cols-1,added.minGlobalCol+added.cols-1);
+    const merged=captureSubtileRegion(mosaicData,minR,minC,maxR,maxC);
+    const includes=(pattern,r,c)=>Boolean(pattern.cells[r-pattern.minGlobalRow]?.[c-pattern.minGlobalCol]);
+    for(let y=0;y<merged.rows;y++) for(let x=0;x<merged.cols;x++) {
+      const r=merged.minGlobalRow+y,c=merged.minGlobalCol+x;
+      if(!includes(previous,r,c) && !includes(added,r,c)) merged.cells[y][x]=null;
+    }
+    return merged;
+  }
+
   function captureSubtileRegion(mosaicData, gr0, gc0, gr1, gc1) {
     if (!mosaicData) return null;
     const N = mosaicData.subtilesPerSide;
@@ -1376,7 +1390,7 @@
 
     if (editPreview.selectedCells?.length) {
       drawPlacementFootprint(p,editPreview.selectedCells,margin,subW,subH,p.color(90,160,255,230));
-      if (!editPreview.regionPlacements?.length) { p.pop(); return; }
+      if (!editPreview.regionPlacements?.length && !editPreview.dragSelectionRect) { p.pop(); return; }
     }
 
     // 1. Highlight captured source region with emerald corner brackets if present
@@ -1678,6 +1692,7 @@
     resizeSupertilePattern,
     symmetrizeSupertilePattern,
     captureSubtileRegion,
+    mergeRegionSelections,
     createRegionGesture,
     extendRegionGesture,
     getRegionGestureCells,

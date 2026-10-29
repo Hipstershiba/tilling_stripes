@@ -792,3 +792,34 @@ console.log('Circular segment toggle, limits, neighbours, history and protected 
   assert.equal(res.commitShapes[0].contours[0].length,2,'default mode toggles the entire semicircle to a line');
 }
 console.log('Semicircle, free fractions, grouped persistence, D4 and repeated preset cycling PASSED');
+
+// Shift adds objects and anchors in Direct Selection, including marquee on new objects.
+{
+  const ve=VectorEditor;
+  const doc={id:'direct-shift-add',shapes:[
+    {id:'a',type:'rect',x:-.4,y:-.4,w:.2,h:.2,fill:true},
+    {id:'b',type:'rect',x:.2,y:.2,w:.2,h:.2,fill:true},
+    {id:'locked-add',type:'rect',x:.2,y:.2,w:.2,h:.2,fill:true,locked:true}
+  ]};
+  const before=JSON.stringify(doc);
+  ve.resetTransientForFamilySwitch(doc.id);ve.state.activeTool='direct';ve.state.snapEnabled=false;
+  ve.state.selectedShapeIds=['a'];ve.state.selectedNodes=[{shapeId:'a',contourIdx:0,nodeIdx:0}];
+  ve.onPointerDown(.3,.3,{shiftKey:true},doc,.01);ve.onPointerUp(doc);
+  assert.deepStrictEqual(ve.state.selectedShapeIds,['a','b']);
+  assert.equal(ve.state.selectedNodes[0].shapeId,'a','adding another object retains prior anchor selection');
+  ve.state.selectedShapeIds=['a'];
+  ve.onPointerDown(.2,.2,{shiftKey:true},doc,.01);ve.onPointerUp(doc);
+  assert.deepStrictEqual(ve.state.selectedShapeIds,['a','b'],'Shift can add an anchor on an unselected shape');
+  assert.equal(ve.state.selectedNodes.length,2);
+  ve.state.selectedShapeIds=['a'];ve.state.selectedNodes=[{shapeId:'a',contourIdx:0,nodeIdx:0}];
+  ve.onPointerDown(.36,.15,{shiftKey:true},doc,.01);ve.onPointerMove(.45,.25,{shiftKey:true},doc,.01);
+  assert.equal(ve.onPointerUp(doc).commitShapes,null,'marquee selection never converts or changes shapes');
+  assert.deepStrictEqual(ve.state.selectedShapeIds,['a','b']);
+  assert(ve.state.selectedNodes.some(ref=>ref.shapeId==='a'));
+  assert(ve.state.selectedNodes.some(ref=>ref.shapeId==='b' && ref.nodeIdx===1));
+  ve.onPointerDown(.36,.15,{},doc,.01);ve.onPointerMove(.45,.25,{},doc,.01);ve.onPointerUp(doc);
+  assert.deepStrictEqual(ve.state.selectedShapeIds,['b']);
+  assert.equal(ve.state.selectedNodes.length,1);
+  assert.equal(JSON.stringify(doc),before);
+}
+console.log('Direct Selection Shift addition across objects and marquee PASSED');

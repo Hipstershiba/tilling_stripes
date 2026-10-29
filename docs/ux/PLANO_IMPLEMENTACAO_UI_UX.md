@@ -934,3 +934,11 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Dividir arcos longos em cúbicas de até 90° e manter unidade por âncoras auxiliares persistidas.
 - [x] Cobrir geometria, restauração, D4, fechamento, inversão e ciclos consecutivos sem acumular âncoras.
 - [x] Validar meia-curva, inversão, ciclo completo, 3/8 livre e desfazer no navegador; gate 52/52, conhecimento sincronizado e commit separado. Capturas em `_local/curvar` ignoradas pelo Git.
+
+### Shift para adicionar à seleção — 28/10/2026
+
+- [x] Unir novas regiões do mosaico com Shift, preservando máscara, lacunas e cancelamento.
+- [x] Reservar Shift à adição durante seleção, sem alterar encaixe em pintura/clonagem.
+- [x] Completar adição por clique e marquee na Seleção direta, preservando V e Curvar.
+- [x] Cobrir máscara, sobreposição, cancelamento, objetos, âncoras e marquee sem mutação.
+- [x] Validar soma de três áreas e adição de objetos na Seleção direta no navegador; gate 52/52, conhecimento sincronizado e commit separado. Evidências em `_local/shift-selecao`, ignoradas pelo Git.
