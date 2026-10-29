@@ -3196,6 +3196,12 @@
       return true;
     }
 
+    if (res.curveCycleFraction!==undefined) {
+      const control=document.getElementById('curveFraction');
+      if (control) control.value=String(res.curveCycleFraction);
+      document.getElementById('curveCustomFraction')?.classList.add('hidden');
+      ve.state.toolDefaults.curveFraction=res.curveCycleFraction;
+    }
     if (res.curveBlocked) notifyToast('Sem espaço para curvar deste lado.', 'warn');
     if (res.curveLimited) notifyToast(`Curva limitada a ${res.curveAngle.toFixed(1)}°.`);
     if (res.commitShapes) {
@@ -3367,7 +3373,21 @@
       if (libraryDetails && el) libraryDetails.appendChild(el);
     });
     document.getElementById('curveFraction')?.addEventListener('change', (e) => {
-      if (ve) ve.state.toolDefaults.curveFraction = Number(e.target.value);
+      const custom=document.getElementById('curveCustomFraction');
+      custom?.classList.toggle('hidden',e.target.value!=='custom');
+      const value=e.target.value==='custom'?ve?.parseCurveFraction(custom?.value):Number(e.target.value);
+      if (ve && value!==null) ve.state.toolDefaults.curveFraction=value;
+    });
+    document.getElementById('curveCustomFraction')?.addEventListener('change', (e) => {
+      const value=ve?.parseCurveFraction(e.target.value);
+      e.target.setAttribute('aria-invalid',String(value===null));
+      if (ve && value!==null) ve.state.toolDefaults.curveFraction=value;
+    });
+    document.getElementById('btnCurveCycle')?.addEventListener('click', (e) => {
+      if (!ve) return;
+      ve.state.toolDefaults.curveCycle=!ve.state.toolDefaults.curveCycle;
+      e.currentTarget.classList.toggle('active',ve.state.toolDefaults.curveCycle);
+      e.currentTarget.setAttribute('aria-pressed',String(ve.state.toolDefaults.curveCycle));
     });
     document.getElementById('btnCurveSide')?.addEventListener('click', (e) => {
       if (!ve) return;

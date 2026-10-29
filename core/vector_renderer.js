@@ -240,6 +240,7 @@
           nodes.map((node) => {
             const [nx, ny] = transformPointD4(Number(node.x) || 0, Number(node.y) || 0, transformKey);
             const res = { x: nx, y: ny };
+            if (node.curveJoin===true) res.curveJoin=true;
             if (Array.isArray(node.in)) {
               res.in = transformVectorD4(Number(node.in[0]) || 0, Number(node.in[1]) || 0, transformKey);
             }

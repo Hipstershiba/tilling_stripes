@@ -926,3 +926,11 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 - [x] Incluir Reta e aplicar a fração escolhida a segmentos novos ou já curvos, sem alternância automática.
 - [x] Preservar inversão, lado existente e histórico sem edições repetidas.
 - [x] Validar no navegador clique repetido, mudança de fração, Reta e desfazer sem passos redundantes; gate 52/52, conhecimento sincronizado e commit separado. Evidência em `_local/curvar/reta.png`, ignorada pelo Git.
+
+### Alternância, meia-curva, fração livre e ciclo — 28/10/2026
+
+- [x] Restaurar reta/curva por clique simples e manter Shift+clique para inverter.
+- [x] Acrescentar 1/2, fração livre e modo opcional de ciclo dos presets na barra esquerda.
+- [x] Dividir arcos longos em cúbicas de até 90° e manter unidade por âncoras auxiliares persistidas.
+- [x] Cobrir geometria, restauração, D4, fechamento, inversão e ciclos consecutivos sem acumular âncoras.
+- [x] Validar meia-curva, inversão, ciclo completo, 3/8 livre e desfazer no navegador; gate 52/52, conhecimento sincronizado e commit separado. Capturas em `_local/curvar` ignoradas pelo Git.

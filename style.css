@@ -4897,8 +4897,10 @@ body[data-cursor-mode="move"] #canvas-stage canvas { cursor:move !important; }
 #left-toolbar .sidebar-seed-hash { display:none; }
 #left-toolbar .sidebar-seed-chip input { font-size:var(--font-ui); }
 
-.curve-tool-options { display:none; gap:4px; margin-top:6px; align-items:center; }
+.curve-tool-options { display:none; flex-wrap:wrap; gap:4px; margin-top:6px; align-items:center; }
 body[data-studio-mode="tiles"][data-vec-tool="curve"] .curve-tool-options { display:flex; }
 .curve-tool-options select { min-width:0; width:62px; padding:4px; }
 .curve-tool-options button { width:34px; height:34px; padding:0; flex:0 0 34px; }
 body[data-vec-tool="curve"][data-cursor-mode="vector"] #canvas-stage canvas { cursor:crosshair; }
+
+.curve-tool-options .curve-custom { width:62px; min-width:0; padding:4px; box-sizing:border-box; font-size:var(--font-ui); }

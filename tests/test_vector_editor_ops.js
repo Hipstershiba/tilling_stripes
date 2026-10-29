@@ -668,7 +668,7 @@ console.log('Body drag and Alt-drag duplication PASSED');
   for (const [x,y] of ve.sampleContourPoints(ns,false,100)) {
     assert(Math.abs(Math.hypot(x,y+.3)-r)<r*.00028,'standard cubic approximates a circular quarter');
   }
-  for (const f of [1/16,1/8,1/6,1/4]) {
+  for (const f of [.001,1/16,1/8,1/6,1/4]) {
     const arc=ve.toggleSegmentCurve(line,0,0,f);
     approx(arc.fraction,f,1e-9);
     const reversed=ve.toggleSegmentCurve(arc.shape,0,0,0);
@@ -726,7 +726,7 @@ console.log('Body drag and Alt-drag duplication PASSED');
   const reversedByShift=ve.onPointerDown(mid[0],mid[1],{shiftKey:true},{...doc,shapes:res.commitShapes},.01);
   assert(reversedByShift.commitShapes[0].contours[0][0].out[1]<0,'Shift-click reverses an existing curve');
   assert(!ve.reverseSelectedCurve({...doc,id:'another-family',shapes:res.commitShapes}).commitShapes);
-  assert(!ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01).commitShapes,'repeated click adds no edit history');
+  assert(ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01).commitShapes,'default click toggles a curve back to straight');
   ve.state.toolDefaults.curveFraction=0;
   const straight=ve.onPointerDown(mid[0],mid[1],{}, {...doc,shapes:res.commitShapes},.01);
   assert(straight.commitShapes && !straight.commitShapes[0].contours[0][0].out,'Reta straightens the clicked curve');
@@ -734,3 +734,61 @@ console.log('Body drag and Alt-drag duplication PASSED');
   assert(ve.onPointerDown(0,0,{}, {...doc,protected:true},.01).readOnlyBlocked);
 }
 console.log('Circular segment toggle, limits, neighbours, history and protected shapes PASSED');
+
+// Multi-cubic circular spans stay one tool target across save/transform and cycling.
+{
+  const ve=VectorEditor;
+  for(const [text,value] of [['3/8',.375],['0,3',.3],['7/8',.875],['0',0]]) assert.equal(ve.parseCurveFraction(text),value);
+  for(const text of ['1/0','1','2/1','-1/4','','x','1/2/3']) assert.equal(ve.parseCurveFraction(text),null);
+  const line={id:'half-arc',type:'line',x1:-.2,y1:0,x2:.2,y2:0,stroke:true,strokeWeight:.01};
+  const half=ve.toggleSegmentCurve(line,0,0,.5);
+  assert(half && !half.limited);
+  assert.equal(half.shape.contours[0].length,3);
+  assert(half.shape.contours[0][1].curveJoin);
+  for(const [x,y] of ve.sampleContourPoints(half.shape.contours[0],false,100)) assert(Math.abs(Math.hypot(x,y)-.2)<.2*.00028);
+  approx(ve.getCurveSpan(half.shape,0,1).fraction,.5,1e-9);
+  const loaded=JSON.parse(JSON.stringify(half.shape));
+  const reversed=ve.toggleSegmentCurve(loaded,0,1,.5,1,true);
+  assert(reversed.shape.contours[0][1].y<0,'either piece reverses the full semicircle');
+  const straight=ve.toggleSegmentCurve(loaded,0,1,0);
+  assert.equal(straight.shape.contours[0].length,2,'straightening removes only tool-generated inner anchors');
+  const custom=ve.toggleSegmentCurve({...line,x1:-.05,x2:.05},0,0,7/8);
+  approx(custom.fraction,7/8,1e-9);
+  assert.equal(custom.shape.contours[0].length,5);
+  const {transformShapeD4}=require('../core/vector_renderer.js');
+  const turned=transformShapeD4(custom.shape,'r90');
+  assert(turned.contours[0][1].curveJoin,'D4 preserves the span annotation');
+  assert.equal(ve.toggleSegmentCurve(turned,0,2,0).shape.contours[0].length,2);
+  const compiler=require('../core/library_compiler.js');
+  assert(compiler.sanitizeShape(loaded,0).contours[0][1].curveJoin,'library persistence preserves the span annotation');
+  const closing={id:'closing-half',type:'path',closed:true,contours:[{x:-.2,y:0},{x:0,y:-.2},{x:.2,y:0}].map(n=>({...n}))};
+  closing.contours=[closing.contours];
+  const last=ve.toggleSegmentCurve(closing,0,2,.5);
+  assert.equal(last.shape.contours[0].length,4);
+  assert.equal(ve.toggleSegmentCurve(last.shape,0,3,0).shape.contours[0].length,3,'closing span can be straightened without breaking contour order');
+  let doc={id:'cycle-curves',shapes:[line]};
+  ve.resetTransientForFamilySwitch(doc.id);ve.state.activeTool='curve';ve.state.toolDefaults.curveCycle=true;
+  ve.state.toolDefaults.curveFraction=.25;ve.state.toolDefaults.curveDirection=1;
+  for(const expected of [...ve.CURVE_PRESETS.slice(1),0,...ve.CURVE_PRESETS.slice(1),0]) {
+    const sh=doc.shapes[0], path=ve.convertShapeToPath(sh), pts=ve.sampleContourPoints(path.contours[0],false,20);
+    const point=pts[Math.floor(pts.length/2)], res=ve.onPointerDown(point[0],point[1],{},doc,.01);
+    assert(res.commitShapes,'each cycle step changes the target span');
+    assert.equal(res.curveCycleFraction,expected);
+    doc={...doc,shapes:res.commitShapes};
+    assert.equal(doc.shapes[0].contours[0].length,expected>.25?3:2,'cycling does not accumulate auxiliary anchors');
+  }
+  // Shift must preserve cycle progress, even when a different arc was clicked first.
+  const quarter=ve.toggleSegmentCurve(line,0,0,.25);
+  const pts=ve.sampleContourPoints(quarter.shape.contours[0],false,20), mid=pts[Math.floor(pts.length/2)];
+  ve.state.curveSegment={familyId:'other',shapeId:'other',contourIdx:0,segIdx:0,cycleFraction:.5};
+  const shifted=ve.onPointerDown(mid[0],mid[1],{shiftKey:true},{...doc,shapes:[quarter.shape]},.01);
+  assert.equal(shifted.curveCycleFraction,undefined,'Shift does not advance cycle');
+  const flippedPts=ve.sampleContourPoints(shifted.commitShapes[0].contours[0],false,20), flippedMid=flippedPts[Math.floor(flippedPts.length/2)];
+  const next=ve.onPointerDown(flippedMid[0],flippedMid[1],{},{...doc,shapes:shifted.commitShapes},.01);
+  assert.equal(next.curveCycleFraction,.5,'cycle continues from the clicked quarter, independent of stale target');
+  ve.state.toolDefaults.curveCycle=false;ve.state.toolDefaults.curveFraction=.5;
+  let res=ve.onPointerDown(0,0,{},doc,.01);doc={...doc,shapes:res.commitShapes};
+  res=ve.onPointerDown(0,.2,{},doc,.01);
+  assert.equal(res.commitShapes[0].contours[0].length,2,'default mode toggles the entire semicircle to a line');
+}
+console.log('Semicircle, free fractions, grouped persistence, D4 and repeated preset cycling PASSED');

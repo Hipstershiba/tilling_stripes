@@ -441,9 +441,11 @@
             </div>
             <div class="curve-tool-options" role="group" aria-label="Curvatura">
               <select id="curveFraction" class="subtile-select" aria-label="Fração de curva" title="Fração do círculo">
-                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option>
+                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option><option value="0.5">1/2</option><option value="custom">Livre…</option>
               </select>
               <button type="button" id="btnCurveSide" class="mini-btn icon-only" aria-label="Inverter lado" title="Inverter lado (Shift)" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7H20M16 3L20 7L16 11M20 17H4M8 13L4 17L8 21"/></svg><span class="icon-label">Inverter lado</span></button>
+              <button type="button" id="btnCurveCycle" class="mini-btn icon-only" aria-label="Ciclar frações" title="Ciclar frações a cada clique" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8A8 8 0 0 0 5 6M4 3V8H9M4 16A8 8 0 0 0 19 18M20 21V16H15"/></svg><span class="icon-label">Ciclar frações</span></button>
+              <input id="curveCustomFraction" class="subtile-text-input curve-custom hidden" type="text" inputmode="decimal" value="1/4" aria-label="Fração livre" title="Fração livre (ex.: 3/8)" autocomplete="off">
             </div>
           </div>
 

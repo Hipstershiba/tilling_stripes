@@ -1180,60 +1180,95 @@
     return true;
   }
 
-  // One circular-arc cubic (at most 90°), with fixed endpoints. Adjacent handles
-  // are independent: changing this segment must not reshape its neighbours.
-  function toggleSegmentCurve(shape, contourIdx, segIdx, fraction = .25, direction = 1, reverse = false) {
-    const path = normalizePathShape(shape), nodes = path?.contours?.[contourIdx];
-    const count = nodes?.length || 0;
-    if (segIdx < 0 || segIdx >= (path?.closed === false ? count-1 : count)) return null;
-    const a = nodes[segIdx], b = nodes[(segIdx+1)%count];
-    const dx = b.x-a.x, dy = b.y-a.y, length = Math.hypot(dx,dy);
-    const hasCurve = [a.out,b.in].some(h => h && (length < 1e-8
-      ? Math.hypot(...h)>1e-10 : Math.abs(dx*h[1]-dy*h[0])/length>1e-10));
-    if (hasCurve) {
-      if (reverse) {
-        if (length < 1e-8) return null;
-        const tx=dx/length, ty=dy/length;
-        const reflect = h => {
-          const along=h[0]*tx+h[1]*ty;
-          return [2*along*tx-h[0],2*along*ty-h[1]];
-        };
-        const out=reflect(a.out || [0,0]), incoming=reflect(b.in || [0,0]);
-        if (!cubicFitsTile([a.x,a.y],[a.x+out[0],a.y+out[1]],
-          [b.x+incoming[0],b.y+incoming[1]],[b.x,b.y])) return null;
-        a.out=out; b.in=incoming;
-        return {shape:path,curved:true,limited:false};
+  const CURVE_PRESETS = [0, 1/16, 1/8, 1/6, 1/4, 1/2];
+  function parseCurveFraction(text) {
+    const match=String(text).replace(',', '.').trim().match(/^(\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?$/);
+    if (!match) return null;
+    const value=Number(match[1])/(match[2]===undefined?1:Number(match[2]));
+    return Number.isFinite(value) && value>=0 && value<1 ? value : null;
+  }
+
+  // curveJoin marks only auxiliary anchors inserted by this tool. Original
+  // endpoints remain boundaries, so an arc stays one editable span after reload.
+  function getCurveSpan(path, contourIdx, segIdx) {
+    const nodes=path?.contours?.[contourIdx], n=nodes?.length || 0, closed=path?.closed!==false;
+    if (segIdx<0 || segIdx>=(closed?n:n-1) || n<2) return null;
+    let start=segIdx, end=(segIdx+1)%n, guard=0;
+    while(nodes[start].curveJoin && guard++<n && (closed || start>0)) start=(start+n-1)%n;
+    while(nodes[end].curveJoin && guard++<2*n && (closed || end<n-1)) end=(end+1)%n;
+    if (start===end || guard>=2*n) return null;
+    const indices=[start];
+    for(let i=(start+1)%n;i!==end;i=(i+1)%n) { if(indices.length>=n) return null; indices.push(i); }
+    indices.push(end);
+    const a=nodes[start], b=nodes[end], dx=b.x-a.x, dy=b.y-a.y;
+    const curved=indices.length>2 || [a.out,b.in].some(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10);
+    const fraction=curved && a.out ? Math.atan2(Math.abs(dx*a.out[1]-dy*a.out[0]),dx*a.out[0]+dy*a.out[1])/Math.PI : 0;
+    return {nodes,indices,start,end,a,b,curved,fraction};
+  }
+
+  // A circular sweep is split into cubics of at most 90 degrees. Endpoints and
+  // neighbouring segment tangents are preserved; bounds use actual extrema.
+  function toggleSegmentCurve(shape, contourIdx, segIdx, fraction=.25, direction=1, reverse=false) {
+    const path=normalizePathShape(shape), span=getCurveSpan(path,contourIdx,segIdx);
+    if (!span) return null;
+    const {nodes,indices,a,b}=span, dx=b.x-a.x, dy=b.y-a.y, length=Math.hypot(dx,dy);
+    if (!Number.isFinite(length) || length<1e-8) return null;
+    if (reverse && span.curved) {
+      const tx=dx/length, ty=dy/length;
+      const reflect=h=>{const dot=h[0]*tx+h[1]*ty; return [2*dot*tx-h[0],2*dot*ty-h[1]];};
+      for(const i of indices) {
+        const nd=nodes[i];
+        if(nd!==a && nd!==b) {const q=reflect([nd.x-a.x,nd.y-a.y]); nd.x=a.x+q[0];nd.y=a.y+q[1];}
+        if(nd!==b && nd.out) nd.out=reflect(nd.out);
+        if(nd!==a && nd.in) nd.in=reflect(nd.in);
       }
+      for(let j=0;j<indices.length-1;j++) {
+        const x=nodes[indices[j]], y=nodes[indices[j+1]], out=x.out || [0,0], incoming=y.in || [0,0];
+        if(!cubicFitsTile([x.x,x.y],[x.x+out[0],x.y+out[1]],[y.x+incoming[0],y.y+incoming[1]],[y.x,y.y])) return null;
+      }
+      return {shape:path,curved:true,fraction:span.fraction,limited:false,segIdx:span.start};
     }
-    if (Number(fraction) === 0) {
-      if (!hasCurve && shape.type !== 'path') return {shape:deepClone(shape),curved:false,fraction:0,limited:false};
-      delete a.out; delete b.in;
-      return { shape: path, curved: false, fraction: 0, limited: false };
-    }
-    if (!Number.isFinite(length) || length < 1e-8) return null;
-    const requested = clamp(Number(fraction) || .25, 1/360, .25)*TWO_PI;
-    const existingHandle=hasCurve && [a.out,b.in].find(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10);
-    const sign = existingHandle ? Math.sign(dx*existingHandle[1]-dy*existingHandle[0]) : Number(direction) < 0 ? -1 : 1;
-    const makeHandles = angle => {
-      const half = angle/2, h = (4/3)*Math.tan(angle/4)*length/(2*Math.sin(half));
-      const tx=dx/length, ty=dy/length, cs=Math.cos(half), sn=Math.sin(half)*sign;
-      return [[h*(tx*cs-ty*sn), h*(ty*cs+tx*sn)], [-h*(tx*cs+ty*sn), -h*(ty*cs-tx*sn)]];
+    const value=Number(fraction);
+    if (!Number.isFinite(value) || value<0 || value>=1) return null;
+    const replaceMiddle=middle=>{
+      for(const i of indices.slice(1,-1).sort((x,y)=>y-x)) nodes.splice(i,1);
+      const start=nodes.indexOf(a); nodes.splice(start+1,0,...middle); return start;
     };
-    const fits = angle => {
-      const [out, incoming] = makeHandles(angle);
-      return cubicFitsTile([a.x,a.y], [a.x+out[0],a.y+out[1]], [b.x+incoming[0],b.y+incoming[1]], [b.x,b.y]);
-    };
-    let angle = requested;
-    if (!fits(angle)) {
-      let lo=0, hi=angle;
-      for (let i=0;i<45;i++) { const mid=(lo+hi)/2; if (fits(mid)) lo=mid; else hi=mid; }
-      angle=lo;
+    if(value===0) {
+      if(!span.curved && shape.type!=='path') return {shape:deepClone(shape),curved:false,fraction:0,limited:false,segIdx:span.start};
+      const start=replaceMiddle([]);delete a.out;delete b.in;
+      return {shape:path,curved:false,fraction:0,limited:false,segIdx:start};
     }
-    if (angle < Math.PI/180) return null;
-    const [out,incoming]=makeHandles(angle);
-    const same=(old,next)=>old && old.every((x,i)=>Math.abs(x-next[i])<1e-10);
-    if (!same(a.out,out) || !same(b.in,incoming)) [a.out,b.in]=[out,incoming];
-    return { shape:path, curved:true, fraction:angle/TWO_PI, limited:angle<requested-1e-7 };
+    const existing=span.curved && [a.out,b.in].find(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10);
+    const sign=existing?Math.sign(dx*existing[1]-dy*existing[0]):Number(direction)<0?-1:1;
+    const requested=value*TWO_PI;
+    const build=angle=>{
+      const half=angle/2, radius=length/(2*Math.sin(half));
+      const cx=(a.x+b.x)/2+dy/length*sign*length/(2*Math.tan(half));
+      const cy=(a.y+b.y)/2-dx/length*sign*length/(2*Math.tan(half));
+      const start=Math.atan2(a.y-cy,a.x-cx), count=Math.ceil(angle/(HALF_PI+1e-12));
+      const delta=-sign*angle/count, k=4/3*Math.tan(delta/4), points=[];
+      for(let i=0;i<=count;i++) {
+        const t=start+i*delta, sn=Math.sin(t), cs=Math.cos(t);
+        const nd={x:cx+radius*cs,y:cy+radius*sn};
+        if(i>0) nd.in=[k*radius*sn,-k*radius*cs];
+        if(i<count) nd.out=[-k*radius*sn,k*radius*cs];
+        if(i>0 && i<count) nd.curveJoin=true;
+        points.push(nd);
+      }
+      points[0].x=a.x;points[0].y=a.y;points[count].x=b.x;points[count].y=b.y;
+      return points;
+    };
+    const fits=angle=>{
+      const pts=build(angle);
+      return pts.slice(0,-1).every((p,i)=>{const q=pts[i+1];return cubicFitsTile([p.x,p.y],[p.x+p.out[0],p.y+p.out[1]],[q.x+q.in[0],q.y+q.in[1]],[q.x,q.y]);});
+    };
+    let angle=requested;
+    if(!fits(angle)) {let lo=0,hi=angle;for(let i=0;i<45;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}angle=lo;}
+    if(angle<1e-6) return null;
+    const pts=build(angle), start=replaceMiddle(pts.slice(1,-1));
+    a.out=pts[0].out;b.in=pts[pts.length-1].in;
+    return {shape:path,curved:true,fraction:angle/TWO_PI,limited:angle<requested-1e-7,segIdx:start};
   }
 
   function movePathNodes(pathShape, nodeRefs, du, dv) {
@@ -1244,6 +1279,7 @@
         if (!keySet.has(`${cIdx}:${nIdx}`)) return nd;
         return {
           ...nd,
+          curveJoin: false,
           x: roundCoord((Number(nd.x) || 0) + du),
           y: roundCoord((Number(nd.y) || 0) + dv)
         };
@@ -1267,6 +1303,7 @@
       dy = Math.sin(snappedA) * len;
     }
 
+    delete nd.curveJoin;
     nd[which] = [roundCoord(dx), roundCoord(dy)];
 
     // Coupled mirror handle unless Alt is held (which breaks tangent continuity for sharp cusps)
@@ -1292,6 +1329,7 @@
     if (!contour || !contour[nodeIdx]) return out;
 
     const nd = contour[nodeIdx];
+    delete nd.curveJoin;
     const hasHandles = (Array.isArray(nd.in) && (Math.abs(nd.in[0]) > 1e-5 || Math.abs(nd.in[1]) > 1e-5)) ||
       (Array.isArray(nd.out) && (Math.abs(nd.out[0]) > 1e-5 || Math.abs(nd.out[1]) > 1e-5));
 
@@ -1633,6 +1671,7 @@
       arcMode: 'pie',
       lineWeight: roundCoord(1 / 6),
       curveFraction: .25,
+      curveCycle: false,
       curveDirection: 1
     }
   };
@@ -2089,10 +2128,8 @@
     const shapes=deepClone(familyDoc.shapes || []), i=shapes.findIndex(s=>s.id===ref.shapeId);
     const shape=shapes[i];
     if (!shape || shape.locked || shape.visible===false || shape.type!=='path') return {};
-    const nodes=shape.contours?.[ref.contourIdx], a=nodes?.[ref.segIdx], b=nodes?.[(ref.segIdx+1)%nodes.length];
-    if (!a || !b) return {};
-    const dx=b.x-a.x, dy=b.y-a.y;
-    if (![a.out,b.in].some(h=>h && Math.abs(dx*h[1]-dy*h[0])>1e-10)) return {};
+    const span=getCurveSpan(shape,ref.contourIdx,ref.segIdx);
+    if (!span?.curved) return {};
     const result=toggleSegmentCurve(shape,ref.contourIdx,ref.segIdx,.25,1,true);
     if (!result) return {curveBlocked:true};
     shapes[i]=result.shape;
@@ -2187,15 +2224,24 @@
         if (!shape || shape.locked || shape.visible === false) continue;
         const path=normalizePathShape(shape), hit=findClosestSegmentOnPath(path,u,v);
         if (!hit || hit.dist>hitRadiusNorm) continue;
+        const span=getCurveSpan(path,hit.contourIdx,hit.segIdx), previous=editorState.curveSegment;
+        const same=previous?.familyId===familyDoc.id && previous.shapeId===shape.id && previous.contourIdx===hit.contourIdx && previous.segIdx===span.start;
+        let fraction=editorState.toolDefaults.curveFraction;
+        if (!mods.shiftKey) {
+          if (editorState.toolDefaults.curveCycle) {
+            const current=same && previous.cycleFraction!==undefined?previous.cycleFraction:span.fraction;
+            fraction=CURVE_PRESETS.find(f=>f>current+1e-6) ?? 0;
+          } else if (span.curved) fraction=0;
+        }
         const result=toggleSegmentCurve(path,hit.contourIdx,hit.segIdx,
-          editorState.toolDefaults.curveFraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1), mods.shiftKey);
+          fraction, editorState.toolDefaults.curveDirection*(mods.shiftKey?-1:1), mods.shiftKey);
         if (!result) return {handled:true, curveBlocked:true};
         editorState.selectedShapeIds=[shape.id]; editorState.selectedNodes=[];
-        editorState.curveSegment={familyId:familyDoc.id,shapeId:shape.id,contourIdx:hit.contourIdx,segIdx:hit.segIdx};
+        editorState.curveSegment={familyId:familyDoc.id,shapeId:shape.id,contourIdx:hit.contourIdx,segIdx:result.segIdx,cycleFraction:mods.shiftKey && span.curved ? (same?previous.cycleFraction ?? span.fraction:span.fraction) : fraction};
         editorState.activeSnapGuides={guideX:null,guideY:null};
-        if (JSON.stringify(result.shape)===JSON.stringify(shape)) return {handled:true};
+        if (JSON.stringify(result.shape)===JSON.stringify(shape)) return {handled:true,curveCycleFraction:editorState.toolDefaults.curveCycle && !mods.shiftKey ? fraction : undefined};
         baseShapes[i]=result.shape;
-        return {handled:true,commitShapes:baseShapes,curveLimited:result.limited,curveAngle:result.fraction*360};
+        return {handled:true,commitShapes:baseShapes,curveLimited:result.limited,curveAngle:result.fraction*360,curveCycleFraction:editorState.toolDefaults.curveCycle && !mods.shiftKey ? fraction : undefined};
       }
       return {handled:true};
     }
@@ -2835,6 +2881,9 @@
     togglePathNodeSmooth,
     subdividePathSegment,
     toggleSegmentCurve,
+    parseCurveFraction,
+    getCurveSpan,
+    CURVE_PRESETS,
     reverseSelectedCurve,
     deletePathNodes,
     createRectFromDrag,
