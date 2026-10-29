@@ -40,8 +40,12 @@
   const SIDES = ['left', 'right', 'top', 'bottom'];
 
   let cacheRevision = -1;
+  let nextSideCacheId = 1;
   const tileProfileCache = new Map();
   const orientedProfileCache = new Map();
+  // scoreCache[a.cacheId][b.cacheId] = score. The masks are symmetric, so both
+  // directions are stored and repeated candidate evaluations become Map hits.
+  const scoreCache = new Map();
 
   function currentRevision() {
     return registry && typeof registry.libraryRevision === 'number'
@@ -54,6 +58,7 @@
     if (rev !== cacheRevision) {
       tileProfileCache.clear();
       orientedProfileCache.clear();
+      scoreCache.clear();
       cacheRevision = rev;
     }
   }
@@ -501,16 +506,28 @@
     const softBits = blurBits(bits, 2);
     const bgBits = new Uint8Array(bits.length);
     const softBgBits = new Float32Array(bits.length);
+    let fillCount = 0;
+    let word0 = 0;
+    let word1 = 0;
     for (let i = 0; i < bits.length; i++) {
       bgBits[i] = bits[i] ? 0 : 1;
       softBgBits[i] = 1 - softBits[i];
+      if (bits[i]) {
+        fillCount++;
+        if (i < 32) word0 |= (1 << i);
+        else word1 |= (1 << (i - 32));
+      }
     }
 
     return {
+      cacheId: nextSideCacheId++,
       bits,
       softBits,
       bgBits,
       softBgBits,
+      bitWord0: word0 >>> 0,
+      bitWord1: word1 >>> 0,
+      fillCount,
       coverage,
       runs,
       regionRuns: regionRuns || [],
@@ -681,21 +698,80 @@
    * a soft, blurred comparison, so a perfect fit is not mandatory.
    * Returns 0..1.
    */
+  function popcount32(value) {
+    let v = value - ((value >>> 1) & 0x55555555);
+    v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
+    return (((v + (v >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
+  }
+
   function scoreSide(a, b) {
     if (!a || !b || !a.bits || !b.bits) return 0;
-    const hardFill = hardIoU(a.bits, b.bits, 0);
-    const softFill = softIoU(a.softBits, b.softBits, 0);
-    const hardBg = hardIoU(a.bgBits, b.bgBits, 1);
-    const softBg = softIoU(a.softBgBits, b.softBgBits, 1);
+
+    // Two empty sides share no ink. Background continuity alone must not
+    // outrank a real fill seam, otherwise empty tiles propagate through the
+    // mosaic. Empty-vs-empty is therefore a neutral 0, not a match.
+    if (a.fillCount === 0 && b.fillCount === 0) return 0;
+
+    // Exact 64-bit mask equality: perfect seam, no further work.
+    if (a.bitWord0 === b.bitWord0 && a.bitWord1 === b.bitWord1) return 1;
+
+    const cacheIdA = a.cacheId;
+    const cacheIdB = b.cacheId;
+    const cacheKey = cacheIdA !== undefined && cacheIdB !== undefined
+      ? cacheIdA * 10000000 + cacheIdB
+      : null;
+    if (cacheKey !== null) {
+      const cached = scoreCache.get(cacheKey);
+      if (cached !== undefined) return cached;
+    }
+
+    const interFill = popcount32(a.bitWord0 & b.bitWord0) + popcount32(a.bitWord1 & b.bitWord1);
+    const unionFill = a.fillCount + b.fillCount - interFill;
+    const hardFill = unionFill ? interFill / unionFill : 0;
+
+    const sampleCount = a.bits.length;
+    const interBg = sampleCount - unionFill;
+    const unionBg = (sampleCount - a.fillCount) + (sampleCount - b.fillCount) - interBg;
+    const hardBg = unionBg ? interBg / unionBg : 1;
+
+    let softInterFill = 0;
+    let softUnionFill = 0;
+    let softInterBg = 0;
+    let softUnionBg = 0;
+    const softA = a.softBits;
+    const softB = b.softBits;
+    const softBgA = a.softBgBits;
+    const softBgB = b.softBgBits;
+    for (let i = 0; i < sampleCount; i++) {
+      const af = softA[i];
+      const bf = softB[i];
+      softInterFill += af < bf ? af : bf;
+      softUnionFill += af > bf ? af : bf;
+      const ab = softBgA[i];
+      const bb = softBgB[i];
+      softInterBg += ab < bb ? ab : bb;
+      softUnionBg += ab > bb ? ab : bb;
+    }
+    const softFill = softUnionFill ? softInterFill / softUnionFill : 0;
+    const softBg = softUnionBg ? softInterBg / softUnionBg : 1;
 
     const fillScore = 0.8 * hardFill + 0.2 * softFill;
     const bgScore = 0.8 * hardBg + 0.2 * softBg;
-    return clamp(0.85 * fillScore + 0.15 * bgScore, 0, 1);
+    const score = clamp(0.85 * fillScore + 0.15 * bgScore, 0, 1);
+
+    if (cacheKey !== null) {
+      scoreCache.set(cacheKey, score);
+      // The metric is symmetric; cache the reverse direction too.
+      scoreCache.set(cacheIdB * 10000000 + cacheIdA, score);
+    }
+
+    return score;
   }
 
   function clearCache() {
     tileProfileCache.clear();
     orientedProfileCache.clear();
+    scoreCache.clear();
     cacheRevision = currentRevision();
   }
 

@@ -56,7 +56,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 │   ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 │   └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-├── tests/                     # Suíte com 59 testes automatizados em Node.js puro
+├── tests/                     # Suíte com 60 testes automatizados em Node.js puro
 ├── tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ├── ui_info.js                 # Motor de divulgação progressiva (17 tópicos, popovers e tooltips acessíveis)
 ├── libraries/                 # Bibliotecas p5.min.js, simple-svg.js e paper-core.min.js (v0.12.18, booleanas)
@@ -77,7 +77,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
   - `Caleidoscópio (Livre)`: Propagação geométrica nos 8 octantes sem restrição de invariância em eixos centrais ou diagonais, conferindo liberdade criativa total ao usuário.
   - `Giro Contínuo (C4)`: 4 quadrantes em giro rotacional contínuo de 90° ao redor do centro.
   - `Espelhamento Duplo (D2)`: Espelhamento bilateral nos eixos horizontal e vertical.
-- **Encaixe por Bordas (`#toggleEdgeMatch`)**: Novo modo de geração. Antes de montar o mosaico, cada tile é pré-processado em quatro assinaturas de borda (máscara de tinta, intervalos de preenchimento/fundo, regiões conectadas e um ID estável). A geração escolhe as peças canônicas de cada bloco para maximizar a continuidade das regiões claras entre vizinhos, usando o ID como prioridade. O encaixe é suave: um casamento imperfeito ainda é aceito, mas perde prioridade. A estrutura de simetria e os estabilizadores D4 continuam valendo; apenas os tiles canônicos são escolhidos, e todas as réplicas continuam derivadas por D4.
+- **Encaixe por Bordas (`#toggleEdgeMatch`)**: Novo modo de geração. Antes de montar o mosaico, cada tile é pré-processado em quatro assinaturas de borda (máscara de tinta, intervalos de preenchimento/fundo, regiões conectadas e um ID estável). A geração escolhe as peças canônicas de cada bloco para maximizar a continuidade das regiões claras entre vizinhos, usando o ID como prioridade. O encaixe é suave: um casamento imperfeito ainda é aceito, mas perde prioridade. Duas bordas sem tinta não contam como encaixe, para o vazio não se propagar pelo mosaico. A estrutura de simetria e os estabilizadores D4 continuam valendo; apenas os tiles canônicos são escolhidos, e todas as réplicas continuam derivadas por D4. O caminho é otimizado com cache de perfis/pontuações, pré-filtro de candidatos por máscara exata/cobertura e visita apenas às variáveis vizinhas afetadas na segunda passada. Na interface ele é o interruptor **Bordas** (ícone de duas peças), com o nome completo no hover e a explicação no popover de info.
 - **Swatches Permitidos**: Seleção e filtragem das famílias e tipos de tiles que entram no sorteio aleatório da semente (*Seed*).
 
 ### 2. Ferramentas do Editor
@@ -217,14 +217,14 @@ Todo ícone da interface vem do registro único em `core/ui_format.js` (`ICON_PA
 
 ## Testes Automatizados
 
-O projeto conta com **59 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **60 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 59 suítes de teste:
+# Executar todas as 60 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 59 Suítes:
+### Cobertura das 60 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
@@ -256,6 +256,7 @@ node tests/run_all.js
    - `test_info_aria.js`: Acessibilidade ARIA (`aria-expanded`, `aria-controls`, `aria-haspopup`) e foco nos componentes informativos.
    - `test_editor_ui_state.js`: Matriz de visibilidade do editor, seletores CSS `.hidden` e cursores de ferramentas.
    - `test_info_ui_state.js`: Validação dos 17 tópicos de informação, singleton popover/tooltip e widget Illustrator.
+   - `test_ui_microcopy.js`: Regra de microcopy do chrome, nome curto, ícone antes do texto, tooltip, tópico de info existente e ausência de frases explicativas permanentes.
    - `test_viewport_pan_zoom.js`: Navegação de viewport, pan 2D contínuo via CSS transforms, atalhos de centralização 100% e ajuste.
    - `test_brush_sizing_snap.js`: Pincel com tamanhos inteiros não-cíclicos, ajuste ao bloco (`Ctrl+U` / `Shift`) e atalho da borracha (`E`).
    - `test_ui_control_registry.js`: Congelamento do inventário dos 60 controles com ID único em `index.html`.
@@ -333,7 +334,7 @@ SVG unitário usa margem zero por padrão, independente do respiro do mosaico. F
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
-Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 59 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
+Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 60 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
 O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 
@@ -522,3 +523,7 @@ Propriedades é a primeira aba. Para uma forma selecionada, a ordem é Geometria
 A Biblioteca usa a rota local `#biblioteca` e uma página fora das cinco superfícies do editor, com catálogo em grade, filtros, prévia e metadados. Ações rápidas e confirmações continuam em diálogos, mas o gerenciamento permanece na página ampla. Voltar ao estúdio e o histórico do navegador preservam o editor; Editar peça abre a família selecionada no editor vetorial. Atalhos de desenho não alteram o documento enquanto a página da Biblioteca está aberta. Importar SVG pelo menu Biblioteca cria uma nova família em qualquer ambiente; a importação pela aba Camadas mantém o fluxo na peça selecionada. Não foi alterado o schema de persistência v3.
 
 Exportar conjuntos permite selecionar um ou vários conjuntos e salvar JSON reimportável ou ZIP com SVGs organizados e o JSON. O ZIP inclui opcionalmente as variantes D4 registradas. `core/library_export.js` filtra o snapshot sem alterar a biblioteca. Exibir oferece Eixos/Blocos/Peças/Órbitas no mosaico e Eixos/Grade/Portas/Margem/Encaixar na grade no editor de peças.
+
+### Microcopy da interface — 29/10/2026
+
+Regra permanente: o chrome não carrega texto explicativo. Cada controle começa pelo ícone e segue com o menor nome ainda intuitivo; o nome completo aparece no hover (`title`/`data-tooltip`) e a explicação fica no popover de info (`data-info-topic` → `INFO_TOPICS` em `ui_info.js`) ou no menu Ajuda. Avisos aparecem só quando um estado impede a ação e dizem apenas o necessário; diálogos com `role="dialog"` podem explicar a decisão por serem transitórios. O encaixe por bordas virou o interruptor **Bordas** (ícone `edgeJoin`), com tooltip `Encaixe por bordas` e tópico `edge-match`; a dica do inspetor na barra de status, o subtítulo da página Biblioteca e a frase do aviso de grade não quadrada foram encurtados. `tests/test_ui_microcopy.js` reprova rótulo estático acima de 64 caracteres, exige o ícone antes do nome e confere que todo `data-info-topic` resolve para um tópico existente.

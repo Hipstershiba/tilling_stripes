@@ -6518,14 +6518,15 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 .edge-match-section { padding-top: 2px; }
 
 .edge-match-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  min-height: 34px;
-  padding: 7px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 0 8px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
   background: var(--bg-control);
+  color: var(--text-muted);
   cursor: pointer;
   user-select: none;
 }
@@ -6535,34 +6536,29 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 .edge-match-toggle:has(input:checked) {
   border-color: rgba(122, 168, 255, 0.55);
   background: var(--bg-selected);
+  color: #bcd4ff;
 }
 
-.edge-match-toggle input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  margin: 1px 0 0;
-  accent-color: var(--accent-blue);
+.edge-match-icon {
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
 }
 
-.edge-match-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.edge-match-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent-blue);
+  flex: 0 0 auto;
+  cursor: pointer;
 }
 
 .edge-match-title {
-  color: var(--text-primary);
+  color: currentColor;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
-}
-
-.edge-match-hint {
-  color: var(--text-muted);
-  font-size: 11px;
-  line-height: 1.3;
+  line-height: 1;
 }
 
 .edge-match-toggle:focus-within {

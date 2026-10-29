@@ -388,13 +388,52 @@
     for (const cell of actualCells) varCells[cell.varIndex].push(cell.index);
 
     const varEdges = Array.from({ length: variables.length }, () => []);
+    const varNeighbors = Array.from({ length: variables.length }, () => new Set());
     for (let ei = 0; ei < edges.length; ei++) {
       const edge = edges[ei];
       const va = actualCells[edge.a].varIndex;
       const vb = actualCells[edge.b].varIndex;
       varEdges[va].push(ei);
-      if (vb !== va) varEdges[vb].push(ei);
+      if (vb !== va) {
+        varEdges[vb].push(ei);
+        varNeighbors[va].add(vb);
+        varNeighbors[vb].add(va);
+      }
     }
+
+    // Cheap prefilter metadata: for each affected edge, which side of the
+    // candidate tile touches a neighbour that does not move with this variable.
+    const varEdgeInfo = Array.from({ length: variables.length }, (_, varIndex) => {
+      const cells = varCells[varIndex];
+      const cellSet = new Set(cells);
+      const localByCell = new Map(cells.map((ci, k) => [ci, k]));
+      const infos = [];
+      for (const ei of varEdges[varIndex]) {
+        const edge = edges[ei];
+        const aAffected = cellSet.has(edge.a);
+        const bAffected = cellSet.has(edge.b);
+        if (aAffected && bAffected) {
+          infos.push({ ei, localIndex: -1, candidateSide: null, neighborCell: -1, neighborSide: null });
+        } else if (aAffected) {
+          infos.push({
+            ei,
+            localIndex: localByCell.get(edge.a),
+            candidateSide: edge.sideA,
+            neighborCell: edge.b,
+            neighborSide: edge.sideB
+          });
+        } else {
+          infos.push({
+            ei,
+            localIndex: localByCell.get(edge.b),
+            candidateSide: edge.sideB,
+            neighborCell: edge.a,
+            neighborSide: edge.sideA
+          });
+        }
+      }
+      return infos;
+    });
 
     // Frozen cells are fixed points. The whole orbit of a frozen canonical cell
     // is locked so the optimiser cannot move a lock through its D4 copies.
@@ -424,6 +463,26 @@
 
     const profiles = actualCells.map(getCellProfile);
 
+    // Candidate profiles depend only on (candidate, cell orientation), so they
+    // are memoised per variable. This removes repeated lookups from the inner
+    // candidate loop and makes the second optimisation pass nearly free.
+    const candidateProfileCache = Array.from({ length: variables.length }, () => new Map());
+    const getCandidateProfiles = (varIndex, candidate) => {
+      const cache = candidateProfileCache[varIndex];
+      let list = cache.get(candidate);
+      if (list) return list;
+      const cells = varCells[varIndex];
+      list = new Array(cells.length);
+      for (let k = 0; k < cells.length; k++) {
+        const cell = actualCells[cells[k]];
+        list[k] = cell.override
+          ? EdgeSignatures.getOrientedProfile(cell.override.baseTileId, cell.override.transform)
+          : EdgeSignatures.getOrientedProfile(candidate, cell.orientation);
+      }
+      cache.set(candidate, list);
+      return list;
+    };
+
     const scoreEdge = (edgeIndex, replacements) => {
       const edge = edges[edgeIndex];
       const profileA = (replacements && replacements[edge.a]) || profiles[edge.a];
@@ -433,12 +492,14 @@
 
     const passes = Math.max(1, Math.min(4, parseInt(config.edgeMatchPasses, 10) || 2));
     const tieTolerance = 1e-6;
+    let dirty = new Set(variables.map((_, i) => i));
 
     for (let pass = 0; pass < passes; pass++) {
       let changed = false;
+      const nextDirty = new Set();
       const order = shuffleWithPick(variables.map((_, i) => i), pick);
       for (const varIndex of order) {
-        if (lockedVars.has(varIndex)) continue;
+        if (!dirty.has(varIndex) || lockedVars.has(varIndex)) continue;
         const affectedCells = varCells[varIndex];
         const affectedEdges = varEdges[varIndex];
         if (affectedCells.length === 0 || affectedEdges.length === 0) continue;
@@ -449,27 +510,57 @@
 
         let bestScore = currentLocal;
         let bestCandidates = [currentTileId];
-        const scored = [];
+        const scored = [[currentTileId, currentLocal]];
+        const replacements = [];
+        const infos = varEdgeInfo[varIndex];
 
+        // Rank candidates by exact side-mask matches, then by how close their
+        // ink coverage is to the neighbours. Only the best few are fully scored.
+        const ranking = [];
         for (const candidate of variables[varIndex].candidates) {
-          if (candidate === currentTileId) {
-            scored.push([candidate, currentLocal]);
+          if (candidate === currentTileId) continue;
+          let candidateProfiles;
+          try {
+            candidateProfiles = getCandidateProfiles(varIndex, candidate);
+          } catch (err) {
             continue;
           }
-          const replacements = [];
-          let valid = true;
-          for (const ci of affectedCells) {
-            const cell = actualCells[ci];
-            const baseTileId = cell.override ? cell.override.baseTileId : candidate;
-            const transform = cell.override ? cell.override.transform : cell.orientation;
-            try {
-              replacements[ci] = EdgeSignatures.getOrientedProfile(baseTileId, transform);
-            } catch (err) {
-              valid = false;
-              break;
+          let exactMatches = 0;
+          let coverageDelta = 0;
+          let checkedEdges = 0;
+          for (const info of infos) {
+            if (info.localIndex < 0) continue;
+            const candidateSide = candidateProfiles[info.localIndex].sides[info.candidateSide];
+            const neighbourSide = profiles[info.neighborCell].sides[info.neighborSide];
+            if (candidateSide.bitWord0 === neighbourSide.bitWord0 &&
+              candidateSide.bitWord1 === neighbourSide.bitWord1) {
+              exactMatches++;
             }
+            coverageDelta += Math.abs(candidateSide.coverage - neighbourSide.coverage);
+            checkedEdges++;
           }
-          if (!valid) continue;
+          ranking.push({ candidate, exactMatches, coverageDelta, checkedEdges });
+        }
+
+        ranking.sort((a, b) =>
+          (b.exactMatches - a.exactMatches) ||
+          (a.coverageDelta - b.coverageDelta) ||
+          (a.candidate - b.candidate)
+        );
+        const maxExact = ranking.length ? ranking[0].exactMatches : 0;
+        const configuredLimit = parseInt(config.edgeMatchCandidateLimit, 10);
+        const automaticLimit = actualCells.length > 1000 ? 16 : 20;
+        const candidateLimit = Number.isFinite(configuredLimit) && configuredLimit > 0
+          ? Math.min(configuredLimit, ranking.length)
+          : (maxExact > 0 ? automaticLimit : automaticLimit + 12);
+        const shortlist = ranking.slice(0, candidateLimit);
+
+        for (const entry of shortlist) {
+          const candidate = entry.candidate;
+          const candidateProfiles = getCandidateProfiles(varIndex, candidate);
+          for (let k = 0; k < affectedCells.length; k++) {
+            replacements[affectedCells[k]] = candidateProfiles[k];
+          }
           let local = 0;
           for (const ei of affectedEdges) local += scoreEdge(ei, replacements);
           scored.push([candidate, local]);
@@ -493,11 +584,16 @@
 
         if (chosen !== currentTileId) {
           variables[varIndex].tileId = chosen;
-          for (const ci of affectedCells) profiles[ci] = getCellProfile(actualCells[ci]);
+          const chosenProfiles = getCandidateProfiles(varIndex, chosen);
+          for (let k = 0; k < affectedCells.length; k++) {
+            profiles[affectedCells[k]] = chosenProfiles[k];
+          }
+          for (const neighbour of varNeighbors[varIndex]) nextDirty.add(neighbour);
           changed = true;
         }
       }
-      if (!changed) break;
+      if (!changed || nextDirty.size === 0) break;
+      dirty = nextDirty;
     }
 
     // Materialize the same hierarchical mosaic shape used by classic generation.

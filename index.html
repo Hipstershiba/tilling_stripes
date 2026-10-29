@@ -336,7 +336,7 @@
         <button type="button" id="btnBackupUnsavedLibrary" class="hidden">Backup da biblioteca (.json)</button>
         <button type="button" id="btnExportUnsavedMosaic" class="hidden">Exportar imagem do mosaico</button>
       </div>
-      <span id="saveImageLimit" class="hidden">PNG/SVG exportam a imagem; não são backup editável do projeto.</span>
+      <span id="saveImageLimit" class="hidden" title="PNG e SVG exportam a imagem; o backup editável é o JSON da biblioteca.">Imagem não é backup</span>
     </div>
 
     <div id="workspace-body">
@@ -495,7 +495,7 @@
             <span class="status-sep">|</span>
             <span id="statusGridInfo" class="status-item">Grade 3 × 3 • 3 Órbitas</span>
             <span class="status-sep">|</span>
-            <div id="statusHoverInspector" class="status-hover-text">Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita de simetria</div>
+            <div id="statusHoverInspector" class="status-hover-text" title="Passe o cursor sobre o mosaico para inspecionar o bloco e sua órbita">Inspeção</div>
           </div>
 
           <div id="status-right" class="status-right">
@@ -581,7 +581,7 @@
 
                 <!-- Non-square grid warning for Mandala D4 / Rotational C4 -->
                 <div id="nonSquareGridNotice" class="notice-banner hidden">
-                  <span>Para rotação de 90° nas bordas, a grade precisa ter o mesmo nº de linhas e colunas.</span>
+                  <span>Rotação 90° exige grade quadrada.</span>
                   <button id="btnMakeGridEqual" type="button" class="notice-btn icon-only" title="Igualar grade" aria-label="Igualar grade"><span class="icon-slot" data-icon-slot="equalize"></span><span class="icon-label">Igualar L×C</span></button>
                 </div>
               </div>
@@ -623,15 +623,18 @@
                 </div>
               </div>
 
-              <!-- Modo de geração: continuidade de bordas entre subtiles vizinhos -->
+              <!-- Modo de geração: continuidade de bordas entre subtiles vizinhos. -->
               <div class="prop-section edge-match-section">
-                <label class="edge-match-toggle" for="toggleEdgeMatch">
-                  <input type="checkbox" id="toggleEdgeMatch">
-                  <span class="edge-match-copy">
-                    <span class="edge-match-title">Encaixe por bordas</span>
-                    <span class="edge-match-hint">Continua as regiões de tinta entre peças vizinhas.</span>
-                  </span>
-                </label>
+                <div class="prop-label-row">
+                  <div class="prop-label-with-info">
+                    <label class="edge-match-toggle" for="toggleEdgeMatch" title="Encaixe por bordas">
+                      <span class="edge-match-icon" aria-hidden="true"><span class="icon-slot" data-icon-slot="edgeJoin" data-icon-size="18"></span></span>
+                      <span class="edge-match-title">Bordas</span>
+                      <input type="checkbox" id="toggleEdgeMatch">
+                    </label>
+                    <button type="button" class="info-btn" data-info-topic="edge-match" aria-label="Saiba mais sobre encaixe por bordas" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                </div>
               </div>
 
 
@@ -1070,7 +1073,7 @@
     <section id="library-page" class="library-page hidden" aria-labelledby="libraryPageTitle" hidden>
       <header class="library-page-header">
         <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn"><span aria-hidden="true">←</span> Voltar ao estúdio</button>
-        <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca de peças</h1><p>Organize conjuntos, famílias e arquivos.</p></div>
+        <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca de peças</h1></div>
         <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
         <button type="button" id="btnExportLibraryGroups" class="mini-btn library-groups-export-btn"><span class="icon-slot" data-icon-slot="export"></span>Exportar conjuntos…</button>
       </header>

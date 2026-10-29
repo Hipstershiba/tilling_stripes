@@ -47,6 +47,7 @@ const testSuites = [
   'test_info_aria.js',
   'test_editor_ui_state.js',
   'test_info_ui_state.js',
+  'test_ui_microcopy.js',
   'test_viewport_pan_zoom.js',
   'test_brush_sizing_snap.js',
   'test_ui_control_registry.js',

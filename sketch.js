@@ -3941,7 +3941,7 @@ function updateHoverStatusText() {
 
   const hit = StudioState.hoveredCell;
   if (!hit || !StudioState.mosaicData) {
-    el.textContent = '';
+    el.textContent = 'Inspeção';
     return;
   }
 

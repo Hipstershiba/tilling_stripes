@@ -1,7 +1,7 @@
 ---
 name: tiling-invariants-gate
 description: >-
-  Use this skill before committing or delivering any code changes in this workspace to enforce the 6 mathematical invariants of Tiling Stripes Studio: D4 dihedral group algebra, cell stabilizers, UI 4-surface hierarchy, 60 frozen controls registry, persistence schema v3, and documentation consistency.
+  Use this skill before committing or delivering any code changes in this workspace to enforce the 7 project invariants of Tiling Stripes Studio: D4 dihedral group algebra, cell stabilizers, UI 4-surface hierarchy, 60 frozen controls registry, persistence schema v3, documentation consistency, and interface microcopy.
 ---
 
 # Tiling Stripes Invariants & Quality Gate
@@ -10,7 +10,7 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
 
 ---
 
-## 1. The 6 Non-Negotiable Project Invariants
+## 1. The 7 Non-Negotiable Project Invariants
 
 1. **D4 Dihedral Group Symmetry ($D_4$):**
    - Strictly 8 square isometries: `id`, `r90`, `r180`, `r270`, `mx`, `my`, `md`, `mad`.
@@ -47,6 +47,12 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
 6. **Documentation Synchronization:**
    - `README.md` and `docs/MANUAL_MANUTENCAO.md` must stay in 100% sync with code contracts.
 
+7. **Interface Microcopy:**
+   - No explaining sentence in the permanent chrome: icon first, then the shortest intuitive name.
+   - Full name on hover (`title`/`data-tooltip`); detail behind an info trigger (`data-info-topic` → `INFO_TOPICS` in `ui_info.js`) or the Ajuda menu.
+   - Warnings appear only when a state blocks an action and say only what is needed; dialogs (`role="dialog"`) may explain themselves.
+   - `node tests/test_ui_microcopy.js` fails any static label above 64 characters, a control whose name precedes its icon, or an info trigger without a topic.
+
 ---
 
 ## 2. Verification Protocol (Pre-flight and Post-flight)
@@ -59,7 +65,7 @@ node tests/run_all.js
 
 ### Acceptance Criteria:
 * Exit code MUST be `0`.
-* All 36 test suites MUST output `PASSED`.
+* All test suites MUST output `PASSED` (currently 60 suites, including `test_ui_microcopy.js`).
 * If any test fails, inspect the failing suite individually:
   ```powershell
   node tests/<suite_name>.js

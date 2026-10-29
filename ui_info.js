@@ -77,6 +77,14 @@
             "Use um pincel de 1×1 para aplicar a substituição."
         ]
     },
+    'edge-match': {
+        "title": "Encaixe por bordas",
+        "body": [
+            "Continua as regiões de tinta entre peças vizinhas.",
+            "Só as células canônicas dos blocos-fonte são escolhidas; as demais seguem sendo imagens D4.",
+            "Peças preservadas e a simetria da composição continuam valendo."
+        ]
+    },
     "d4-strict": {
         "title": "Mandala",
         "body": [

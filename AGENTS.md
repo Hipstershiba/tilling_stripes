@@ -6,6 +6,10 @@ Após alterações, execute `scripts/sync_knowledge.ps1` para atualizar o AST e 
 Notas pessoais devem ficar fora das notas geradas; `INICIO_WORKSPACE.md` é o ponto de entrada local.
 Aplique `.agents/skills/tiling-invariants-gate/SKILL.md` antes de entregar código.
 
+## Interface (regra fixa)
+
+Nenhum texto explicativo permanente na tela. A ordem é sempre ícone → nome curto (o mais curto que continue intuitivo). O nome completo aparece no hover (`title`/`data-tooltip`) e o detalhe fica atrás de um botão de info (`data-info-topic` → `INFO_TOPICS` em `ui_info.js`) ou do menu Ajuda. Avisos só aparecem quando um estado impede a ação e dizem apenas o necessário; diálogos com `role="dialog"` podem explicar a decisão. `node tests/test_ui_microcopy.js` reprova rótulo estático acima de 64 caracteres e ícone fora de ordem.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

@@ -94,7 +94,7 @@ $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 
 ### Modo de Geração por Encaixe de Bordas (`#toggleEdgeMatch`)
 
-O checkbox **Encaixe por bordas** no painel Simetria & Estrutura ativa um modo de geração alternativo. Antes de montar o mosaico, `core/tile_edge_signatures.js` pré-processa cada tile do catálogo:
+O interruptor **Bordas** (ícone `edgeJoin`) no painel Simetria & Estrutura ativa um modo de geração alternativo; o nome completo `Encaixe por bordas` aparece no hover e a explicação vive no tópico `edge-match` do popover de info. Antes de montar o mosaico, `core/tile_edge_signatures.js` pré-processa cada tile do catálogo:
 
 - Amostra as quatro bordas logo dentro do quadrado do subtile e produz uma máscara binária de tinta/fundo.
 - Converte a máscara em intervalos normalizados de preenchimento e de fundo.
@@ -102,7 +102,9 @@ O checkbox **Encaixe por bordas** no painel Simetria & Estrutura ativa um modo d
 - Deriva um ID estável por lado a partir do padrão de intervalos e das regiões conectadas (`fillId`, `bgId` e `id`).
 - Remapeia a assinatura por qualquer transformação D4, sem rasterizar novamente.
 
-A geração (`generateEdgeMatchedMosaic`) mantém a hierarquia e as órbitas D4: só as células canônicas dos blocos-fonte são escolhidas; todas as demais continuam sendo imagens D4. A escolha inicial é aleatória, como no modo clássico, e depois uma busca local (duas passadas por padrão) maximiza a soma das notas de encaixe entre lados vizinhos. A nota prioriza a continuidade da tinta (parte clara) e usa o fundo apenas como desempate; um encaixe imperfeito é aceito, mas vale menos. Células congeladas são restrições fixas e bloqueiam a órbita canônica correspondente. O modo não altera o schema de persistência: `edgeMatch` é um campo booleano do payload v3 e dos snapshots de documento.
+A geração (`generateEdgeMatchedMosaic`) mantém a hierarquia e as órbitas D4: só as células canônicas dos blocos-fonte são escolhidas; todas as demais continuam sendo imagens D4. A escolha inicial é aleatória, como no modo clássico, e depois uma busca local (duas passadas por padrão) maximiza a soma das notas de encaixe entre lados vizinhos. A nota prioriza a continuidade da tinta (parte clara) e usa o fundo apenas como desempate; um encaixe imperfeito é aceito, mas vale menos. Duas bordas sem tinta valem zero, para o vazio não se propagar pelo mosaico. Células congeladas são restrições fixas e bloqueiam a órbita canônica correspondente. O modo não altera o schema de persistência: `edgeMatch` é um campo booleano do payload v3 e dos snapshots de documento.
+
+O caminho interno evita trabalho repetido: perfis orientados e pontuações de par ficam em cache (invalidado por `libraryRevision`), candidatos são pré-filtrados por igualdade exata de máscara e proximidade de cobertura antes da pontuação completa, e a segunda passada visita apenas variáveis vizinhas de células que mudaram. `edgeMatchCandidateLimit` permite fixar o tamanho do pré-filtro; sem ele, o limite automático é 20 (16 em grades com mais de 1000 subtiles) e sobe para 32 quando nenhum candidato tem encaixe exato.
 
 ---
 
@@ -268,16 +270,16 @@ python -m http.server 8765
 npx serve -l 8765
 ```
 
-### Execução de Todas as 59 Suítes Automatizadas
+### Execução de Todas as 60 Suítes Automatizadas
 ```powershell
 node tests/run_all.js
 ```
 
-As 59 suítes cobrem:
+As 60 suítes cobrem:
 1. Álgebra D4 e axiomas de grupo (`test_tile_registry.js`, `test_d4_invariance.js`, `test_d4_block_combinations.js`, `test_d4_editor.js`, `test_d4_badge_state.js`).
 2. Motor de mosaico, renderização vetorial e encaixe de bordas (`test_mosaic_engine.js`, `test_edge_signatures.js`, `test_edge_match_generation.js`, `test_edge_match_ui.js`).
 3. Persistência de estado híbrida, IndexedDB, quotas e limites (`test_state_persistence.js`, `test_indexeddb_persistence.js`, `test_save_scheduler.js`, `test_storage_key.js`, `test_payload_version.js`, `test_history_limits.js`, `test_persistence_quota.js`, `test_history_nav.js`, `test_history_edit_preservation.js`, `test_document_snapshot.js`, `test_regeneration_capture.js`, `test_multistep_undo.js`, `test_dirty_guard.js`).
-4. UI, acessibilidade, navegação e contratos estruturais (`test_scope_chip.js`, `test_info_scopes_source.js`, `test_info_aria.js`, `test_editor_ui_state.js`, `test_info_ui_state.js`, `test_viewport_pan_zoom.js`, `test_brush_sizing_snap.js`, `test_ui_control_registry.js`, `test_ui_layout_contract.js`, `test_visual_tokens.js`, `test_visual_system_v2.js`, `test_icon_system.js`).
+4. UI, acessibilidade, navegação e contratos estruturais (`test_scope_chip.js`, `test_info_scopes_source.js`, `test_info_aria.js`, `test_editor_ui_state.js`, `test_info_ui_state.js`, `test_ui_microcopy.js`, `test_viewport_pan_zoom.js`, `test_brush_sizing_snap.js`, `test_ui_control_registry.js`, `test_ui_layout_contract.js`, `test_visual_tokens.js`, `test_visual_system_v2.js`, `test_icon_system.js`).
 5. Consistência e fidelidade da documentação (`test_docs_consistency.js`).
 6. Sistema de trava de subtiles e persistência sob regeneração (`test_freeze_subtiles.js`, `test_freeze_generation.js`, `test_freeze_wiring.js`, `test_freeze_state.js`, `test_freeze_undo.js`, `test_freeze_ui_contract.js`).
 7. Pipeline Spout, WebSocket bridge e exportação SVG avançada (`test_spout_output.js`, `test_simple_svg_paths.js`).
@@ -297,7 +299,7 @@ SVG unitário usa margem zero por padrão, independente do respiro do mosaico. F
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
-Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 59 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
+Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 60 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
 O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 
@@ -500,3 +502,7 @@ Propriedades é a primeira aba. Para uma forma selecionada, a ordem é Geometria
 A Biblioteca usa a rota local `#biblioteca` e uma página fora das cinco superfícies do editor, com catálogo em grade, filtros, prévia e metadados. Ações rápidas e confirmações continuam em diálogos, mas o gerenciamento permanece na página ampla. Voltar ao estúdio e o histórico do navegador preservam o editor; Editar peça abre a família selecionada no editor vetorial. Atalhos de desenho não alteram o documento enquanto a página da Biblioteca está aberta. Importar SVG pelo menu Biblioteca cria uma nova família em qualquer ambiente; a importação pela aba Camadas mantém o fluxo na peça selecionada. Não foi alterado o schema de persistência v3.
 
 Exportar conjuntos permite selecionar um ou vários conjuntos e salvar JSON reimportável ou ZIP com SVGs organizados e o JSON. O ZIP inclui opcionalmente as variantes D4 registradas. `core/library_export.js` filtra o snapshot sem alterar a biblioteca. Exibir oferece Eixos/Blocos/Peças/Órbitas no mosaico e Eixos/Grade/Portas/Margem/Encaixar na grade no editor de peças.
+
+### Microcopy da interface — 29/10/2026
+
+Regra permanente: o chrome não carrega texto explicativo. Cada controle começa pelo ícone e segue com o menor nome ainda intuitivo; o nome completo aparece no hover (`title`/`data-tooltip`) e a explicação fica no popover de info (`data-info-topic` → `INFO_TOPICS` em `ui_info.js`) ou no menu Ajuda. Avisos aparecem só quando um estado impede a ação e dizem apenas o necessário; diálogos com `role="dialog"` podem explicar a decisão por serem transitórios. O encaixe por bordas virou o interruptor **Bordas** (ícone `edgeJoin`), com tooltip `Encaixe por bordas` e tópico `edge-match`; a dica do inspetor na barra de status, o subtítulo da página Biblioteca e a frase do aviso de grade não quadrada foram encurtados. `tests/test_ui_microcopy.js` reprova rótulo estático acima de 64 caracteres, exige o ícone antes do nome e confere que todo `data-info-topic` resolve para um tópico existente.

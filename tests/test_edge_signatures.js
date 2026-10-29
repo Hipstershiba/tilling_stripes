@@ -62,7 +62,7 @@ const emptySame = EdgeSignatures.scoreSide(empty.sides.left, empty.sides.right);
 const emptyFill = EdgeSignatures.scoreSide(empty.sides.left, horizontal.sides.left);
 assert.ok(same > 0.98, `matching horizontal stripes must score high, got ${same}`);
 assert.ok(crossed < 0.25, `perpendicular stripes must score low, got ${crossed}`);
-assert.ok(emptySame < 0.25, `two empty sides must not outrank real ink continuity, got ${emptySame}`);
+assert.strictEqual(emptySame, 0, `two empty sides must not outrank real ink continuity, got ${emptySame}`);
 assert.ok(emptyFill < 0.15, `empty against ink must score low, got ${emptyFill}`);
 console.log(`✓ Edge scores: same=${same.toFixed(3)} crossed=${crossed.toFixed(3)} empty=${emptySame.toFixed(3)}.`);
 
