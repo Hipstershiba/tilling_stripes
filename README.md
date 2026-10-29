@@ -83,7 +83,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 ### 2. Ferramentas do Editor
 Ferramentas de edição direta na grade com propagação simétrica matemática:
 
-- **🔍 Inspecionar (`V`)**: Exibe coordenadas de bloco, subtile, ID do tile, transformação e órbita no inspetor de hover. Atua como o contexto para as configurações de Geração no dock lateral.
+- **🔍 Inspecionar (`V`)**: Exibe coordenadas de bloco, subtile, ID do tile, transformação e órbita no inspetor de hover. É a ferramenta neutra do mosaico: a barra do topo mostra só a identidade dela e o dock direito mantém os painéis estáticos.
 - **✎ Pincel (`B`)**: Pinta células com o tile e rotação ativos. Suporta pincéis inteiros não-cíclicos (1×1 até dimensões de bloco) e Supertiles. Botão direito no mosaico gira o pincel em +90°.
 - **🧹 Borracha (`E`)**: Ativa sempre o pincel vazio (#84), inclusive após usar o carimbo. E repetido mantém a borracha; B restaura o último pincel não vazio e S restaura a captura do carimbo. O escopo e o encaixe continuam valendo.
 - **↻ Girar (`R`)**: Clique esquerdo gira a área em +90°; clique direito gira em -90°. Suporta rotação geométrica D4 ou ciclar variações da mesma família.
@@ -175,10 +175,14 @@ Para integração com softwares de projeção mapeada, VJs e instalações audio
 
 A interface adota a taxonomia de cinco superfícies estritas com responsabilidades dedicadas:
 
-1. **Barra Superior (`#top-control-bar` — O Documento)**:
-   - Artboard: Largura ($W$), Altura ($H$), Inversão ($W \rightleftarrows H$), Trava de proporção e Ajustar à Grade.
-   - Grade: Linhas ($L$), Colunas ($C$), Inversão ($L \rightleftarrows C$), Trava de proporção, Células quadradas 1:1, Margem externa em px e Respiro percentual do bloco (`#paddingInput`).
-   - Zero rolagem horizontal nos monitores 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
+1. **Barra Superior (`#top-control-bar` — Ajustes da Ferramenta Ativa)**:
+   - Segue a **Control Bar** do Illustrator: identifica a ferramenta ativa (`#topToolContext`) e mostra apenas as opções dela.
+   - **Pincel / Carimbo**: tamanho (`#brushSizeControl`), encaixe em bloco (`#btnToggleBrushSnap`) e ampliar editor (`#btnExpandBrushEditor`); a paleta e o construtor ficam no painel Pincel do dock.
+   - **Girar / Espelhar**: área (`#rotateToolOptionsWrap`), ajuste ao bloco, modo Conjunto/Individual e Tipo (Giro 90°/Família).
+   - **Preservar**: ação Preservar/Liberar, tamanho, contagem e limpar preservações.
+   - **Seleção (Carimbo mover)**: área, peças e limpar (`#selectionSummary`).
+   - **Inspeção, Mão e Zoom** não têm ajustes próprios: a barra mostra só a identidade da ferramenta.
+   - Nenhum controle estático de documento fica aqui; eles vivem no dock direito.
 
 2. **Barra Lateral Esquerda (`#left-toolbar` — Ferramentas)**:
    - Estrutura em duas colunas compactas reunindo:
@@ -197,10 +201,10 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
    - Primeiro ocupante: **Histórico (`#dock-history`)** com o botão `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho, com rolagem interna, sem cobrir nem encolher o dock.
    - O trilho é `mosaic-mode-only`: some no criador de peças, devolvendo a largura ao canvas.
 
-5. **Dock Lateral Direito (`#right-dock` — Propriedades e Contexto)**:
-   - **Gerador (`#dock-generator`)**: faixa fixa logo abaixo do cabeçalho do dock, com o botão **Gerar** (`G`) e a navegação de sementes (`#seedInput`, `#btnPrevSeed`, `#btnNextSeed`). Permanece visível tanto no contexto de geração quanto no de edição.
-   - **Exportar (`#dock-export`)**: faixa fixa no rodapé do dock, com seletor PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`), alcançável sempre que o dock estiver aberto no modo mosaico.
-   - **Painel Contextual Dinâmico**: Exibe automaticamente as opções da ferramenta ativa (`inspect` exibe parâmetros de geração e famílias de tiles; `paint` exibe tamanho de pincel, Supertile e paleta; `rotate` exibe modos de giro; `stamp` exibe opções de cópia; `freeze` exibe modos de congelamento).
+5. **Dock Lateral Direito (`#right-dock` — Painéis Estáticos)**:
+   - **Gerador (`#dock-generator`)**: faixa fixa logo abaixo do cabeçalho do dock, com o botão **Gerar** (`G`) e a navegação de sementes (`#seedInput`, `#btnPrevSeed`, `#btnNextSeed`). Permanece visível no modo mosaico.
+   - **Exportar (`#dock-export`)**: faixa fixa no rodapé do dock, com seletor PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`).
+   - **Painéis estáticos**: `#panel-symmetry` (Simetria & Estrutura), `#panel-swatches` (Peças permitidas), `#panel-document` (Prancheta & Grade, movido do topo), `#panel-edit-scope` (Escopo de edição) e `#panel-edit-brush` (construtor e paleta do pincel). Eles não trocam quando a ferramenta muda; o usuário recolhe ou expande cada cabeçalho. A coluna rola internamente e cada lista mantém sua própria rolagem.
    - **Gaveta Recolhida (`body.right-dock-collapsed`)**: Dock recolhe para régua vertical de 44 px (`--dock-rail-w: 44px`), ocultando os painéis roláveis, o gerador e a exportação e expandindo a área útil do canvas.
 
 ### Iconografia
@@ -260,7 +264,7 @@ node tests/run_all.js
    - `test_viewport_pan_zoom.js`: Navegação de viewport, pan 2D contínuo via CSS transforms, atalhos de centralização 100% e ajuste.
    - `test_brush_sizing_snap.js`: Pincel com tamanhos inteiros não-cíclicos, ajuste ao bloco (`Ctrl+U` / `Shift`) e atalho da borracha (`E`).
    - `test_ui_control_registry.js`: Congelamento do inventário dos 60 controles com ID único em `index.html`.
-   - `test_ui_layout_contract.js`: Contrato estrutural das superfícies (posições de dock, gaveta, zoom, cores e ferramentas).
+   - `test_ui_layout_contract.js`: Contrato estrutural das superfícies: Prancheta/Grade em `#panel-document`, grupos contextuais no topo, ausência de `#dock-workspace-edit` e posições de dock, gaveta, zoom, cores e ferramentas.
    - `test_visual_tokens.js`: Tokens CSS resolvidos, contraste dos papéis semânticos e renderização segura dos ícones de comando.
    - `test_visual_system_v2.js`: Contrato da reforma visual (rótulo de Gerar, escala tipográfica, geografia e alvos mínimos).
    - `test_icon_system.js`: Registro único de ícones, grade 24 × 24, pesos ópticos, aliases explícitos e hidratação dos slots do `index.html`.
@@ -348,7 +352,7 @@ A prévia de Girar destaca todas as células alcançadas pelo escopo ativo, usan
 
 Girar opera sobre o conteúdo atual de cada região afetada pelo escopo. Réplicas simétricas leem suas próprias células editadas, em vez de receber uma cópia da região de origem. A direção do giro respeita os espelhamentos D4. Sobreposições só aplicam ciclos completos de movimentação de células para preservar o conteúdo; a prévia usa os mesmos alvos da operação. Pintar e Carimbo mantêm sua semântica de aplicação de um padrão.
 
-O botão **Ampliar editor** abre um popup com canvas maior e paleta lado a lado; os mesmos controles do dock são movidos para ele, sem cópias independentes. O editor trabalha ao vivo; **Concluir** mantém as alterações; **Cancelar** ou `Esc` restaura o pincel da abertura e retorna ao dock. Clique/arraste pinta células e o botão direito gira a célula, inclusive em 1×1. A roda sobre o canvas ampliado e `−`/`+` seguem o mesmo controle de tamanho do mosaico.
+O botão **Ampliar editor** abre um popup com canvas maior e paleta lado a lado; a paleta/construtor do dock e o controle de tamanho da barra contextual são movidos para ele e devolvidos ao fechar, sem cópias independentes. O editor trabalha ao vivo; **Concluir** mantém as alterações; **Cancelar** ou `Esc` restaura o pincel da abertura e retorna ao dock. Clique/arraste pinta células e o botão direito gira a célula, inclusive em 1×1. A roda sobre o canvas ampliado e `−`/`+` seguem o mesmo controle de tamanho do mosaico.
 
 **Clone:** `S` restaura a captura anterior; sem captura, entra automaticamente em Capturar. O gesto **Alt + clique/arraste** permite recapturar, seguido de aplicação com clique normal. `C` continua como alternativa para iniciar captura. Arraste e solte para capturar; a ferramenta passa automaticamente a aplicar. Clique/arraste aplica e botão direito gira o clone. `Esc` ou botão direito durante a captura cancela sem substituir o clone anterior. Capturas com ajuste ao bloco funcionam em qualquer direção de arrasto. Pincel e clone conservam padrões independentes durante a sessão; trocar ferramenta encerra o gesto anterior. Os dois padrões são salvos separadamente no campo opcional `brushToolSessions` do payload v3 e restaurados após recarregar.
 
@@ -440,7 +444,7 @@ Ajuste de densidade após T08: a busca ocupa uma linha, com limpeza por × apena
 
 A simetria da composição mantém os quatro modos existentes. A simetria do bloco apresenta as cinco opções diretamente, incluindo Igual à composição. Documentos novos começam sincronizados; documentos restaurados mantêm a opção independente salva. Os botões 2×2, 4×4, 6×6 e 8×8 representam o bloco completo; `data-sub` continua de 1 a 4 por quadrante.
 
-Peças permitidas mostra famílias com miniatura, contador e seleção total/parcial/vazia. Variantes ficam sob expansão; buscar revela as correspondências e limpar restaura a expansão manual. Isolar família/conjunto oferece Restaurar seleção; alternar entre isolamentos conserva a seleção inicial. Uma alteração manual invalida o isolamento anterior. Todos/Nenhum/Inverter mantêm o alcance de toda a biblioteca, inclusive itens ocultos pela busca (informado no título dos controles). Gerar e semente permanecem à esquerda. Estado de expansão e isolamento é temporário; não altera o schema v3.
+Peças permitidas mostra famílias com miniatura, contador e seleção total/parcial/vazia. Variantes ficam sob expansão; buscar revela as correspondências e limpar restaura a expansão manual. Isolar família/conjunto oferece Restaurar seleção; alternar entre isolamentos conserva a seleção inicial. Uma alteração manual invalida o isolamento anterior. Todos/Nenhum/Inverter mantêm o alcance de toda a biblioteca, inclusive itens ocultos pela busca (informado no título dos controles). Gerar e semente permanecem no topo do dock direito. Estado de expansão e isolamento é temporário; não altera o schema v3.
 
 Revisão visual após T09: as cinco opções do bloco ficam sempre visíveis. Botões de simetria e ferramentas dos dois ambientes compartilham superfícies neutras, preenchimento de seleção e foco explícito; contornos decorativos usam `--border-subtle` (#2e3138). `--border-control` continua reservado aos indicadores funcionais que precisam de destaque. O rodapé pertence a `#workspace-viewport`; em colunas estreitas ele mantém Zoom, salvamento, Spout e Ajuda acessíveis, e o campo de nome do Spout é o primeiro a sair. Até 1050 px o estado de salvamento continua visível e anunciado; até 700 px o rodapé permanece em uma linha, sem a grade. O gerador usa rolagem externa para manter a lista de famílias alcançável com as opções do bloco abertas.
 
@@ -448,9 +452,9 @@ O grupo de zoom do rodapé usa pintura isolada (`translateZ(0)`) e não recorta 
 
 ### Reforma visual V2 (28/10/2026)
 
-A camada **V2 — Reforma visual** no fim de `style.css` refina a apresentação sem alterar contratos: 60 IDs, ordem das cinco superfícies, `#paddingInput` no topo e persistência permanecem iguais. Tokens: `--top-bar-h: 48px`, `--status-bar-h: 32px`, `--font-section: 11px`, `--radius-card: 8px` e uma rampa neutra com `--bg-panel #1c1d21`, `--border-subtle #2e3138` e `--bg-primary #2a5d9e`.
+A camada **V2 — Reforma visual** no fim de `style.css` refina a apresentação sem alterar contratos: 60 IDs, ordem das cinco superfícies, `#paddingInput` em `#panel-document` (dock direito) e persistência permanecem iguais. Tokens: `--top-bar-h: 48px`, `--status-bar-h: 32px`, `--font-section: 11px`, `--radius-card: 8px` e uma rampa neutra com `--bg-panel #1c1d21`, `--border-subtle #2e3138` e `--bg-primary #2a5d9e`.
 
-A barra superior passou a duas cartas de comando (`Prancheta`, `Grade`): um contorno por grupo, rótulos de 10 px, valores de 13 px tabulares, passos fantasma de 24×26 px e unidades explícitas. A ação **Gerar** é um botão rotulado com cor primária. A alternância de ambiente fica no topo da barra esquerda; o **Gerador** abre o topo do dock direito, o **Histórico** é o primeiro item do trilho de utilitários e o **Exportar** fecha o rodapé do dock, deixando a coluna esquerda só com ferramentas, guias e cores. O painel direito usa cabeçalhos finos e listas em linhas de 40 px; ações por linha aparecem no hover/foco. O rodapé tem três zonas e mostra o salvamento com ponto de estado, inclusive na coluna de 1016 px. Alvos mínimos: 24 px em toda a interface (`tests/test_visual_system_v2.js`). Evidências e diagnóstico completo em [`docs/ux/REVISAO_VISUAL_2026-10-28.md`](docs/ux/REVISAO_VISUAL_2026-10-28.md).
+A barra superior é a **Control Bar contextual**: identidade da ferramenta + apenas os ajustes dela, com um contorno por grupo, rótulos de 10 px, valores de 13 px tabulares, passos fantasma de 24×26 px e unidades explícitas. As cartas de documento (`Prancheta`, `Grade`) desceram para `#panel-document` no dock direito. A ação **Gerar** é um botão rotulado com cor primária no topo do dock. A alternância de ambiente fica no topo da barra esquerda; o **Histórico** é o primeiro item do trilho de utilitários e o **Exportar** fecha o rodapé do dock, deixando a coluna esquerda só com ferramentas, guias e cores. O painel direito usa cabeçalhos finos e listas em linhas de 40 px; ações por linha aparecem no hover/foco. O rodapé tem três zonas e mostra o salvamento com ponto de estado, inclusive na coluna de 1016 px. Alvos mínimos: 24 px em toda a interface (`tests/test_visual_system_v2.js`). Evidências e diagnóstico completo em [`docs/ux/REVISAO_VISUAL_2026-10-28.md`](docs/ux/REVISAO_VISUAL_2026-10-28.md).
 
 ### Gerador, Histórico e Exportar fora da coluna esquerda — 28/10/2026
 
@@ -475,14 +479,14 @@ Ferramentas, guias, simetrias, escopos, biblioteca, importação/exportação, p
 
 ### Espaço dos ícones e atalhos de seleção — 28/10/2026
 
-A barra esquerda tem 120 px, o trilho de utilitários 40 px e o painel direito 304 px, preservando ferramentas em duas colunas e o rodapé entre as laterais. Ações com ícones usam alvos de 34×34 px, com intervalos de 4 px; ações auxiliares nos títulos usam 28 px. Simetrias, escopos, propriedades e biblioteca não esticam os botões para ocupar antigas colunas de texto. Encaixe compartilha a linha do tamanho do pincel e Ampliar fica junto do nome da prévia. Histórico mantém rolagem própria no flyout do trilho e Exportar permanece alcançável no rodapé do dock em 900×768.
+A barra esquerda tem 120 px, o trilho de utilitários 40 px e o painel direito 304 px, preservando ferramentas em duas colunas e o rodapé entre as laterais. Ações com ícones usam alvos de 34×34 px, com intervalos de 4 px; ações auxiliares nos títulos usam 28 px. Simetrias, escopos, propriedades e biblioteca não esticam os botões para ocupar antigas colunas de texto. Tamanho, encaixe e Ampliar do pincel ficam na barra contextual; o construtor e a paleta continuam no painel Pincel do dock. Histórico mantém rolagem própria no flyout do trilho e Exportar permanece alcançável no rodapé do dock em 900×768.
 
 Os comandos `selectRect` e `selectBrush` no catálogo compartilhado acionam a mesma função dos cliques e fornecem nomes, tooltips e ajuda. Atalhos respeitam campos, janelas modais e o ambiente: L continua sendo Elipse no editor vetorial. A seleção permanece destacada após a captura; Clonar recebe destaque apenas ao escolher S ou seu botão.
 
 
 ### Fluxo de seleção e clonagem — revisão de 28/10/2026
 
-Durante a seleção, o painel lateral direito permanece visível. Seus controles contextuais mostram área, quantidade de peças, limpar e desfazer/refazer. O tamanho aparece apenas para o pincel de seleção. Os controles são movidos de volta aos seus painéis ao trocar de ferramenta, preservando handlers e IDs. Gerador, biblioteca e propriedades conservam o painel direito de 304 px; o histórico fica no trilho e o rodapé continua na coluna da prancheta. O ícone do pincel de seleção combina contorno tracejado, células e sinal de adição. Criar cópia nas Propriedades usa o mesmo `UiFormat.icon('copy')` da Biblioteca.
+Durante a seleção, o resumo de seleção (`#selectionSummary`) aparece na barra contextual do topo, com área, quantidade de peças e limpar; o dock direito continua estático e visível. O tamanho da seleção usa o mesmo `#brushSizeControl` do Pincel. Nenhum controle é movido entre o dock e o topo ao trocar de ferramenta; os handlers e IDs permanecem nos mesmos elementos. Gerador, biblioteca e propriedades conservam o painel direito de 304 px; o histórico fica no trilho e o rodapé continua na coluna da prancheta. O ícone do pincel de seleção combina contorno tracejado, células e sinal de adição. Criar cópia nas Propriedades usa o mesmo `UiFormat.icon('copy')` da Biblioteca.
 
 Os ícones de Pathfinder usam preenchimento para indicar o resultado: Interseção destaca a área comum e Excluir deixa essa área vazia. Propriedades e Biblioteca compartilham o ícone de cópia; setas de importação, exportação, camadas e histórico seguem a mesma escala.
 
@@ -527,3 +531,9 @@ Exportar conjuntos permite selecionar um ou vários conjuntos e salvar JSON reim
 ### Microcopy da interface — 29/10/2026
 
 Regra permanente: o chrome não carrega texto explicativo. Cada controle começa pelo ícone e segue com o menor nome ainda intuitivo; o nome completo aparece no hover (`title`/`data-tooltip`) e a explicação fica no popover de info (`data-info-topic` → `INFO_TOPICS` em `ui_info.js`) ou no menu Ajuda. Avisos aparecem só quando um estado impede a ação e dizem apenas o necessário; diálogos com `role="dialog"` podem explicar a decisão por serem transitórios. O encaixe por bordas virou o interruptor **Bordas** (ícone `edgeJoin`), com tooltip `Encaixe por bordas` e tópico `edge-match`; a temperatura virou o controle **Variedade** (ícone `variability`), com tooltip `Variabilidade do encaixe` e a mesma explicação no tópico; a dica do inspetor na barra de status, o subtítulo da página Biblioteca e a frase do aviso de grade não quadrada foram encurtados. `tests/test_ui_microcopy.js` reprova rótulo estático acima de 64 caracteres, exige o ícone antes do nome e confere que todo `data-info-topic` resolve para um tópico existente.
+
+### Barra contextual e dock estático — 29/10/2026
+
+A interface deixou de espelhar o modelo antigo (topo estático, dock direito contextual) e passou a seguir o Illustrator: ferramentas na coluna esquerda, **ajustes da ferramenta ativa na barra superior** e **painéis de documento estáticos à direita**. `#topToolContext` identifica a ferramenta e a barra mostra somente o grupo dela: Pincel/Carimbo (`#brushSizeControl`, encaixe e Ampliar), Girar/Espelhar (`#rotateToolOptionsWrap`), Preservar (`#freezeToolOptionsWrap`) e o resumo de seleção (`#selectionSummary`). Inspeção, Mão e Zoom mantêm a barra só com a identidade.
+
+As cartas de Prancheta e Grade saíram do topo e viraram `#panel-document` no dock; o painel começa recolhido para manter Simetria e Peças visíveis e abre com um clique. `#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope` e `#panel-edit-brush` dividem a mesma coluna rolável e não trocam quando a ferramenta muda; cada cabeçalho continua recolhível e a paleta mantém rolagem própria. `#dock-workspace-edit` foi removido. O editor de peças mantém `#dock-workspace-tiles` e alterna as superfícies como antes. O documento de teste `tests/test_ui_layout_contract.js` agora exige os controles de documento em `#panel-document`, os grupos contextuais no topo e a ausência de `#dock-workspace-edit`.

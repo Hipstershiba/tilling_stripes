@@ -2178,7 +2178,6 @@ let mosaicSelectionShape = 'rect';
 let captureGesture = null;
 let selectionBrushDiameter = 1;
 let regionMoveGesture = null;
-let selectionControlHomes = null;
 function moveMosaicRegion(hit) {
   if (!mosaicRegion || !StudioState.mosaicData) return false;
   const m = StudioState.mosaicData, N = m.subtilesPerSide;
@@ -2482,21 +2481,9 @@ function activateEraser() {
   redraw();
 }
 
-function syncSelectionControls(selecting) {
-  const context=document.getElementById('selectionSummary');
-  const undo=document.getElementById('btnEditUndo')?.parentElement;
-  const size=document.getElementById('brushSizeControl');
-  if (!context || !undo?.parentElement || !size?.parentElement || typeof context.appendChild !== 'function') return;
-  if (!selectionControlHomes) selectionControlHomes={undoParent:undo.parentElement,undoNext:undo.nextSibling,sizeParent:size.parentElement,sizeNext:size.nextSibling};
-  const restore=(node,parent,next)=>{if(node.parentElement!==parent) parent.insertBefore(node,next?.parentNode===parent?next:null);};
-  if (selecting) {
-    if (mosaicSelectionShape==='brush') context.appendChild(size);
-    else restore(size,selectionControlHomes.sizeParent,selectionControlHomes.sizeNext);
-    context.appendChild(undo);
-  } else {
-    restore(undo,selectionControlHomes.undoParent,selectionControlHomes.undoNext);
-    restore(size,selectionControlHomes.sizeParent,selectionControlHomes.sizeNext);
-  }
+function syncSelectionControls() {
+  // The selection summary lives in the top control bar, beside the brush size.
+  // Nothing moves between the dock and the canvas anymore.
 }
 
 function activateCloneTool() {
@@ -2606,13 +2593,18 @@ function openBrushEditor() {
   const body = document.getElementById('panelEditBrushBody');
   const host = document.getElementById('brushEditorHost');
   const canvas = document.getElementById('supertileBuilderCanvas');
+  const size = document.getElementById('brushSizeControl');
   if (!dialog || !body || !host || !canvas) return;
   if (StudioState.activeTool !== 'paint' && StudioState.activeTool !== 'stamp') activateStudioTool('paint');
   cancelToolGesture();
   brushEditorPortal = {parent: body.parentNode, next: body.nextSibling, body, canvas,
     width: canvas.width, height: canvas.height, focus: document.activeElement, inert: [],
+    wasHidden: body.classList.contains('hidden'),
+    size, sizeParent: size?.parentNode, sizeNext: size?.nextSibling,
     original: currentBrushSession(), undo: [], redo: []};
+  body.classList.remove('hidden');
   host.appendChild(body);
+  if (size && size.parentNode && body.insertBefore) body.insertBefore(size, body.firstChild);
   canvas.width = canvas.height = 576;
   dialog.classList.remove('hidden');
   window.StudioModal.enter(dialog, () => closeBrushEditor(false));
@@ -2626,6 +2618,8 @@ function closeBrushEditor(commit = true) {
   brushEditorPortal = null;
   StudioState.isPaintingMiniBuilder = false;
   portal.parent.insertBefore(portal.body, portal.next);
+  if (portal.wasHidden) portal.body.classList.add('hidden');
+  if (portal.size && portal.sizeParent) portal.sizeParent.insertBefore(portal.size, portal.sizeNext);
   portal.canvas.width = portal.width;
   portal.canvas.height = portal.height;
   document.getElementById('brushEditorDialog')?.classList.add('hidden');
@@ -3566,7 +3560,13 @@ function renderEditBrushPalette() {
 
   requestAnimationFrame(() => {
     const active = container.querySelector('.tile-swatch-btn.brush-active');
-    if (active) active.scrollIntoView({ block: 'nearest' });
+    if (!active) return;
+    // Scroll only the palette, never the static dock column around it.
+    const box = container.getBoundingClientRect();
+    const target = active.getBoundingClientRect();
+    if (!box.height || !target.height) return;
+    if (target.top < box.top) container.scrollTop -= box.top - target.top;
+    else if (target.bottom > box.bottom) container.scrollTop += target.bottom - box.bottom;
   });
 }
 
@@ -3706,8 +3706,8 @@ function handleMiniBuilderCanvasMouse(e, isDrag = false) {
 }
 
 /**
- * Round 6 — the dock is a single contextual panel. Its title and the rail's first icon
- * reflect the current context (generation vs. the active tool).
+ * The right dock is static: it always presents the same document panels. The
+ * active tool is identified in the top control bar, where its options live.
  */
 const TOOL_CONTEXT_LABELS = {
   inspect: 'Inspeção',
@@ -3719,19 +3719,31 @@ const TOOL_CONTEXT_LABELS = {
   pan: 'Mão',
   zoom: 'Zoom'
 };
+const TOOL_CONTEXT_ICONS = {
+  inspect: 'cursor',
+  paint: 'brush',
+  rotate: 'rotate',
+  mirror: 'mirror',
+  stamp: 'stamp',
+  freeze: 'snowflake',
+  pan: 'hand',
+  zoom: 'zoom'
+};
 
 function syncContextPanel() {
   const title = document.getElementById('ctxPanelTitle');
-  if (!title) return;
-  if (StudioState.studioMode === 'tiles') {
-    title.textContent = 'Editar peças';
-    return;
+  if (title) title.textContent = StudioState.studioMode === 'tiles' ? 'Editar peças' : 'Propriedades';
+
+  const tool = StudioState.activeTool;
+  const label = tool === 'paint' && isEraserPattern()
+    ? 'Borracha'
+    : (window.StudioCommands?.get('mosaic', tool)?.name || TOOL_CONTEXT_LABELS[tool] || 'Edição');
+  const nameEl = document.getElementById('topToolName');
+  const iconEl = document.getElementById('topToolIcon');
+  if (nameEl) nameEl.textContent = label;
+  if (iconEl && window.UiFormat?.icon) {
+    iconEl.innerHTML = window.UiFormat.icon(TOOL_CONTEXT_ICONS[tool] || 'cursor', 16);
   }
-  const isGenerator = StudioState.workspace === 'generate';
-  if (StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move') { title.textContent = 'Seleção'; return; }
-  title.textContent = isGenerator
-    ? 'Geração'
-    : (StudioState.activeTool === 'paint' && isEraserPattern() ? 'Borracha' : window.StudioCommands?.get('mosaic', StudioState.activeTool)?.name || TOOL_CONTEXT_LABELS[StudioState.activeTool] || 'Edição');
 }
 
 function syncEditWorkspaceUI() {
@@ -3743,20 +3755,26 @@ function syncEditWorkspaceUI() {
   document.body.dataset.stampMode = StudioState.stampInteractionMode;
   document.body.dataset.studioMode = StudioState.studioMode === 'tiles' ? 'tiles' : 'mosaic';
 
-  // 1. Workspace panes — driven by the tool: inspect shows generation, edit tools show their options.
+  // 1. Right dock is static in mosaic mode; only the piece editor swaps panes.
 
   // 2. Right Dock Workspace Panes
   const inTilesMode = StudioState.studioMode === 'tiles';
   const genPane = document.getElementById('dock-workspace-generate');
-  const editPane = document.getElementById('dock-workspace-edit');
   const tilesPane = document.getElementById('dock-workspace-tiles');
-  if (genPane && editPane) {
-    genPane.classList.toggle('hidden', inTilesMode || StudioState.workspace !== 'generate');
-    editPane.classList.toggle('hidden', inTilesMode || StudioState.workspace !== 'edit');
+  if (genPane) {
+    genPane.classList.toggle('hidden', inTilesMode);
   }
   if (tilesPane) {
     tilesPane.classList.toggle('hidden', !inTilesMode);
   }
+
+  // 3. Top control bar: only the active tool's options stay visible.
+  const activeTool = StudioState.activeTool;
+  const showBrushOptions = activeTool === 'paint' || activeTool === 'stamp';
+  document.getElementById('ctxPaint')?.classList.toggle('hidden', !showBrushOptions);
+  document.getElementById('rotateToolOptionsWrap')?.classList.toggle('hidden', !['rotate', 'mirror'].includes(activeTool));
+  document.getElementById('freezeToolOptionsWrap')?.classList.toggle('hidden', activeTool !== 'freeze');
+  document.getElementById('topToolContext')?.classList.toggle('hidden', inTilesMode);
 
   // 3. Left Toolbar Active Tool Highlight
   const selecting = StudioState.studioMode !== 'tiles' && StudioState.activeTool === 'stamp' && mosaicTransferMode === 'move';
@@ -3775,10 +3793,6 @@ function syncEditWorkspaceUI() {
   const dimensions = document.getElementById('selectionDimensions'), cellCount = document.getElementById('selectionCellCount');
   if (dimensions) dimensions.textContent = selectedPattern ? `${selectedPattern.cols} × ${selectedPattern.rows}` : '—';
   if (cellCount) cellCount.textContent = selectedPattern ? String(selectedPattern.cells.flat().filter(Boolean).length) : '0';
-  const editHeading = document.getElementById('editPanelHeading');
-  if (editHeading) editHeading.textContent = selecting ? 'Histórico' : 'Edição & Simetria';
-  const brushHeading = document.getElementById('brushPanelHeading');
-  if (brushHeading) brushHeading.textContent = selecting ? 'Tamanho' : 'Pincel';
   const clearRegionButton = document.getElementById('btnClearRegion');
   if (clearRegionButton) clearRegionButton.disabled = !mosaicRegion;
   syncSelectionControls(selecting);
@@ -3831,19 +3845,15 @@ function syncEditWorkspaceUI() {
     sameTileNotice.classList.toggle('hidden', !(StudioState.editScope === 'same_tile' && isMulti));
   }
 
-  // 6. Contextual Rotate Tool Controls (and hide Brush Panel when Rotate tool is active)
+  // 6. Contextual Rotate / Mirror options in the top bar
   document.getElementById('rotateBehaviorControl')?.classList.toggle('hidden',StudioState.activeTool==='mirror');
   document.getElementById('rotateBehaviorControl')?.previousElementSibling?.classList.toggle('hidden',StudioState.activeTool==='mirror');
   const isRotateTool = ['rotate','mirror'].includes(StudioState.activeTool);
   const rotateOpts = document.getElementById('rotateToolOptionsWrap');
   if (rotateOpts) {
     rotateOpts.classList.toggle('hidden', !isRotateTool);
-    const areaLabel=rotateOpts.querySelector?.('.prop-label');
-    if(areaLabel) areaLabel.textContent=StudioState.activeTool==='mirror'?'Área':'Tamanho do Giro';
-  }
-  const brushPanel = document.getElementById('panel-edit-brush');
-  if (brushPanel) {
-    brushPanel.classList.toggle('hidden', isRotateTool || StudioState.activeTool === 'freeze');
+    const rotateLabel = document.getElementById('rotateToolLabel');
+    if (rotateLabel) rotateLabel.textContent = StudioState.activeTool === 'mirror' ? 'Espelhar' : 'Girar';
   }
 
   document.querySelectorAll('#rotateSizeControl .seg-btn[data-rot-size]').forEach((btn) => {
@@ -3905,7 +3915,7 @@ function syncEditWorkspaceUI() {
     const detail = row.querySelector('[data-size-detail]');
     if (value) value.textContent = `${info.dim}×${info.dim}`;
     if (detail) detail.textContent = row.dataset.sizeTool === 'freeze'
-      ? `Até ${info.N}×${info.N} subtiles (1 bloco)` : 'peças';
+      ? (info.dim >= info.N ? 'bloco' : 'peças') : 'peças';
     const decrease = row.querySelector('[data-size-step="-1"]');
     const increase = row.querySelector('[data-size-step="1"]');
     if (decrease) decrease.disabled = info.dim <= info.min;

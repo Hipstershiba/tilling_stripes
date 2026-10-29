@@ -1,7 +1,7 @@
 ---
 name: tiling-invariants-gate
 description: >-
-  Use this skill before committing or delivering any code changes in this workspace to enforce the 7 project invariants of Tiling Stripes Studio: D4 dihedral group algebra, cell stabilizers, UI 4-surface hierarchy, 60 frozen controls registry, persistence schema v3, documentation consistency, and interface microcopy.
+  Use this skill before committing or delivering any code changes in this workspace to enforce the 7 project invariants of Tiling Stripes Studio: D4 dihedral group algebra, cell stabilizers, UI 5-surface hierarchy, 60 frozen controls registry, persistence schema v3, documentation consistency, and interface microcopy.
 ---
 
 # Tiling Stripes Invariants & Quality Gate
@@ -18,12 +18,13 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
    - The 4 canonical symmetry mode IDs are: `mandala_d4`, `kaleidoscope`, `rotational_c4`, `bilateral_d2`. NEVER use `kaleidoscope_permissive`.
    - The 85-tile catalog (IDs 0–84) in 31 families is algebraically closed under $D_4$.
 
-2. **UI 5-Surfaces Contract & Flex Order:**
-   - `#left-toolbar` (order: 0) — 2-column tool column: 7 tools, visual guides, swatches.
+2. **UI 5-Surfaces Contract, Illustrator Geography & Flex Order:**
+   - `#top-control-bar` (above the body) — **Control Bar** for the active tool only: `#topToolContext`, `#ctxPaint`, `#rotateToolOptionsWrap`, `#freezeToolOptionsWrap` and `#selectionSummary`. Static document controls MUST NOT return here.
+   - `#left-toolbar` (order: 0) — 2-column tool column: tools, visual guides, swatches.
    - `#workspace-viewport` (order: 1) — Canvas with 2D pan and zoom via CSS transforms.
    - `#utility-rail` (order: 2) — 40px rail for document tools that open left-side flyouts over the canvas; its first tenant is history (`#dock-history`).
-   - `#right-dock` (order: 3) — Dynamic contextual panel with collapsible 44px drawer toggle (`#btnToggleRightDock`), plus `#dock-generator` (top strip) and `#dock-export` (footer) in mosaic mode.
-   - NEVER create `#left-rail`, `#workspaceSwitcher`, or `#btnContextGenerator`.
+   - `#right-dock` (order: 3) — **Static** property dock: collapsible 44px drawer toggle (`#btnToggleRightDock`), `#dock-generator` (top strip), `#dock-workspace-generate` with `#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope` and `#panel-edit-brush`, `#dock-workspace-tiles` in pieces mode, and `#dock-export` (footer). It MUST NOT swap panels when the tool changes.
+   - NEVER create `#left-rail`, `#workspaceSwitcher`, `#btnContextGenerator`, or `#dock-workspace-edit`.
    - The control registry consists of **exactly 60 frozen control IDs**.
 
 3. **Persistence and Snapshots:**
@@ -33,7 +34,7 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
    - The 8 pure persistence functions in `core/state_persistence.js` must remain exported.
 
 4. **Canonical Shortcuts:**
-   - `V`: Inspect / Generation Context
+   - `V`: Inspect (neutral tool; generation panels stay in the static dock)
    - `B`: Brush | `E`: Eraser (Tile #84) | `R`: Rotate | `S`: Stamp (`C` captures) | `F`: Freeze (`Shift+F` clears)
    - `H` or `Space`: Pan | `Z`: Zoom | `1` / `Shift+1`: 100% centered | `0`: Fit to window
    - `Q` / `Tab`: Cycle symmetry scopes (1..6)

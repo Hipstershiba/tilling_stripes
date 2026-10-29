@@ -4776,29 +4776,34 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
   #status-bar .status-right { width: 100%; margin-left: 0; justify-content: space-between; }
 }
 
-/* Swatches list is the internal scrolling surface in the generation dock */
+/* Static right dock: the whole column scrolls; lists keep their own scroll. */
 #dock-workspace-generate {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-#panel-symmetry {
+#panel-document,
+#panel-symmetry,
+#panel-edit-scope,
+#panel-edit-brush {
   flex-shrink: 0;
 }
 #panel-swatches {
-  flex: 1 1 auto;
-  min-height: 200px;
+  flex: 0 0 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 #panelSwatchesBody {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 #familiesSwatchContainer {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 120px;
+  max-height: 34vh;
   overflow-y: auto;
 }
 
@@ -4827,8 +4832,8 @@ button.icon-only > svg { flex-shrink:0; }
 
 .edit-scope-title { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .edit-scope-card { justify-content:center; }
-#brushEditorHost #panelEditBrushBody { grid-template-rows:auto minmax(0,1fr); grid-template-areas:"preview search" "preview palette"; }
-@media (max-width:700px) { #brushEditorHost #panelEditBrushBody { grid-template-rows:auto auto minmax(180px,1fr); grid-template-areas:"preview" "search" "palette"; } }
+#brushEditorHost #panelEditBrushBody { grid-template-rows:auto auto minmax(0,1fr); grid-template-areas:"stamp stamp" "preview search" "preview palette"; }
+@media (max-width:700px) { #brushEditorHost #panelEditBrushBody { grid-template-rows:auto auto auto minmax(180px,1fr); grid-template-areas:"stamp" "preview" "search" "palette"; } }
 
 .family-solo-btn .ui-icon { display:block; margin:auto; }
 
@@ -4875,32 +4880,28 @@ button.icon-only > svg { flex-shrink:0; }
 #left-toolbar .sidebar-seed-nav { gap:2px; }
 #left-toolbar .sidebar-history-item { min-width:0; }
 #left-toolbar .sidebar-history-item time { display:none; }
-.selection-summary { padding:12px; border-bottom:1px solid var(--border-subtle); }
-.selection-summary-heading { display:flex; align-items:center; justify-content:space-between; font-weight:600; }
-.selection-summary dl { display:flex; justify-content:space-between; gap:12px; margin:8px 0 0; }
-.selection-summary dt { color:var(--text-muted); font-size:var(--font-ui); }
-.selection-summary dd { margin:4px 0 0; font-variant-numeric:tabular-nums; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-scope,
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .panel-header,
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .supertile-builder-card,
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush .swatches-toolbar,
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #editBrushPaletteContainer,
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #brushSnapRow { display:none !important; }
-body[data-region-tool="selection"][data-studio-mode="mosaic"] #panel-edit-brush { display:none; }
+/* Selection summary lives in the contextual top bar, beside the brush size. */
+#top-control-bar .selection-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 10px;
+  background: #17191d;
+  border: 1px solid #2c2f36;
+  border-radius: 9px;
+  flex: 0 0 auto;
+}
+#top-control-bar .selection-summary.hidden { display: none !important; }
+#top-control-bar .selection-summary-heading { display: contents; }
+#top-control-bar .selection-summary-heading > span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+#top-control-bar .selection-summary #btnClearRegion { order:4; }
+#top-control-bar .selection-summary dl { display:flex; margin:0; gap:10px; }
+#top-control-bar .selection-summary dl > div { display:flex; align-items:center; gap:6px; }
+#top-control-bar .selection-summary dt { color:var(--text-muted); font-size:var(--font-ui); }
+#top-control-bar .selection-summary dd { margin:0; font-variant-numeric:tabular-nums; }
 body[data-cursor-mode="move"] #canvas-stage canvas { cursor:move !important; }
 #right-dock.collapsed { width:var(--dock-rail-w) !important; }
-
-#dock-workspace-edit > .selection-summary { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:12px; flex:0 0 auto; }
-#dock-workspace-edit > .selection-summary.hidden { display:none; }
-.selection-summary-heading { display:contents; }
-.selection-summary-heading > span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
-.selection-summary #btnClearRegion { order:4; }
-.selection-summary dl { margin:0; gap:12px; }
-.selection-summary dl > div { display:flex; align-items:center; gap:6px; }
-.selection-summary dd { margin:0; }
-.selection-summary #brushSizeControl { width:140px; min-width:140px; padding:2px 4px; gap:4px; border:0; border-radius:0; }
-.selection-summary #brushSnapRow { display:none; }
-.selection-summary .brush-size-sub { display:none; }
 
 #left-toolbar .sidebar-seed-row { gap:2px; }
 #left-toolbar .sidebar-seed-chip { padding:0 1px; }
@@ -6660,3 +6661,158 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 .edge-variability-control.is-disabled input[type="range"] { cursor: not-allowed; }
 .edge-variability-control.is-disabled input[type="range"]::-webkit-slider-thumb { background: var(--text-muted); }
 .edge-variability-control.is-disabled input[type="range"]::-moz-range-thumb { background: var(--text-muted); }
+
+/* ============================================================================
+   V2 — BARRA CONTEXTUAL E DOCK ESTÁTICO (29/10/2026)
+   ----------------------------------------------------------------------------
+   Illustrator como referência: ferramentas à esquerda, ajustes da ferramenta
+   ativa no topo e painéis de documento sempre no mesmo lugar à direita.
+   Trocar de ferramenta não move nem troca os painéis do dock.
+   ============================================================================ */
+
+#top-control-bar { overflow-x: auto; overflow-y: hidden; }
+
+#topToolContext {
+  padding: 0 12px 0 9px;
+  gap: 7px;
+}
+.top-tool-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--accent-blue);
+}
+.top-tool-icon .ui-icon { display: block; }
+.top-tool-name {
+  font-size: var(--font-ui);
+  font-weight: 650;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+#top-control-bar .top-context-group {
+  align-items: center;
+  gap: 8px;
+  padding-right: 8px;
+}
+#top-control-bar .top-context-group > .bar-group-label { padding: 0 9px 0 8px; }
+
+/* Pincel / Carimbo */
+#top-control-bar #brushSizeControl {
+  width: 190px;
+  min-width: 190px;
+  padding: 0 4px;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+#top-control-bar #brushSizeControl .brush-size-badge { min-width: 52px; flex: 0 0 auto; }
+#top-control-bar #brushSizeControl .brush-size-val { font-size: var(--font-value); }
+#top-control-bar #brushSizeControl .brush-size-sub { font-size: 10px; white-space: nowrap; }
+#top-control-bar .brush-snap-row { margin: 0; }
+#top-control-bar .brush-snap-toggle-btn {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+}
+#top-control-bar .brush-snap-toggle-btn .snap-label,
+#top-control-bar .brush-snap-toggle-btn .snap-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#top-control-bar #btnExpandBrushEditor { width: 30px; min-width: 30px; height: 30px; min-height: 30px; }
+
+/* Girar / Espelhar / Preservar */
+#top-control-bar #rotateToolOptionsWrap,
+#top-control-bar #freezeToolOptionsWrap {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  height: 38px;
+}
+#top-control-bar .top-size-row {
+  width: 150px;
+  min-width: 150px;
+  padding: 0 4px;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+#top-control-bar .top-size-row .brush-size-badge { min-width: 48px; flex: 0 0 auto; }
+#top-control-bar .top-size-row .brush-size-val { font-size: var(--font-value); }
+#top-control-bar .top-size-row .brush-size-sub { font-size: 10px; white-space: nowrap; }
+#top-control-bar .top-size-snap { margin: 0; }
+#top-control-bar .top-size-snap .seg-btn { width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; }
+#top-control-bar .top-seg-group { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+#top-control-bar .top-seg-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+#top-control-bar .top-seg {
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: column;
+  padding: 2px;
+}
+#top-control-bar .top-seg .seg-btn { width: 30px; min-width: 30px; height: 28px; min-height: 28px; padding: 0; }
+#top-control-bar #freezeToolCountBadge { white-space: nowrap; }
+#top-control-bar #btnFreezeClearSelection { width: 30px; min-width: 30px; height: 30px; min-height: 30px; }
+
+/* Documento: Prancheta e Grade agora vivem no dock direito */
+#panel-document .panel-body { gap: 10px; }
+.document-block { display: flex; flex-direction: column; gap: 6px; }
+.document-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.document-controls .input-chip { height: 30px; padding: 0 0 0 6px; gap: 4px; }
+.document-controls .input-chip input[type="number"] { width: 40px; padding: 0 2px; }
+.document-controls .input-chip.chip-compact input[type="number"] { width: 26px; }
+.document-controls .input-chip.chip-medium input[type="number"] { width: 32px; }
+.document-controls .step-btn { min-width: 20px; width: 20px; }
+.document-controls .icon-btn,
+.document-controls .bar-action-btn.icon-only {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+.document-controls .bar-action-btn:not(.icon-only) { width: auto; min-width: 0; height: 30px; min-height: 30px; padding: 0 8px; }
+
+/* Dock estático: Peças e Pincel mantêm rolagem interna curta */
+#panel-swatches { min-height: 0; }
+#panel-edit-brush.dock-panel-flex { flex: 0 0 auto; }
+#panel-edit-brush .swatches-panel-body { flex: 0 0 auto; gap: 8px; }
+#panelEditBrushBody .edit-brush-scroll { max-height: 28vh; min-height: 120px; overflow-y: auto; }
+#panel-edit-scope .panel-body { gap: 10px; }
+
+@media (max-width: 1400px) {
+  #top-control-bar .top-context-group { flex-wrap: nowrap; }
+  #top-control-bar #brushSizeControl { width: 170px; min-width: 170px; }
+  #top-control-bar #rotateToolOptionsWrap,
+  #top-control-bar #freezeToolOptionsWrap { flex-wrap: nowrap; }
+}
+
+/* The expanded editor keeps the same size control; it is moved there on open. */
+#brushEditorHost #brushSizeControl {
+  grid-area: stamp;
+  width: 100%;
+  min-width: 0;
+}
+#brushEditorHost #brushSizeControl .brush-size-badge { min-width: 90px; }

@@ -25,13 +25,20 @@ console.log('✓ Exactly 1 freeze tool button on rail.');
 assert.ok(html.includes('data-icon="snowflake"'), '#toolFreeze must declare data-icon="snowflake"');
 console.log('✓ data-icon="snowflake" verified.');
 
-// 3. #freezeToolOptionsWrap with class hidden
-assert.ok(
-  html.includes('id="freezeToolOptionsWrap" class="prop-section hidden"') ||
-  html.includes('id="freezeToolOptionsWrap" class="hidden prop-section"'),
-  '#freezeToolOptionsWrap must exist with class hidden'
-);
-console.log('✓ #freezeToolOptionsWrap exists with class hidden.');
+// 3. #freezeToolOptionsWrap exists in the contextual top bar, initially hidden
+const freezeWrapTag = /<div[^>]*id="freezeToolOptionsWrap"[^>]*>/.exec(html);
+assert.ok(freezeWrapTag, '#freezeToolOptionsWrap must exist');
+assert.ok(/\bprop-section\b/.test(freezeWrapTag[0]) && /\bhidden\b/.test(freezeWrapTag[0]),
+  '#freezeToolOptionsWrap must keep the prop-section surface and start hidden');
+console.log('✓ #freezeToolOptionsWrap exists with prop-section and hidden.');
+
+// 3b. The freeze options moved from the dock to the top control bar.
+const topBarStart = html.indexOf('id="top-control-bar"');
+const topBarEnd = html.indexOf('</header>', topBarStart);
+assert.ok(topBarStart > -1 && html.indexOf('id="freezeToolOptionsWrap"') > topBarStart &&
+  html.indexOf('id="freezeToolOptionsWrap"') < topBarEnd,
+  '#freezeToolOptionsWrap must live inside #top-control-bar');
+console.log('✓ Freeze options live in the contextual top bar.');
 
 // 4. Absence of legacy duplicates
 assert.ok(!html.includes('id="freezeHelpText"'), '#freezeHelpText must be absent from DOM');

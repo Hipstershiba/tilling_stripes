@@ -397,13 +397,11 @@
 
     const tilesDock = document.getElementById('dock-workspace-tiles');
     const genDock = document.getElementById('dock-workspace-generate');
-    const editDock = document.getElementById('dock-workspace-edit');
     const ctxTitle = document.getElementById('ctxPanelTitle');
 
     if (activeMode === 'tiles') {
       tilesDock?.classList.remove('hidden');
       genDock?.classList.add('hidden');
-      editDock?.classList.add('hidden');
       if (ctxTitle) ctxTitle.textContent = 'Editar peças';
     } else {
       tilesDock?.classList.add('hidden');

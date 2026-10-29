@@ -99,6 +99,8 @@
 
 
     <!-- ==================== TOP CONTROL BAR (Adobe Illustrator Control Strip) ==================== -->
+    <!-- A barra do topo mostra apenas os ajustes da ferramenta ativa. O documento
+         (Prancheta, Grade, Simetria, Peças) vive no dock estático à direita. -->
     <header id="top-control-bar">
       <div class="brand-badge" title="Tiling Stripes Studio v2">
         <span class="brand-logo">TS</span>
@@ -107,86 +109,92 @@
 
       <div class="bar-divider"></div>
 
-      <!-- Artboard / Canvas Dimensions -->
-      <div class="bar-group mosaic-mode-only" aria-label="Dimensões da Prancheta">
-        <span class="bar-group-label">Prancheta</span>
-        <div class="input-chip" title="Largura do Canvas (px)">
-          <label class="chip-prefix" for="canvasW">Larg.</label>
-          <input type="number" id="canvasW" aria-label="Largura da prancheta em pixels" value="600" min="100" max="4096" step="50">
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
-              title="Aumentar Largura" aria-label="Aumentar Largura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Largura" aria-label="Diminuir Largura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-          </div>
-        </div>
-        <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><span class="icon-slot" data-icon-slot="swap"></span></button>
-        <div class="input-chip" title="Altura do Canvas (px)">
-          <label class="chip-prefix" for="canvasH">Alt.</label>
-          <input type="number" id="canvasH" aria-label="Altura da prancheta em pixels" value="600" min="100" max="4096" step="50">
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
-              title="Aumentar Altura" aria-label="Aumentar Altura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Altura" aria-label="Diminuir Altura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-          </div>
-        </div>
-        <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção da Prancheta">
-          <span class="icon-slot" data-icon-slot="lock"></span>
-        </button>
-        <button id="btnFitCanvasToGrid" class="bar-action-btn icon-only" title="Ajustar" aria-label="Ajustar"><span class="icon-slot" data-icon-slot="fit"></span><span class="icon-label"><span class="btn-full-text">Ajustar</span><span class="btn-short-text">Ajustar</span></span></button>
+      <!-- Identity of the active tool (Illustrator control-bar anchor) -->
+      <div id="topToolContext" class="bar-group top-tool-context mosaic-mode-only" aria-label="Ferramenta ativa">
+        <span id="topToolIcon" class="top-tool-icon" aria-hidden="true"></span>
+        <span id="topToolName" class="top-tool-name">Inspeção</span>
       </div>
 
-      <div class="bar-divider mosaic-mode-only"></div>
+      <!-- Pincel / Carimbo: brush size, snap and the expanded editor -->
+      <div id="ctxPaint" class="bar-group top-context-group mosaic-mode-only hidden" aria-label="Opções do Pincel e do Carimbo">
+        <span class="bar-group-label">Pincel</span>
+        <div class="brush-size-display-row" id="brushSizeControl">
+          <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+          <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
+            <span class="brush-size-val" id="brushSizeValueText">1×1</span>
+            <span class="brush-size-sub" id="brushSizeSubText">peças</span>
+          </div>
+          <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+          <div class="brush-snap-row" id="brushSnapRow">
+            <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
+              <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
+          </div>
+        </div>
+        <button type="button" id="btnExpandBrushEditor" class="bar-action-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar editor</span></button>
+      </div>
 
-      <!-- Grid Dimensions (Rows x Cols & Margin) -->
-      <div class="bar-group" aria-label="Configuração da Grade">
-        <span class="bar-group-label mosaic-mode-only">Grade</span>
-        <div class="input-chip chip-compact mosaic-mode-only" title="Linhas de Blocos (Rows)">
-          <label class="chip-prefix" for="gridRows">Linhas</label>
-          <input type="number" id="gridRows" aria-label="Linhas da grade em blocos" value="3" min="1" max="32" step="1">
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
-              title="Mais Linhas" aria-label="Mais Linhas"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1"
-              title="Menos Linhas" aria-label="Menos Linhas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+      <!-- Seleção de região (Carimbo em modo mover) -->
+      <section class="selection-summary hidden" id="selectionSummary" aria-label="Seleção">
+        <div class="selection-summary-heading"><span>Seleção</span><button type="button" id="btnClearRegion" class="mini-btn" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="close"></span></button></div>
+        <dl><div><dt>Área</dt><dd id="selectionDimensions">—</dd></div><div><dt>Peças</dt><dd id="selectionCellCount">0</dd></div></dl>
+      </section>
+
+      <!-- Girar / Espelhar: área, modo e tipo -->
+      <div id="rotateToolOptionsWrap" class="prop-section hidden bar-group top-context-group mosaic-mode-only" aria-label="Opções de Girar e Espelhar">
+        <span class="bar-group-label" id="rotateToolLabel">Girar</span>
+        <div class="brush-size-display-row top-size-row" data-size-tool="rotate" role="group" aria-label="Tamanho da área de giro">
+          <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+          <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
+            <span class="brush-size-val" data-size-value>1×1</span>
+            <span class="brush-size-sub" data-size-detail>peças</span>
+          </div>
+          <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+        </div>
+        <div class="tool-size-snap top-size-snap" id="rotateSizeControl">
+          <button type="button" class="seg-btn icon-only" data-rot-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><span class="icon-slot" data-icon-slot="blocks"></span><span class="icon-label">Ajustar ao bloco</span></button>
+        </div>
+
+        <div id="rotateGroupModeSection" class="top-seg-group hidden">
+          <span class="top-seg-label">Área</span>
+          <div class="segmented-control top-seg" id="rotateGroupModeControl">
+            <button type="button" class="seg-btn active icon-only" data-rot-group="group"
+              title="Conjunto" aria-label="Conjunto"><span class="icon-slot" data-icon-slot="folder"></span><span class="icon-label">Conjunto</span></button>
+            <button type="button" class="seg-btn icon-only" data-rot-group="individual"
+              title="Individual" aria-label="Individual"><span class="icon-slot" data-icon-slot="tiles"></span><span class="icon-label">Cada Tile</span></button>
           </div>
         </div>
-        <button id="btnSwapGridSize" class="icon-btn mosaic-mode-only" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><span class="icon-slot" data-icon-slot="swap"></span></button>
-        <div class="input-chip chip-compact mosaic-mode-only" title="Colunas de Blocos (Cols)">
-          <label class="chip-prefix" for="gridCols">Colunas</label>
-          <input type="number" id="gridCols" aria-label="Colunas da grade em blocos" value="3" min="1" max="32" step="1">
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
-              title="Mais Colunas" aria-label="Mais Colunas"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1"
-              title="Menos Colunas" aria-label="Menos Colunas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+
+        <div class="top-seg-group">
+          <span class="top-seg-label">Tipo</span>
+          <div class="segmented-control top-seg" id="rotateBehaviorControl">
+            <button type="button" class="seg-btn active icon-only" data-rot-mode="d4_r90"
+              title="Giro 90°" aria-label="Giro 90°"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro 90°</span></button>
+            <button type="button" class="seg-btn icon-only" data-rot-mode="family"
+              title="Família" aria-label="Família"><span class="icon-slot" data-icon-slot="folder"></span><span class="icon-label">Família</span></button>
           </div>
         </div>
-        <button id="btnLockGridRatio" class="icon-btn mosaic-mode-only" title="Travar Proporção da Grade">
-          <span class="icon-slot" data-icon-slot="lock"></span>
-        </button>
-        <button id="btnSquareGrid" class="bar-action-btn mosaic-mode-only" title="Tornar células quadradas"><span class="btn-full-text">1:1</span><span class="btn-short-text">1:1</span></button>
-        <div class="input-chip chip-medium mosaic-mode-only" title="Margem externa da Prancheta (px)">
-          <label class="chip-prefix" for="gridMargin"><span class="chip-label-full">Margem</span><span class="chip-label-short">M</span></label>
-          <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
-          <span class="chip-suffix">px</span>
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
-              title="Aumentar Margem" aria-label="Aumentar Margem"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1"
-              title="Diminuir Margem" aria-label="Diminuir Margem"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-          </div>
+      </div>
+
+      <!-- Preservar: ação, tamanho e limpeza -->
+      <div id="freezeToolOptionsWrap" class="prop-section hidden bar-group top-context-group mosaic-mode-only" aria-label="Opções de Preservar">
+        <span class="bar-group-label">Preservar</span>
+        <span id="freezeToolCountBadge" class="prop-badge secondary">Nenhum</span>
+        <div class="segmented-control top-seg" id="freezeModeControl" role="group" aria-label="Modo da trava">
+          <button type="button" data-freeze-mode="freeze" class="seg-btn active icon-only" aria-pressed="true" title="Preservar" aria-label="Preservar"><span class="icon-slot" data-icon-slot="lock"></span><span class="icon-label">Preservar</span></button>
+          <button type="button" data-freeze-mode="unfreeze" class="seg-btn icon-only" aria-pressed="false" title="Liberar" aria-label="Liberar"><span class="icon-slot" data-icon-slot="unlock"></span><span class="icon-label">Destravar</span></button>
         </div>
-        <div class="input-chip chip-medium mosaic-mode-only" title="Espaçamento interno dos azulejos (%)">
-          <label class="chip-prefix" for="paddingInput"><span class="chip-label-full">Espaçamento</span><span class="chip-label-short">P</span></label>
-          <input type="number" id="paddingInput" aria-label="Espaçamento interno em porcentagem" min="0" max="25" step="1" value="5">
-          <span class="chip-suffix">%</span>
-          <div class="chip-steppers">
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento" aria-label="Aumentar Espaçamento"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-            <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Espaçamento" aria-label="Diminuir Espaçamento"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+        <div class="brush-size-display-row top-size-row" data-size-tool="freeze" role="group" aria-label="Tamanho da área de trava">
+          <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de trava" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+          <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
+            <span class="brush-size-val" data-size-value>1×1</span>
+            <span class="brush-size-sub" data-size-detail>peças</span>
           </div>
+          <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
         </div>
+        <div class="tool-size-snap top-size-snap" id="freezeSizeControl">
+          <button type="button" class="seg-btn icon-only" data-freeze-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><span class="icon-slot" data-icon-slot="blocks"></span><span class="icon-label">Ajustar ao bloco</span></button>
+        </div>
+        <button type="button" id="btnFreezeClearSelection" class="bar-action-btn icon-only" disabled title="Limpar preservações" aria-label="Limpar preservações"><span class="icon-slot" data-icon-slot="unlock"></span><span class="icon-label">Descongelar tudo</span></button>
       </div>
 
       <!-- Subtile Studio Contextual Top Strip (Visible only in data-studio-mode="tiles") -->
@@ -526,11 +534,11 @@
         </div>
       </aside>
 
-      <!-- RIGHT DOCK PANELS (contextual: generation vs. active tool) -->
+      <!-- RIGHT DOCK PANELS (static: document, pattern, pieces, scope and ink) -->
       <aside id="right-dock" aria-label="Painéis de Propriedades e Edição">
-        <!-- Dock Header: context title + collapse toggle (the Gerador/Editor switch moved to the rail) -->
+        <!-- Dock Header: static title + collapse toggle -->
         <header id="dock-header">
-          <span id="ctxPanelTitle" class="dock-context-title">Geração</span>
+          <span id="ctxPanelTitle" class="dock-context-title">Propriedades</span>
           <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
             <span class="dock-toggle-icon">»</span>
           </button>
@@ -550,9 +558,107 @@
         </section>
 
         <!-- ================================================================
-             WORKSPACE 1: MODO GERADOR (Simetria & Swatches Permitidos)
+             DOCK ESTÁTICO (Propriedades independentes da ferramenta ativa)
+             Documento, Simetria, Peças, Escopo e Pincel permanecem no mesmo
+             lugar; só a barra superior troca com a ferramenta.
              ================================================================ -->
         <div id="dock-workspace-generate" class="dock-workspace-pane">
+
+          <!-- PANEL 0: DOCUMENTO — Prancheta & Grade (movidos do topo, recolhido por padrão) -->
+          <section class="dock-panel collapsed" id="panel-document">
+            <header class="panel-header" data-collapse-target="panelDocumentBody" role="button" tabindex="0" aria-expanded="false" aria-controls="panelDocumentBody">
+              <div class="panel-title-wrap">
+                <span class="icon-slot" data-icon-slot="grid" data-icon-size="14"></span>
+                <span>Documento</span>
+              </div>
+              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
+            </header>
+            <div class="panel-body document-panel-body hidden" id="panelDocumentBody">
+              <div class="document-block" aria-label="Prancheta">
+                <span class="prop-label">Prancheta</span>
+                <div class="document-controls">
+                  <div class="input-chip" title="Largura do Canvas (px)">
+                    <label class="chip-prefix" for="canvasW">Larg.</label>
+                    <input type="number" id="canvasW" aria-label="Largura da prancheta em pixels" value="600" min="100" max="4096" step="50">
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
+                        title="Aumentar Largura" aria-label="Aumentar Largura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="-1" tabindex="-1"
+                        title="Diminuir Largura" aria-label="Diminuir Largura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                  <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><span class="icon-slot" data-icon-slot="swap"></span></button>
+                  <div class="input-chip" title="Altura do Canvas (px)">
+                    <label class="chip-prefix" for="canvasH">Alt.</label>
+                    <input type="number" id="canvasH" aria-label="Altura da prancheta em pixels" value="600" min="100" max="4096" step="50">
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
+                        title="Aumentar Altura" aria-label="Aumentar Altura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="-1" tabindex="-1"
+                        title="Diminuir Altura" aria-label="Diminuir Altura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                  <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção da Prancheta" aria-label="Travar Proporção da Prancheta">
+                    <span class="icon-slot" data-icon-slot="lock"></span>
+                  </button>
+                  <button id="btnFitCanvasToGrid" class="bar-action-btn icon-only" title="Ajustar" aria-label="Ajustar"><span class="icon-slot" data-icon-slot="fit"></span><span class="icon-label">Ajustar</span></button>
+                </div>
+              </div>
+
+              <div class="document-block" aria-label="Grade">
+                <span class="prop-label">Grade</span>
+                <div class="document-controls">
+                  <div class="input-chip chip-compact" title="Linhas de Blocos (Rows)">
+                    <label class="chip-prefix" for="gridRows">Linhas</label>
+                    <input type="number" id="gridRows" aria-label="Linhas da grade em blocos" value="3" min="1" max="32" step="1">
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
+                        title="Mais Linhas" aria-label="Mais Linhas"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="-1" tabindex="-1"
+                        title="Menos Linhas" aria-label="Menos Linhas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                  <button id="btnSwapGridSize" class="icon-btn" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><span class="icon-slot" data-icon-slot="swap"></span></button>
+                  <div class="input-chip chip-compact" title="Colunas de Blocos (Cols)">
+                    <label class="chip-prefix" for="gridCols">Colunas</label>
+                    <input type="number" id="gridCols" aria-label="Colunas da grade em blocos" value="3" min="1" max="32" step="1">
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
+                        title="Mais Colunas" aria-label="Mais Colunas"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="-1" tabindex="-1"
+                        title="Menos Colunas" aria-label="Menos Colunas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                  <button id="btnLockGridRatio" class="icon-btn" title="Travar Proporção da Grade" aria-label="Travar Proporção da Grade">
+                    <span class="icon-slot" data-icon-slot="lock"></span>
+                  </button>
+                  <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas">1:1</button>
+                </div>
+                <div class="document-controls">
+                  <div class="input-chip chip-medium" title="Margem externa da Prancheta (px)">
+                    <label class="chip-prefix" for="gridMargin">Margem</label>
+                    <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
+                    <span class="chip-suffix">px</span>
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
+                        title="Aumentar Margem" aria-label="Aumentar Margem"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="-1" tabindex="-1"
+                        title="Diminuir Margem" aria-label="Diminuir Margem"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                  <div class="input-chip chip-medium" title="Espaçamento interno dos azulejos (%)">
+                    <label class="chip-prefix" for="paddingInput">Espaçamento</label>
+                    <input type="number" id="paddingInput" aria-label="Espaçamento interno em porcentagem" min="0" max="25" step="1" value="5">
+                    <span class="chip-suffix">%</span>
+                    <div class="chip-steppers">
+                      <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento" aria-label="Aumentar Espaçamento"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+                      <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Espaçamento" aria-label="Diminuir Espaçamento"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <!-- PANEL 1: SYMMETRY & BLOCK STRUCTURE -->
           <section class="dock-panel" id="panel-symmetry">
@@ -693,20 +799,14 @@
           </section>
 
           <!-- Spout output moved to the status bar (one switch + sender name) -->
-        </div>
-        <div id="dock-workspace-edit" class="dock-workspace-pane hidden">
-          <section class="selection-summary hidden" id="selectionSummary" aria-label="Seleção">
-            <div class="selection-summary-heading"><span>Seleção</span><button type="button" id="btnClearRegion" class="mini-btn" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="close"></span></button></div>
-            <dl><div><dt>Área</dt><dd id="selectionDimensions">—</dd></div><div><dt>Peças</dt><dd id="selectionCellCount">0</dd></div></dl>
-          </section>
 
-          <!-- EDIT PANEL 1: FERRAMENTA, ESCOPO D4 & OPÇÕES DE GIRO -->
+          <!-- PAINEL 4: ESCOPO DE EDIÇÃO (estático) -->
 
           <section class="dock-panel" id="panel-edit-scope">
             <header class="panel-header" data-collapse-target="panelEditScopeBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditScopeBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="edit" data-icon-size="14"></span>
-                <span id="editPanelHeading">Edição &amp; Simetria</span>
+                <span id="editPanelHeading">Escopo</span>
               </div>
               <div class="edit-undo-bar" onclick="event.stopPropagation();">
                 <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
@@ -761,92 +861,10 @@
                 </div>
               </div>
 
-              <!-- Rotate Tool Controls (Shown only when Rotate tool is active) -->
-              <div id="rotateToolOptionsWrap" class="prop-section hidden">
-                <div class="prop-label-row">
-                  <div class="prop-label-with-info">
-                    <label class="prop-label">Tamanho do Giro</label>
-                    <button type="button" class="info-btn" data-info-topic="rotate" aria-label="Saiba mais sobre a ferramenta Girar" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                </div>
-                <div class="brush-size-display-row" data-size-tool="rotate" role="group" aria-label="Tamanho da área de giro">
-                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-                  <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
-                    <span class="brush-size-val" data-size-value>1×1</span>
-                    <span class="brush-size-sub" data-size-detail>peças</span>
-                  </div>
-                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de giro" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-                </div>
-                <div class="tool-size-snap" id="rotateSizeControl">
-                  <button type="button" class="seg-btn icon-only" data-rot-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><span class="icon-slot" data-icon-slot="blocks"></span><span class="icon-label">Ajustar ao bloco</span></button>
-                </div>
-
-                <div id="rotateGroupModeSection" class="rotate-sub-group hidden">
-                  <div class="prop-label-row" style="margin-top: 6px;">
-                    <label class="prop-label">Modo de Giro da Área</label>
-                  </div>
-                  <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
-                    id="rotateGroupModeControl">
-                    <button type="button" class="seg-btn active icon-only" data-rot-group="group"
-                      title="Conjunto" aria-label="Conjunto"><span class="icon-slot" data-icon-slot="folder"></span><span class="icon-label">Conjunto</span></button>
-                    <button type="button" class="seg-btn icon-only" data-rot-group="individual"
-                      title="Individual" aria-label="Individual"><span class="icon-slot" data-icon-slot="tiles"></span><span class="icon-label">Cada Tile</span></button>
-                  </div>
-                </div>
-
-                <div class="prop-label-row" style="margin-top: 6px;">
-                  <label class="prop-label">Tipo de Rotação</label>
-                </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);"
-                  id="rotateBehaviorControl">
-                  <button type="button" class="seg-btn active icon-only" data-rot-mode="d4_r90"
-                    title="Giro 90°" aria-label="Giro 90°"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro 90°</span></button>
-                  <button type="button" class="seg-btn icon-only" data-rot-mode="family"
-                    title="Família" aria-label="Família"><span class="icon-slot" data-icon-slot="folder"></span><span class="icon-label">Família</span></button>
-                </div>
-              </div>
-
-              <!-- Freeze / Lock Tool Controls (Shown only when Freeze tool is active) -->
-              <div id="freezeToolOptionsWrap" class="prop-section hidden">
-                <div class="prop-label-row">
-                  <div class="prop-label-with-info">
-                    <label class="prop-label">Trava de Subtiles</label>
-                    <button type="button" class="info-btn" data-info-topic="freeze" aria-label="Saiba mais sobre a trava" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                  <span id="freezeToolCountBadge" class="prop-badge secondary">Nenhum</span>
-                </div>
-
-                <div class="prop-label-row" style="margin-top: 6px;">
-                  <label class="prop-label">Ação da Trava</label>
-                </div>
-                <div class="segmented-control" style="grid-template-columns: repeat(2, 1fr);" id="freezeModeControl" role="group" aria-label="Modo da trava">
-                  <button type="button" data-freeze-mode="freeze" class="seg-btn active icon-only" aria-pressed="true" title="Preservar" aria-label="Preservar"><span class="icon-slot" data-icon-slot="lock"></span><span class="icon-label">Preservar</span></button>
-                  <button type="button" data-freeze-mode="unfreeze" class="seg-btn icon-only" aria-pressed="false" title="Liberar" aria-label="Liberar"><span class="icon-slot" data-icon-slot="unlock"></span><span class="icon-label">Destravar</span></button>
-                </div>
-
-                <div class="prop-label-row" style="margin-top: 6px;">
-                  <label class="prop-label">Tamanho da Trava</label>
-                </div>
-                <div class="brush-size-display-row" data-size-tool="freeze" role="group" aria-label="Tamanho da área de trava">
-                  <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de trava" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-                  <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
-                    <span class="brush-size-val" data-size-value>1×1</span>
-                    <span class="brush-size-sub" data-size-detail>peças</span>
-                  </div>
-                  <button type="button" class="brush-step-btn" data-size-step="1" aria-label="Aumentar tamanho da área de trava" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-                </div>
-                <div class="tool-size-snap" id="freezeSizeControl">
-                  <button type="button" class="seg-btn icon-only" data-freeze-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><span class="icon-slot" data-icon-slot="blocks"></span><span class="icon-label">Ajustar ao bloco</span></button>
-                </div>
-
-                <div class="freeze-actions-row" style="margin-top: 10px;">
-                  <button type="button" id="btnFreezeClearSelection" class="freeze-action-btn icon-only" disabled title="Limpar preservações" aria-label="Limpar preservações"><span class="icon-slot" data-icon-slot="unlock"></span><span class="icon-label"><span>Descongelar Tudo</span></span></button>
-                </div>
-              </div>
             </div>
           </section>
 
-          <!-- EDIT PANEL 2: PINCEL, SUPERTILE & BIBLIOTECA (Hidden when Rotate tool is active) -->
+          <!-- PAINEL 5: PINCEL (estático; construtor e paleta) -->
           <section class="dock-panel dock-panel-flex" id="panel-edit-brush">
             <header class="panel-header" data-collapse-target="panelEditBrushBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelEditBrushBody">
               <div class="panel-title-wrap">
@@ -859,29 +877,6 @@
 
             <div class="panel-body swatches-panel-body" id="panelEditBrushBody">
 
-              <!-- Brush / Supertile Size & Block Alignment -->
-              <div class="prop-section supertile-size-section">
-                <div class="prop-label-row">
-                  <div class="prop-label-with-info">
-                    <label class="prop-label">Tamanho do Pincel</label>
-                    <button type="button" class="info-btn" data-info-topic="brush" aria-label="Saiba mais sobre Pincel e Padrão de pincel" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                </div>
-                <div class="brush-size-display-row" id="brushSizeControl">
-                  <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-                  <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
-                    <span class="brush-size-val" id="brushSizeValueText">1×1</span>
-                    <span class="brush-size-sub" id="brushSizeSubText">peças</span>
-                  </div>
-                  <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-                  <div class="brush-snap-row" id="brushSnapRow">
-                  <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
-                    <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
-                </div>
-                </div>
-
-              </div>
-
               <!-- Interactive Supertile Builder & Brush Preview Card -->
               <div class="active-brush-card supertile-builder-card">
                 <div class="supertile-canvas-box"
@@ -890,7 +885,6 @@
                 </div>
                 <div class="active-brush-controls">
                   <div class="active-brush-title-row">
-                    <button type="button" id="btnExpandBrushEditor" class="brush-expand-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar editor</span></button>
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
                   </div>

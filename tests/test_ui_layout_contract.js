@@ -150,17 +150,49 @@ for (const [selector, order] of orderRules) {
 }
 console.log('✓ Flex order is left-toolbar (0) → canvas (1) → utility-rail (2) → right-dock (3).');
 
-// 6. Padding (Respiro) in top bar Grade group; Seed group in left toolbar
+// 6. Illustrator geography: document controls in the static right dock; the top
+// bar carries only the active tool's options.
 const topBarBounds = getElementBounds(html, 'top-control-bar');
 if (!topBarBounds) throw new Error('Missing #top-control-bar in index.html');
 
-if (!topBarBounds.content.includes('id="paddingInput"')) {
-  throw new Error('Contract violation: #paddingInput must be inside #top-control-bar (Grade group).');
+const documentPanelBounds = getElementBounds(html, 'panel-document');
+if (!documentPanelBounds) throw new Error('Missing #panel-document in index.html');
+if (!rightDockBounds.content.includes('id="panel-document"')) {
+  throw new Error('Contract violation: #panel-document must be inside #right-dock.');
 }
-if (rightDockBounds.content.includes('id="paddingInput"')) {
-  throw new Error('Contract violation: #paddingInput must not be inside #right-dock.');
+if (!documentPanelBounds.content.includes('id="paddingInput"')) {
+  throw new Error('Contract violation: #paddingInput must be inside #panel-document.');
 }
-console.log('✓ #paddingInput is in #top-control-bar (Grade group) and removed from #right-dock.');
+if (topBarBounds.content.includes('id="paddingInput"')) {
+  throw new Error('Contract violation: #paddingInput must not be inside #top-control-bar.');
+}
+for (const id of ['canvasW', 'canvasH', 'gridRows', 'gridCols', 'gridMargin']) {
+  if (!documentPanelBounds.content.includes(`id="${id}"`)) {
+    throw new Error(`Contract violation: #${id} must be inside #panel-document.`);
+  }
+  if (topBarBounds.content.includes(`id="${id}"`)) {
+    throw new Error(`Contract violation: #${id} must not be inside #top-control-bar.`);
+  }
+}
+console.log('✓ Document controls moved to #panel-document inside the static right dock.');
+
+const toolContextIds = ['topToolContext', 'ctxPaint', 'rotateToolOptionsWrap', 'freezeToolOptionsWrap'];
+for (const id of toolContextIds) {
+  if (!topBarBounds.content.includes(`id="${id}"`)) {
+    throw new Error(`Contract violation: #${id} must be inside #top-control-bar (contextual tool options).`);
+  }
+}
+if (html.includes('id="dock-workspace-edit"')) {
+  throw new Error('Contract violation: #dock-workspace-edit must be gone; the dock no longer swaps with the tool.');
+}
+const generatePaneContent = getElementBounds(html, 'dock-workspace-generate');
+if (!generatePaneContent) throw new Error('Missing #dock-workspace-generate in index.html');
+for (const id of ['panel-edit-scope', 'panel-edit-brush']) {
+  if (!generatePaneContent.content.includes(`id="${id}"`)) {
+    throw new Error(`Contract violation: #${id} must live in the static dock pane.`);
+  }
+}
+console.log('✓ Top bar owns the tool options; the dock keeps static properties (no #dock-workspace-edit).');
 
 const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed'];
 for (const scId of seedControlIds) {
@@ -279,14 +311,14 @@ if (btnRandomizeBounds && (btnRandomizeBounds.content.includes('<kbd') || />\s*G
 }
 console.log('✓ #btnRandomize has no "G" badge.');
 
-// 9. Right dock generation scrolling must stay internal to the swatches container
-if (/\s*#dock-workspace-generate\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
-  throw new Error('Contract violation: #dock-workspace-generate must not have overflow-y: auto (scroll belongs inside #familiesSwatchContainer).');
+// 9. The static dock scrolls; the tiles list keeps its own bounded scroll.
+if (!/\s*#dock-workspace-generate\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
+  throw new Error('Contract violation: the static dock pane must scroll as a column.');
 }
 if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto')) {
   throw new Error('Contract violation: .families-swatch-scroll must have overflow-y: auto.');
 }
-console.log('✓ Right dock scrolling is contained inside the tiles list (#familiesSwatchContainer).');
+console.log('✓ Static dock column scrolls; the tiles list keeps its own scroll.');
 
 // 10. Both environments share outer toolbar scrolling; history stays in its flyout.
 if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
