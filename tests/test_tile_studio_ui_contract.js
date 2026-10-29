@@ -459,7 +459,7 @@ console.log('✓ Keyboard shortcut isolation between Mosaic and Subtile Studio v
 LibraryStore.resetToDefaults();
 console.log('--- ALL SUBTILE STUDIO UI & LIBRARY MANAGER CHECKS PASSED! ---');
 
-// Protected masters leave space for the copy action; Pathfinder remains wired for editable selection.
+// Pathfinder stays expanded and discoverable; protected shapes keep operations disabled.
 const pathfinderVm = require('vm');
 class PathfinderElement {
   constructor() {this.children=[];this.innerHTML='';}
@@ -477,9 +477,10 @@ const pathfinderStart = pathfinderSource.indexOf('  function renderShapePropsPan
 pathfinderVm.createContext(pathfinderContext);
 pathfinderVm.runInContext(pathfinderSource.slice(pathfinderStart,pathfinderSource.indexOf('\n  }',pathfinderStart)+4),pathfinderContext);
 pathfinderContext.renderShapePropsPanel();
-assert.equal(pathfinderSection.hidden,true, 'Protected masters must not show unusable boolean controls');
+assert.notEqual(pathfinderSection.hidden,true, 'Pathfinder stays discoverable on protected masters');
+assert(/id="tilePathfinderSection"[^>]*\bopen(?:\s|>)/.test(html), 'The essential Pathfinder starts expanded');
 assert.equal(visiblePathfinder.children.length,1);
 assert.notEqual(visiblePathfinder.children[0].hidden,true);
 assert(visiblePathfinder.children[0].innerHTML.includes('Pathfinder'));
 assert.equal((visiblePathfinder.children[0].innerHTML.match(/ disabled/g)||[]).length,4);
-console.log('✓ Protected pieces prioritize the copy flow; editable boolean operations remain wired.');
+console.log('✓ Pathfinder starts expanded; protected pieces retain four disabled operations.');

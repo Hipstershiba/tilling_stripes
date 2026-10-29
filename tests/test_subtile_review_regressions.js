@@ -41,26 +41,30 @@ global.document = { getElementById() { throw new Error('Inspector must not reren
 assert.strictEqual(studio.handleViewportMouseUp(0, 0, {}, hostState), false);
 delete global.document;
 hostState.studioMode = 'mosaic';
-// Inspector tabs expose exactly one panel and retain the selection when switching.
-const inspectorTabs = ['layers', 'properties', 'library', 'variants'].map(panel => ({
+// Inspector tabs preserve selection; Library navigation leaves the chosen editing tab intact.
+const inspectorTabs = ['properties', 'layers', 'variants'].map(panel => ({
   dataset: {tilePanel: panel}, attrs: {}, setAttribute(k, v) {this.attrs[k] = v;}, focus() {this.focused = true;}
 }));
 const inspectorElements = {'dock-workspace-tiles': {dataset: {}, querySelectorAll: () => inspectorTabs}};
-for (const id of ['panel-tile-layers', 'panel-tile-shape-props', 'panel-tile-library-mgr', 'panel-tile-d4-live']) {
-  inspectorElements[id] = {setAttribute() {}};
-}
+for (const id of ['panel-tile-layers', 'panel-tile-shape-props', 'panel-tile-d4-live']) inspectorElements[id] = {setAttribute() {}};
 global.document = {getElementById: id => inspectorElements[id]};
+let libraryOpened = 0;
+global.window.WorkspaceNavigation = {openLibrary() { libraryOpened++; }};
 ve.state.selectedShapeIds = ['first', 'second'];
-studio.setInspectorPanel('library', true);
-assert.strictEqual(inspectorElements['panel-tile-library-mgr'].hidden, false);
-assert.strictEqual(inspectorElements['panel-tile-layers'].hidden, true);
-assert.strictEqual(inspectorTabs[2].attrs['aria-selected'], 'true');
-assert.strictEqual(inspectorTabs[2].tabIndex, 0);
+studio.setInspectorPanel('layers', true);
+assert.strictEqual(inspectorElements['panel-tile-layers'].hidden, false);
+assert.strictEqual(inspectorElements['panel-tile-shape-props'].hidden, true);
+assert.strictEqual(inspectorTabs[1].attrs['aria-selected'], 'true');
+assert.strictEqual(inspectorTabs[1].tabIndex, 0);
 assert.strictEqual(inspectorTabs[0].tabIndex, -1);
-assert.strictEqual(inspectorTabs[2].focused, true);
+assert.strictEqual(inspectorTabs[1].focused, true);
+studio.setInspectorPanel('library', true);
+assert.strictEqual(libraryOpened, 1);
+assert.strictEqual(studio.state.inspectorPanel, 'layers', 'Page navigation preserves the editing panel');
 assert.deepStrictEqual(ve.state.selectedShapeIds, ['first', 'second']);
 studio.setInspectorPanel('invalid');
-assert.strictEqual(studio.state.inspectorPanel, 'library');
+assert.strictEqual(studio.state.inspectorPanel, 'layers');
+delete global.window.WorkspaceNavigation;
 delete global.document;
 
 // --- Subtile Studio Navigation & Snap Invariants ---

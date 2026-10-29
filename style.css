@@ -59,6 +59,7 @@
   --transition-ui: 120ms cubic-bezier(0.2, 0.7, 0.3, 1);
 
   /* --- Geografia --------------------------------------------------------- */
+  --menu-bar-h: 30px;
   --top-bar-h: 48px;
   --status-bar-h: 32px;
   --left-tool-w: 120px;
@@ -4655,7 +4656,7 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 #dock-workspace-tiles > .dock-panel[hidden] { display: none !important; }
 #dock-workspace-tiles > .dock-panel:not([hidden]) { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 #dock-workspace-tiles > .dock-panel > .panel-header { position: sticky; top: 0; z-index: 2; background: var(--bg-panel-header); }
-.tile-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); flex: 0 0 auto; border-bottom: 1px solid var(--border-subtle); }
+.tile-inspector-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); flex: 0 0 auto; border-bottom: 1px solid var(--border-subtle); }
 .tile-inspector-tabs button { min-width: 0; padding: 12px 3px; font-size: var(--font-ui); color: var(--text-secondary); background: var(--bg-panel); border: 0; border-bottom: 2px solid transparent; cursor: pointer; }
 .tile-inspector-tabs button[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--accent-blue); background: var(--bg-control); }
 .tile-inspector-tabs button:focus-visible, .tile-layer-select:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: -2px; }
@@ -6057,7 +6058,7 @@ body.right-dock-collapsed .dock-toggle-icon { transform: rotate(180deg); }
 /* Illustrator-inspired inspector: compact chrome, contextual editing, files with assets. */
 #dock-workspace-tiles .tile-panel-summary { min-height: 28px; height: 28px; padding: 0 12px; }
 #dock-workspace-tiles .tile-panel-summary .panel-counter-pill { margin-left: auto; font-size: 10px; }
-.tile-inspector-tabs button { min-height: 36px; padding: 8px 3px; font-size: 11px; }
+.tile-inspector-tabs button { min-height: 36px; padding: 8px 3px; font-size: var(--font-ui); }
 .tile-selection-bar { min-height: 38px; padding: 4px 12px; border-bottom: 1px solid var(--border-subtle); }
 .tile-selection-bar .mini-btn { width: 28px; min-height: 28px; padding: 0; }
 .tile-inspector-disclosure { border-top: 1px solid var(--border-subtle); padding-top: 4px; }
@@ -6092,6 +6093,73 @@ body.right-dock-collapsed .dock-toggle-icon { transform: rotate(180deg); }
 #vecPropsContainer .vec-props-grid { gap: 6px; }
 #vecPropsContainer details > summary { display: list-item; list-style-position: inside; }
 #vecPropsContainer .vec-prop-field { min-height: 30px; border-radius: var(--radius-control); }
+
+/* Application menus sit above the contextual control bar in both editor modes. */
+.app-menubar { height: var(--menu-bar-h); min-height: var(--menu-bar-h); flex: 0 0 var(--menu-bar-h); display: flex; align-items: stretch; gap: 2px; padding: 0 8px; background: var(--bg-rail); border-bottom: 1px solid var(--border-subtle); z-index: 100; }
+.app-menu-group { position: relative; display: flex; }
+.app-menu-trigger { padding: 0 10px; border: 0; border-radius: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12px; cursor: pointer; }
+.app-menu-trigger:hover, .app-menu-trigger[aria-expanded="true"] { background: var(--bg-control-hover); color: var(--text-primary); }
+.app-menu-trigger:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+.app-menu-popup { position: absolute; top: 100%; left: 0; min-width: 260px; max-width: calc(100vw - 16px); padding: 5px; background: var(--bg-panel-header); border: 1px solid var(--border-strong); border-radius: 0 0 var(--radius-card) var(--radius-card); box-shadow: var(--shadow-pop); }
+.app-menu-group:last-child .app-menu-popup { left: auto; right: 0; }
+.menu-command { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 5px 10px 5px 24px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-primary); font: inherit; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
+.menu-command > svg { flex: 0 0 16px; width: 16px; height: 16px; }
+.menu-command kbd { margin-left: auto; padding-left: 24px; font: inherit; font-size: 11px; color: var(--text-muted); }
+.menu-command:hover:not(:disabled), .menu-command:focus-visible { background: var(--bg-selected); outline: 1px solid var(--border-focus); outline-offset: -1px; }
+.menu-command:disabled { background: transparent; color: var(--text-muted); opacity: 1; cursor: default; }
+.menu-command.danger { color: var(--color-error); }
+.menu-check { display: none; position: absolute; left: 7px; color: var(--accent-blue); }
+.menu-command[aria-checked="true"] > .menu-check { display: inline; }
+.menu-separator { height: 1px; margin: 5px 4px; background: var(--border-strong); }
+
+/* The Library is a separate page; editor surfaces remain intact behind it. */
+.library-page-open #top-control-bar, .library-page-open #workspace-body { display: none; }
+.library-page { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--bg-pasteboard); }
+.library-page[hidden] { display: none; }
+.library-page-header { display: flex; align-items: center; gap: 24px; padding: 20px 24px; flex: 0 0 auto; border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); }
+.library-page-header h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.02em; }
+.library-page-header h1:focus { outline: none; }
+.library-page-header p { color: var(--text-secondary); margin-top: 5px; font-size: 12px; }
+.library-page-header > .panel-counter-pill { margin-left: auto; font-size: 11px; white-space: nowrap; }
+.library-back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; min-height: 34px; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.library-back-btn:hover { background: var(--bg-control-hover); color: var(--text-primary); }
+#library-page #panel-tile-library-mgr { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; border: 0; }
+#library-page #panelTileLibraryMgrBody { display: grid; grid-template-columns: minmax(0, 1fr) 292px; gap: 24px; flex: 1 1 auto; min-height: 0; padding: 20px 24px; overflow: hidden; }
+.library-catalogue { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 12px; }
+#library-page .lib-mgr-toolbar { display: grid; grid-template-columns: minmax(200px,1fr) minmax(200px, .75fr); gap: 8px 16px; padding: 0; margin: 0; }
+#library-page .tile-library-navigation { margin: 0; }
+#library-page .lib-mgr-filter-row { grid-column: 1 / -1; }
+#library-page #libMgrTreeContainer { flex: 1 1 auto; min-height: 160px; max-height: none; padding-right: 8px; border: 0; }
+#library-page .lib-group-block { margin-bottom: 18px; background: transparent; border: 0; }
+#library-page .lib-group-header { min-height: 36px; padding: 4px 8px; background: var(--bg-panel-header); border-radius: var(--radius-control); }
+#library-page .lib-family-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 10px; padding: 10px 0 0; }
+#library-page .lib-family-row { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 8px 12px; padding: 12px; min-height: 120px; border: 1px solid var(--border-subtle); border-radius: var(--radius-card); background: var(--bg-panel); align-items: center; }
+#library-page .lib-family-row:hover { background: var(--bg-control-hover); }
+#library-page .lib-family-row.active { background: var(--bg-selected); border-color: var(--border-focus); box-shadow: none; }
+#library-page .lib-family-thumb { width: 64px; height: 64px; border-radius: var(--radius-control); }
+#library-page .lib-family-info > :first-child { font-size: 13px; font-weight: 600; white-space: normal; }
+#library-page .lib-family-name-row { flex-wrap: wrap; gap: 4px; }
+#library-page .lib-family-name { font-size: 12px; line-height: 1.35; white-space: normal; overflow: visible; text-overflow: clip; }
+#library-page .lib-family-actions { grid-column: 1 / -1; justify-content: flex-end; min-height: 28px; flex-wrap: wrap; }
+.library-detail-pane { min-width: 0; overflow-y: auto; background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-card); padding: 16px; align-self: start; max-height: 100%; }
+.library-detail-pane h2 { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
+.library-detail-pane h3 { font-size: 15px; font-weight: 600; line-height: 1.4; margin: 12px 0; }
+.library-selection-preview { display: block; width: 160px; height: 160px; object-fit: contain; margin: 0 auto 16px; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
+#library-page .tile-library-details { border: 0; padding: 0; }
+#library-page .tile-library-details .tile-readonly-banner, #library-page .tile-custom-meta-box { padding: 0; background: transparent; border: 0; }
+#library-page .library-edit-btn { width: 100%; min-height: 34px; margin-top: 16px; background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-focus); font-weight: 600; }
+@media (max-width: 1000px) {
+  #library-page #panelTileLibraryMgrBody { grid-template-columns: minmax(0,1fr) 260px; gap: 16px; padding: 16px; }
+  #library-page .lib-mgr-toolbar { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 700px) {
+  .app-menu-trigger { padding: 0 6px; font-size: 11px; }
+  .library-page-header { flex-wrap: wrap; gap: 12px; padding: 16px; }
+  .library-page-header h1 { font-size: 19px; }
+  #library-page #panelTileLibraryMgrBody { grid-template-columns: minmax(0,1fr); overflow-y: auto; }
+  .library-catalogue { min-height: 400px; }
+  .library-detail-pane { max-height: none; }
+}
 
 /* --- Gerador e Exportar no dock direito ----------------------------------
    Guia de design (Illustrator): a coluna esquerda é só ferramentas; ações de

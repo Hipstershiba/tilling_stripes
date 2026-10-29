@@ -2001,14 +2001,6 @@
     if (vb) {
       const unlockedSelCount = selected.filter((s) => !s.locked && s.visible !== false).length;
       const canBool = !fam.builtIn && !fam.protected && unlockedSelCount >= 2;
-      const pathfinderSection = document.getElementById('tilePathfinderSection');
-      if (pathfinderSection) {
-        pathfinderSection.hidden = Boolean(fam.builtIn || fam.protected);
-        // Reveal applicable operations once when a multiple selection is made.
-        if (!canBool) pathfinderSection.open = false;
-        else if (pathfinderSection.dataset.applicable !== 'true') pathfinderSection.open = true;
-        pathfinderSection.dataset.applicable = String(canBool);
-      }
       const boolBlock = document.createElement('div');
       boolBlock.className = 'vec-props-subblock';
       boolBlock.innerHTML = `
@@ -2910,12 +2902,16 @@
     renderD4LivePanel();
     renderLibraryManagerTree();
     setInspectorPanel(uiState.inspectorPanel);
+    if (typeof window !== 'undefined') window.WorkspaceNavigation?.refresh?.();
     hostCtx?.updateStatusBar?.();
     if (typeof document !== 'undefined') commands.applyLabels(document, isTilesMode() ? 'tiles' : 'mosaic');
   }
 
   function setInspectorPanel(panel, focusTab = false) {
     if (!['layers', 'properties', 'library', 'variants'].includes(panel)) return;
+    if (panel === 'library' && typeof window !== 'undefined' && window.WorkspaceNavigation?.openLibrary) {
+      window.WorkspaceNavigation.openLibrary(); return;
+    }
     uiState.inspectorPanel = panel;
     if (typeof document === 'undefined') return;
     const pane = document.getElementById('dock-workspace-tiles');
@@ -2923,6 +2919,7 @@
     pane.dataset.inspectorPanel = panel;
     const panels = { layers: 'panel-tile-layers', properties: 'panel-tile-shape-props', library: 'panel-tile-library-mgr', variants: 'panel-tile-d4-live' };
     Object.entries(panels).forEach(([key, id]) => {
+      if (key === 'library' && typeof window !== 'undefined' && window.WorkspaceNavigation) return;
       const el = document.getElementById(id);
       if (el) {
         el.hidden = key !== panel;
@@ -3503,7 +3500,6 @@
     });
 
     document.getElementById('btnTileOpenLibrary')?.addEventListener('click', () => {
-      if (document.body?.classList.contains('right-dock-collapsed')) document.getElementById('btnToggleRightDock')?.click();
       setInspectorPanel('library', true);
     });
 
@@ -3595,7 +3591,9 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        handleImportSvgText(String(reader.result || ''), file.name);
+        handleImportSvgText(String(reader.result || ''), file.name, {
+          asNewFamily: !isTilesMode() || (typeof window !== 'undefined' && Boolean(window.WorkspaceNavigation?.isLibraryOpen()))
+        });
       };
       reader.onerror = () => {
         notifyToast('Erro ao ler o arquivo SVG selecionado.', 'error');
@@ -3728,6 +3726,8 @@
         return true;
       }
     }
+
+    if (typeof window !== 'undefined' && window.WorkspaceNavigation?.isLibraryOpen()) return true;
 
     // Global Ctrl+E toggles between Mosaic and Subtile Studio from anywhere (outside inputs)
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'e') {
@@ -3913,6 +3913,16 @@
     return true;
   }
 
+  function canRunCommand(id) {
+    const command = commands.get('tiles', id);
+    return Boolean(command && (!command.available || command.available(tileCommandContext())));
+  }
+
+  function prepareNavigation() {
+    const { ve } = resolveDeps();
+    if (ve?.state.penSession || ve?.state.dragOp) setVectorTool('select');
+  }
+
   const SubtileStudioUI = {
     state: uiState,
     init,
@@ -3930,6 +3940,9 @@
     handleExportSubtileSvg,
     renderLayersPanel,
     setInspectorPanel,
+    canRunCommand,
+    runCommand: runTileCommand,
+    prepareNavigation,
     renderViewport,
     screenToNormalizedMaster,
     handleViewportMouseDown,

@@ -2059,6 +2059,7 @@ function clearFrozenCells() {
 }
 
 function mouseMoved() {
+  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     window.SubtileStudioUI?.handleViewportMouseMoved(mouseX, mouseY, StudioState);
     return;
@@ -2740,6 +2741,7 @@ function cycleActiveToolSize(direction) {
 }
 
 function mouseDragged() {
+  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     if (
       !StudioState.isPanning &&
@@ -2921,6 +2923,7 @@ function finishCanvasRegionCapture() {
 }
 
 function handleCanvasMouseDown(e) {
+  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     if (StudioState.activeTool === 'zoom') {
       e.preventDefault();
@@ -4867,6 +4870,10 @@ function initStudioUI() {
     if (e.defaultPrevented || e.isComposing) return;
     if (window.StudioModal?.isOpen()) {
       if (e.key === 'Escape') { e.preventDefault(); window.StudioModal.cancel(); }
+      return;
+    }
+    if (window.WorkspaceNavigation?.isLibraryOpen()) {
+      window.SubtileStudioUI?.handleKeyDown(e, StudioState);
       return;
     }
     if (e.target?.isContentEditable || e.target?.closest?.('[contenteditable]:not([contenteditable="false"])')) return;

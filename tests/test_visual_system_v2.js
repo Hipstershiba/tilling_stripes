@@ -114,7 +114,7 @@ const libraryPanelStart = html.indexOf('id="panel-tile-library-mgr"');
 const libraryPanel = html.slice(libraryPanelStart, html.indexOf('</section>', libraryPanelStart));
 assert(!tilesPane.includes('id="curveFraction"') && propsPanel.includes('id="curveFraction"'),
   'Curve settings must live beside other contextual properties');
-for (const id of ['btnRailNewSubtile','btnRailDuplicateSubtile','btnRailNewGroup','btnImportSubtileSvg','btnExportLibraryJson']) {
+for (const id of ['btnRailNewSubtile','btnRailDuplicateSubtile','btnRailNewGroup']) {
   assert(!tilesPane.includes(`id="${id}"`) && libraryPanel.includes(`id="${id}"`),
     `${id} must live in the Library, with no duplicate tool-rail action`);
 }
@@ -122,3 +122,13 @@ assert(propsPanel.includes('id="tilePathfinderContainer"'), 'Pathfinder must sta
 assert(tilesPane.includes('id="btnTileOpenLibrary"'), 'Library access remains available from the left rail');
 assert(/id="tileTabProperties"[^>]*aria-selected="true"/.test(html), 'Properties is the editing entry tab');
 console.log('✓ Contextual inspector separates tools, selected-object editing and library tasks.');
+
+const menuStart = html.indexOf('id="app-menubar"');
+const menuMarkup = html.slice(menuStart, html.indexOf('</nav>', menuStart));
+for (const id of ['btnImportSubtileSvg','btnExportSubtileSvg','btnExportLibraryJson','btnImportLibraryJson','btnResetLibraryDefaults']) {
+  assert(menuMarkup.includes(`id="${id}"`), `${id} must remain a unique, wired menu command`);
+}
+const libraryPageStart = html.indexOf('id="library-page"');
+assert(libraryPageStart > html.indexOf('id="right-dock"') && libraryPanelStart > libraryPageStart,
+  'The Library must be a separate view, outside the editor dock');
+assert(/id="tilePathfinderSection"[^>]*\bopen(?:\s|>)/.test(html), 'Pathfinder must start expanded');

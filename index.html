@@ -14,6 +14,81 @@
 
 <body data-studio-mode="mosaic">
   <div id="app-shell">
+    <nav id="app-menubar" class="app-menubar" role="menubar" aria-label="Menu principal">
+      <div class="app-menu-group">
+        <button type="button" id="menu-file" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file-popup" tabindex="0">Arquivo</button>
+        <div id="menu-file-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-file">
+          <button type="button" role="menuitem" id="btnImportSubtileSvg" data-menu-action="import-svg" class="menu-command" title="Importar SVG" aria-label="Importar SVG"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar SVG</span></span></button>
+          <button type="button" role="menuitem" id="btnExportSubtileSvg" class="menu-command" title="Exportar SVG" aria-label="Exportar SVG"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar SVG</span></span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnExport" ><span>Exportar mosaico</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="close-library" ><span>Voltar ao estúdio</span></button>
+        </div>
+      </div>
+      <div class="app-menu-group">
+        <button type="button" id="menu-edit" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit-popup" tabindex="-1">Editar</button>
+        <div id="menu-edit-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-edit">
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="undo" ><span>Desfazer</span><kbd>Ctrl+Z</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="redo" ><span>Refazer</span><kbd>Ctrl+Shift+Z</kbd></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnTileSelectAll" ><span>Selecionar tudo</span><kbd>Ctrl+A</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnTileDeselect" ><span>Limpar seleção</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="tile-command" data-menu-target="duplicate" ><span>Duplicar formas</span><kbd>Ctrl+D</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnVecPropDelete" ><span>Excluir formas</span><kbd>Delete</kbd></button>
+        </div>
+      </div>
+      <div class="app-menu-group">
+        <button type="button" id="menu-object" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-object-popup" tabindex="-1">Objeto</button>
+        <div id="menu-object-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-object">
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="tile-command" data-menu-target="copyEditable" ><span>Criar cópia editável</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnVecPropToPath" ><span>Converter em caminho</span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-sel-d4='r90']" ><span>Girar 90°</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-sel-d4='mx']" ><span>Espelhar horizontalmente</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-sel-d4='my']" ><span>Espelhar verticalmente</span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-bool-op='unite']" ><span>Unir</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-bool-op='subtract']" ><span>Menos frente</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-bool-op='intersect']" ><span>Interseção</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="object" data-menu-target="[data-bool-op='exclude']" ><span>Excluir sobreposição</span></button>
+        </div>
+      </div>
+      <div class="app-menu-group">
+        <button type="button" id="menu-view" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view-popup" tabindex="-1">Exibir</button>
+        <div id="menu-view-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-view">
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnFitArtboard" ><span>Ajustar à janela</span><kbd>0</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnZoomReset100" ><span>Zoom 100%</span><kbd>1</kbd></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="guide" data-menu-target="axes" ><span class="menu-check" aria-hidden="true">✓</span><span>Eixos</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="guide" data-menu-target="grid" ><span class="menu-check" aria-hidden="true">✓</span><span>Grade</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnToggleRightDock" ><span class="menu-check" aria-hidden="true">✓</span><span>Painel lateral</span></button>
+        </div>
+      </div>
+      <div class="app-menu-group">
+        <button type="button" id="menu-library" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-library-popup" tabindex="-1">Biblioteca</button>
+        <div id="menu-library-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-library">
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="open-library" id="tileTabLibrary"><span>Gerenciar biblioteca…</span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailNewSubtile" ><span>Nova peça</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailNewGroup" ><span>Novo conjunto</span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailDuplicateSubtile" ><span>Duplicar peça</span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" id="btnExportLibraryJson" class="menu-command" title="Exportar JSON" aria-label="Exportar JSON"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar JSON</span></span></button>
+          <button type="button" role="menuitem" id="btnImportLibraryJson" class="menu-command" title="Importar JSON" aria-label="Importar JSON"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar JSON</span></span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" id="btnResetLibraryDefaults" class="menu-command danger" title="Restaurar padrão" aria-label="Restaurar padrão"><span class="icon-slot" data-icon-slot="reset"></span><span class="file-action-label"><span>Restaurar padrão</span></span></button>
+        </div>
+      </div>
+      <div class="app-menu-group">
+        <button type="button" id="menu-help" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-help-popup" tabindex="-1">Ajuda</button>
+        <div id="menu-help-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-help">
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="help" ><span>Ajuda e atalhos</span></button>
+        </div>
+      </div>
+    </nav>
+    <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
+<input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
+
 
     <!-- ==================== TOP CONTROL BAR (Adobe Illustrator Control Strip) ==================== -->
     <header id="top-control-bar">
@@ -810,7 +885,6 @@
           <nav class="tile-inspector-tabs" role="tablist" aria-label="Painéis do criador de subtiles">
             <button type="button" id="tileTabProperties" role="tab" data-tile-panel="properties" aria-controls="panel-tile-shape-props" aria-selected="true">Propriedades</button>
             <button type="button" id="tileTabLayers" role="tab" data-tile-panel="layers" aria-controls="panel-tile-layers" aria-selected="false" tabindex="-1">Camadas</button>
-            <button type="button" id="tileTabLibrary" role="tab" data-tile-panel="library" aria-controls="panel-tile-library-mgr" aria-selected="false" tabindex="-1">Biblioteca</button>
             <button type="button" id="tileTabVariants" role="tab" data-tile-panel="variants" aria-controls="panel-tile-d4-live" aria-selected="false" tabindex="-1">Variantes</button>
           </nav>
           <div class="tile-selection-bar">
@@ -846,7 +920,7 @@
                   <!-- Populated dynamically by SubtileStudioUI -->
                 </div>
               </div>
-              <details id="tilePathfinderSection" class="tile-inspector-disclosure">
+              <details id="tilePathfinderSection" class="tile-inspector-disclosure" open>
                 <summary>Pathfinder</summary>
                 <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
               </details>
@@ -935,19 +1009,35 @@
             </div>
           </section>
 
+
+
+        </div>
+
+        <!-- Exportar: ação de documento ancorada no rodapé do dock -->
+        <section id="dock-export" class="dock-export mosaic-mode-only" aria-label="Exportar Mosaico">
+          <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
+            <option value="png" selected>PNG</option>
+            <option value="svg">SVG</option>
+          </select>
+          <button type="button" id="btnExport" class="sidebar-export-btn" title="Exportar" aria-label="Exportar"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar</span></span></button>
+        </section>
+
+      </aside>
+    </div>
+
+    <section id="library-page" class="library-page hidden" aria-labelledby="libraryPageTitle" hidden>
+      <header class="library-page-header">
+        <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn"><span aria-hidden="true">←</span> Voltar ao estúdio</button>
+        <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca de peças</h1><p>Organize conjuntos, famílias e arquivos.</p></div>
+        <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
+      </header>
           <!-- TILES PANEL 2: GERENCIADOR DE GRUPOS E FAMÍLIAS -->
-          <section class="dock-panel dock-panel-flex" id="panel-tile-library-mgr">
-            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileLibraryMgrBody" aria-label="Biblioteca de peças" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLibraryMgrBody">
-              <div class="panel-title-wrap">
-                <span class="icon-slot" data-icon-slot="folder" data-icon-size="14"></span>
-                <span>Famílias</span>
-              </div>
-              <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
-            </header>
+          <section class="library-manager-panel" id="panel-tile-library-mgr" aria-label="Catálogo de peças">
+
 
             <div class="panel-body swatches-panel-body" id="panelTileLibraryMgrBody">
-              <div id="tileLibraryDetails" class="tile-library-details"></div>
+
+              <div class="library-catalogue">
               <div class="swatches-toolbar lib-mgr-toolbar">
                 <input type="search" id="libMgrSearchInput" aria-label="Buscar famílias na biblioteca" class="swatch-search" placeholder="Buscar...">
                 <div class="tile-library-navigation">
@@ -975,44 +1065,18 @@
               <div id="libMgrTreeContainer" class="families-swatch-scroll lib-mgr-tree-scroll">
                 <!-- Populated by SubtileStudioUI -->
               </div>
-              <div class="tile-library-files">
-          <details class="tile-file-disclosure">
-            <summary>Arquivos SVG</summary>
-            <div class="tile-file-actions">
-            <div class="tools-grid-2col">
-              <button type="button" id="btnImportSubtileSvg" class="mini-btn" title="Importar SVG" aria-label="Importar SVG"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar SVG</span></span></button>
-              <button type="button" id="btnExportSubtileSvg" class="mini-btn" title="Exportar SVG" aria-label="Exportar SVG"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar SVG</span></span></button>
-            </div>
-            <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
-            </div>
-          </details>
-
-          <details class="tile-file-disclosure">
-            <summary title="Backup da biblioteca">Backup</summary>
-            <div class="tile-file-actions">
-            <button type="button" id="btnExportLibraryJson" class="mini-btn" title="Exportar JSON" aria-label="Exportar JSON"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar JSON</span></span></button>
-            <button type="button" id="btnImportLibraryJson" class="mini-btn" title="Importar JSON" aria-label="Importar JSON"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar JSON</span></span></button>
-            <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
-            <button type="button" id="btnResetLibraryDefaults" class="mini-btn danger" title="Restaurar padrão" aria-label="Restaurar padrão"><span class="icon-slot" data-icon-slot="reset"></span><span class="file-action-label"><span>Restaurar padrão</span></span></button>
-            </div>
-          </details>
               </div>
+              <aside class="library-detail-pane" aria-label="Detalhes da peça selecionada">
+                <h2>Peça selecionada</h2>
+                <img id="librarySelectionPreview" class="library-selection-preview hidden" alt="">
+                <h3 id="librarySelectionName"></h3>
+                <div id="tileLibraryDetails" class="tile-library-details"></div>
+                <button type="button" id="btnEditLibraryPiece" class="mini-btn accent library-edit-btn">Editar peça</button>
+              </aside>
+
             </div>
           </section>
-
-        </div>
-
-        <!-- Exportar: ação de documento ancorada no rodapé do dock -->
-        <section id="dock-export" class="dock-export mosaic-mode-only" aria-label="Exportar Mosaico">
-          <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
-            <option value="png" selected>PNG</option>
-            <option value="svg">SVG</option>
-          </select>
-          <button type="button" id="btnExport" class="sidebar-export-btn" title="Exportar" aria-label="Exportar"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar</span></span></button>
-        </section>
-
-      </aside>
-    </div>
+    </section>
 
   </div>
 
@@ -1037,6 +1101,7 @@
   <script src="core/vector_editor.js"></script>
   <script src="core/vector_boolean.js"></script>
   <script src="core/subtile_studio_ui.js"></script>
+  <script src="core/workspace_navigation.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>
   <!-- Progressive Disclosure Popover and Accessible Tooltip -->
