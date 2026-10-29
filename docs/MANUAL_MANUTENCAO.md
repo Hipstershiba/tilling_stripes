@@ -182,11 +182,11 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
    - Zoom centrado na janela ou sob o cursor (Ctrl + Roda do mouse) com limites de 25% a 400%.
    - Teclas `1`, `Shift+1` e `Ctrl+1` recentralizam o canvas e fixam zoom em 100%; tecla `0` ajusta o artboard à janela visível. Roda do mouse livre redimensiona o tamanho do pincel.
 
-4. **Trilho de Utilitários (`#utility-rail` — Segunda Barra da Direita)**:
+4. **Trilho de Utilitários (`#utility-rail` — Ferramentas de Documento)**:
    - Faixa vertical de 40 px entre o canvas e o dock direito; concentra as ferramentas de documento que não pertencem ao dock.
    - **Histórico (`#dock-history`)** com `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho, com rolagem interna, sem cobrir nem reduzir o dock.
-   - **Abas verticais (`#dockPanelTabs`)**: Simetria, Peças, Documento, Escopo e Pincel. Cada botão é `role="tab"`, controla um `role="tabpanel"` no dock e responde a setas/Home/End; a aba ativa usa `aria-selected="true"`.
    - **Biblioteca (`#railOpenLibrary`)** no rodapé do trilho.
+   - Não contém abas: as abas de painel ficam no dock, como no grupo de painéis do Illustrator.
    - É `mosaic-mode-only`: some no criador de peças e devolve a largura ao canvas.
 
 5. **Barra Inferior de Status (`#status-bar` — A Visão e Saída)**:
@@ -197,7 +197,8 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
 6. **Dock Lateral Direito (`#right-dock` — Painéis Estáticos)**:
    - **Faixa do Gerador (`#dock-generator`)**: logo abaixo do cabeçalho, reúne `#btnRandomize` (tecla `G`) e a navegação de sementes (`#seedInput`, `#btnPrevSeed`, `#btnNextSeed`). Fica visível no modo mosaico.
    - **Faixa de Exportação (`#dock-export`)**: rodapé fixo com seletor PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`), no modo mosaico.
-   - **Painéis estáticos em abas**: `#panel-symmetry` (Simetria & Estrutura), `#panel-swatches` (Peças permitidas), `#panel-document` (Prancheta & Grade, movido do topo), `#panel-edit-scope` (Escopo de edição) e `#panel-edit-brush` (construtor + paleta). A ferramenta ativa não troca a aba; o trilho escolhe o painel. O dock não rola (`#right-dock` e `#dock-workspace-generate` com `overflow: hidden`): só o corpo da aba ativa (`overflow-y: auto`), a lista de peças e a paleta do pincel rolam.
+   - **Abas do dock (`#dockTabs`)**: Documento, Simetria, Peças, Escopo e Pincel, com `role="tab"`, `aria-selected` e setas/Home/End. Uma aba visível por vez.
+   - **Painéis estáticos em abas**: `#panel-symmetry` (Simetria & Estrutura), `#panel-swatches` (Peças permitidas), `#panel-document` (Prancheta & Grade, movido do topo), `#panel-edit-scope` (Escopo de edição) e `#panel-edit-brush` (construtor + paleta). A ferramenta ativa não troca a aba. O dock não rola (`#right-dock` e `#dock-workspace-generate` com `overflow: hidden`): só o corpo da aba ativa (`overflow-y: auto`), a lista de peças e a paleta do pincel rolam.
    - `#dock-workspace-edit` não existe mais; a troca de contexto que ele fazia foi substituída pelos grupos da barra superior. O modo Editar peças continua usando `#dock-workspace-tiles`.
    - Botão de alternância de gaveta (`#btnToggleRightDock`, `»` expandido, `«` recolhido, `aria-expanded`). Quando recolhido (`body.right-dock-collapsed`), comprime-se em régua de 44 px liberando ~306 px para o canvas; gerador e exportação somem junto com os painéis.
 
@@ -431,7 +432,7 @@ O grupo de zoom do rodapé usa pintura isolada (`translateZ(0)`) e não recorta 
 
 ### Reforma visual V2 (28/10/2026)
 
-A camada **V2 — Reforma visual**, no fim de `style.css`, é a última palavra em apresentação e não altera contratos: 60 IDs congelados, ordem `#left-toolbar (0) → #workspace-viewport (1) → #utility-rail (2) → #right-dock (3)`, `#paddingInput` em `#panel-document`, gerador e exportação no dock, histórico no trilho e schema de persistência v3 permanecem iguais. Ela vence a herança por vir depois das regras históricas; ao editar um componente, altere a regra V2 correspondente ou consolide as duas — não acrescente uma terceira camada. Os blocos **V2 — Barra contextual e dock estático** e **V2 — Trilho de abas e dock sem rolagem externa** ficam no mesmo arquivo e no mesmo nível de camada.
+A camada **V2 — Reforma visual**, no fim de `style.css`, é a última palavra em apresentação e não altera contratos: 60 IDs congelados, ordem `#left-toolbar (0) → #workspace-viewport (1) → #utility-rail (2) → #right-dock (3)`, `#paddingInput` em `#panel-document`, gerador e exportação no dock, histórico no trilho e schema de persistência v3 permanecem iguais. Ela vence a herança por vir depois das regras históricas; ao editar um componente, altere a regra V2 correspondente ou consolide as duas — não acrescente uma terceira camada. Os blocos **V2 — Barra contextual e dock estático** e **V2 — Abas do dock e rolagem interna** ficam no mesmo arquivo e no mesmo nível de camada.
 
 Tokens de referência: `--top-bar-h: 48px`, `--status-bar-h: 32px`, `--font-section: 11px`, `--radius-chip: 6px`, `--radius-card: 8px`, `--bg-panel: #1c1d21`, `--border-subtle: #2e3138`, `--bg-primary: #2a5d9e`, `--transition-ui: 120ms`. A rampa de texto mantém `--text-primary/secondary/muted` com contraste mínimo de 5,33:1 sobre as superfícies semânticas.
 
@@ -523,4 +524,4 @@ A geografia foi invertida para seguir o Illustrator. O topo deixou de ser um for
 
 O dock direito virou uma coluna estática de painéis em abas: `#dock-generator`, `#dock-workspace-generate` (com `#panel-symmetry`, `#panel-swatches`, `#panel-document`, `#panel-edit-scope` e `#panel-edit-brush`), `#dock-workspace-tiles` no modo peças e `#dock-export`. `#panel-document` recebeu Prancheta e Grade (largura, altura, linhas, colunas, travas, 1:1, margem e respiro). `#dock-workspace-edit` foi removido; `syncEditWorkspaceUI` só alterna `dock-workspace-generate`/`dock-workspace-tiles` e a visibilidade dos grupos do topo, sem mover controles. O construtor e a paleta do pincel continuam em `#panel-edit-brush`; tamanho, encaixe e Ampliar vivem no topo.
 
-A segunda barra da direita (`#utility-rail`) passou a ser o seletor de painéis: histórico em flyout, cinco abas verticais (`#dockPanelTabs`) e atalho Biblioteca. A aba ativa é a única visível; o dock não rola (`#right-dock` e `#dock-workspace-generate` com `overflow: hidden`), só o corpo da aba (`overflow-y: auto`), a lista `#familiesSwatchContainer` e a paleta do pincel. Ao abrir o editor ampliado, `openBrushEditor` move o corpo e o controle de tamanho para o diálogo e os devolve ao fechar. `tests/test_ui_layout_contract.js` exige Prancheta/Grade em `#panel-document`, abas no trilho, regra de não rolagem das barras e ausência de `#dock-workspace-edit`; `tests/test_freeze_ui_contract.js` exige `#freezeToolOptionsWrap` no topo.
+Depois de avaliar a segunda barra da direita, ela permaneceu como trilho de ferramentas de documento — histórico em flyout e atalho Biblioteca — e as abas foram movidas para o dock, como no grupo de painéis do Illustrator. `#dockTabs` fica no topo do dock com Documento, Simetria, Peças, Escopo e Pincel; a aba ativa é a única visível. O dock não rola (`#right-dock` e `#dock-workspace-generate` com `overflow: hidden`), só o corpo da aba (`overflow-y: auto`), a lista `#familiesSwatchContainer` e a paleta do pincel. Ao abrir o editor ampliado, `openBrushEditor` move o corpo e o controle de tamanho para o diálogo e os devolve ao fechar. `tests/test_ui_layout_contract.js` exige Prancheta/Grade em `#panel-document`, abas em `#dockTabs`, regra de não rolagem das barras e ausência de `#dock-workspace-edit`; `tests/test_freeze_ui_contract.js` exige `#freezeToolOptionsWrap` no topo.

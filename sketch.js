@@ -3760,7 +3760,7 @@ function setDockTab(tab, focus = false) {
   activeDockTab = entry[0];
   DOCK_TAB_PANELS.forEach(([id, panelId]) => {
     const panel = document.getElementById(panelId);
-    const button = document.querySelector?.(`#dockPanelTabs [data-dock-tab="${id}"]`);
+    const button = document.querySelector?.(`#dockTabs [data-dock-tab="${id}"]`);
     const selected = id === entry[0];
     if (panel) {
       panel.classList.toggle('hidden', !selected);
@@ -3773,11 +3773,11 @@ function setDockTab(tab, focus = false) {
       button.tabIndex = selected ? 0 : -1;
     }
   });
-  if (focus) document.querySelector?.(`#dockPanelTabs [data-dock-tab="${entry[0]}"]`)?.focus();
+  if (focus) document.querySelector?.(`#dockTabs [data-dock-tab="${entry[0]}"]`)?.focus();
 }
 
 function initDockPanelTabs() {
-  const tabs = document.getElementById('dockPanelTabs');
+  const tabs = document.getElementById('dockTabs');
   if (!tabs) return;
   tabs.querySelectorAll('[data-dock-tab]').forEach((button) => {
     button.addEventListener('click', () => setDockTab(button.dataset.dockTab));

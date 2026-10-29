@@ -271,15 +271,16 @@ for (const exportId of ['btnExport', 'exportFormatSelect']) {
   }
 }
 
-// Dock geography: header → generator → contextual panes → export footer.
+// Dock geography: header → generator → tabs → active pane → export footer.
 const dockHeaderIdx = rightDockBounds.content.indexOf('id="dock-header"');
 const dockGenIdx = rightDockBounds.content.indexOf('id="dock-generator"');
+const dockTabsIdx = rightDockBounds.content.indexOf('id="dockTabs"');
 const dockPaneIdx = rightDockBounds.content.indexOf('id="dock-workspace-generate"');
 const dockExportIdx = rightDockBounds.content.indexOf('id="dock-export"');
-if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockPaneIdx > dockGenIdx && dockExportIdx > dockPaneIdx)) {
-  throw new Error('Contract violation: dock order must be header < generator < contextual panes < export.');
+if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockTabsIdx > dockGenIdx && dockPaneIdx > dockTabsIdx && dockExportIdx > dockPaneIdx)) {
+  throw new Error('Contract violation: dock order must be header < generator < tabs < panes < export.');
 }
-console.log('✓ Generator and export live in the right dock; history is a utility-rail control: dock header → generator → panes → export.');
+console.log('✓ Right dock: header → generator → tabs → active pane → export; history stays in the utility rail.');
 
 // The left toolbar is tools + guides + colors only.
 const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
@@ -326,13 +327,16 @@ if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto'
 }
 console.log('✓ No sidebar scrolls; the active tab and the tiles list keep their own scroll.');
 
-// 9b. The second right rail hosts history plus the vertical dock tabs.
-const tabsBounds = getElementBounds(html, 'dockPanelTabs');
-if (!tabsBounds) throw new Error('Missing #dockPanelTabs in index.html');
-if (!railBounds.content.includes('id="dockPanelTabs"')) {
-  throw new Error('Contract violation: #dockPanelTabs must live inside #utility-rail.');
+// 9b. Tabs live inside the dock (Illustrator panel group); the rail stays a document rail.
+const tabsBounds = getElementBounds(html, 'dockTabs');
+if (!tabsBounds) throw new Error('Missing #dockTabs in index.html');
+if (!rightDockBounds.content.includes('id="dockTabs"')) {
+  throw new Error('Contract violation: #dockTabs must live inside #right-dock.');
 }
-const dockTabIds = ['dockTabSymmetry', 'dockTabPieces', 'dockTabDocument', 'dockTabScope', 'dockTabBrush'];
+if (railBounds.content.includes('id="dockTabs"')) {
+  throw new Error('Contract violation: the panel tabs must not live in #utility-rail.');
+}
+const dockTabIds = ['dockTabDocument', 'dockTabSymmetry', 'dockTabPieces', 'dockTabScope', 'dockTabBrush'];
 for (const tabId of dockTabIds) {
   const tabBounds = getElementBounds(html, tabId);
   if (!tabBounds) throw new Error(`Missing #${tabId} in index.html`);
@@ -349,7 +353,10 @@ for (const tabId of dockTabIds) {
 if (!railBounds.content.includes('id="railOpenLibrary"')) {
   throw new Error('Contract violation: the utility rail must keep its Library shortcut.');
 }
-console.log('✓ Utility rail = history + 5 vertical dock tabs + Library shortcut.');
+if (!(tabsBounds.startIndex > generatorBounds.startIndex && tabsBounds.endIndex < generatePaneBounds.startIndex)) {
+  throw new Error('Contract violation: the dock tab strip must sit between the generator and the panel area.');
+}
+console.log('✓ Dock tabs live inside #right-dock; the rail stays history + Library.');
 
 // 10. Both environments share outer toolbar scrolling; history stays in its flyout.
 if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
