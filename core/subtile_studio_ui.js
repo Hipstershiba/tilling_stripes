@@ -1310,6 +1310,17 @@
     syncNavigationState();
   }
 
+  function compatibilityMarkup(axisOk, diagOk, centerOk) {
+    return [
+      ['axes', 'XY', 'Eixos horizontal e vertical', axisOk],
+      ['symmetry', 'Diagonal', 'Eixos diagonais', diagOk],
+      ['mandala', 'Centro', 'Centro da Mandala D4', centerOk]
+    ].map(([icon, name, fullName, compatible]) => {
+      const label = `${fullName}: ${compatible ? 'compatível' : 'assimétrica'}`;
+      return `<span class="d4-compat-pill ${compatible ? 'ok' : 'neutral'}" title="${label}" aria-label="${label}">${uiFormat.icon(icon, 14)}<span>${name}</span><span aria-hidden="true">${compatible ? '✓' : '–'}</span></span>`;
+    }).join('');
+  }
+
   function renderD4LivePanel() {
     if (typeof document === 'undefined') return;
     const { reg, d4, store } = resolveDeps();
@@ -1330,7 +1341,8 @@
       countBadge.textContent = `${n} ${n === 1 ? 'variante' : 'variantes'}`;
     }
     if (orbitLabelEl) {
-      orbitLabelEl.textContent = ORBIT_LABELS_PT[fam.orbitType] || fam.orbitType;
+      orbitLabelEl.textContent = 'Compatibilidade';
+      orbitLabelEl.title = ORBIT_LABELS_PT[fam.orbitType] || fam.orbitType;
     }
     if (stabCodeEl) {
       const stab = Array.isArray(fam.stabilizer) && fam.stabilizer.length > 0
@@ -1343,17 +1355,7 @@
       const axisOk = Boolean(fam.isAxisInvariant);
       const diagOk = Boolean(fam.isDiagInvariant);
       const centerOk = fam.tileIds.length === 1;
-      compatRow.innerHTML = `
-        <span class="d4-compat-pill ${axisOk ? 'ok' : 'neutral'}" title="${axisOk ? 'Possui variante invariante em eixos ortogonais (mx/my)' : 'Assimétrico nos eixos X/Y (usa #84 em células axiais estritas)'}">
-          Eixos X/Y: ${axisOk ? 'Sim' : 'Não'}
-        </span>
-        <span class="d4-compat-pill ${diagOk ? 'ok' : 'neutral'}" title="${diagOk ? 'Possui variante invariante nas diagonais (md/mad) de Mandala D4' : 'Assimétrico nas diagonais (usa #84 na diagonal estrita de Mandala D4)'}">
-          Diagonais: ${diagOk ? 'Sim' : 'Não'}
-        </span>
-        <span class="d4-compat-pill ${centerOk ? 'ok' : 'neutral'}" title="${centerOk ? 'Invariante no centro ímpar de Mandala D4' : 'Gera órbita rotacional/reflexiva fora do centro'}">
-          Centro D4: ${centerOk ? 'Sim' : 'Não'}
-        </span>
-      `;
+      compatRow.innerHTML = compatibilityMarkup(axisOk, diagOk, centerOk);
     }
 
     if (variantsGrid) {
@@ -1401,8 +1403,9 @@
         const textEl = document.getElementById('tileReadOnlyText');
         if (textEl) {
           textEl.textContent = fam.isCanonicalEmpty
-            ? 'Peça vazia — usada pela Borracha (E).'
-            : 'Família original protegida.';
+            ? 'Vazia'
+            : 'Protegida';
+          textEl.title = fam.isCanonicalEmpty ? 'Peça vazia usada pela Borracha (E)' : 'Peça original protegida';
         }
       } else {
         readOnlyNotice.classList.add('hidden');
@@ -1933,10 +1936,11 @@
 
     if (countBadge) {
       const n = info.orbitSize;
-      countBadge.textContent = `${n} ${n === 1 ? 'variante' : 'variantes'} (ao vivo)`;
+      countBadge.textContent = `${n} ${n === 1 ? 'variante' : 'variantes'}`;
     }
     if (orbitLabelEl) {
-      orbitLabelEl.textContent = ORBIT_LABELS_PT[info.orbitType] || info.orbitType;
+      orbitLabelEl.textContent = 'Compatibilidade';
+      orbitLabelEl.title = ORBIT_LABELS_PT[info.orbitType] || info.orbitType;
     }
     if (stabCodeEl) {
       const stab = Array.isArray(info.stabilizer) && info.stabilizer.length > 0
@@ -1948,11 +1952,7 @@
       const axisOk = Boolean(info.isAxisInvariant);
       const diagOk = Boolean(info.isDiagInvariant);
       const centerOk = info.orbitSize === 1;
-      compatRow.innerHTML = `
-        <span class="d4-compat-pill ${axisOk ? 'ok' : 'neutral'}">Eixos X/Y: ${axisOk ? 'Sim' : 'Não'}</span>
-        <span class="d4-compat-pill ${diagOk ? 'ok' : 'neutral'}">Diagonais: ${diagOk ? 'Sim' : 'Não'}</span>
-        <span class="d4-compat-pill ${centerOk ? 'ok' : 'neutral'}">Centro D4: ${centerOk ? 'Sim' : 'Não'}</span>
-      `;
+      compatRow.innerHTML = compatibilityMarkup(axisOk, diagOk, centerOk);
     }
   }
 
@@ -1985,7 +1985,7 @@
     const pathfinder = document.getElementById('tilePathfinderContainer');
     if (pathfinder) pathfinder.innerHTML = '';
     const summary = document.getElementById('tileSelectionSummary');
-    if (summary) summary.textContent = fam.builtIn || fam.protected ? 'Peça protegida' : 'Nenhum objeto selecionado';
+    if (summary) summary.textContent = fam.builtIn || fam.protected ? 'Protegida' : 'Sem seleção';
     const selectAllBtn = document.getElementById('btnTileSelectAll');
     const deselectBtn = document.getElementById('btnTileDeselect');
     if (selectAllBtn) selectAllBtn.disabled = Boolean(fam.builtIn || fam.protected || !(famDoc.shapes || []).some((s) => s && !s.locked && s.visible !== false));
@@ -2041,13 +2041,10 @@
 
 
     if (fam.builtIn || fam.protected) {
-      if (selBadge) selBadge.textContent = 'Somente Leitura';
+      if (selBadge) selBadge.textContent = 'Protegida';
       container.innerHTML = `
-        <div class="vec-empty-hint">
-          Crie uma cópia para editar as formas desta peça.
-        </div>
-        <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
-          Criar cópia editável
+        <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" title="Criar cópia editável" aria-label="Criar cópia editável">
+          ${uiFormat.icon('copy')}<span>Criar cópia</span>
         </button>
       `;
       document.getElementById('btnPropsDuplicateBuiltIn')?.addEventListener('click', () => {
@@ -2057,7 +2054,7 @@
       return;
     }
 
-    if (summary && selected.length) summary.textContent = `${selected.length} objeto${selected.length === 1 ? '' : 's'} selecionado${selected.length === 1 ? '' : 's'}`;
+    if (summary && selected.length) summary.textContent = `${selected.length} selecionado${selected.length === 1 ? '' : 's'}`;
 
     if (selBadge) {
       if (selected.length === 0) {
@@ -2085,7 +2082,7 @@
       penBlock.className = 'vec-props-subblock';
       const nPts = ve.state.penSession.nodes.length;
       penBlock.innerHTML = `
-        <div class="vec-subblock-title">Caneta Ativa (${nPts} ${nPts === 1 ? 'nó' : 'nós'})</div>
+        <div class="vec-subblock-title">Caneta · ${nPts} ${nPts === 1 ? 'nó' : 'nós'}</div>
         <div class="vec-inline-actions">
           <button type="button" class="mini-btn accent" data-pen-act="close" ${nPts < 3 ? 'disabled' : ''}>Fechar Contorno</button>
           <button type="button" class="mini-btn" data-pen-act="open" ${nPts < 2 ? 'disabled' : ''}>Finalizar Aberto</button>
@@ -2114,7 +2111,7 @@
     const presetBlock = document.createElement('details');
     presetBlock.className = 'vec-props-subblock';
     presetBlock.innerHTML = `
-      <summary class="vec-subblock-title">Inserir base de fita (1/3)</summary>
+      <summary class="vec-subblock-title" title="Inserir bases de fita de largura 1/3">Bases</summary>
       <div class="vec-preset-chips">
         <button type="button" class="vec-preset-btn" data-preset="stripe-h-1-3" title="Adicionar faixa horizontal central de largura 1/3">+ Faixa H 1/3</button>
         <button type="button" class="vec-preset-btn" data-preset="stripe-v-1-3" title="Adicionar faixa vertical central de largura 1/3">+ Faixa V 1/3</button>
@@ -2237,7 +2234,7 @@
           `;
         }
         defBlock.innerHTML = `
-          <div class="vec-subblock-title">Opções da Ferramenta</div>
+          <div class="vec-subblock-title">Opções</div>
           <div class="vec-props-grid">${fieldsHTML}</div>
         `;
         defBlock.querySelectorAll('[data-tdef]').forEach((inp) => {
@@ -2248,11 +2245,6 @@
           });
         });
         container.appendChild(defBlock);
-      } else {
-        const hint = document.createElement('div');
-        hint.className = 'vec-empty-hint';
-        hint.textContent = 'Selecione uma forma para editar geometria e aparência.';
-        container.appendChild(hint);
       }
       container.appendChild(presetBlock);
       iconizePropertyActions();
@@ -2299,7 +2291,7 @@
         <div class="vec-prop-field" style="margin-top:3px;">
           <label title="Regra de preenchimento vetorial para contornos múltiplos e furos">Regra</label>
           <select id="vecPropFillRule" title="Regra de preenchimento vetorial (Fill Rule)">
-            <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''} title="Par-Ímpar: contornos internos tornam-se furos/vazados automaticamente">Par-Ímpar (Furos)</option>
+            <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''} title="Par-Ímpar: contornos internos tornam-se furos/vazados automaticamente">Par-ímpar</option>
             <option value="nonzero" ${ruleVal === 'nonzero' ? 'selected' : ''} title="Não-Zero: preenche de acordo com o sentido do traçado (horário / anti-horário)">Não-Zero</option>
           </select>
         </div>
@@ -2352,8 +2344,8 @@
           <div class="vec-props-grid">
             <div class="vec-prop-field"><label>X</label><input type="number" step="0.05" data-sprop="x" value="${fmt(sh.x)}"></div>
             <div class="vec-prop-field"><label>Y</label><input type="number" step="0.05" data-sprop="y" value="${fmt(sh.y)}"></div>
-            <div class="vec-prop-field"><label>L (W)</label><input type="number" step="0.05" min="0.01" data-sprop="w" value="${fmt(sh.w)}"></div>
-            <div class="vec-prop-field"><label>A (H)</label><input type="number" step="0.05" min="0.01" data-sprop="h" value="${fmt(sh.h)}"></div>
+            <div class="vec-prop-field"><label title="Largura">W</label><input type="number" step="0.05" min="0.01" data-sprop="w" value="${fmt(sh.w)}"></div>
+            <div class="vec-prop-field"><label title="Altura">H</label><input type="number" step="0.05" min="0.01" data-sprop="h" value="${fmt(sh.h)}"></div>
             <div class="vec-prop-field"><label>Raio</label><input type="number" step="0.02" min="0" data-sprop="radius" value="${fmt(sh.radius)}"></div>
             <div class="vec-prop-field"><label>Giro°</label><input type="number" step="15" data-sdeg="rotation" value="${deg(sh.rotation)}"></div>
           </div>
@@ -2857,13 +2849,27 @@
     }
   }
 
+  function associatePropertyFieldLabels() {
+    document.querySelectorAll('#vecPropsContainer .vec-prop-field').forEach((field, index) => {
+      const label = field.querySelector('label');
+      const input = field.querySelector('input, select, textarea');
+      if (!label || !input) return;
+      if (!input.id) input.id = `vecInspectorField-${index}`;
+      label.htmlFor = input.id;
+      if (!input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby')) {
+        input.setAttribute('aria-label', label.title || label.textContent.trim());
+      }
+    });
+  }
+
   function iconizePropertyActions() {
+    associatePropertyFieldLabels();
     // Command ids resolved against the shared registry (core/ui_format.js).
     const iconNames = {
       'stripe-h-1-3': 'presetStripeH', 'stripe-v-1-3': 'presetStripeV',
       'curve-tl-1-3': 'presetArcTL', 'quarter-pie-tl': 'presetPieTL',
       horizontal: 'distributeH', vertical: 'distributeV',
-      closed: 'pathClosed', open: 'pathOpen', cancel: 'close',
+      close: 'pathClosed', open: 'pathOpen', cancel: 'close',
       btnPropsDuplicateBuiltIn: 'copy', btnVecPropDuplicate: 'copy',
       btnVecPropDelete: 'trash', btnVecPropToPath: 'curve',
       btnVecToggleSmooth: 'curve', btnVecSubdivideSeg: 'nodePlus',
@@ -2875,7 +2881,7 @@
       if (!iconName || !uiFormat.hasIcon(iconName)) return;
       const names = {unite:'Unir',subtract:'Menos frente',intersect:'Interseção',exclude:'Excluir',r90:'Girar 90°',r270:'Girar -90°',mx:'Espelhar H',my:'Espelhar V',
         btnVecPropDuplicate:'Duplicar',btnVecPropDelete:'Excluir',btnVecPropToPath:'Converter em caminho',btnPropsDuplicateBuiltIn:'Criar cópia',btnVecToggleSmooth:'Suavizar',btnVecSubdivideSeg:'Inserir nó',
-        'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',closed:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
+        'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',close:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
       const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
       const labelled = key === 'btnPropsDuplicateBuiltIn';
@@ -3310,7 +3316,7 @@
       return {
         artboard: 'Prancheta [-0.5, +0.5]',
         grid: 'Biblioteca D4',
-        hover: 'Selecione ou crie um subtile no painel lateral'
+        hover: 'Sem peça'
       };
     }
 
@@ -3332,7 +3338,7 @@
       const yStr = uiState.hoverNorm.ny >= 0 ? `+${uiState.hoverNorm.ny.toFixed(3)}` : uiState.hoverNorm.ny.toFixed(3);
       hover = `X: ${xStr}  Y: ${yStr}`;
     } else if (fam.builtIn) {
-      hover = 'Protegida (somente leitura)';
+      hover = 'Protegida';
     } else {
       hover = 'Pronto';
     }

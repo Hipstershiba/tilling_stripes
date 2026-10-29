@@ -114,7 +114,8 @@ assert(toolGrid.indexOf('id="btnTileViewPan"') > toolGrid.indexOf('id="vecToolCu
   'Navigation must follow drawing tools');
 assert(/id="btnTileViewPan"[^>]*class="[^"]*tool-navigation-start/.test(toolGrid),
   'Hand must start the last navigation row so Hand and Zoom remain paired');
-assert(htmlSource.slice(htmlSource.indexOf('id="leftToolbarTilesPane"')).includes('sidebar-section-title">Guias Visuais</div>'), 'The tile toolbar must use the shared Guias Visuais heading');
+assert.strictEqual((htmlSource.match(/sidebar-section-title">Guias<\/div>/g) || []).length, 2,
+  'Both toolbars must use the same short Guias heading');
 
 const sketchSrc = fs.readFileSync(require.resolve('../sketch.js'), 'utf8');
 assert(sketchSrc.includes("if (StudioState.studioMode === 'tiles')"), 'sketch.js must check tiles mode in wheel listener');

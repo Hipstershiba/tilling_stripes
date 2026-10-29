@@ -1,0 +1,333 @@
+/* Piece editor: the document remains the focus; the inspector is a calm,
+   predictable stack with one scrolling content area per active tab. */
+body[data-studio-mode="tiles"] #dock-workspace-tiles {
+  overflow: hidden;
+  min-height: 0;
+}
+
+#dock-workspace-tiles > .dock-panel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#dock-workspace-tiles > .dock-panel > .panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  scrollbar-gutter: stable;
+}
+
+#dock-workspace-tiles .tile-inspector-tabs {
+  gap: 0;
+  padding: 0 8px;
+  background: var(--bg-panel);
+}
+
+#dock-workspace-tiles .tile-inspector-tabs button {
+  min-height: 40px;
+  padding: 10px 4px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--text-muted);
+}
+
+#dock-workspace-tiles .tile-inspector-tabs button[aria-selected="true"] {
+  color: var(--text-primary);
+  font-weight: 650;
+  background: transparent;
+  border-bottom-color: var(--accent-blue);
+}
+
+#dock-workspace-tiles .tile-selection-bar {
+  min-height: 40px;
+  padding: 4px 12px;
+  gap: 4px;
+  background: var(--bg-panel);
+}
+
+#tileSelectionSummary {
+  margin-right: auto;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+#dock-workspace-tiles .tile-panel-summary {
+  flex: 0 0 auto;
+  position: static;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+#dock-workspace-tiles .tile-panel-summary .panel-counter-pill {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  background: transparent;
+}
+
+/* A protected master has one useful next action. Avoid showing inactive
+   geometry operations or repeating the protected state in three places. */
+#dock-workspace-tiles:has(#btnPropsDuplicateBuiltIn) > .tile-selection-bar {
+  display: none;
+}
+
+#vecPropsContainer:has(> #btnPropsDuplicateBuiltIn) {
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-control);
+}
+
+#vecPropsContainer #btnPropsDuplicateBuiltIn {
+  width: 100%;
+  min-height: 38px;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 30%, transparent);
+  border-radius: 6px;
+  background: var(--accent-blue-soft);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#tilePathfinderSection:not(:has(button:not(:disabled))) {
+  display: none;
+}
+
+/* Numeric fields share a baseline and retain their values in narrow docks. */
+#vecPropsContainer { gap: 14px; }
+#vecPropsContainer .vec-props-subblock {
+  gap: 8px;
+  padding-top: 12px;
+  border-top-color: var(--border-subtle);
+}
+
+#vecPropsContainer .vec-subblock-title {
+  min-height: 24px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .045em;
+  color: var(--text-secondary);
+}
+
+#vecPropsContainer .vec-subblock-title::after { opacity: .45; }
+#vecPropsContainer .vec-props-grid { gap: 8px; }
+#vecPropsContainer .vec-prop-field {
+  min-height: 36px;
+  height: 36px;
+  padding: 0 9px;
+  gap: 8px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+#vecPropsContainer .vec-prop-field:focus-within {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+#vecPropsContainer .vec-prop-field label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+#vecPropsContainer .vec-prop-field :is(input[type="number"], select) {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  min-height: 32px;
+}
+
+#vecPropsContainer .vec-check-chip {
+  min-height: 34px;
+  gap: 7px;
+  padding: 4px 9px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+#vecPropsContainer .vec-check-chip:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent-blue) 35%, transparent);
+  background: var(--accent-blue-soft);
+  color: var(--text-primary);
+}
+
+#vecPropsContainer .vec-check-chip input { accent-color: var(--accent-blue); }
+#vecPropsContainer .vec-empty-hint { padding: 10px 0; color: var(--text-muted); }
+
+#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) {
+  gap: 5px;
+}
+
+#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) > button {
+  min-height: 34px;
+  height: 34px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+}
+
+#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) > button:hover:not(:disabled) {
+  background: var(--bg-control-hover);
+  border-color: var(--border-strong);
+}
+
+#dock-workspace-tiles .tile-inspector-disclosure > summary {
+  min-height: 36px;
+  padding: 10px 0;
+  font-size: 12px;
+}
+
+/* Layers: stable action columns and names that can take the remaining space. */
+#panelTileLayersBody { display: flex; flex-direction: column; overflow: hidden; }
+#panelTileLayersBody > .prop-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+}
+
+#panelTileLayersBody .tile-layers-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 12px;
+  flex: 0 0 auto;
+}
+
+#panelTileLayersBody .tile-layers-toolbar > button {
+  min-width: 32px;
+  width: 32px;
+  min-height: 32px;
+  height: 32px;
+}
+
+#panelTileLayersBody .tile-layers-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  gap: 2px;
+  padding-right: 2px;
+}
+
+#panelTileLayersBody .tile-layer-row {
+  flex: 0 0 auto;
+  min-height: 42px;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+
+#panelTileLayersBody .tile-layer-row.is-selected {
+  background: var(--accent-blue-soft);
+  box-shadow: inset 2px 0 var(--accent-blue);
+}
+
+#panelTileLayersBody .tile-layer-row:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+#panelTileLayersBody .tile-layer-name {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#panelTileLayersBody .tile-layer-select {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+
+#panelTileLayersBody .tile-layer-actions { gap: 0; }
+#panelTileLayersBody .tile-layer-icon-btn {
+  min-width: 26px;
+  width: 26px;
+  min-height: 30px;
+  height: 30px;
+}
+
+/* Variants have enough visual area to compare geometry before selecting. */
+#panelTileD4LiveBody .tile-live-variants-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+#panelTileD4LiveBody .tile-live-variant-card {
+  min-width: 0;
+  padding: 5px;
+  gap: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: var(--bg-control);
+  box-shadow: none;
+}
+
+#panelTileD4LiveBody .tile-live-variant-card.active {
+  border-color: var(--accent-blue);
+  background: var(--accent-blue-soft);
+  box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+#panelTileD4LiveBody .tile-live-variant-tag { font-size: 11px; }
+#panelTileD4LiveBody .d4-compat-row { gap: 6px; }
+#panelTileD4LiveBody .d4-compat-pill {
+  min-height: 32px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 5px;
+}
+
+#panelTileD4LiveBody .tile-readonly-banner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin-top: 16px;
+  background: var(--bg-control);
+}
+
+#panelTileD4LiveBody .tile-custom-meta-box {
+  margin-top: 16px;
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0;
+  background: transparent;
+  gap: 10px;
+}
+
+#panelTileD4LiveBody .tile-meta-field-row {
+  grid-template-columns: 64px minmax(0, 1fr);
+  font-size: 12px;
+  gap: 8px;
+}
+
+#panelTileD4LiveBody .tile-meta-field-row :is(input, select) { min-height: 34px; }
+
+@media (max-width: 760px) {
+  #dock-workspace-tiles .tile-inspector-tabs { padding-inline: 4px; }
+  #dock-workspace-tiles .tile-inspector-tabs button { font-size: 11px; }
+  #dock-workspace-tiles > .dock-panel > .panel-body { padding: 10px; }
+  #vecPropsContainer .vec-props-grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #panelTileLayersBody .tile-layer-type-tag { display: none; }
+}

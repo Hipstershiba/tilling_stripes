@@ -61,8 +61,10 @@ const toggle = /#familiesSwatchContainer \.family-toggle-btn \{([\s\S]*?)\}/.exe
 assert(toggle && /min-height:\s*(\d+)px/.test(toggle[1]), 'Family toggle needs an explicit min-height');
 const toggleH = Number(/min-height:\s*(\d+)px/.exec(toggle[1])[1]);
 assert(toggleH >= 24, `Family toggle target must be >= 24px tall (got ${toggleH})`);
-const step = /#top-control-bar \.step-btn \{([\s\S]*?)\}/.exec(css);
-assert(step, 'Top-bar steppers must be styled');
+// Os passos numéricos vivem no flyout Documento desde a revisão da barra de
+// controle (29/10/2026); a barra superior não usa mais `.step-btn`.
+const step = /\.document-field \.step-btn \{([\s\S]*?)\}/.exec(css);
+assert(step, 'Document steppers must be styled');
 const stepW = Number(/min-width:\s*(\d+)px/.exec(step[1])[1]);
 assert(stepW >= 24, `Stepper target must be >= 24px wide (got ${stepW})`);
 console.log('✓ Row and stepper targets stay at or above 24px.');

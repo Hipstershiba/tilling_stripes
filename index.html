@@ -7,6 +7,9 @@
   <meta name="color-scheme" content="dark">
   <title>Tiling Stripes Studio — Mosaic Generator</title>
   <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="core/ui_workspace_refinement.css">
+  <link rel="stylesheet" href="core/ui_pieces_refinement.css">
+  <link rel="stylesheet" href="core/ui_library_refinement.css">
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
   <script src="libraries/paper-core.min.js"></script>
@@ -14,6 +17,8 @@
 
 <body data-studio-mode="mosaic">
   <div id="app-shell">
+    <header class="studio-heading">
+      <div class="studio-wordmark" title="Tiling Stripes Studio"><span class="brand-logo" aria-hidden="true">TS</span><span>Tiling Stripes</span></div>
     <nav id="app-menubar" class="app-menubar" role="menubar" aria-label="Menu principal">
       <div class="app-menu-group">
         <button type="button" id="menu-file" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file-popup" tabindex="0">Arquivo</button>
@@ -73,8 +78,8 @@
         <div id="menu-library-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-library">
           <button type="button" role="menuitem" class="menu-command" data-menu-action="open-library" id="tileTabLibrary"><span>Gerenciar biblioteca…</span></button>
           <div class="menu-separator" role="separator"></div>
-          <button type="button" role="menuitem" id="btnImportSubtileSvg" data-menu-action="import-svg" class="menu-command" title="Importar subtile (.svg)…" aria-label="Importar subtile (.svg)…"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar subtile (.svg)…</span></span></button>
-          <button type="button" role="menuitem" id="btnExportSubtileSvg" class="menu-command" title="Exportar subtile (.svg)" aria-label="Exportar subtile (.svg)"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar subtile (.svg)</span></span></button>
+          <button type="button" role="menuitem" id="btnImportSubtileSvg" data-menu-action="import-svg" class="menu-command" title="Importar subtile (.svg)…" aria-label="Importar subtile (.svg)…"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar SVG…</span></span></button>
+          <button type="button" role="menuitem" id="btnExportSubtileSvg" class="menu-command" title="Exportar subtile (.svg)" aria-label="Exportar subtile (.svg)"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar SVG</span></span></button>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="export-groups"><span>Exportar conjuntos…</span></button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailNewSubtile" ><span>Nova peça</span></button>
@@ -94,6 +99,12 @@
         </div>
       </div>
     </nav>
+      <nav class="studio-views" aria-label="Ambientes do estúdio">
+        <button type="button" data-studio-view="mosaic" aria-current="page" title="Criar e editar mosaico"><span class="icon-slot" data-icon-slot="blocks"></span><span>Mosaico</span></button>
+        <button type="button" data-studio-view="tiles" title="Desenhar e editar peças"><span class="icon-slot" data-icon-slot="tiles"></span><span>Peças</span></button>
+        <button type="button" data-studio-view="library" title="Organizar a biblioteca"><span class="icon-slot" data-icon-slot="folder"></span><span>Biblioteca</span></button>
+      </nav>
+    </header>
     <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
 <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
 
@@ -107,8 +118,6 @@
         <span class="brand-title">Tiling Stripes</span>
       </div>
 
-      <div class="bar-divider"></div>
-
       <!-- Identity of the active tool (Illustrator control-bar anchor) -->
       <div id="topToolContext" class="bar-group top-tool-context mosaic-mode-only" aria-label="Ferramenta ativa">
         <span id="topToolIcon" class="top-tool-icon" aria-hidden="true"></span>
@@ -117,7 +126,6 @@
 
       <!-- Pincel / Carimbo: brush size, snap and the expanded editor -->
       <div id="ctxPaint" class="bar-group top-context-group mosaic-mode-only hidden" aria-label="Opções do Pincel e do Carimbo">
-        <span class="bar-group-label">Pincel</span>
         <div class="brush-size-display-row" id="brushSizeControl">
           <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
           <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
@@ -141,7 +149,6 @@
 
       <!-- Girar / Espelhar: área, modo e tipo -->
       <div id="rotateToolOptionsWrap" class="prop-section hidden bar-group top-context-group mosaic-mode-only" aria-label="Opções de Girar e Espelhar">
-        <span class="bar-group-label" id="rotateToolLabel">Girar</span>
         <div class="brush-size-display-row top-size-row" data-size-tool="rotate" role="group" aria-label="Tamanho da área de giro">
           <button type="button" class="brush-step-btn" data-size-step="-1" aria-label="Diminuir tamanho da área de giro" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
           <div class="brush-size-badge" role="status" aria-live="polite" aria-atomic="true">
@@ -177,7 +184,6 @@
 
       <!-- Preservar: ação, tamanho e limpeza -->
       <div id="freezeToolOptionsWrap" class="prop-section hidden bar-group top-context-group mosaic-mode-only" aria-label="Opções de Preservar">
-        <span class="bar-group-label">Preservar</span>
         <span id="freezeToolCountBadge" class="prop-badge secondary">Nenhum</span>
         <div class="segmented-control top-seg" id="freezeModeControl" role="group" aria-label="Modo da trava">
           <button type="button" data-freeze-mode="freeze" class="seg-btn active icon-only" aria-pressed="true" title="Preservar" aria-label="Preservar"><span class="icon-slot" data-icon-slot="lock"></span><span class="icon-label">Preservar</span></button>
@@ -199,7 +205,6 @@
 
       <!-- Subtile Studio Contextual Top Strip (Visible only in data-studio-mode="tiles") -->
       <div id="topBarTilesControls" class="bar-group tiles-mode-only" aria-label="Controles da Prancheta de Subtiles">
-        <div class="bar-divider"></div>
         <span id="tileStudioActiveBadge" class="tile-studio-origin-badge">Padrão #0</span>
         <span id="tileStudioActiveName" class="tile-studio-active-name">Arco de Fita</span>
         <button type="button" id="btnTileTopDuplicate" class="bar-action-btn tile-dup-accent-btn icon-only" title="Criar cópia" aria-label="Criar cópia"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Criar cópia editável</span></span></button>
@@ -382,7 +387,7 @@
 
         <!-- Guias Visuais em 2 Colunas -->
         <div class="sidebar-section mosaic-mode-only" aria-label="Guias Visuais">
-          <div class="sidebar-section-title">Guias Visuais</div>
+          <div class="sidebar-section-title">Guias</div>
           <div class="tools-grid-2col">
             <button id="toggleGuideAxes" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Eixos" aria-label="Eixos"><span class="icon-slot" data-icon-slot="axes" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Eixos</span></span></button>
             <button id="toggleGuideBlocks" class="tool-btn tool-grid-btn guide-toggle icon-only" aria-pressed="false" title="Blocos" aria-label="Blocos"><span class="icon-slot" data-icon-slot="blocks" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Blocos</span></span></button>
@@ -438,7 +443,7 @@
           <div class="tool-divider"></div>
 
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Guias Visuais</div>
+            <div class="sidebar-section-title">Guias</div>
             <div class="vec-snap-row">
               <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span>Encaixe</span></span></button>
               <select id="tileGridDivSelect" class="subtile-grid-select" title="Subdivisão da Grade Magnética" aria-label="Subdivisão da Grade Magnética">
@@ -481,7 +486,7 @@
             <div class="zoom-widget">
               <button id="btnZoomOut" class="status-icon-btn" title="Diminuir Zoom (-)" aria-label="Diminuir Zoom"><span class="icon-slot" data-icon-slot="minus" data-icon-size="14"></span></button>
               <select id="zoomPresetSelect" class="status-zoom-select" title="Nível de Zoom" aria-label="Nível de Zoom">
-                <option value="fit">Ajustar à Tela</option>
+                <option value="fit">Ajustar</option>
                 <option value="25">25%</option>
                 <option value="50">50%</option>
                 <option value="75">75%</option>
@@ -545,6 +550,7 @@
                 <span>Peças permitidas</span>
               </div>
               <span id="activeTilesCounter" class="panel-counter-pill">0 / 0</span>
+              <button type="button" class="mini-btn flyout-close" data-close-flyout="railTogglePieces" title="Fechar peças permitidas" aria-label="Fechar peças permitidas"><span class="icon-slot" data-icon-slot="close"></span></button>
             </header>
 
             <div class="panel-body swatches-panel-body" id="panelSwatchesBody">
@@ -578,21 +584,32 @@
         </div>
 
         <div id="railFlyoutDocument" class="rail-flyout hidden" role="region" aria-label="Documento">
-          <!-- PANEL 0: DOCUMENTO — Prancheta & Grade (aba do trilho direito) -->
+          <!-- PANEL 0: DOCUMENTO — Prancheta & Grade no flyout do trilho direito -->
           <section class="dock-panel" id="panel-document">
             <header class="panel-header">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="grid" data-icon-size="14"></span>
                 <span>Documento</span>
+                <button type="button" class="info-btn" data-info-topic="document" aria-label="Saiba mais sobre prancheta e grade" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
+              <button type="button" class="mini-btn flyout-close" data-close-flyout="railToggleDocument" title="Fechar Documento" aria-label="Fechar Documento"><span class="icon-slot" data-icon-slot="close"></span></button>
             </header>
             <div class="panel-body document-panel-body" id="panelDocumentBody">
-              <div class="document-block" aria-label="Prancheta">
-                <span class="prop-label">Prancheta</span>
-                <div class="document-controls">
-                  <div class="input-chip" title="Largura do Canvas (px)">
-                    <label class="chip-prefix" for="canvasW">Larg.</label>
+              <section class="document-section" aria-label="Prancheta">
+                <div class="document-section-head">
+                  <span class="document-section-title">Prancheta</span>
+                  <span class="document-section-line" aria-hidden="true"></span>
+                  <div class="document-tools" role="group" aria-label="Ações da prancheta">
+                    <button type="button" id="btnSwapCanvasSize" class="icon-btn document-tool" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><span class="icon-slot" data-icon-slot="swap"></span></button>
+                    <button type="button" id="btnLockCanvasRatio" class="icon-btn document-tool" title="Travar Proporção da Prancheta" aria-label="Travar Proporção da Prancheta"><span class="icon-slot" data-icon-slot="lock"></span></button>
+                    <button type="button" id="btnFitCanvasToGrid" class="icon-btn document-tool" title="Ajustar Prancheta à Grade" aria-label="Ajustar Prancheta à Grade"><span class="icon-slot" data-icon-slot="fit"></span></button>
+                  </div>
+                </div>
+                <div class="document-fields">
+                  <div class="document-field" title="Largura da Prancheta (px)">
+                    <label class="document-field-label" for="canvasW">Larg.</label>
                     <input type="number" id="canvasW" aria-label="Largura da prancheta em pixels" value="600" min="100" max="4096" step="50">
+                    <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="canvasW" data-step-dir="1" tabindex="-1"
                         title="Aumentar Largura" aria-label="Aumentar Largura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
@@ -600,10 +617,10 @@
                         title="Diminuir Largura" aria-label="Diminuir Largura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
-                  <button id="btnSwapCanvasSize" class="icon-btn" title="Inverter Largura e Altura (W ⇄ H)" aria-label="Inverter Largura e Altura (W ⇄ H)"><span class="icon-slot" data-icon-slot="swap"></span></button>
-                  <div class="input-chip" title="Altura do Canvas (px)">
-                    <label class="chip-prefix" for="canvasH">Alt.</label>
+                  <div class="document-field" title="Altura da Prancheta (px)">
+                    <label class="document-field-label" for="canvasH">Alt.</label>
                     <input type="number" id="canvasH" aria-label="Altura da prancheta em pixels" value="600" min="100" max="4096" step="50">
+                    <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="canvasH" data-step-dir="1" tabindex="-1"
                         title="Aumentar Altura" aria-label="Aumentar Altura"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
@@ -611,18 +628,22 @@
                         title="Diminuir Altura" aria-label="Diminuir Altura"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
-                  <button id="btnLockCanvasRatio" class="icon-btn" title="Travar Proporção da Prancheta" aria-label="Travar Proporção da Prancheta">
-                    <span class="icon-slot" data-icon-slot="lock"></span>
-                  </button>
-                  <button id="btnFitCanvasToGrid" class="bar-action-btn icon-only" title="Ajustar" aria-label="Ajustar"><span class="icon-slot" data-icon-slot="fit"></span><span class="icon-label">Ajustar</span></button>
                 </div>
-              </div>
+              </section>
 
-              <div class="document-block" aria-label="Grade">
-                <span class="prop-label">Grade</span>
-                <div class="document-controls">
-                  <div class="input-chip chip-compact" title="Linhas de Blocos (Rows)">
-                    <label class="chip-prefix" for="gridRows">Linhas</label>
+              <section class="document-section" aria-label="Grade">
+                <div class="document-section-head">
+                  <span class="document-section-title">Grade</span>
+                  <span class="document-section-line" aria-hidden="true"></span>
+                  <div class="document-tools" role="group" aria-label="Ações da grade">
+                    <button type="button" id="btnSwapGridSize" class="icon-btn document-tool" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><span class="icon-slot" data-icon-slot="swap"></span></button>
+                    <button type="button" id="btnLockGridRatio" class="icon-btn document-tool" title="Travar Proporção da Grade" aria-label="Travar Proporção da Grade"><span class="icon-slot" data-icon-slot="lock"></span></button>
+                    <button type="button" id="btnSquareGrid" class="document-tool document-tool-text" title="Tornar Células Quadradas (1:1)" aria-label="Tornar Células Quadradas (1:1)">1:1</button>
+                  </div>
+                </div>
+                <div class="document-fields">
+                  <div class="document-field" title="Linhas de Blocos (Rows)">
+                    <label class="document-field-label" for="gridRows">Lin.</label>
                     <input type="number" id="gridRows" aria-label="Linhas da grade em blocos" value="3" min="1" max="32" step="1">
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
@@ -631,9 +652,8 @@
                         title="Menos Linhas" aria-label="Menos Linhas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
-                  <button id="btnSwapGridSize" class="icon-btn" title="Inverter Linhas e Colunas" aria-label="Inverter Linhas e Colunas"><span class="icon-slot" data-icon-slot="swap"></span></button>
-                  <div class="input-chip chip-compact" title="Colunas de Blocos (Cols)">
-                    <label class="chip-prefix" for="gridCols">Colunas</label>
+                  <div class="document-field" title="Colunas de Blocos (Cols)">
+                    <label class="document-field-label" for="gridCols">Col.</label>
                     <input type="number" id="gridCols" aria-label="Colunas da grade em blocos" value="3" min="1" max="32" step="1">
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
@@ -642,16 +662,12 @@
                         title="Menos Colunas" aria-label="Menos Colunas"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
-                  <button id="btnLockGridRatio" class="icon-btn" title="Travar Proporção da Grade" aria-label="Travar Proporção da Grade">
-                    <span class="icon-slot" data-icon-slot="lock"></span>
-                  </button>
-                  <button id="btnSquareGrid" class="bar-action-btn" title="Tornar células quadradas">1:1</button>
                 </div>
-                <div class="document-controls">
-                  <div class="input-chip chip-medium" title="Margem externa da Prancheta (px)">
-                    <label class="chip-prefix" for="gridMargin">Margem</label>
+                <div class="document-fields document-fields-secondary">
+                  <div class="document-field" title="Margem Externa da Prancheta (px)">
+                    <label class="document-field-label" for="gridMargin">Marg.</label>
                     <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
-                    <span class="chip-suffix">px</span>
+                    <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="gridMargin" data-step-dir="1" tabindex="-1"
                         title="Aumentar Margem" aria-label="Aumentar Margem"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
@@ -659,17 +675,17 @@
                         title="Diminuir Margem" aria-label="Diminuir Margem"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
-                  <div class="input-chip chip-medium" title="Espaçamento interno dos azulejos (%)">
-                    <label class="chip-prefix" for="paddingInput">Espaçamento</label>
+                  <div class="document-field" title="Espaçamento Interno dos Azulejos (%)">
+                    <label class="document-field-label" for="paddingInput">Esp.</label>
                     <input type="number" id="paddingInput" aria-label="Espaçamento interno em porcentagem" min="0" max="25" step="1" value="5">
-                    <span class="chip-suffix">%</span>
+                    <span class="document-field-unit" aria-hidden="true">%</span>
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="1" tabindex="-1" title="Aumentar Espaçamento" aria-label="Aumentar Espaçamento"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
                       <button type="button" class="step-btn" data-step-target="paddingInput" data-step-dir="-1" tabindex="-1" title="Diminuir Espaçamento" aria-label="Diminuir Espaçamento"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
           </section>
 
@@ -685,7 +701,7 @@
         <!-- Dock Header: static title + collapse toggle -->
         <header id="dock-header">
           <span id="ctxPanelTitle" class="dock-context-title">Propriedades</span>
-          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher Painel Lateral (Tab)" aria-label="Recolher Painel Lateral" aria-expanded="true" aria-controls="right-dock">
+          <button type="button" id="btnToggleRightDock" class="dock-toggle-btn active" title="Recolher painel" aria-label="Recolher painel" aria-expanded="true" aria-controls="right-dock">
             <span class="dock-toggle-icon">»</span>
           </button>
         </header>
@@ -729,10 +745,10 @@
               <div class="prop-section">
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
-                    <label class="prop-label">Simetria da composição</label>
+                    <label class="prop-label" title="Simetria da composição">Composição</label>
                     <button type="button" class="info-btn" data-info-topic="grid-symmetry" aria-label="Saiba mais sobre simetria da grade" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="gridSymmetryBadge" class="prop-badge">Mandala</span>
+                  <span id="gridSymmetryBadge" class="prop-badge hidden">Mandala</span>
                 </div>
                 <div id="gridSymmetryGrid" class="symmetry-card-grid">
                   <!-- Populated by JS -->
@@ -750,16 +766,23 @@
               <div id="blockSymmetryContainer" class="prop-section">
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
-                    <label class="prop-label">Simetria do bloco</label>
+                    <label class="prop-label" for="blockSymmetrySelect" title="Simetria do bloco">Bloco</label>
                     <button type="button" class="info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre simetria do bloco" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="blockSymmetryBadge" class="prop-badge secondary">Igual à Grade</span>
+                  <span id="blockSymmetryBadge" class="prop-badge secondary hidden">Igual à Grade</span>
                 </div>
-                <div id="blockSymmetryGrid" class="block-sym-pill-grid">
+                <select id="blockSymmetrySelect" class="subtile-select" title="Simetria interna do bloco">
+                  <option value="sync">Igual à composição</option>
+                  <option value="mandala_d4">Mandala</option>
+                  <option value="kaleidoscope">Caleidoscópio</option>
+                  <option value="rotational_c4">Rotacional</option>
+                  <option value="bilateral_d2">Bilateral</option>
+                </select>
+                <div id="blockSymmetryGrid" class="block-sym-pill-grid hidden" aria-hidden="true">
                   <!-- Populated by JS -->
                 </div>
                 <div id="blockSymmetryDesc" class="prop-sub-hint hidden"></div>
-                <div id="blockSymmetryWarning" class="notice-banner warning hidden" role="alert">
+                <div id="blockSymmetryWarning" class="symmetry-status hidden" role="status" title="A simetria do bloco reduz a simetria da composição">
                   <span id="blockSymmetryWarningText"></span>
                   <button type="button" class="info-btn warning-info-btn" data-info-topic="block-symmetry" aria-label="Saiba mais sobre redução de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                 </div>
@@ -768,8 +791,8 @@
               <!-- STEP 3: Block Subdivision & Aesthetics -->
               <div class="prop-section">
                 <div class="prop-label-row">
-                  <label class="prop-label">Peças por bloco</label>
-                  <span id="subdivisionSummary" class="prop-badge secondary">Bloco 4×4</span>
+                  <label class="prop-label" title="Peças por bloco">Divisão</label>
+                  <span id="subdivisionSummary" class="prop-badge secondary hidden">Bloco 4×4</span>
                 </div>
                 <div class="segmented-control" id="subdivisionControl">
                   <button type="button" class="seg-btn" data-sub="1"
@@ -821,10 +844,10 @@
               <div class="prop-section">
                 <div class="prop-label-row">
                   <div class="prop-label-with-info">
-                    <label class="prop-label">Escopo de Simetria</label>
+                    <label class="prop-label" title="Escopo de propagação da edição">Propagação</label>
                     <button type="button" class="info-btn" data-info-topic="scopes" aria-label="Saiba mais sobre escopos de simetria" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <span id="editScopeChip" class="prop-badge secondary" title="Escopo de propagação ativo"></span>
+                  <span id="editScopeChip" class="prop-badge secondary hidden" title="Escopo de propagação ativo"></span>
                   <span id="d4EditedBadge" class="prop-badge d4-edited-badge hidden" title="A edição manual introduziu assimetria no D4">D4 editado</span>
                 </div>
                 <div id="editScopeGrid" class="edit-scope-grid">
@@ -832,7 +855,7 @@
                 </div>
                 <div id="sameTileNotice" class="notice-banner hidden">
                   <span>Iguais exige pincel 1×1.</span>
-                  <button type="button" class="link-btn" data-info-topic="same-tile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">Saiba mais</button>
+                  <button type="button" class="info-btn" aria-label="Sobre o escopo Iguais" data-info-topic="same-tile" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                 </div>
                 <div id="d4SymmetryWarning" class="notice-banner warning hidden" role="alert">
                   <span>Esta edição quebra o D4 estrito.</span>
@@ -846,7 +869,7 @@
                 <div id="canvasCenterSymmetryWrap" class="canvas-center-sym-wrap">
                   <div class="prop-label-row" style="margin-bottom: 4px;">
                     <div class="prop-label-with-info">
-                      <span class="prop-sub-label">Simetria pelo Centro</span>
+                      <span class="prop-sub-label" title="Simetria pelo centro da composição">Centro</span>
                       <button type="button" class="info-btn" data-info-topic="center-symmetry" aria-label="Saiba mais sobre simetria de centro" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                     </div>
                   </div>
@@ -886,6 +909,7 @@
                   <div class="active-brush-title-row">
                     <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
                     <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
+                    <button type="button" id="btnOpenBrushPreview" class="mini-btn icon-only" title="Ampliar editor do pincel" aria-label="Ampliar editor do pincel" aria-haspopup="dialog" aria-controls="brushEditorDialog"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar</span></button>
                   </div>
                   <div class="d4-mini-grid">
                     <button type="button" id="btnBrushRot90" class="d4-mini-btn icon-only"
@@ -931,7 +955,7 @@
             <button type="button" id="tileTabVariants" role="tab" data-tile-panel="variants" aria-controls="panel-tile-d4-live" aria-selected="false" tabindex="-1">Variantes</button>
           </nav>
           <div class="tile-selection-bar">
-            <span id="tileSelectionSummary" role="status">Nenhum objeto selecionado</span>
+            <span id="tileSelectionSummary" role="status">Sem seleção</span>
             <button type="button" id="btnTileSelectAll" class="mini-btn icon-only" title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
             <button type="button" id="btnTileDeselect" class="mini-btn icon-only" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Limpar</span></button>
           </div>
@@ -975,7 +999,7 @@
             <header class="panel-header tile-panel-summary" data-collapse-target="panelTileLayersBody" aria-label="Camadas da peça" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLayersBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="layers" data-icon-size="14"></span>
-                <span>Ordem das formas</span>
+                <span title="Ordem das formas">Camadas</span>
                 <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
@@ -1015,7 +1039,7 @@
                     <span id="tileLiveOrbitLabel" class="prop-label">Borda Reflexiva (4v)</span>
                     <button type="button" class="info-btn" data-info-topic="subtile-library" aria-label="Saiba mais sobre biblioteca de subtiles e simetria D4" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
                   </div>
-                  <code id="tileLiveStabilizerCode" class="tile-stabilizer-code">H = {id}</code>
+                  <code id="tileLiveStabilizerCode" class="tile-stabilizer-code hidden">H = {id}</code>
                 </div>
 
                 <div id="tileLiveCompatRow" class="d4-compat-row">
@@ -1028,8 +1052,8 @@
 
                 <!-- Read-only notice for canonical built-in masters (#0..#84) -->
                 <div id="tileReadOnlyNotice" class="tile-readonly-banner">
-                  <span id="tileReadOnlyText">Família original protegida.</span>
-                  <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent" title="Criar cópia" aria-label="Criar cópia"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label">Criar cópia editável</span></button>
+                  <span id="tileReadOnlyText" title="Peça original protegida">Protegida</span>
+                  <button type="button" id="btnNoticeDuplicateToEdit" class="mini-btn accent icon-only" title="Criar cópia editável" aria-label="Criar cópia editável"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label">Criar cópia</span></button>
                 </div>
 
                 <!-- Editable metadata card for custom families (>= 85) -->
@@ -1070,8 +1094,8 @@
 
     <section id="library-page" class="library-page hidden" aria-labelledby="libraryPageTitle" hidden>
       <header class="library-page-header">
-        <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn"><span aria-hidden="true">←</span> Voltar ao estúdio</button>
-        <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca de peças</h1></div>
+        <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn icon-only" title="Voltar ao estúdio" aria-label="Voltar ao estúdio"><span class="icon-slot" data-icon-slot="left"></span><span class="icon-label">Voltar</span></button>
+        <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca</h1></div>
         <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
         <button type="button" id="btnExportLibraryGroups" class="mini-btn library-groups-export-btn"><span class="icon-slot" data-icon-slot="export"></span>Exportar conjuntos…</button>
       </header>
@@ -1094,14 +1118,14 @@
                 <div class="lib-mgr-filter-row">
                   <div id="libMgrFilterControl" class="segmented-control" style="grid-template-columns: repeat(3, 1fr);">
                     <button type="button" class="seg-btn active icon-only" data-lib-filter="all" aria-pressed="true" title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
-                    <button type="button" class="seg-btn icon-only" data-lib-filter="custom" aria-pressed="false" title="Meus" aria-label="Meus"><span class="icon-slot" data-icon-slot="edit"></span><span class="icon-label">Meus subtiles</span></button>
+                    <button type="button" class="seg-btn icon-only" data-lib-filter="custom" aria-pressed="false" title="Meus" aria-label="Meus"><span class="icon-slot" data-icon-slot="edit"></span><span class="icon-label">Meus</span></button>
                     <button type="button" class="seg-btn icon-only" data-lib-filter="builtin" aria-pressed="false" title="Padrão" aria-label="Padrão"><span class="icon-slot" data-icon-slot="book"></span><span class="icon-label">Padrão</span></button>
                   </div>
                 <div class="swatch-bulk-actions lib-mgr-actions-bar" role="group" aria-label="Organizar biblioteca">
-                  <button type="button" id="btnRailNewSubtile" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label"><span>+ Novo Subtile</span></span></button>
-                  <button type="button" id="btnRailNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label"><span>+ Novo Grupo</span></span></button>
-                  <button type="button" id="btnRailDuplicateSubtile" class="mini-btn icon-only" title="Duplicar" aria-label="Duplicar"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Duplicar família</span></span></button>
-                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar todas as peças autorais (.json)" aria-label="Exportar todas as peças autorais (.json)"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label">Exportar Subtiles</span></button>
+                  <button type="button" id="btnRailNewSubtile" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label"><span>Nova peça</span></span></button>
+                  <button type="button" id="btnRailNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label"><span>Novo conjunto</span></span></button>
+                  <button type="button" id="btnRailDuplicateSubtile" class="mini-btn icon-only" title="Duplicar" aria-label="Duplicar"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Duplicar</span></span></button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar todas as peças autorais (.json)" aria-label="Exportar todas as peças autorais (.json)"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label">Exportar</span></button>
                 </div>
               </div>
               </div>
@@ -1111,11 +1135,11 @@
               </div>
               </div>
               <aside class="library-detail-pane" aria-label="Detalhes da peça selecionada">
-                <h2>Peça selecionada</h2>
+                <h2>Peça</h2>
                 <img id="librarySelectionPreview" class="library-selection-preview hidden" alt="">
                 <h3 id="librarySelectionName"></h3>
                 <div id="tileLibraryDetails" class="tile-library-details"></div>
-                <button type="button" id="btnEditLibraryPiece" class="mini-btn accent library-edit-btn">Editar peça</button>
+                <button type="button" id="btnEditLibraryPiece" class="mini-btn accent library-edit-btn" title="Editar peça selecionada" aria-label="Editar peça selecionada"><span class="icon-slot" data-icon-slot="edit"></span><span>Editar</span></button>
               </aside>
 
             </div>

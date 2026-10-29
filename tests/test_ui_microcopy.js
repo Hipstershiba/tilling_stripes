@@ -98,4 +98,23 @@ const unknown = [...new Set(triggerTopics)].filter((topic) => !topics[topic]);
 assert.deepStrictEqual(unknown, [], `Info triggers must resolve to a topic: ${JSON.stringify(unknown)}`);
 console.log(`✓ All ${new Set(triggerTopics).size} info topics used by the interface exist.`);
 
+// 5. Generated inspector chrome obeys the same rule as static markup.
+const studioSource = fs.readFileSync(path.join(baseDir, 'core/subtile_studio_ui.js'), 'utf8');
+const inspectorSource = studioSource.slice(studioSource.indexOf('function renderShapePropsPanel('), studioSource.indexOf('function renderLayersPanel('));
+assert(!/Crie uma cópia para editar as formas desta peça|Selecione uma forma para editar geometria e aparência/.test(inspectorSource),
+  'Inspector instructions belong in help, including dynamically generated HTML');
+assert(topics['vector-editor'].body.some(line => line.includes('geometria e aparência')),
+  'Selection guidance remains available through the editor info button');
+assert(topics['subtile-library'].body.some(line => line.includes('peça vazia')),
+  'D4 compatibility details remain available through info');
+for (const match of inspectorSource.matchAll(/class="vec-subblock-title"[^>]*>([^<$]+)</g)) {
+  assert(match[1].trim().length <= 20, `Inspector heading must be short: ${match[1]}`);
+}
+for (const id of ['gridSymmetryBadge', 'blockSymmetryBadge', 'subdivisionSummary', 'editScopeChip']) {
+  assert(new RegExp(`id="${id}"[^>]*class="[^"]*\\bhidden\\b`).test(html),
+    `${id} must not repeat the selected control in the permanent chrome`);
+}
+assert(!/Recolher Painel Lateral \(Tab\)/.test(html), 'Tab cycles scopes; it must not be advertised as dock collapse');
+console.log('✓ Generated inspector copy, compact headings and redundant badges follow the Document panel rule.');
+
 console.log('--- ALL UI MICROCOPY CHECKS PASSED! ---');

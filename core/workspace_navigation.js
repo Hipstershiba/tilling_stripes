@@ -16,6 +16,13 @@
     tiles:{axes:'toggleTileGuideAxes',grid:'toggleTileGuideGrid',ports:'toggleTileGuidePorts',margin:'toggleTileGuidePadding',snap:'btnTileSnapToggle'}
   };
   const guideControlId = (mode,key) => guideControls[mode]?.[key] || null;
+  function syncViews() {
+    const current = libraryOpen ? 'library' : tiles() ? 'tiles' : 'mosaic';
+    doc?.querySelectorAll('[data-studio-view]').forEach(button => {
+      if (button.dataset.studioView === current) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+  }
   function menuStep(current, direction, length) {
     return length ? (current + direction + length) % length : -1;
   }
@@ -26,6 +33,7 @@
     else if (win.location.hash === '#biblioteca') win.history.replaceState(null, '', url);
   }
   function refresh() {
+    syncViews();
     if (!libraryOpen) return;
     const meta = win.TileRegistry?.getFamilyById(studio()?.state.selectedFamilyId);
     const title = byId('librarySelectionName');
@@ -41,7 +49,13 @@
       } else if (preview.dataset.familyId !== studio()?.state.selectedFamilyId) preview.classList.add('hidden');
     }
     const edit = byId('btnEditLibraryPiece');
-    if (edit) edit.disabled = !meta;
+    if (edit) {
+      edit.disabled = !meta;
+      const label = edit.querySelector('span:last-child');
+      if (label) label.textContent = meta?.builtIn || meta?.protected ? 'Inspecionar' : 'Editar';
+      edit.title = meta?.builtIn || meta?.protected ? 'Inspecionar peça protegida' : 'Editar peça selecionada';
+      edit.setAttribute('aria-label', edit.title);
+    }
   }
   function openLibrary(updateRoute = true) {
     const page = byId('library-page');
@@ -63,6 +77,7 @@
     const page = byId('library-page');
     if (page) { page.hidden = true; page.classList.add('hidden'); }
     doc.body.classList.remove('library-page-open');
+    syncViews();
     if (updateRoute) route(false);
     studio()?.refresh?.();
     const target = lastEditorFocus?.isConnected && !lastEditorFocus.closest('[hidden], .hidden') ? lastEditorFocus : byId('menu-library');
@@ -174,6 +189,28 @@
   function init() {
     if (!doc || initialized) return;
     initialized = true; triggers = Array.from(doc.querySelectorAll('.app-menu-trigger'));
+    new MutationObserver(syncViews).observe(doc.body, { attributes: true, attributeFilter: ['data-studio-mode'] });
+    doc.querySelectorAll('[data-studio-view]').forEach(button => {
+      button.addEventListener('click', () => {
+        closeMenus();
+        const view = button.dataset.studioView;
+        if (view === 'library') openLibrary();
+        else {
+          closeLibrary();
+          if (view === 'tiles' && !tiles()) studio()?.openTilesStudio?.();
+          if (view === 'mosaic' && tiles()) studio()?.closeTilesStudio?.();
+          syncViews();
+        }
+      });
+    });
+    byId('btnOpenBrushPreview')?.addEventListener('click', () => byId('btnExpandBrushEditor')?.click());
+    doc.querySelectorAll('[data-close-flyout]').forEach(button => {
+      button.addEventListener('click', () => {
+        const toggle = byId(button.dataset.closeFlyout);
+        if (toggle?.getAttribute('aria-expanded') === 'true') toggle.click();
+        toggle?.focus();
+      });
+    });
     triggers.forEach((trigger, index) => {
       trigger.addEventListener('click', () => { if (openIndex === index) closeMenus(); else openMenu(index); });
       trigger.addEventListener('mouseenter', () => { if (openIndex >= 0 && openIndex !== index) openMenu(index); });
@@ -198,6 +235,7 @@
     const followRoute = () => { if (win.location.hash === '#biblioteca') { if (!libraryOpen) openLibrary(false); } else closeLibrary(false); };
     win.addEventListener('popstate', followRoute); win.addEventListener('hashchange', followRoute);
     if (win.location.hash === '#biblioteca') openLibrary(false);
+    syncViews();
   }
   const api = {init,openLibrary,closeLibrary,refresh,isLibraryOpen:()=>libraryOpen,menuStep,guideControlId};
   if (win) win.WorkspaceNavigation = api;

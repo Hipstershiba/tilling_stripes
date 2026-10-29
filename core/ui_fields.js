@@ -24,7 +24,9 @@
       const named = {vecPropNodeX: 'Nó X em unidades da peça', vecPropNodeY: 'Nó Y em unidades da peça',
         vecPropStrokeW: 'Espessura do traço em unidades da peça', vecPropStrokeCap: 'Ponta do traço', vecPropFillRule: 'Regra de preenchimento'};
       const coordinate = field.type === 'number' && !field.dataset.sint && !field.dataset.sdeg && !['starRatio','innerRatio','polygonSides','polygonStarRatio','arcInnerRatio'].includes(key);
-      field.setAttribute('aria-label', named[field.id] || `${propertyNames[key] || label.textContent.trim()}${coordinate ? ' em unidades da peça' : ''}`);
+      const name = named[field.id] || `${propertyNames[key] || label.textContent.trim()}${coordinate ? ' em unidades da peça' : ''}`;
+      field.setAttribute('aria-label', name);
+      group.title = name;
     });
   }
   function init(doc, {onCancel = () => {}} = {}) {

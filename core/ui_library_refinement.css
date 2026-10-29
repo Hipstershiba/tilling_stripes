@@ -1,0 +1,238 @@
+/* Catalogue and decision surfaces share the studio's control vocabulary. */
+.library-page-header {
+  min-height: 62px;
+  padding: 12px 24px;
+  gap: 12px;
+}
+
+.library-page-header h1 { font-size: 18px; letter-spacing: -.025em; }
+.library-page-header .panel-counter-pill { background: transparent; border: 0; color: var(--text-secondary); }
+.library-back-btn { width: 34px; min-width: 34px; padding: 0; }
+
+#library-page #panelTileLibraryMgrBody {
+  grid-template-columns: minmax(0, 1fr) 272px;
+  gap: 24px;
+  padding: 24px;
+}
+
+#library-page .library-catalogue { gap: 18px; }
+#library-page .lib-mgr-toolbar { gap: 12px; }
+#library-page .lib-mgr-toolbar :is(input, select) { min-height: 36px; }
+#library-page .tile-library-navigation { gap: 4px; align-items: center; }
+#library-page .tile-library-navigation > button { min-height: 34px; }
+#library-page .lib-mgr-filter-row { gap: 12px; min-width: 0; flex-wrap: wrap; }
+#library-page #libMgrFilterControl { flex: 0 1 auto; gap: 2px; padding: 3px; }
+#library-page #libMgrFilterControl > button {
+  width: auto;
+  min-width: 64px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+#library-page #libMgrFilterControl .icon-label,
+#library-page #btnRailNewSubtile .icon-label {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip-path: none;
+  white-space: nowrap;
+}
+
+#library-page .lib-mgr-actions-bar { gap: 4px; }
+#library-page #btnRailNewSubtile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-basis: auto;
+  width: auto;
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+#library-page #libMgrTreeContainer {
+  min-height: 0;
+  padding-right: 10px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+#library-page .lib-group-block { margin-bottom: 22px; overflow: visible; }
+#library-page .lib-group-header {
+  min-height: 36px;
+  padding: 0 0 7px;
+  margin-bottom: 8px;
+  background: transparent;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+}
+#library-page .lib-group-title-wrap { gap: 6px; }
+#library-page .lib-group-name { font-size: 12px; font-weight: 600; }
+#library-page .lib-group-count { background: transparent; padding: 0 4px; font-variant-numeric: tabular-nums; }
+#library-page .lib-group-actions { opacity: .45; transition: opacity 120ms ease; }
+#library-page .lib-group-header:is(:hover, :focus-within) .lib-group-actions { opacity: 1; }
+
+#library-page .lib-family-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+  padding: 0;
+}
+
+#library-page .lib-family-row {
+  position: relative;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-content: start;
+  gap: 8px 10px;
+  padding: 12px;
+  min-height: 84px;
+  border-color: var(--border-subtle);
+  border-radius: 7px;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+#library-page .lib-family-row:hover { border-color: var(--border-strong); }
+#library-page .lib-family-row.active {
+  background: var(--bg-selected);
+  border-color: var(--accent-blue);
+  box-shadow: inset 3px 0 0 var(--accent-blue);
+}
+#library-page .lib-family-thumb { width: 52px; height: 52px; border-radius: 4px; border-color: rgba(255, 255, 255, .12); }
+#library-page .lib-family-info { align-self: center; gap: 6px; }
+#library-page .lib-family-name-line { align-items: flex-start; flex-wrap: wrap; gap: 4px; }
+#library-page .lib-family-name { line-height: 1.4; font-size: 12px; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#library-page .lib-family-meta-line { font-size: 10px; color: var(--text-secondary); }
+#library-page .lib-custom-pill { font-size: 9px; line-height: 16px; text-transform: none; font-weight: 500; }
+#library-page .lib-family-actions {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  min-height: 24px;
+  gap: 3px;
+  padding-left: 6px;
+  border-radius: 4px;
+  background: var(--bg-panel);
+  opacity: 0;
+  pointer-events: none;
+  justify-content: flex-end;
+}
+#library-page .lib-family-row:is(:hover, :focus-within, .active) .lib-family-actions { opacity: 1; pointer-events: auto; }
+#library-page .lib-family-row.active .lib-family-actions { background: var(--bg-selected); }
+#library-page .lib-mini-icon-btn { width: 26px; min-width: 26px; height: 26px; min-height: 26px; }
+#library-page .lib-mini-icon-btn:disabled { background: transparent; border-color: transparent; opacity: .35; }
+#library-page .lib-family-row:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+
+#library-page .library-detail-pane {
+  align-self: stretch;
+  border-radius: 8px;
+  padding: 18px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+#library-page .library-detail-pane h2 { margin-bottom: 16px; }
+#library-page .library-selection-preview { width: 100%; height: auto; aspect-ratio: 1; margin-bottom: 18px; border-radius: 5px; }
+#library-page .library-detail-pane h3 { font-size: 15px; margin: 0 0 18px; overflow-wrap: anywhere; }
+#library-page .library-edit-btn { min-height: 36px; margin-top: 20px; }
+#library-page .tile-custom-meta-box :is(input, select) { min-height: 34px; }
+#library-page .vec-empty-hint { padding: 40px 16px; text-align: center; color: var(--text-secondary); }
+
+/* A dialog keeps its decision and actions within reach, even on a short window. */
+.modal-dialog-backdrop { padding: 24px; }
+.modal-dialog-card {
+  width: min(100%, 460px);
+  max-width: 460px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  gap: 16px;
+  border-radius: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+}
+.modal-dialog-title { margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em; }
+.modal-dialog-desc { margin: 0; font-size: 13px; line-height: 1.65; }
+.modal-dialog-actions { gap: 8px; padding-top: 16px; margin-top: 0; border-top: 1px solid var(--border-subtle); flex-shrink: 0; }
+.modal-dialog-actions > button { min-width: 88px; min-height: 36px; font-size: 12px; }
+.btn-dialog-primary:not(.danger) { background: var(--bg-primary); border-color: var(--border-focus); }
+.btn-dialog-primary:not(.danger):hover { background: #356db5; }
+.modal-dialog-card :is(button, input, select):focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+.subtile-import-options { gap: 10px; }
+.subtile-import-options .subtile-radio-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  line-height: 1.6;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+.subtile-import-options .subtile-radio-row:has(input:checked) { border-color: var(--accent-blue); background: var(--bg-selected); }
+.subtile-import-options .subtile-radio-row input { margin-top: 4px; flex-shrink: 0; accent-color: var(--accent-blue); }
+.subtile-conflict-row { gap: 8px; padding-top: 6px; }
+.library-export-card { width: min(100%, 500px); max-width: 500px; }
+.library-export-selection-actions { margin: 0; }
+.library-export-fieldset { padding: 6px 10px; }
+.library-export-group { min-height: 38px; padding: 4px; border-bottom: 1px solid var(--border-subtle); }
+.library-export-group:last-child { border-bottom: 0; }
+.library-export-group:hover { background: var(--bg-control-hover); }
+.library-export-group span:not(.library-export-count) { overflow-wrap: anywhere; }
+.library-export-groups { max-height: min(32vh, 260px); overscroll-behavior: contain; }
+.library-export-format { display: grid; grid-template-columns: 58px minmax(0, 1fr); margin-top: 0; gap: 12px; }
+.library-export-format select { min-height: 34px; }
+.library-export-summary, .library-export-variants, .library-export-error { margin-top: 0; }
+
+@media (max-width: 1050px) {
+  #library-page #panelTileLibraryMgrBody { grid-template-columns: minmax(0, 1fr) 236px; gap: 16px; padding: 18px; }
+  #library-page .lib-mgr-toolbar { grid-template-columns: minmax(0, 1fr); }
+  #library-page .library-detail-pane { padding: 14px; }
+}
+
+@media (max-width: 760px) {
+  .library-page-header { min-height: 56px; padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+  .library-page-header h1 { font-size: 16px; }
+  .library-page-header .library-groups-export-btn { min-height: 32px; padding: 0 8px; font-size: 11px; }
+  #library-page #panelTileLibraryMgrBody {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px;
+    overflow: hidden;
+  }
+  #library-page .library-catalogue { flex: 1 1 auto; min-height: 0; gap: 14px; }
+  #library-page #libMgrTreeContainer { min-height: 80px; }
+  #library-page .lib-family-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  #library-page .library-detail-pane {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    max-height: 30vh;
+  }
+  #library-page .library-detail-pane > h2 { display: none; }
+  #library-page .library-selection-preview { width: 48px; height: 48px; margin: 0; }
+  #library-page .library-detail-pane > h3 { grid-column: 2; margin: 0; font-size: 12px; }
+  #library-page .library-edit-btn { grid-column: 3; grid-row: 1; margin: 0; width: auto; padding: 0 12px; min-height: 34px; }
+  #library-page .tile-library-details { grid-column: 1 / -1; }
+  #library-page .tile-library-details .tile-readonly-banner { min-height: 0; }
+}
+
+@media (pointer: coarse) {
+  #library-page .lib-family-actions { opacity: 1; pointer-events: auto; }
+  #library-page .lib-group-actions { opacity: 1; }
+  #library-page .lib-mini-icon-btn { min-width: 32px; min-height: 32px; }
+}
+
+@media (max-width: 460px) {
+  .modal-dialog-backdrop { padding: 12px; }
+  .modal-dialog-card { max-height: calc(100dvh - 24px); padding: 20px; }
+  .library-page-header > .panel-counter-pill { display: none; }
+  #library-page #libMgrFilterControl > button { min-width: 54px; padding: 0 7px; }
+  #library-page .lib-mgr-actions-bar { margin-left: 0; }
+  .library-export-format { grid-template-columns: 1fr; gap: 6px; }
+}

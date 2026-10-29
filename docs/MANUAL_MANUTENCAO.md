@@ -162,12 +162,14 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
 
 1. **Barra Superior (`#top-control-bar` — Control Bar Contextual)**:
    - Segue o modelo do Illustrator: `#topToolContext` mostra o ícone e o nome da ferramenta ativa; o restante da barra pertence a ela.
-   - **Pincel / Carimbo**: `#brushSizeControl` (tamanho, encaixe em bloco) e `#btnExpandBrushEditor`; a paleta e o construtor ficam em `#panel-edit-brush`, no dock.
-   - **Girar / Espelhar**: `#rotateToolOptionsWrap` com área, ajuste ao bloco, modo Conjunto/Individual e Tipo (Giro 90°/Família).
-   - **Preservar**: `#freezeToolOptionsWrap` com ação Preservar/Liberar, tamanho, contagem e `#btnFreezeClearSelection`.
+   - **Anatomia**: faixa única e plana de 48 px, sem cartões por grupo. As zonas — identidade, opções da ferramenta, seleção e prancheta de Subtiles — são separadas por fios de 1 px (`border-left`) e obedecem a uma métrica só: `--top-ctl-h` (28 px), `--top-ctl-r` (6 px) e `--top-zone-gap` (12 px, reduzido a 8/6 px em larguras menores). A barra não muda de altura nem quebra linha.
+   - **Nome único**: `#topToolName` é a única fonte do nome; os antigos `.bar-group-label` (que repetiam "Pincel", "Girar" e "Preservar") saíram do HTML, junto com `#rotateToolLabel` — `syncContextPanel` cobre o caso Espelhar via `#topToolName`.
+   - **Pincel / Carimbo**: `#brushSizeControl` (campo único: passos `−`/`+`, valor tabular e o encaixe `#btnToggleBrushSnap` atrás de divisória interna) e `#btnExpandBrushEditor`; a paleta e o construtor ficam em `#panel-edit-brush`, no dock.
+   - **Girar / Espelhar**: `#rotateToolOptionsWrap` com área, ajuste ao bloco, modo Conjunto/Individual e Tipo (Giro 90°/Família); `.top-seg-group:has(> .top-seg.hidden)` remove o grupo inteiro quando o segmentado está oculto, então Espelhar não deixa "Tipo" órfão.
+   - **Preservar**: `#freezeToolOptionsWrap` com `#freezeToolCountBadge`, ação Preservar/Liberar, tamanho, ajuste ao bloco e `#btnFreezeClearSelection`.
    - **Seleção de região**: `#selectionSummary` com área, peças e limpar, exibido no modo mover do Carimbo.
    - Inspeção, Mão e Zoom não têm opções próprias: a barra mostra apenas a identidade da ferramenta.
-   - Nenhum controle de documento fica no topo; Prancheta e Grade vivem em `#panel-document`, no dock direito. A barra quebra em mais de uma linha abaixo de 1400 px.
+   - Nenhum controle de documento fica no topo; Prancheta e Grade vivem em `#panel-document`, dentro do flyout `#railFlyoutDocument` do trilho direito. Cada seção tem título com linha de apoio e uma faixa de ações (inverter, travar, ajustar ou 1:1); os campos formam uma grade de duas colunas com rótulos curtos no padrão do Illustrator (W/H, R/C, M/P), unidade explícita, nome completo no hover e passos de 24 px.
 
 2. **Barra Lateral Esquerda (`#left-toolbar` — Ferramentas)**:
    - Organizada em duas colunas funcionais contendo:
@@ -186,7 +188,7 @@ A interface adota a taxonomia de cinco superfícies estritas com responsabilidad
    - Faixa vertical de 40 px entre o canvas e o dock direito; concentra as ferramentas de documento que não precisam de largura permanente.
    - **Histórico (`#dock-history`)** com `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho.
    - **Peças permitidas (`#railTogglePieces` / `#railFlyoutPieces`)**: flyout com altura explícita; a lista de famílias rola dentro.
-   - **Documento (`#railToggleDocument` / `#railFlyoutDocument`)**: Prancheta, Grade, margem e respiro.
+   - **Documento (`#railToggleDocument` / `#railFlyoutDocument`)**: Prancheta, Grade, margem e respiro em grade compacta de duas colunas; o tópico de info `document` explica as ações de proporção, ajuste e 1:1.
    - **Biblioteca (`#railOpenLibrary`)** no rodapé do trilho.
    - Os flyouts abrem à esquerda, sobre o canvas, e permanecem abertos até o mesmo botão ser clicado de novo ou outro item do trilho abrir. Não fecham ao clicar fora.
    - É `mosaic-mode-only`: some no criador de peças e devolve a largura ao canvas.
@@ -224,7 +226,7 @@ A revisão completa (diagnóstico, decisões e evidências) está em [`ux/REVISA
 ## 6. Divulgação Progressiva de Informações (`ui_info.js`)
 
 O sistema adota o padrão de Progressive Disclosure para manter a interface desobstruída e visualmente limpa:
-- **`INFO_TOPICS`**: Dicionário contendo os 17 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Pincel, Girar, Carimbo, Trava, Mesmo Tile, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar).
+- **`INFO_TOPICS`**: Dicionário contendo os 19 tópicos técnicos e explicativos (Grid, Bloco, Escopos, Centro, Documento, Pincel, Girar, Carimbo, Trava, Mesmo Tile, Encaixe, D4 Estrito, Caleidoscópio, Persistência, Atalhos, Inspecionar, Biblioteca, Editor Vetorial, Camadas).
 - **Popover Não-Modal (`#infoPopover`)**: Componente flutuante singleton reposicionado dinamicamente com foco acessível e fechamento ao clicar fora ou via tecla Escape.
 - **Floating Tooltip (`#uiTooltip`)**: Dica rápida acionada via atributo `data-tooltip`.
 - **Botões `ⓘ` e `?`**: Disparadores contextuais que conectam elementos visuais aos tópicos sem exibir textos extensos permanentes.
@@ -408,7 +410,7 @@ A pele comum fica junto às regras base, com variantes junto ao componente. Evit
 
 `UiFormat.icon` fornece SVGs de comando com viewBox 24×24, desenho de 16 px e traço de 1,75, escondidos da árvore acessível; seus botões mantêm nome por aria-label/título. Alinhamento, ordenação, cópia, edição, exclusão, undo/redo e controles pequenos usam essa família. Tooltips aceitam quebra de linha e limites da viewport, funcionam por foco/ponteiro e associam `aria-describedby` sem apagar descrições anteriores. Avisos e falhas mantêm texto e ações; a mudança de tema não altera as cores da obra, a matemática ou o formato salvo.
 
-Correção da T07: dimensões de controles especiais são independentes da pele comum (Spout 40×24 px, marca informativa de 16 px dentro de alvo de 28 px). Campos conservam borda funcional; ações usam superfícies discretas e espaçamento interno. A barra superior quebra por grupos até 1400 px. Mensagens ficam dentro da área de trabalho, acima do rodapé. A ajuda separa mosaico/editor e ferramentas/ações, com corpo rolável e cabeçalho fixo.
+Correção da T07: dimensões de controles especiais são independentes da pele comum (Spout 40×24 px, marca informativa de 16 px dentro de alvo de 28 px). Campos conservam borda funcional; ações usam superfícies discretas e espaçamento interno. A barra superior conserva 48 px de altura e não quebra linha em nenhuma largura: abaixo de 1180 px ela só encurta o respiro entre zonas e esconde a marca textual. Mensagens ficam dentro da área de trabalho, acima do rodapé. A ajuda separa mosaico/editor e ferramentas/ações, com corpo rolável e cabeçalho fixo.
 
 Ajuda contextual: os tópicos usam títulos curtos e listas sem subtítulo técnico. Itens são filhos de uma lista semântica, com espaçamento e rolagem próprios; textos dos escopos continuam derivados de `MosaicEngine.EDIT_SCOPES`. Camadas e Biblioteca concentram instruções nos popups para evitar repetições permanentes nos painéis.
 
@@ -434,13 +436,28 @@ O grupo de zoom do rodapé usa pintura isolada (`translateZ(0)`) e não recorta 
 
 ### Reforma visual V2 (28/10/2026)
 
-A camada **V2 — Reforma visual**, no fim de `style.css`, é a última palavra em apresentação e não altera contratos: 60 IDs congelados, ordem `#left-toolbar (0) → #workspace-viewport (1) → #utility-rail (2) → #right-dock (3)`, `#paddingInput` em `#panel-document`, gerador e exportação no dock, histórico no trilho e schema de persistência v3 permanecem iguais. Ela vence a herança por vir depois das regras históricas; ao editar um componente, altere a regra V2 correspondente ou consolide as duas — não acrescente uma terceira camada. Os blocos **V2 — Barra contextual e dock estático** e **V2 — Dock empilhado e flyouts do trilho** ficam no mesmo arquivo e no mesmo nível de camada.
+A camada **V2 — Reforma visual**, no fim de `style.css`, é a última palavra em apresentação e não altera contratos: 60 IDs congelados, ordem `#left-toolbar (0) → #workspace-viewport (1) → #utility-rail (2) → #right-dock (3)`, `#paddingInput` em `#panel-document`, gerador e exportação no dock, histórico no trilho e schema de persistência v3 permanecem iguais. Ela vence a herança por vir depois das regras históricas; ao editar um componente, altere a regra V2 correspondente ou consolide as duas — não acrescente uma terceira camada. Os blocos **V2 — Barra contextual e dock estático** (com a subcamada **Barra de controle — padrão Illustrator**), **V2 — Dock empilhado e flyouts do trilho** ficam no mesmo arquivo e no mesmo nível de camada.
 
 Tokens de referência: `--top-bar-h: 48px`, `--status-bar-h: 32px`, `--font-section: 11px`, `--radius-chip: 6px`, `--radius-card: 8px`, `--bg-panel: #1c1d21`, `--border-subtle: #2e3138`, `--bg-primary: #2a5d9e`, `--transition-ui: 120ms`. A rampa de texto mantém `--text-primary/secondary/muted` com contraste mínimo de 5,33:1 sobre as superfícies semânticas.
 
-Regras de composição: (1) um contorno por grupo de controle, nunca por chip; (2) rótulo em 10–11 px, valor em 13 px tabular, ícone em 16–17 px; (3) apenas a ação primária tem cor cheia persistente — no mosaico, **Gerar**, botão rotulado de 32 px de altura no topo do dock; (4) listas usam linhas de 40 px com hairline e ações reveladas no hover/foco/seleção; (5) o rodapé prioriza documento e salvamento — o nome do Spout é o primeiro a sair em colunas estreitas. Alvos mínimos de 24 px são verificados por `tests/test_visual_system_v2.js`.
+Regras de composição: (1) uma zona sem contorno — os grupos da barra superior são separados por fios de 1 px, e só campos e segmentados ganham contorno; (2) rótulo em 10–11 px, valor em 12–13 px tabular, ícone em 16–17 px; (3) apenas a ação primária tem cor cheia persistente — no mosaico, **Gerar**, botão rotulado de 32 px de altura no topo do dock; (4) listas usam linhas de 40 px com hairline e ações reveladas no hover/foco/seleção; (5) o rodapé prioriza documento e salvamento — o nome do Spout é o primeiro a sair em colunas estreitas. Alvos mínimos de 24 px são verificados por `tests/test_visual_system_v2.js`.
 
-Responsividade: a barra superior quebra em duas linhas alinhadas quando os grupos contextuais não couberem (`height: auto` abaixo de 1400 px). O rodapé permanece em uma linha de 32 px em colunas de 600 px (1024×768), escondendo a grade e o inspetor de hover; até 1050 px esconde apenas o campo de nome do Spout. Em 1024×768 a prancheta de 600 px ocupa exatamente a coluna central — use `0` (Ajustar) para trabalhar com margem. O inspetor de hover continua anunciado, mas visível apenas quando há espaço na coluna.
+Responsividade: a barra superior mantém 48 px e uma única linha em qualquer largura; abaixo de 1180 px o respiro entre zonas cai para 8 px e a marca textual sai, e abaixo de 980 px os rótulos "Área/Tipo" saem — nunca há `flex-wrap`. O rodapé permanece em uma linha de 32 px em colunas de 600 px (1024×768), escondendo a grade e o inspetor de hover; até 1050 px esconde apenas o campo de nome do Spout. Em 1024×768 a prancheta de 600 px ocupa exatamente a coluna central — use `0` (Ajustar) para trabalhar com margem. O inspetor de hover continua anunciado, mas visível apenas quando há espaço na coluna.
+
+### Barra de controle — padrão Illustrator (29/10/2026)
+
+A barra do topo tinha dois nomes para a mesma ferramenta (`#topToolName` e o `.bar-group-label` em maiúsculas imediatamente ao lado), cartões dentro de cartões (grupo de 38 px com fundo, borda, raio e sombra abrigando um segundo chip), seis alturas diferentes no mesmo eixo (19/28/30/32/34/36 px), dois fios verticais a 20 px um do outro no modo Peças e 53 px de altura abaixo de 1400 px.
+
+A revisão concentrou tudo no bloco **BARRA DE CONTROLE — PADRÃO ILLUSTRATOR**, dentro da região V2 de `style.css`, e removeu o antigo bloco de "duas cartas de comando" e o `height: auto` de 1400 px:
+
+- **Superfície única**: 48 px fixos, sem fundo/borda/sombra por grupo; zonas separadas por fios de 1 px.
+- **Métrica única**: `--top-ctl-h: 28px`, `--top-ctl-r: 6px`, `--top-zone-gap: 12px` (8 px até 1180, 6 px até 980). Não reintroduza altura local em um grupo: o desalinhamento volta.
+- **Nome único**: `#topToolName` é a fonte do nome. Os `.bar-group-label` e `#rotateToolLabel` saíram do HTML; `syncContextPanel` mantém a guarda `if (rotateLabel)`, então o Espelhar continua correto sem o rótulo.
+- **Campos justos**: `#brushSizeControl` e `.top-size-row` compartilham borda externa, passos de 24 px, valor em `--font-mono` e "peças/blocos" em 9 px; `#btnToggleBrushSnap` fica dentro do campo, atrás de `border-left`.
+- **Segmentados**: `#freezeModeControl`, `#rotateGroupModeControl`, `#rotateBehaviorControl` e `#tilePreviewModeGroup` usam o mesmo desenho de 28 px; `.top-seg-group:has(> .top-seg.hidden)` some por inteiro quando o segmentado está oculto.
+- **Sem quebra de linha**: nenhuma regra pode devolver `flex-wrap: wrap` ou `height: auto` à barra; a densidade é feita só por `--top-zone-gap`.
+
+Contratos preservados: 60 IDs congelados, cinco superfícies, schema v3 e handlers. `tests/test_visual_system_v2.js` passou a medir os passos do flyout Documento (`.document-field .step-btn`) em vez de `#top-control-bar .step-btn`, que deixou de existir na barra.
 
 ### Gerador, Histórico e Exportar fora da coluna esquerda (28/10/2026)
 
@@ -527,3 +544,12 @@ A geografia foi invertida para seguir o Illustrator. O topo deixou de ser um for
 O dock direito virou uma coluna estática com dois painéis empilhados: `#dock-generator`, `#dock-workspace-generate` (com `#panel-symmetry` e `#panel-edit-brush`), `#dock-workspace-tiles` no modo peças e `#dock-export`. `#panel-document`, `#panel-swatches` e `#panel-edit-scope` foram para flyouts do trilho. `#dock-workspace-edit` foi removido; `syncEditWorkspaceUI` só alterna `dock-workspace-generate`/`dock-workspace-tiles` e a visibilidade dos grupos do topo, sem mover controles. O construtor e a paleta do pincel continuam em `#panel-edit-brush`; tamanho, encaixe e Ampliar vivem no topo.
 
 A segunda barra da direita ficou com o que é ocasional ou lista longa: Histórico, Peças permitidas, Documento e Biblioteca. Peças e Documento abrem em flyouts à esquerda (`#railFlyoutPieces`, `#railFlyoutDocument`); o de Peças tem altura explícita para a lista rolar. O dock principal ficou com um **grupo superior em abas** — `#panelSymmetryGroup`, com Simetria e Escopo em `#propertiesTabs` e desfazer/refazer no cabeçalho — e o **Pincel sozinho** ocupando o restante da altura. O corpo de cada painel rola por dentro. Os flyouts do trilho não fecham ao clicar fora: só recolhem com o mesmo botão ou quando outro item do trilho abre. O dock não rola (`#right-dock` e `#dock-workspace-generate` com `overflow: hidden`). Ao abrir o editor ampliado, `openBrushEditor` move o corpo e o controle de tamanho para o diálogo e os devolve ao fechar. `tests/test_ui_layout_contract.js` exige Prancheta/Grade em `#panel-document`, o grupo Simetria/Escopo, os flyouts no trilho, a ausência de `#dock-workspace-edit` e a regra de não rolagem das barras; `tests/test_freeze_ui_contract.js` exige `#freezeToolOptionsWrap` no topo.
+
+### Recolhimento de conjuntos em Peças permitidas
+renderSwatchesPanel mantém collapsedGroups em generatorUiState, separado da seleção e da expansão de variantes. O botão generator-group-expand controla generatorGroup-{id} com aria-expanded/aria-controls e restaura o foco após renderização. Recolher não regenera o mosaico. Durante busca os grupos correspondentes abrem sem modificar a escolha manual; limpar restaura o recolhimento. O estado é temporário, sem alteração do schema v3. Cobertura em tests/test_generator_ui.js.
+
+### Padrão Documento aplicado aos painéis
+
+Cabeçalhos curtos e divisores discretos organizam Simetria, Escopo, propriedades vetoriais e Variantes. Campos vetoriais têm 32 px, colunas com `minmax(0, 1fr)` e nomes completos no hover, adicionados por `UiFields.enhanceProperties`. Badges redundantes (`gridSymmetryBadge`, `blockSymmetryBadge`, `subdivisionSummary`, `editScopeChip`) mantêm IDs e atualização, mas não são exibidos. O grupo Simetria/Escopo usa altura pelo conteúdo, limitada a 46%, sem rolagem do dock inteiro. A Biblioteca tem cabeçalho compacto e cartões de pelo menos 96 px com miniaturas de 48 px.
+
+`renderShapePropsPanel` não gera mais instruções permanentes de seleção ou cópia; elas estão em `INFO_TOPICS['vector-editor']`. Peças protegidas oferecem Criar cópia. `compatibilityMarkup` compartilha indicadores acessíveis de eixos, diagonais e centro nas prévias estática e ao vivo; as explicações ficam no tópico de biblioteca. `tileLiveStabilizerCode` é metadado oculto. A redução não impeditiva de simetria aparece como estado compacto de 4 eixos, com detalhe no hover e info. Tab não é anunciado como atalho para recolher o dock. Nenhum schema, controle congelado, ação de edição ou atalho canônico foi alterado. `tests/test_ui_microcopy.js` também verifica os textos gerados do inspetor e a ausência de badges redundantes na tela.

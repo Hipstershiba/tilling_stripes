@@ -283,7 +283,7 @@ StudioState.brushSizeMode = 'custom';
 StudioState.supertilePattern = window.MosaicEngine.createSupertilePattern(2, 5, 2, 'id');
 window.selectBrushTile(2);
 assert.strictEqual(sizeValEl.textContent, '2×5');
-assert.strictEqual(document.getElementById('activeBrushBadge').textContent, 'Aguardando captura');
+assert.strictEqual(document.getElementById('activeBrushBadge').textContent, 'Sem captura');
 window.cycleActiveToolSize(1);
 assert.strictEqual(StudioState.brushSizeMode, '6');
 assert.strictEqual(document.getElementById('btnBrushSizeDec').disabled, false);

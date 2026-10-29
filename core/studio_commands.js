@@ -6,7 +6,7 @@
       ['paint', 'Pincel', 'B', 'toolPaint', 'Clique pinta; botão direito gira o pincel; Alt+arraste captura.'],
       ['rotate', 'Girar', 'R', 'toolRotate'],
       ['mirror', 'Espelhar', 'O', 'toolMirror', 'Clique espelha horizontalmente; botão direito espelha verticalmente.'],
-      ['stamp', 'Clonar', 'S', 'toolStamp', 'Alt+arraste captura; clique aplica.'],
+      ['stamp', 'Carimbo', 'S', 'toolStamp', 'Alt+arraste captura; clique aplica.'],
       ['freeze', 'Preservar', 'F', 'toolFreeze', 'Preserva na próxima geração; permite edição manual. Shift+F limpa as preservações.'],
       ['pan', 'Mão', 'H', 'toolPan', 'Mover a visualização; Espaço ativa temporariamente.'],
       ['zoom', 'Zoom', 'Z', 'toolZoom', 'Clique aproxima; Alt+clique afasta.']

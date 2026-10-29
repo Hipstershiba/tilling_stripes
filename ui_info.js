@@ -37,6 +37,16 @@
             "Espelho XY: horizontal e vertical. Espelho X ou Y: apenas um eixo."
         ]
     },
+    'document': {
+        "title": "Prancheta e grade",
+        "body": [
+            "Rótulos curtos no padrão do Illustrator: W e H (largura e altura), R e C (linhas e colunas), M (margem) e P (espaçamento).",
+            "Prancheta define o tamanho do arquivo em pixels. Travar proporção mantém a relação entre largura e altura.",
+            "Grade divide a prancheta em blocos. Inverter troca linhas e colunas; travar mantém a proporção; 1:1 deixa as células quadradas.",
+            "Margem afasta o desenho da borda da prancheta. Espaço abre o respiro entre as peças dentro de cada bloco.",
+            "Ajustar dimensiona a prancheta para a proporção da grade."
+        ]
+    },
     'brush': {
         "title": "Pincel",
         "body": [
@@ -125,6 +135,7 @@
         "body": [
             "Cada família reúne um desenho mestre e suas variantes de giro e espelho.",
             "As famílias originais são protegidas. Use Criar cópia para alterá-las.",
+            "A peça vazia (#84) é usada pela Borracha (E). Nos indicadores de compatibilidade, ✓ indica simetria nos eixos ou no centro; – indica assimetria. Na Mandala D4 estrita, uma peça incompatível dá lugar à peça vazia.",
             "Conjuntos organizam famílias; arraste uma família para movê-la entre conjuntos.",
             "Ao excluir uma família em uso, suas peças no mosaico ficam vazias. Faça um backup JSON para guardar a biblioteca."
         ]
@@ -135,6 +146,7 @@
             "Seleção (V): mova, redimensione ou gire pelo centro da seleção. Alt+arraste duplica; Shift restringe o movimento.",
             "Seleção direta (A): ajuste nós e curvas. Arraste o corpo para mover o objeto inteiro; Alt+arraste o corpo duplica. Alt+clique no segmento insere um nó; duplo clique alterna canto e curva suave.",
             "Caneta (P): clique cria cantos; arraste cria curvas. Clique no início para fechar, Enter conclui e Escape cancela.",
+            "Selecione uma forma para editar geometria e aparência. Peças protegidas exigem Criar cópia antes da edição.",
             "Encaixe alinha o desenho à grade. A divisão 1/6 ajuda a conectar as fitas nas bordas."
         ]
     },

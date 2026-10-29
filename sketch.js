@@ -1622,7 +1622,7 @@ function buildTileThumbnails() {
   }
 }
 
-const generatorUiState = {expanded: new Set(), isolation: null};
+const generatorUiState = {expanded: new Set(), collapsedGroups: new Set(), isolation: null};
 function sameGeneratorTiles(a, b) { return a.size === b.size && [...a].every(id => b.has(id)); }
 function toggleGeneratorIsolation(key, ids) {
   const previous = generatorUiState.isolation;
@@ -1655,7 +1655,7 @@ function renderSwatchesPanel() {
   }
   function solo(key, ids, label) {
     const active = generatorUiState.isolation?.key === key;
-    const el = button(active ? 'Restaurar seleção' : 'Isolar', 'family-solo-btn',
+    const el = button(active ? '↶' : '◉', 'family-solo-btn',
       active ? 'Restaurar a seleção anterior ao isolamento' : `Isolar ${label}`, key + ':solo', () => toggleGeneratorIsolation(key, ids));
     el.setAttribute('aria-pressed', String(active));
     if (window.UiFormat?.icon) el.innerHTML = window.UiFormat.icon(active ? 'reset' : 'eye');
@@ -1663,6 +1663,7 @@ function renderSwatchesPanel() {
   }
   for (const group of grouped) {
     let headingAdded = false;
+    let groupBody;
     for (const fam of group.families) {
       const matching = fam.tileIds.filter(id => !query || fam.name.toLowerCase().includes(query) || group.name.toLowerCase().includes(query) ||
         (tileNames[id] || '').toLowerCase().includes(query) || `#${id}` === query);
@@ -1670,6 +1671,15 @@ function renderSwatchesPanel() {
       if (!headingAdded) {
         headingAdded = true;
         const heading = document.createElement('div'); heading.className = 'swatches-group-heading';
+        const open = Boolean(query) || !generatorUiState.collapsedGroups.has(group.id);
+        const disclosure = button(open ? '⌃' : '⌄', 'generator-group-expand', `${open ? 'Recolher' : 'Expandir'} conjunto ${group.name}`, group.id + ':expand', () => {
+          if (generatorUiState.collapsedGroups.has(group.id)) generatorUiState.collapsedGroups.delete(group.id); else generatorUiState.collapsedGroups.add(group.id);
+          renderSwatchesPanel();
+        });
+        disclosure.hidden = Boolean(query);
+        disclosure.setAttribute('aria-expanded', String(open));
+        disclosure.setAttribute('aria-controls', `generatorGroup-${group.id}`);
+        heading.appendChild(disclosure);
         const ids = [...new Set(group.families.flatMap(f => f.tileIds))];
         const count = ids.filter(id => StudioState.allowedTiles.has(id)).length;
         const toggle = button(group.name, 'swatches-group-toggle', `Conjunto ${group.name}: ${count} de ${ids.length} peças; inclui as ocultas pela busca`, group.id + ':toggle', () => {
@@ -1680,6 +1690,9 @@ function renderSwatchesPanel() {
         const indicator = document.createElement('span'); indicator.className = 'family-check-indicator'; indicator.setAttribute('aria-hidden', 'true');
         indicator.textContent = count === ids.length ? '✓' : count ? '–' : ''; toggle.prepend(indicator);
         heading.appendChild(toggle); heading.appendChild(solo('group:' + group.id, ids, `conjunto ${group.name}`)); container.appendChild(heading);
+        groupBody = document.createElement('div'); groupBody.id = `generatorGroup-${group.id}`;
+        groupBody.className = 'generator-group-body'; groupBody.hidden = !open;
+        container.appendChild(groupBody);
       }
       const selected = fam.tileIds.filter(id => StudioState.allowedTiles.has(id)).length;
       const all = selected === fam.tileIds.length;
@@ -1703,7 +1716,9 @@ function renderSwatchesPanel() {
       const details = document.createElement('div'); details.id = `generatorVariants-${fam.id}`; details.className = 'generator-variants'; details.hidden = !open;
       const actions = document.createElement('div'); actions.className = 'generator-family-actions';
       actions.appendChild(solo('family:' + fam.id, fam.tileIds, `família ${fam.name}`));
-      actions.appendChild(button('Editar peça', 'family-solo-btn', `Abrir ${fam.name} no editor de peças`, fam.id + ':edit', () => window.SubtileStudioUI?.openTilesStudio(fam.id)));
+      const edit = button('', 'family-solo-btn', `Editar ${fam.name}`, fam.id + ':edit', () => window.SubtileStudioUI?.openTilesStudio(fam.id));
+      if (window.UiFormat?.icon) edit.innerHTML = window.UiFormat.icon('edit'); else edit.textContent = 'Editar';
+      actions.appendChild(edit);
       details.appendChild(actions);
       const grid = document.createElement('div'); grid.className = 'family-tiles-grid';
       for (const id of matching) {
@@ -1717,7 +1732,7 @@ function renderSwatchesPanel() {
         const badge = document.createElement('span'); badge.className = 'tile-swatch-id'; badge.textContent = id;
         swatch.appendChild(img); swatch.appendChild(badge); grid.appendChild(swatch);
       }
-      details.appendChild(grid); card.appendChild(details); container.appendChild(card);
+      details.appendChild(grid); card.appendChild(details); groupBody.appendChild(card);
     }
   }
   if (focusKey) [...container.querySelectorAll('[data-generator-focus]')].find(el => el.dataset.generatorFocus === focusKey)?.focus({preventScroll: true});
@@ -1822,6 +1837,11 @@ function buildSymmetryPanelUI() {
       });
       blockGrid.appendChild(btn);
     }
+    document.getElementById('blockSymmetrySelect')?.addEventListener('change', (event) => {
+      const target = Array.from(blockGrid.querySelectorAll('[data-block-mode]'))
+        .find(button => button.dataset.blockMode === event.target.value);
+      target?.click();
+    });
   }
 }
 
@@ -1857,13 +1877,13 @@ function syncSymmetryPanelUI() {
   if (blockWarnEl && blockWarnText) {
     if (!StudioState.syncBlockSymmetry) {
       if (StudioState.gridSymmetryMode === 'mandala_d4' && effectiveBlockModeKey === 'bilateral_d2') {
-        blockWarnText.textContent = 'Bloco Bilateral reduz a simetria global de 8 para 4 eixos.';
+        blockWarnText.textContent = '4 eixos';
         blockWarnEl.classList.remove('hidden');
       } else if (StudioState.gridSymmetryMode === 'mandala_d4' && effectiveBlockModeKey === 'rotational_c4') {
-        blockWarnText.textContent = 'Bloco Rotacional reduz a simetria global de 8 para 4 eixos.';
+        blockWarnText.textContent = '4 eixos';
         blockWarnEl.classList.remove('hidden');
       } else if (StudioState.gridSymmetryMode === 'kaleidoscope' && (effectiveBlockModeKey === 'bilateral_d2' || effectiveBlockModeKey === 'rotational_c4')) {
-        blockWarnText.textContent = 'Bloco reduz a simetria radial global de 8 para 4 eixos.';
+        blockWarnText.textContent = '4 eixos';
         blockWarnEl.classList.remove('hidden');
       } else {
         blockWarnEl.classList.add('hidden');
@@ -1874,6 +1894,8 @@ function syncSymmetryPanelUI() {
   }
 
   const selectedPillKey = StudioState.syncBlockSymmetry ? 'sync' : effectiveBlockModeKey;
+  const blockSelect = document.getElementById('blockSymmetrySelect');
+  if (blockSelect) blockSelect.value = selectedPillKey;
   document.querySelectorAll('#blockSymmetryGrid .block-sym-pill').forEach((pill) => {
     pill.classList.toggle('active', pill.dataset.blockMode === selectedPillKey);
     pill.setAttribute('aria-pressed', String(pill.dataset.blockMode === selectedPillKey));
@@ -3427,8 +3449,8 @@ function buildEditWorkspaceUI() {
     btn.type = 'button';
     btn.className = 'edit-scope-card';
     btn.dataset.scope = s.id;
-    btn.title = shortNames[s.id] || s.name;
-    btn.setAttribute('aria-label', btn.title);
+    btn.title = s.name;
+    btn.setAttribute('aria-label', shortNames[s.id] || s.name);
     btn.innerHTML = `
       <span class="edit-scope-icon">${EDIT_SCOPE_ICONS[s.id] || '•'}</span>
       <span class="edit-scope-title">${shortNames[s.id] || s.name}</span>
@@ -4044,23 +4066,23 @@ function syncEditWorkspaceUI() {
     const c0 = pat.cells[0][0];
     const cMeta = window.D4Symmetry.D4_METADATA[c0.transform] || window.D4Symmetry.D4_METADATA.id;
     const cName = window.TileRegistry.TILE_NAMES[c0.baseTileId] || `Tile #${c0.baseTileId}`;
-    if (brushNameEl) brushNameEl.textContent = `#${c0.baseTileId} • ${cName}`;
-    if (brushD4El) brushD4El.textContent = `${cMeta.label} ${cMeta.arrow}`;
+    if (brushNameEl) { brushNameEl.textContent = cName; brushNameEl.title = `#${c0.baseTileId} · ${cName}`; }
+    if (brushD4El) { brushD4El.textContent = `${cMeta.short} ${cMeta.arrow}`; brushD4El.title = cMeta.label; }
     if (brushBadgeEl) brushBadgeEl.textContent = `1×1 • #${c0.baseTileId}`;
   } else {
     if (brushNameEl) brushNameEl.textContent = 'Padrão';
-    if (brushD4El) brushD4El.textContent = `${d4Meta.label} ${d4Meta.arrow}`;
+    if (brushD4El) { brushD4El.textContent = `${d4Meta.short} ${d4Meta.arrow}`; brushD4El.title = d4Meta.label; }
     if (brushBadgeEl) brushBadgeEl.textContent = `${pat.rows}×${pat.cols}`;
   }
 
   if (StudioState.activeTool === 'paint' && isEraserPattern() && !brushEditorPortal) {
-    if (brushNameEl) brushNameEl.textContent = 'Borracha · Tile Vazio #84';
+    if (brushNameEl) brushNameEl.textContent = 'Borracha';
     if (brushBadgeEl) brushBadgeEl.textContent = `Borracha ${pat.rows}×${pat.cols}`;
   }
   if (StudioState.activeTool === 'stamp' && !isCloneReady() && !brushEditorPortal) {
     if (brushNameEl) brushNameEl.textContent = 'Sem captura';
     if (brushD4El) brushD4El.textContent = '';
-    if (brushBadgeEl) brushBadgeEl.textContent = 'Aguardando captura';
+    if (brushBadgeEl) brushBadgeEl.textContent = 'Sem captura';
   }
 
   syncEditUndoUI();
@@ -4844,6 +4866,30 @@ function initStudioUI() {
     document.body.classList.add('right-dock-collapsed');
   }
   updateDockToggleUI();
+
+  // Keep the artboard usable when the window first enters drawer layout.
+  const compactDock = window.matchMedia('(max-width: 1050px)');
+  const adaptDockToWindow = () => {
+    if (compactDock.matches) {
+      document.body.classList.add('right-dock-collapsed');
+      updateDockToggleUI();
+    }
+  };
+  compactDock.addEventListener('change', adaptDockToWindow);
+  adaptDockToWindow();
+  const workspacePasteboard = document.getElementById('artboard-pasteboard');
+  if (workspacePasteboard && typeof ResizeObserver !== 'undefined') {
+    let fitFrame = null;
+    new ResizeObserver(entries => {
+      const bounds = entries[0]?.contentRect;
+      if (StudioState.zoomMode !== 'fit' || !bounds?.width || !bounds?.height) return;
+      if (fitFrame !== null) cancelAnimationFrame(fitFrame);
+      fitFrame = requestAnimationFrame(() => {
+        fitFrame = null;
+        if (StudioState.zoomMode === 'fit') fitArtboardToWindow();
+      });
+    }).observe(workspacePasteboard);
+  }
 
   // --- Zoom Status Controls & Canvas Wheel/Pan ---
   document.getElementById('btnZoomIn')?.addEventListener('click', () => setZoomPercent(StudioState.zoomPercent + 25));
