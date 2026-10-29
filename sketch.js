@@ -30,6 +30,9 @@ const StudioState = {
   blockSymmetryMode: 'mandala_d4',
   syncBlockSymmetry: true,
 
+  // Generation mode: choose tiles so ink/background regions continue across edges
+  edgeMatch: false,
+
   // Colors
   fgColor: '#e2e0dc',
   bgColor: '#0c0c0e',
@@ -262,6 +265,7 @@ function buildStudioStatePayload(includeHistories = true) {
     gridSymmetryMode: StudioState.gridSymmetryMode,
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
+    edgeMatch: Boolean(StudioState.edgeMatch),
 
     fgColor: StudioState.fgColor,
     bgColor: StudioState.bgColor,
@@ -408,6 +412,7 @@ function applySavedStudioState(saved) {
     StudioState.blockSymmetryMode = saved.blockSymmetryMode;
   }
   if (typeof saved.syncBlockSymmetry === 'boolean') StudioState.syncBlockSymmetry = saved.syncBlockSymmetry;
+  if (typeof saved.edgeMatch === 'boolean') StudioState.edgeMatch = saved.edgeMatch;
 
   // Colors
   if (typeof saved.fgColor === 'string') StudioState.fgColor = saved.fgColor;
@@ -592,6 +597,7 @@ function restoreMosaicFromSavedState() {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
+      edgeMatch: Boolean(StudioState.edgeMatch),
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -985,6 +991,14 @@ function resetD4BrokenState() {
   syncD4Badge();
 }
 
+function setEdgeMatchMode(enabled) {
+  const next = Boolean(enabled);
+  if (StudioState.edgeMatch === next) return false;
+  StudioState.edgeMatch = next;
+  regenerateMosaic(true);
+  return true;
+}
+
 function regenerateMosaic(recordHistory = true) {
   mosaicRegion = null;
   regionMoveGesture = null;
@@ -1022,6 +1036,7 @@ function regenerateMosaic(recordHistory = true) {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
+      edgeMatch: Boolean(StudioState.edgeMatch),
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -1126,6 +1141,7 @@ function restoreDocumentSnapshot(snap) {
       gridSymmetryMode: StudioState.gridSymmetryMode,
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
+      edgeMatch: Boolean(StudioState.edgeMatch),
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -1353,6 +1369,7 @@ function pushGenerationHistory() {
     gridSymmetryMode: StudioState.gridSymmetryMode,
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
+    edgeMatch: Boolean(StudioState.edgeMatch),
     allowedTiles: Array.from(StudioState.allowedTiles),
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   };
@@ -1367,6 +1384,7 @@ function pushGenerationHistory() {
       current.cols === snapshot.cols &&
       current.gridSymmetryMode === snapshot.gridSymmetryMode &&
       current.blockSymmetryMode === snapshot.blockSymmetryMode &&
+      Boolean(current.edgeMatch) === Boolean(snapshot.edgeMatch) &&
       current.subdivision === snapshot.subdivision &&
       current.allowedTiles.length === snapshot.allowedTiles.length
     ) {
@@ -1424,6 +1442,7 @@ function restoreGenerationHistory(targetIndex) {
     StudioState.gridSymmetryMode = snap.gridSymmetryMode;
     StudioState.blockSymmetryMode = snap.blockSymmetryMode;
     StudioState.syncBlockSymmetry = snap.syncBlockSymmetry;
+    StudioState.edgeMatch = Boolean(snap.edgeMatch);
     const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
     StudioState.allowedTiles = new Set(
       (Array.isArray(snap.allowedTiles) ? snap.allowedTiles : [])
@@ -3985,6 +4004,9 @@ function syncAllInputsFromState() {
   setVal('fgColorPicker', StudioState.fgColor);
   setVal('bgColorPicker', StudioState.bgColor);
 
+  const edgeMatchToggle = document.getElementById('toggleEdgeMatch');
+  if (edgeMatchToggle) edgeMatchToggle.checked = Boolean(StudioState.edgeMatch);
+
   const btnLockCanvas = document.getElementById('btnLockCanvasRatio');
   if (btnLockCanvas) {
     btnLockCanvas.classList.toggle('locked', Boolean(StudioState.lockCanvasRatio));
@@ -4290,6 +4312,9 @@ function initStudioUI() {
       requestTopologyChange({ subdivision: parseInt(btn.dataset.sub, 10) || 2 }, btn);
     });
   });
+
+  const edgeMatchToggle = document.getElementById('toggleEdgeMatch');
+  edgeMatchToggle?.addEventListener('change', () => setEdgeMatchMode(edgeMatchToggle.checked));
 
   const paddingInput = document.getElementById('paddingInput');
   const applyPaddingValue = (raw) => {

@@ -23,6 +23,9 @@
     getNextTileInFamily
   } = window.TileRegistry;
 
+  const EdgeSignatures = window.TileEdgeSignatures ||
+    (typeof require === 'function' ? require('./tile_edge_signatures.js') : null);
+
   const EDIT_SCOPES = {
     canvas_center: {
       id: 'canvas_center',
@@ -183,10 +186,407 @@
     };
   }
 
+  function shuffleWithPick(items, pick) {
+    const pool = items.slice();
+    const out = [];
+    while (pool.length) {
+      const value = pick(pool);
+      const idx = pool.indexOf(value);
+      if (idx < 0) break;
+      out.push(value);
+      pool.splice(idx, 1);
+    }
+    return out;
+  }
+
+  /**
+   * Computes average edge continuity for a finished mosaic (right/bottom pairs).
+   */
+  function computeMosaicEdgeStats(mosaicData, signatures) {
+    const stats = { edges: 0, total: 0, average: 0, perfect: 0, fillPairs: 0 };
+    if (!mosaicData || !mosaicData.grid || !signatures) return stats;
+    const N = mosaicData.subtilesPerSide;
+    const cellAt = (r, c) => {
+      const br = Math.floor(r / N);
+      const bc = Math.floor(c / N);
+      return mosaicData.grid[br]?.[bc]?.cells?.[r % N]?.[c % N] || null;
+    };
+    const scorePair = (a, sideA, b, sideB) => {
+      const profileA = signatures.getOrientedProfile(a.baseTileId, a.transform);
+      const profileB = signatures.getOrientedProfile(b.baseTileId, b.transform);
+      const sideProfileA = profileA.sides[sideA];
+      const sideProfileB = profileB.sides[sideB];
+      const score = signatures.scoreSide(sideProfileA, sideProfileB);
+      stats.edges++;
+      stats.total += score;
+      if (score >= 0.999) stats.perfect++;
+      if (sideProfileA.coverage > 0 && sideProfileB.coverage > 0) stats.fillPairs++;
+    };
+    const R = mosaicData.rows * N;
+    const C = mosaicData.cols * N;
+    for (let r = 0; r < R; r++) {
+      for (let c = 0; c < C; c++) {
+        const cell = cellAt(r, c);
+        if (!cell) continue;
+        if (c + 1 < C) {
+          const right = cellAt(r, c + 1);
+          if (right) scorePair(cell, 'right', right, 'left');
+        }
+        if (r + 1 < R) {
+          const bottom = cellAt(r + 1, c);
+          if (bottom) scorePair(cell, 'bottom', bottom, 'top');
+        }
+      }
+    }
+    stats.average = stats.edges ? stats.total / stats.edges : 0;
+    return stats;
+  }
+
+  /**
+   * Edge-matched generation.
+   *
+   * The symmetry structure is unchanged: only canonical source-block cells are
+   * assigned, and every other cell is derived through D4. Candidate tiles are
+   * chosen (and then locally improved) so that touching sides have the same
+   * fill/background signature. This keeps the mathematical D4 invariants while
+   * letting light regions continue from one subtile into the next.
+   */
+  function generateEdgeMatchedMosaic(config, randomPick, frozenCells) {
+    if (!EdgeSignatures) {
+      throw new Error('TileEdgeSignatures is not loaded; edge-matched generation is unavailable.');
+    }
+
+    const rows = Math.max(1, parseInt(config.rows, 10) || 4);
+    const cols = Math.max(1, parseInt(config.cols, 10) || 4);
+    const subdivision = Math.max(1, Math.min(4, parseInt(config.subdivision, 10) || 2));
+    const gridSymmetryMode = config.gridSymmetryMode || 'mandala_d4';
+    const blockSymmetryMode = config.syncBlockSymmetry
+      ? gridSymmetryMode
+      : (config.blockSymmetryMode || 'mandala_d4');
+    const allowedTiles = Array.isArray(config.allowedTiles) ? config.allowedTiles : [];
+    if (typeof EdgeSignatures.warm === 'function') EdgeSignatures.warm(allowedTiles);
+    const pick = typeof randomPick === 'function'
+      ? randomPick
+      : (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    const N = Math.max(1, subdivision * 2);
+    const cellRelations = Array.from({ length: rows }, () => new Array(cols).fill(null));
+    const orbitIds = new Map();
+    const sourceKeys = [];
+    const seenSource = new Set();
+    let nextOrbitId = 1;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const rel = resolveCellSymmetry(r, c, rows, cols, gridSymmetryMode);
+        cellRelations[r][c] = rel;
+        const key = `${rel.sourceRow},${rel.sourceCol}`;
+        if (!orbitIds.has(key)) orbitIds.set(key, nextOrbitId++);
+        if (rel.isSource && !seenSource.has(key)) {
+          seenSource.add(key);
+          sourceKeys.push({ row: rel.sourceRow, col: rel.sourceCol });
+        }
+      }
+    }
+
+    // Each source block has a small set of canonical cells. These are the only
+    // free variables; the rest of the tile is a D4 image of one of them.
+    const plans = new Map();
+    const variables = [];
+
+    function addPlan(blockRow, blockCol) {
+      const key = `${blockRow},${blockCol}`;
+      if (plans.has(key)) return;
+      const vars = [];
+      for (let sr = 0; sr < N; sr++) {
+        for (let sc = 0; sc < N; sc++) {
+          const rel = resolveCellSymmetry(sr, sc, N, N, blockSymmetryMode);
+          if (!rel.isSource) continue;
+
+          let candidates;
+          if (blockSymmetryMode === 'kaleidoscope') {
+            candidates = allowedTiles.length ? allowedTiles.slice() : [84];
+          } else {
+            const stabilizer = getCellStabilizer(sr, sc, N, N, blockSymmetryMode);
+            candidates = getCompatibleTiles(allowedTiles, stabilizer);
+            if (candidates.length === 0) candidates = [84];
+          }
+          candidates = Array.from(new Set(candidates)).sort((a, b) => a - b);
+          const varIndex = variables.length;
+          variables.push({
+            blockKey: key,
+            sr,
+            sc,
+            candidates,
+            tileId: pick(candidates)
+          });
+          vars.push({ sr, sc, varIndex });
+        }
+      }
+      plans.set(key, { blockRow, blockCol, vars });
+    }
+
+    for (const source of sourceKeys) addPlan(source.row, source.col);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const rel = cellRelations[r][c];
+        addPlan(rel.sourceRow, rel.sourceCol);
+      }
+    }
+
+    // Topology of the real subtile grid. A source-block cell may be moved by
+    // the block transform, so its final grid position is transformed too.
+    const actualCells = [];
+    const indexByRC = new Map();
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const rel = cellRelations[r][c];
+        const key = `${rel.sourceRow},${rel.sourceCol}`;
+        const plan = plans.get(key);
+        const varBySource = new Map(plan.vars.map((v) => [`${v.sr},${v.sc}`, v.varIndex]));
+        for (let sr = 0; sr < N; sr++) {
+          for (let sc = 0; sc < N; sc++) {
+            const srcRel = resolveCellSymmetry(sr, sc, N, N, blockSymmetryMode);
+            const varIndex = varBySource.get(`${srcRel.sourceRow},${srcRel.sourceCol}`);
+            if (varIndex === undefined) continue;
+            const [tr, tc] = transformGridCoords(sr, sc, N, N, rel.transformFromSource);
+            const actualRow = r * N + tr;
+            const actualCol = c * N + tc;
+            const rcKey = `${actualRow},${actualCol}`;
+            if (indexByRC.has(rcKey)) continue;
+            const orientation = composeD4(rel.transformFromSource, srcRel.transformFromSource);
+            const index = actualCells.length;
+            actualCells.push({
+              index,
+              actualRow,
+              actualCol,
+              blockRow: r,
+              blockCol: c,
+              varIndex,
+              orientation,
+              override: null
+            });
+            indexByRC.set(rcKey, index);
+          }
+        }
+      }
+    }
+
+    const edges = [];
+    for (const cell of actualCells) {
+      const right = indexByRC.get(`${cell.actualRow},${cell.actualCol + 1}`);
+      if (right !== undefined) {
+        edges.push({ a: cell.index, sideA: 'right', b: right, sideB: 'left' });
+      }
+      const bottom = indexByRC.get(`${cell.actualRow + 1},${cell.actualCol}`);
+      if (bottom !== undefined) {
+        edges.push({ a: cell.index, sideA: 'bottom', b: bottom, sideB: 'top' });
+      }
+    }
+
+    const varCells = Array.from({ length: variables.length }, () => []);
+    for (const cell of actualCells) varCells[cell.varIndex].push(cell.index);
+
+    const varEdges = Array.from({ length: variables.length }, () => []);
+    for (let ei = 0; ei < edges.length; ei++) {
+      const edge = edges[ei];
+      const va = actualCells[edge.a].varIndex;
+      const vb = actualCells[edge.b].varIndex;
+      varEdges[va].push(ei);
+      if (vb !== va) varEdges[vb].push(ei);
+    }
+
+    // Frozen cells are fixed points. The whole orbit of a frozen canonical cell
+    // is locked so the optimiser cannot move a lock through its D4 copies.
+    const frozen = frozenCells instanceof Map
+      ? frozenCells
+      : new Map(Array.isArray(frozenCells) ? frozenCells : []);
+    const lockedVars = new Set();
+    for (const [frozenKey, data] of frozen.entries()) {
+      const parts = String(frozenKey).split(',').map(Number);
+      if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) continue;
+      const [br, bc, sr, sc] = parts;
+      const cellIndex = indexByRC.get(`${br * N + sr},${bc * N + sc}`);
+      if (cellIndex === undefined) continue;
+      const baseTileId = data && Number.isInteger(data.baseTileId) ? data.baseTileId : 84;
+      const transform = data && typeof data.transform === 'string' ? data.transform : 'id';
+      actualCells[cellIndex].override = { baseTileId, transform };
+      lockedVars.add(actualCells[cellIndex].varIndex);
+    }
+
+    const getCellProfile = (cell) => {
+      const baseTileId = cell.override
+        ? cell.override.baseTileId
+        : (variables[cell.varIndex] ? variables[cell.varIndex].tileId : 84);
+      const transform = cell.override ? cell.override.transform : cell.orientation;
+      return EdgeSignatures.getOrientedProfile(baseTileId, transform);
+    };
+
+    const profiles = actualCells.map(getCellProfile);
+
+    const scoreEdge = (edgeIndex, replacements) => {
+      const edge = edges[edgeIndex];
+      const profileA = (replacements && replacements[edge.a]) || profiles[edge.a];
+      const profileB = (replacements && replacements[edge.b]) || profiles[edge.b];
+      return EdgeSignatures.scoreSide(profileA.sides[edge.sideA], profileB.sides[edge.sideB]);
+    };
+
+    const passes = Math.max(1, Math.min(4, parseInt(config.edgeMatchPasses, 10) || 2));
+    const tieTolerance = 1e-6;
+
+    for (let pass = 0; pass < passes; pass++) {
+      let changed = false;
+      const order = shuffleWithPick(variables.map((_, i) => i), pick);
+      for (const varIndex of order) {
+        if (lockedVars.has(varIndex)) continue;
+        const affectedCells = varCells[varIndex];
+        const affectedEdges = varEdges[varIndex];
+        if (affectedCells.length === 0 || affectedEdges.length === 0) continue;
+
+        const currentTileId = variables[varIndex].tileId;
+        let currentLocal = 0;
+        for (const ei of affectedEdges) currentLocal += scoreEdge(ei, null);
+
+        let bestScore = currentLocal;
+        let bestCandidates = [currentTileId];
+        const scored = [];
+
+        for (const candidate of variables[varIndex].candidates) {
+          if (candidate === currentTileId) {
+            scored.push([candidate, currentLocal]);
+            continue;
+          }
+          const replacements = [];
+          let valid = true;
+          for (const ci of affectedCells) {
+            const cell = actualCells[ci];
+            const baseTileId = cell.override ? cell.override.baseTileId : candidate;
+            const transform = cell.override ? cell.override.transform : cell.orientation;
+            try {
+              replacements[ci] = EdgeSignatures.getOrientedProfile(baseTileId, transform);
+            } catch (err) {
+              valid = false;
+              break;
+            }
+          }
+          if (!valid) continue;
+          let local = 0;
+          for (const ei of affectedEdges) local += scoreEdge(ei, replacements);
+          scored.push([candidate, local]);
+          if (local > bestScore + tieTolerance) {
+            bestScore = local;
+            bestCandidates = [candidate];
+          } else if (Math.abs(local - bestScore) <= tieTolerance) {
+            bestCandidates.push(candidate);
+          }
+        }
+
+        let chosen = currentTileId;
+        if (bestScore > currentLocal + tieTolerance) {
+          chosen = pick(bestCandidates);
+        } else if (pass === 0) {
+          const tied = scored
+            .filter(([, score]) => Math.abs(score - currentLocal) <= tieTolerance)
+            .map(([id]) => id);
+          if (tied.length > 1) chosen = pick(tied);
+        }
+
+        if (chosen !== currentTileId) {
+          variables[varIndex].tileId = chosen;
+          for (const ci of affectedCells) profiles[ci] = getCellProfile(actualCells[ci]);
+          changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+
+    // Materialize the same hierarchical mosaic shape used by classic generation.
+    const sourceBlocks = new Map();
+    for (const [key, plan] of plans.entries()) {
+      const cells = Array.from({ length: N }, () => new Array(N).fill(null));
+      const varBySource = new Map(plan.vars.map((v) => [
+        `${v.sr},${v.sc}`,
+        variables[v.varIndex] ? variables[v.varIndex].tileId : 84
+      ]));
+      for (let sr = 0; sr < N; sr++) {
+        for (let sc = 0; sc < N; sc++) {
+          const rel = resolveCellSymmetry(sr, sc, N, N, blockSymmetryMode);
+          const baseTileId = varBySource.get(`${rel.sourceRow},${rel.sourceCol}`) ?? 84;
+          cells[sr][sc] = {
+            row: sr,
+            col: sc,
+            baseTileId,
+            tileId: getTransformedTileId(baseTileId, rel.transformFromSource),
+            transform: rel.transformFromSource,
+            sourceSubtile: [rel.sourceRow, rel.sourceCol],
+            isCanonicalSubtile: rel.isSource
+          };
+        }
+      }
+      sourceBlocks.set(key, {
+        subtilesPerSide: N,
+        subdivision,
+        blockSymmetryMode,
+        cells
+      });
+    }
+
+    const grid = Array.from({ length: rows }, () => new Array(cols).fill(null));
+    const blocksFlat = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const rel = cellRelations[r][c];
+        const key = `${rel.sourceRow},${rel.sourceCol}`;
+        const sourceBlock = sourceBlocks.get(key);
+        const transformed = rel.transformFromSource === 'id'
+          ? sourceBlock
+          : transformBlock(sourceBlock, rel.transformFromSource);
+        const blockInstance = {
+          row: r,
+          col: c,
+          index: r * cols + c,
+          orbitId: orbitIds.get(key),
+          sourceRow: rel.sourceRow,
+          sourceCol: rel.sourceCol,
+          isCanonicalSource: rel.isSource,
+          transformFromSource: rel.transformFromSource,
+          subtilesPerSide: transformed.subtilesPerSide,
+          subdivision: transformed.subdivision,
+          cells: transformed.cells
+        };
+        grid[r][c] = blockInstance;
+        blocksFlat.push(blockInstance);
+      }
+    }
+
+    const mosaic = {
+      rows,
+      cols,
+      subdivision,
+      subtilesPerSide: N,
+      gridSymmetryMode,
+      blockSymmetryMode,
+      totalOrbits: nextOrbitId - 1,
+      generationMode: 'edge_match',
+      edgeMatch: true,
+      grid,
+      blocks: blocksFlat
+    };
+
+    if (frozen.size) {
+      applyFrozenCells(mosaic, frozen);
+    }
+    mosaic.edgeMatchStats = computeMosaicEdgeStats(mosaic, EdgeSignatures);
+    return mosaic;
+  }
+
   /**
    * Builds the full mosaic state for the given configuration.
    */
-  function generateMosaic(config, randomPick) {
+  function generateMosaic(config, randomPick, frozenCells) {
+    if (config && config.edgeMatch) {
+      return generateEdgeMatchedMosaic(config, randomPick, frozenCells);
+    }
     const rows = Math.max(1, parseInt(config.rows, 10) || 4);
     const cols = Math.max(1, parseInt(config.cols, 10) || 4);
     const subdivision = Math.max(1, Math.min(4, parseInt(config.subdivision, 10) || 2));
@@ -312,8 +712,8 @@
    * Generates a mosaic with frozen cells applied as a single atomic operation.
    */
   function generateMosaicWithFrozen(config, randomPick, frozenCells) {
-    const mosaic = generateMosaic(config, randomPick);
-    if (frozenCells && frozenCells.size) {
+    const mosaic = generateMosaic(config, randomPick, frozenCells);
+    if (!config.edgeMatch && frozenCells && frozenCells.size) {
       applyFrozenCells(mosaic, frozenCells);
     }
     return mosaic;
@@ -1683,6 +2083,8 @@
     EDIT_SCOPES,
     generateMosaic,
     generateMosaicWithFrozen,
+    generateEdgeMatchedMosaic,
+    computeMosaicEdgeStats,
     applyFrozenCells,
     isMosaicD4Invariant,
     transformBlock,

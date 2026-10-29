@@ -46,6 +46,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── library_compiler.js    # Compilador determinístico de mestres JSON em catálogos D4 e tabelas de remap
 │   ├── library_store.js       # Persistência híbrida (IDB + localStorage), CRUD de grupos/famílias e I/O JSON
 │   ├── tile_registry.js       # Fachada reativa do catálogo de tiles, famílias e mapas D4 (libraryRevision)
+│   ├── tile_edge_signatures.js # Pré-processamento de bordas: IDs de preenchimento/fundo por lado do subtile
 │   ├── vector_editor.js       # Motor vetorial interativo [-0.5, 0.5] (8 ferramentas, Bezier, snap, undo/redo)
 │   ├── vector_boolean.js      # Booleanas Paper.js headless, transformações D4 na seleção, camadas e I/O SVG
 │   ├── subtile_studio_ui.js   # Modo Estúdio de Subtiles (data-studio-mode="tiles"), grupos/famílias e preview D4
@@ -55,7 +56,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
 │   ├── document_snapshot.js   # Captura e aplicação de snapshots de parâmetros do documento para undo entre gerações
 │   ├── spout_output.js        # Sanitização de nomes, probe de mudanças e formatação de quadros para saída Spout
 │   └── ui_format.js           # Formatadores puros de rótulos de escopos de simetria e interface
-├── tests/                     # Suíte com 44 testes automatizados em Node.js puro
+├── tests/                     # Suíte com 59 testes automatizados em Node.js puro
 ├── tools/                     # Bridge local WebSocket -> SpoutGL em Python (spout_bridge.py / .cmd)
 ├── ui_info.js                 # Motor de divulgação progressiva (17 tópicos, popovers e tooltips acessíveis)
 ├── libraries/                 # Bibliotecas p5.min.js, simple-svg.js e paper-core.min.js (v0.12.18, booleanas)
@@ -76,6 +77,7 @@ O projeto é organizado de maneira estritamente modular, mantendo separação n�
   - `Caleidoscópio (Livre)`: Propagação geométrica nos 8 octantes sem restrição de invariância em eixos centrais ou diagonais, conferindo liberdade criativa total ao usuário.
   - `Giro Contínuo (C4)`: 4 quadrantes em giro rotacional contínuo de 90° ao redor do centro.
   - `Espelhamento Duplo (D2)`: Espelhamento bilateral nos eixos horizontal e vertical.
+- **Encaixe por Bordas (`#toggleEdgeMatch`)**: Novo modo de geração. Antes de montar o mosaico, cada tile é pré-processado em quatro assinaturas de borda (máscara de tinta, intervalos de preenchimento/fundo, regiões conectadas e um ID estável). A geração escolhe as peças canônicas de cada bloco para maximizar a continuidade das regiões claras entre vizinhos, usando o ID como prioridade. O encaixe é suave: um casamento imperfeito ainda é aceito, mas perde prioridade. A estrutura de simetria e os estabilizadores D4 continuam valendo; apenas os tiles canônicos são escolhidos, e todas as réplicas continuam derivadas por D4.
 - **Swatches Permitidos**: Seleção e filtragem das famílias e tipos de tiles que entram no sorteio aleatório da semente (*Seed*).
 
 ### 2. Ferramentas do Editor
@@ -215,22 +217,25 @@ Todo ícone da interface vem do registro único em `core/ui_format.js` (`ICON_PA
 
 ## Testes Automatizados
 
-O projeto conta com **54 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **59 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 54 suítes de teste:
+# Executar todas as 59 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 54 Suítes:
+### Cobertura das 59 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
    - `test_d4_block_combinations.js`: Validação da matriz completa de 20 combinações Grade × Bloco e detecção de redução de simetria.
    - `test_d4_editor.js`: Contrato de transparência D4 no Editor, detecção de quebra em eixos e modo Caleidoscópio livre.
    - `test_d4_badge_state.js`: Comportamento do badge D4 editado com restauração precisa no histórico de desfazer (undo/redo).
-2. **Motor de Mosaico**:
+2. **Motor de Mosaico & Encaixe de Bordas**:
    - `test_mosaic_engine.js`: Geração vetorial, renderização, contagem de primitivas e modos de simetria do motor.
+   - `test_edge_signatures.js`: Pré-processamento dos 85 tiles em IDs de borda de preenchimento/fundo, regiões conectadas, remapeamento D4 e pontuação de encaixe.
+   - `test_edge_match_generation.js`: Novo modo de geração, melhora mensurável da continuidade, determinismo por seed, invariância D4, paletas restritas e células congeladas.
+   - `test_edge_match_ui.js`: Checkbox único, rótulo, ordem de carregamento, alternância do modo e parâmetro `edgeMatch` em snapshots de documento.
 3. **Persistência de Estado, Quota & Histórico**:
    - `test_state_persistence.js`: Serialização de estado completo, 15 edições em 3×3 blocos e restauração de histórico undo/redo.
    - `test_indexeddb_persistence.js`: Camada IndexedDB assíncrona, limites 256/100, tolerância a falhas e migração de localStorage.
@@ -328,7 +333,7 @@ SVG unitário usa margem zero por padrão, independente do respiro do mosaico. F
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
-Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 45 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
+Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 59 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
 O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 

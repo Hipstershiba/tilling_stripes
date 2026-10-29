@@ -92,14 +92,27 @@ $$g(\mathrm{tileId}) = \mathrm{tileId}$$
 4. **`bilateral_d2` (Espelhamento Duplo)**:
    - Espelhamento bilateral nos eixos horizontal e vertical.
 
+### Modo de Geração por Encaixe de Bordas (`#toggleEdgeMatch`)
+
+O checkbox **Encaixe por bordas** no painel Simetria & Estrutura ativa um modo de geração alternativo. Antes de montar o mosaico, `core/tile_edge_signatures.js` pré-processa cada tile do catálogo:
+
+- Amostra as quatro bordas logo dentro do quadrado do subtile e produz uma máscara binária de tinta/fundo.
+- Converte a máscara em intervalos normalizados de preenchimento e de fundo.
+- Rotula as componentes conectadas de tinta e de fundo e registra quais lados cada região toca (`F:LR`, `B:T`, etc.).
+- Deriva um ID estável por lado a partir do padrão de intervalos e das regiões conectadas (`fillId`, `bgId` e `id`).
+- Remapeia a assinatura por qualquer transformação D4, sem rasterizar novamente.
+
+A geração (`generateEdgeMatchedMosaic`) mantém a hierarquia e as órbitas D4: só as células canônicas dos blocos-fonte são escolhidas; todas as demais continuam sendo imagens D4. A escolha inicial é aleatória, como no modo clássico, e depois uma busca local (duas passadas por padrão) maximiza a soma das notas de encaixe entre lados vizinhos. A nota prioriza a continuidade da tinta (parte clara) e usa o fundo apenas como desempate; um encaixe imperfeito é aceito, mas vale menos. Células congeladas são restrições fixas e bloqueiam a órbita canônica correspondente. O modo não altera o schema de persistência: `edgeMatch` é um campo booleano do payload v3 e dos snapshots de documento.
+
 ---
 
-## 3. Motor Vetorial JSON e Catálogo de Tiles (`core/tile_library.js`, `core/library_compiler.js`, `core/library_store.js` e `core/tile_registry.js`)
+## 3. Motor Vetorial JSON e Catálogo de Tiles (`core/tile_library.js`, `core/library_compiler.js`, `core/library_store.js`, `core/tile_registry.js` e `core/tile_edge_signatures.js`)
 
 O catálogo vetorial é compilado deterministicamente a partir de mestres JSON normalizados em `[-0.5, 0.5]^2`:
 - **85 subtiles built-in canônicos** (`TILE_RENDERERS`, indexados de `0` a `84`) gerados a partir das **31 famílias built-in** em **6 grupos** (`TILE_FAMILIES_META`), seguidos dinamicamente por famílias customizadas (`>= 85`).
 - **Detecção automática de simetria $D_4$ (`core/d4_detect.js`)**: Classifica qualquer mestre em um dos 10 subgrupos estabilizadores de $D_4$, gerando `1`, `2`, `4` ou `8` variantes e preenchendo `TILE_D4_MAP` com fechamento algébrico exato.
 - **Mutação in-place e `libraryRevision`**: `TileRegistry` sincroniza `TILE_RENDERERS`, `TILE_NAMES`, `TILE_FAMILIES_META` e `TILE_D4_MAP` in-place, expõe `getOrderedGroupedFamilies()` respeitando `LibraryStore.getGroups()` e `uiOrder`, e incrementa `libraryRevision` (integrado ao `artifactSignature` do Spout).
+- **Assinaturas de borda (`core/tile_edge_signatures.js`)**: `getTileProfile(tileId)` grava a geometria do renderer num recorder afim (formas, furos, traços e curvas), amostra as quatro bordas e calcula máscara, intervalos, regiões conectadas e IDs. `getOrientedProfile(tileId, transform)` remapeia a assinatura por D4. O cache é invalidado quando `TileRegistry.libraryRevision` muda, então tiles customizados também recebem IDs atualizados. `scoreSide(a, b)` devolve uma nota 0..1 com IoU rígido e suave, priorizando tinta sobre fundo.
 - **Modo Estúdio de Subtiles e Editor Vetorial (`core/vector_editor.js` e `core/subtile_studio_ui.js`)**: Alterna `body[data-studio-mode="mosaic|tiles"]` (`Ctrl+E`) sem violar a hierarquia das 4 superfícies nem os 60 controles congelados, oferecendo 8 ferramentas vetoriais interativas (`select`, `direct`, `pen`, `rect`, `ellipse`, `polygon`, `arc`, `line`), grade magnética (`0..16`), subdivisão De Casteljau, *undo/redo* por família, árvore *Drag-and-Drop* de grupos/famílias, preview de vizinhos (`1×1`, `3×3`, `mandala_d4`, `rotational_c4`), auto-matrícula de novos IDs em `allowedTiles` e sanitização *tombstone* $\to$ `#84`.
 
 - **Booleanas, Camadas & SVG (`core/vector_boolean.js`)**: Expõe `window.VectorBoolean` com `applyBooleanOp(shapes, selectedIds, op)` (`unite` | `subtract` | `intersect` | `exclude`), `transformSelectedShapesD4(shapes, selectedIds, d4Key)`, `reorderShapeZ(shapes, id, target)` (`front` | `forward` | `backward` | `back` | índice), `setShapeVisible`/`toggleShapeVisible`, `setShapeLocked`/`toggleShapeLocked`, `renameShape`, `importSVGToShapes(svgText, options)` e `exportFamilyToSVG(familyDoc, options)`. No navegador usa `window.paper` (`libraries/paper-core.min.js`); no Node carrega a mesma biblioteca num contexto `vm` isolado (zero dependências npm). As coordenadas são escaladas por `PAPER_SCALE = 1000` (`[-0.5, 0.5] ↔ [-500, 500]`) para respeitar as tolerâncias internas do Paper.js. Formas travadas ou ocultas nunca participam de booleanas/transformações.
@@ -116,6 +129,18 @@ O catálogo vetorial é compilado deterministicamente a partir de mestres JSON n
 1. **Mosaico Macro**: Grade de $rows \times cols$ blocos (Supertiles).
 2. **Bloco / Supertile**: Bloco quadrado composto por $N \times N$ subtiles, onde $N = 2 \times \text{subdivisão}$.
 3. **Subtile**: Célula mínima que renderiza um tile indexado com sua transformação de orientação.
+
+### Geração Clássica e Geração por Encaixe
+
+`generateMosaic(config, randomPick, frozenCells)` escolhe o caminho clássico ou o modo de encaixe quando `config.edgeMatch === true`. O caminho clássico sorteia cada célula canônica. `generateEdgeMatchedMosaic` monta o mesmo grafo de blocos e órbitas, mas trata as células canônicas como variáveis:
+
+1. Sorteia uma atribuição inicial dentro dos tiles compatíveis com o estabilizador de cada célula.
+2. Constrói a grade real de subtiles, incluindo as posições deslocadas pelas transformações de bloco.
+3. Calcula a nota de cada aresta entre vizinhos com `TileEdgeSignatures.scoreSide`.
+4. Faz busca local nas variáveis, aceitando apenas melhorias (e desempates na primeira passada).
+5. Materializa `grid`/`blocks` com `transformBlock`, aplica células congeladas e calcula `edgeMatchStats` (`edges`, `average`, `perfect`, `fillPairs`).
+
+Como apenas as células canônicas mudam, `isMosaicD4Invariant` continua verdadeiro para mandala, caleidoscópio, rotacional e bilateral. Células congeladas são aplicadas antes da busca e bloqueiam sua órbita.
 
 ### Escopos de Edição
 - `canvas_center`: Propaga globalmente em torno do centro do artboard. Requer que células nos eixos obedeçam aos estabilizadores da simetria do centro.
@@ -213,7 +238,7 @@ A persistência do estúdio opera em arquitetura híbrida de duas camadas:
   - `validatePayloadVersion(payload)`: Validador semântico de integridade e versão do schema salvo (versão 3).
 
 ### 3. Snapshots de Documento (`core/document_snapshot.js`)
-- `collectParams(state)`: Coleta parâmetros do documento (seed, linhas, colunas, subdivisão, simetrias, margem, respiro, tiles permitidos, largura/altura e cores). Campos ausentes são opcionais: `applyParams` conserva os valores atuais ao restaurar snapshots antigos.
+- `collectParams(state)`: Coleta parâmetros do documento (seed, linhas, colunas, subdivisão, simetrias, modo de encaixe por bordas, margem, respiro, tiles permitidos, largura/altura e cores). Campos ausentes são opcionais: `applyParams` conserva os valores atuais ao restaurar snapshots antigos.
 - `attachDocument(cellsSnapshot, documentParams)`: Vincula o registro de parâmetros ao snapshot de células.
 - `Ctrl+Z` / `Ctrl+Shift+Z` atravessa gerações e edições mantendo células, preservações, parâmetros, campos e tamanho do canvas sincronizados.
 - `beginDocumentEdit` captura antes do primeiro evento de aparência; `commitDocumentEdit` confirma no `change`/`blur`, inclusive ao sair da página, e `cancelDocumentEdit` restaura com Escape. Preview de cor, margem ou espaçamento não cria uma etapa por evento. No-op/cancelamento preserva redo; edição real o invalida.
@@ -243,14 +268,14 @@ python -m http.server 8765
 npx serve -l 8765
 ```
 
-### Execução de Todas as 54 Suítes Automatizadas
+### Execução de Todas as 59 Suítes Automatizadas
 ```powershell
 node tests/run_all.js
 ```
 
-As 54 suítes cobrem:
+As 59 suítes cobrem:
 1. Álgebra D4 e axiomas de grupo (`test_tile_registry.js`, `test_d4_invariance.js`, `test_d4_block_combinations.js`, `test_d4_editor.js`, `test_d4_badge_state.js`).
-2. Motor de mosaico e renderização vetorial (`test_mosaic_engine.js`).
+2. Motor de mosaico, renderização vetorial e encaixe de bordas (`test_mosaic_engine.js`, `test_edge_signatures.js`, `test_edge_match_generation.js`, `test_edge_match_ui.js`).
 3. Persistência de estado híbrida, IndexedDB, quotas e limites (`test_state_persistence.js`, `test_indexeddb_persistence.js`, `test_save_scheduler.js`, `test_storage_key.js`, `test_payload_version.js`, `test_history_limits.js`, `test_persistence_quota.js`, `test_history_nav.js`, `test_history_edit_preservation.js`, `test_document_snapshot.js`, `test_regeneration_capture.js`, `test_multistep_undo.js`, `test_dirty_guard.js`).
 4. UI, acessibilidade, navegação e contratos estruturais (`test_scope_chip.js`, `test_info_scopes_source.js`, `test_info_aria.js`, `test_editor_ui_state.js`, `test_info_ui_state.js`, `test_viewport_pan_zoom.js`, `test_brush_sizing_snap.js`, `test_ui_control_registry.js`, `test_ui_layout_contract.js`, `test_visual_tokens.js`, `test_visual_system_v2.js`, `test_icon_system.js`).
 5. Consistência e fidelidade da documentação (`test_docs_consistency.js`).
@@ -272,7 +297,7 @@ SVG unitário usa margem zero por padrão, independente do respiro do mosaico. F
 
 Persistência canônica: `tiling_stripes_studio_v3_state`, IndexedDB `TilingStripesDB_v1` / `studio_state`. Os dados da chave e do banco antigos continuam legíveis e não são apagados pela migração.
 
-Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 45 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
+Graphify: `.\venv\Scripts\python.exe -m graphify query "símbolo"`. Sincronização: `scripts/sync_knowledge.ps1`. Abra `_local/obsidian_vault` como vault no Obsidian e use `INICIO_WORKSPACE.md`; o grafo AST e suas notas são artefatos locais ignorados pelo Git. A suíte agora reúne 59 testes; os 60 controles congelados pertencem ao contrato original do mosaico, não ao total de elementos do novo Estúdio.
 
 O botão **Editar peças** fica na grade de ferramentas da barra esquerda. Ao abrir o criador, ele muda para **Voltar ao mosaico**, seguido pelas ferramentas vetoriais. Propriedades, camadas, órbita D4 e biblioteca continuam no dock direito. O atalho `Ctrl+E` alterna os modos.
 

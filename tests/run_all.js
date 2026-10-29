@@ -13,8 +13,11 @@ const testSuites = [
   'test_d4_editor.js',
   'test_d4_badge_state.js',
 
-  // 2. Mosaic Engine
+  // 2. Mosaic Engine & Edge-Matching Generation
   'test_mosaic_engine.js',
+  'test_edge_signatures.js',
+  'test_edge_match_generation.js',
+  'test_edge_match_ui.js',
 
   // 3. State Persistence & Quota (IndexedDB + localStorage)
   'test_state_persistence.js',

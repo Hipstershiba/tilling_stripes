@@ -623,6 +623,17 @@
                 </div>
               </div>
 
+              <!-- Modo de geração: continuidade de bordas entre subtiles vizinhos -->
+              <div class="prop-section edge-match-section">
+                <label class="edge-match-toggle" for="toggleEdgeMatch">
+                  <input type="checkbox" id="toggleEdgeMatch">
+                  <span class="edge-match-copy">
+                    <span class="edge-match-title">Encaixe por bordas</span>
+                    <span class="edge-match-hint">Continua as regiões de tinta entre peças vizinhas.</span>
+                  </span>
+                </label>
+              </div>
+
 
 
               <!-- Status de Subtiles Congelados (visível apenas quando há travas) -->
@@ -1121,6 +1132,7 @@
   <script src="core/save_status.js"></script>
   <script src="core/library_store.js"></script>
   <script src="core/tile_registry.js"></script>
+  <script src="core/tile_edge_signatures.js"></script>
   <script src="core/mosaic_engine.js"></script>
   <script src="core/state_persistence.js"></script>
   <script src="core/history_nav.js"></script>

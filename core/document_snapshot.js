@@ -17,6 +17,7 @@
     'gridSymmetryMode',
     'blockSymmetryMode',
     'syncBlockSymmetry',
+    'edgeMatch',
     'margin',
     'paddingRatio',
     'width',
