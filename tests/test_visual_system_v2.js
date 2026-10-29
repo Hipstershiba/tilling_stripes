@@ -96,4 +96,29 @@ const guideBtn = guideBtns[guideBtns.length - 1][1];
 assert(/height:\s*38px/.test(guideBtn), 'Guide toggles must keep the 38px tool row height');
 console.log('✓ Visual guides keep the tool grid and row height.');
 
+// A troca de ambiente não pode adicionar um divisor antes da primeira seção.
+const tilesPane = html.slice(html.indexOf('id="leftToolbarTilesPane"'), html.indexOf('</aside>'));
+assert(/^id="leftToolbarTilesPane"[^>]*>\s*<div class="sidebar-section">/.test(tilesPane),
+  'Tile tools must start directly with the first section, like Mosaic (no leading divider)');
+assert(!/<div class="tool-divider"><\/div>\s*<details/.test(tilesPane),
+  'Disclosures draw their own separator; do not stack another divider above them');
+assert(!tilesPane.includes('class="subtile-left-spacer"'),
+  'Disclosure spacing must come from the shared gap, not an extra spacer');
+console.log('✓ Environment entry and disclosures have no extra divider or spacer.');
 console.log('--- ALL VISUAL SYSTEM V2 CHECKS PASSED ---');
+
+// Contextual inspector geography: tools left, document and asset tasks right.
+const propsPanelStart = html.indexOf('id="panel-tile-shape-props"');
+const propsPanel = html.slice(propsPanelStart, html.indexOf('</section>', propsPanelStart));
+const libraryPanelStart = html.indexOf('id="panel-tile-library-mgr"');
+const libraryPanel = html.slice(libraryPanelStart, html.indexOf('</section>', libraryPanelStart));
+assert(!tilesPane.includes('id="curveFraction"') && propsPanel.includes('id="curveFraction"'),
+  'Curve settings must live beside other contextual properties');
+for (const id of ['btnRailNewSubtile','btnRailDuplicateSubtile','btnRailNewGroup','btnImportSubtileSvg','btnExportLibraryJson']) {
+  assert(!tilesPane.includes(`id="${id}"`) && libraryPanel.includes(`id="${id}"`),
+    `${id} must live in the Library, with no duplicate tool-rail action`);
+}
+assert(propsPanel.includes('id="tilePathfinderContainer"'), 'Pathfinder must stay within Properties');
+assert(tilesPane.includes('id="btnTileOpenLibrary"'), 'Library access remains available from the left rail');
+assert(/id="tileTabProperties"[^>]*aria-selected="true"/.test(html), 'Properties is the editing entry tab');
+console.log('✓ Contextual inspector separates tools, selected-object editing and library tasks.');

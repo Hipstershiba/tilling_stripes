@@ -3487,16 +3487,6 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
   text-overflow: ellipsis;
 }
 
-.tile-dup-accent-btn {
-  border-color: rgba(245, 158, 11, 0.45) !important;
-  background: rgba(245, 158, 11, 0.12) !important;
-  color: #fcd34d !important;
-}
-
-.tile-dup-accent-btn:hover {
-  background: rgba(245, 158, 11, 0.22) !important;
-}
-
 .tile-preview-seg {
   display: inline-flex;
   align-items: center;
@@ -3563,9 +3553,8 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 }
 
 /* As três gavetas inferiores precisam caber; o espaçador não empurra o conteúdo para fora. */
-#left-toolbar .subtile-left-pane { min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 2px; }
+#left-toolbar .subtile-left-pane { min-height: 0; flex: 1 0 auto; overflow: visible; padding: 0; gap: 8px; }
 #left-toolbar .subtile-left-spacer { flex: 0 0 auto; min-height: 10px; }
-#left-toolbar .subtile-left-pane > .tool-divider:last-of-type { display: none; }
 
 .subtile-left-spacer {
   flex: 1;
@@ -4126,9 +4115,9 @@ body[data-studio-mode="tiles"] .mosaic-mode-only {
 }
 
 .vec-tool-btn.active {
-  background: var(--accent-blue-soft) !important;
-  border-color: var(--accent-blue) !important;
-  color: var(--accent-blue) !important;
+  background: var(--bg-selected);
+  border-color: transparent;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -4572,13 +4561,7 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles {
   line-height: 1.2;
   text-align: center;
 }
-body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn {
-  grid-column: 1 / -1;
-  height: 34px;
-  justify-content: center;
-  flex-direction: row;
-  gap: 6px;
-}
+
 
 /* Consistent size controls and readable feedback across mosaic editing tools. */
 .brush-step-btn { flex: 0 0 32px; width: 32px; height: 32px; }
@@ -4679,9 +4662,8 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .tile-selection-bar { display: flex; align-items: center; gap: 6px; padding: 10px 12px 4px; flex: 0 0 auto; }
 #tileSelectionSummary { flex: 1; font-size: var(--font-ui); line-height: 1.5; }
 .tile-selection-help { padding: 0 12px; margin: 6px 0 10px; font-size: var(--font-ui); line-height: 1.5; color: var(--text-secondary); flex: 0 0 auto; }
-.tile-pathfinder-container { padding: 0 12px 8px; flex: 0 0 auto; }
-#dock-workspace-tiles[data-inspector-panel="library"] > .tile-pathfinder-container,
-#dock-workspace-tiles[data-inspector-panel="variants"] > .tile-pathfinder-container { display: none; }
+.tile-pathfinder-container { padding: 6px 0 0; flex: 0 0 auto; }
+
 .tile-pathfinder-container:empty { padding: 0; }
 .tile-pathfinder-container .vec-props-subblock { margin: 0; border-bottom: 0; }
 .tile-pathfinder-container .vec-bool-btn { min-height: 32px; }
@@ -4698,9 +4680,9 @@ body[data-studio-mode="tiles"] #dock-workspace-tiles { overflow: hidden; gap: 0;
 .tile-library-details { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
 #panelTileLibraryMgrBody .tile-selection-help { padding: 0; }
 #panelTileLibraryMgrBody { min-height: 0; }
-#libMgrTreeContainer { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
+#libMgrTreeContainer { flex: 1 1 240px; min-height: 160px; overflow-y: auto; }
 #panel-tile-library-mgr:not([hidden]) { display: flex; flex-direction: column; }
-#panelTileLibraryMgrBody { flex: 1 1 auto; overflow: hidden; }
+#panelTileLibraryMgrBody { flex: 1 1 auto; overflow-y: auto; }
 #panelTileLibraryMgrBody .swatches-toolbar { flex: 0 0 auto; }
 #vecPropsContainer details > summary { cursor: pointer; padding: 6px 0; }
 @media (max-width: 1100px) {
@@ -4855,7 +4837,6 @@ button.icon-only > svg { flex-shrink:0; }
 #left-toolbar .tools-grid-2col > button { width:var(--icon-action-size); min-width:var(--icon-action-size); height:var(--icon-action-size); min-height:var(--icon-action-size); padding:0; justify-content:center; }
 #left-toolbar .tools-grid-2col:has(> select) { grid-template-columns:var(--icon-action-size) minmax(0,1fr); }
 #left-toolbar .tools-grid-2col > select { min-width:0; width:100%; }
-body[data-studio-mode="tiles"] #left-toolbar .studio-mode-btn { justify-self:center; }
 #left-toolbar [data-region-shape] svg { display:block; }
 #left-toolbar .clone-capture-actions { justify-content:center; gap:4px; }
 #left-toolbar .clone-capture-actions .mini-btn { flex:0 0 var(--icon-action-size); width:var(--icon-action-size); height:var(--icon-action-size); }
@@ -5169,10 +5150,13 @@ input[type="number"],
 /* --- Barra lateral esquerda ---------------------------------------------- */
 #left-toolbar {
   width: var(--left-tool-w);
-  padding: 10px 9px 10px;
+  padding: 10px 0 10px 9px;
   gap: 8px;
   background: #1b1c20;
   border-right: 1px solid #2b2e35;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 #left-toolbar .studio-mode-btn {
@@ -5201,11 +5185,13 @@ input[type="number"],
 
 #left-toolbar .studio-mode-btn:hover { background: #272b32; color: var(--text-primary); }
 
+/* This is navigation to the other environment, not a selected editing tool. */
 #left-toolbar .studio-mode-btn[aria-pressed="true"] {
-  background: var(--bg-selected);
-  border-color: #3d5c88;
-  color: var(--text-primary);
+  background: #212429;
+  border-color: #2f333a;
+  color: var(--text-secondary);
 }
+#left-toolbar .studio-mode-btn[aria-pressed="true"]:hover { background: #272b32; color: var(--text-primary); }
 
 #left-toolbar .studio-mode-btn-label {
   overflow: hidden;
@@ -5241,6 +5227,9 @@ input[type="number"],
   justify-content: stretch;
 }
 
+/* Navigation ends the common tools grid on a complete row in either mode. */
+#left-toolbar .tool-navigation-start { grid-column: 1; }
+
 #left-toolbar .tools-grid-2col > button {
   width: 100%;
   min-width: 0;
@@ -5249,6 +5238,23 @@ input[type="number"],
   padding: 0;
   border-radius: var(--radius-card);
   color: var(--text-secondary);
+}
+
+/* Shared icon scale and snap geometry in both environments. */
+#left-toolbar .tools-grid-2col > button > svg,
+#left-toolbar .vec-snap-row > button > svg { width: 18px; height: 18px; }
+#left-toolbar .vec-snap-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 0; }
+#left-toolbar .vec-snap-row > button {
+  width: 100%; min-width: 0; height: 38px; min-height: 38px; padding: 0;
+  justify-content: center; border-radius: var(--radius-card);
+}
+#left-toolbar .vec-snap-row > button.active {
+  background: var(--bg-selected); border-color: transparent; color: #bcd4ff;
+  box-shadow: inset 0 0 0 1px rgba(122, 168, 255, 0.4);
+}
+#left-toolbar .subtile-grid-select {
+  width: 100%; min-width: 0; height: 38px;
+  border-radius: var(--radius-card); font-size: var(--font-ui);
 }
 
 #left-toolbar .tools-grid-2col > button:hover:not(:disabled) {
@@ -5312,13 +5318,25 @@ input[type="number"],
 #left-toolbar .sidebar-color-swap-btn:hover { background: #2b2f36; color: var(--text-primary); }
 
 #left-toolbar .sidebar-disclosure-body {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid #282b32;
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px 0;
+  border: 0;
 }
+#left-toolbar .sidebar-disclosure-body > .tools-grid-2col { grid-column: 1 / -1; }
+#left-toolbar .subtile-rail-action-btn {
+  min-width: 0; width: 100%; height: 38px; min-height: 38px;
+  padding: 0; border-radius: var(--radius-card);
+  border-color: transparent; background: transparent; color: var(--text-secondary);
+}
+#left-toolbar .subtile-rail-action-btn > svg { width: 18px; height: 18px; }
+#left-toolbar .subtile-rail-action-btn:hover:not(:disabled) { background: #262a31; color: var(--text-primary); }
+#left-toolbar .subtile-rail-action-btn.primary { background: var(--bg-primary); color: var(--text-primary); }
+#left-toolbar .subtile-rail-action-btn.danger { color: var(--color-error); }
+#left-toolbar .subtile-rail-action-btn.danger:hover { background: var(--bg-error); }
+
 
 /* O divisor antigo some porque a zona de comando já tem a própria borda. */
 #left-toolbar > .tool-divider:has(+ .sidebar-disclosure-body) { display: none; }
@@ -5686,7 +5704,10 @@ body.right-dock-collapsed .dock-toggle-icon { transform: rotate(180deg); }
   text-transform: uppercase;
 }
 
-.panel-header:hover { background: #212429; color: var(--text-secondary); }
+/* Sticky editor headers keep the same surface as generator headers. */
+#dock-workspace-tiles > .dock-panel > .panel-header { background: var(--bg-panel); }
+.panel-header:hover,
+#dock-workspace-tiles > .dock-panel > .panel-header:hover { background: #212429; color: var(--text-secondary); }
 .panel-title-wrap { gap: 8px; }
 .panel-title-wrap svg { opacity: 0.85; }
 .panel-chevron { font-size: 9px; color: var(--text-muted); }
@@ -6022,16 +6043,55 @@ body.right-dock-collapsed .dock-toggle-icon { transform: rotate(180deg); }
 }
 
 :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips, .tile-layers-toolbar) {
-  background: #191b1f;
-  border: 1px solid #2a2e35;
+  background: transparent;
+  border: 0;
   border-radius: var(--radius-card);
-  padding: 3px;
-  gap: 3px;
+  padding: 0;
+  gap: 4px;
 }
 
 :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips, .tile-layers-toolbar) > button {
   border-radius: 6px;
 }
+
+/* Illustrator-inspired inspector: compact chrome, contextual editing, files with assets. */
+#dock-workspace-tiles .tile-panel-summary { min-height: 28px; height: 28px; padding: 0 12px; }
+#dock-workspace-tiles .tile-panel-summary .panel-counter-pill { margin-left: auto; font-size: 10px; }
+.tile-inspector-tabs button { min-height: 36px; padding: 8px 3px; font-size: 11px; }
+.tile-selection-bar { min-height: 38px; padding: 4px 12px; border-bottom: 1px solid var(--border-subtle); }
+.tile-selection-bar .mini-btn { width: 28px; min-height: 28px; padding: 0; }
+.tile-inspector-disclosure { border-top: 1px solid var(--border-subtle); padding-top: 4px; }
+.tile-inspector-disclosure[hidden] { display: none; }
+.tile-inspector-disclosure > summary,
+.tile-file-disclosure > summary { cursor: pointer; padding: 8px 0; color: var(--text-secondary); font-size: 11px; font-weight: 600; }
+.tile-library-launcher { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+.tile-library-launcher .mini-btn { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0 6px; min-height: 34px; background: transparent; color: var(--text-secondary); }
+.tile-library-launcher .mini-btn:hover { background: var(--bg-control-hover); color: var(--text-primary); }
+#panelTileShapePropsBody .curve-tool-options { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+#panelTileShapePropsBody .curve-tool-options select { flex: 1; width: auto; min-height: 30px; }
+#panelTileShapePropsBody .curve-tool-options .curve-custom { flex-basis: 100%; }
+#panelTileLibraryMgrBody { gap: 8px; padding: 8px 12px 12px; }
+#panelTileLibraryMgrBody .tile-library-details { padding: 0 0 8px; }
+#panelTileLibraryMgrBody .tile-library-navigation { margin: 4px 0; gap: 4px; }
+#panelTileLibraryMgrBody .tile-library-navigation > button { width: 28px; min-height: 28px; padding: 0; flex: 0 0 28px; }
+#panelTileLibraryMgrBody .lib-mgr-filter-row { display: flex; align-items: center; gap: 8px; margin: 0; }
+#panelTileLibraryMgrBody .lib-mgr-filter-row .segmented-control { flex: 0 0 auto; }
+#panelTileLibraryMgrBody .lib-mgr-actions-bar { display: flex; gap: 4px; margin: 0 0 0 auto; flex-wrap: nowrap; }
+#panelTileLibraryMgrBody :is(.lib-mgr-filter-row,.lib-mgr-actions-bar) button { width: 28px; min-width: 28px; min-height: 30px; padding: 0; }
+.tile-library-files { flex: 0 0 auto; border-top: 1px solid var(--border-subtle); }
+.tile-file-disclosure + .tile-file-disclosure { border-top: 1px solid var(--border-subtle); }
+.tile-file-actions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; padding: 0 0 8px; }
+.tile-file-actions .tools-grid-2col { grid-column: 1 / -1; gap: 6px; }
+.tile-file-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 30px; padding: 4px 6px; font-size: 11px; }
+.tile-file-actions button svg { flex: 0 0 16px; }
+.tile-file-actions .danger { grid-column: 1 / -1; color: var(--color-error); }
+.tile-file-actions :is(.file-action-label, .file-action-label span) { white-space: normal; }
+#vecPropsContainer .vec-subblock-title { font-size: 11px; letter-spacing: 0.04em; }
+#vecPropsContainer .vec-props-subblock { padding-top: 8px; }
+#vecPropsContainer .vec-props-subblock:first-child { padding-top: 0; border-top: 0; }
+#vecPropsContainer .vec-props-grid { gap: 6px; }
+#vecPropsContainer details > summary { display: list-item; list-style-position: inside; }
+#vecPropsContainer .vec-prop-field { min-height: 30px; border-radius: var(--radius-control); }
 
 /* --- Gerador e Exportar no dock direito ----------------------------------
    Guia de design (Illustrator): a coluna esquerda é só ferramentas; ações de
@@ -6361,7 +6421,7 @@ body.right-dock-collapsed #dock-export { display: none !important; }
   border-radius: var(--radius-card);
 }
 
-#left-toolbar [aria-label="Guias Visuais"] .guide-toggle > svg { width: 17px; height: 17px; }
+#left-toolbar [aria-label="Guias Visuais"] .guide-toggle > svg { width: 18px; height: 18px; }
 
 #left-toolbar [aria-label="Guias Visuais"] .guide-toggle.active {
   background: var(--bg-selected);

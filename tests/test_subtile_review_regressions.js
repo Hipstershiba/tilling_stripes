@@ -27,6 +27,11 @@ assert.strictEqual(hostState.activeTool, 'inspect');
 hostState.activeTool = 'zoom';
 studio.setVectorTool('rect');
 assert.strictEqual(hostState.activeTool, 'inspect');
+studio.setInspectorPanel('layers');
+studio.setVectorTool('select');
+assert.strictEqual(studio.state.inspectorPanel, 'layers', 'Selection preserves the layer workflow');
+studio.setVectorTool('curve');
+assert.strictEqual(studio.state.inspectorPanel, 'properties', 'Drawing tools reveal contextual options');
 studio.closeTilesStudio();
 assert.strictEqual(hostState.activeTool, 'rotate');
 // A global mouseup over inspector controls must not rebuild/detach them before click.
@@ -96,8 +101,16 @@ const htmlSource = fs.readFileSync(require.resolve('../index.html'), 'utf8');
 assert(htmlSource.includes('id="btnTileViewPan"'), 'btnTileViewPan must exist in index.html');
 assert(htmlSource.includes('id="btnTileViewZoom"'), 'btnTileViewZoom must exist in index.html');
 assert(!htmlSource.includes('id="btnTileViewReset"'), 'btnTileViewReset must be removed as redundant');
-assert(htmlSource.includes('sidebar-section-title">Navegação</div>'), 'Navegação section must exist in left toolbar');
-assert(htmlSource.includes('sidebar-section-title">Grade &amp; Guias</div>'), 'Grade & Guias section must exist in left toolbar');
+assert(!htmlSource.includes('sidebar-section-title">Navegação</div>'), 'Navigation must stay in Ferramentas in both environments');
+const toolGridStart = htmlSource.indexOf('id="vecToolsGrid"');
+const toolGrid = htmlSource.slice(toolGridStart, htmlSource.indexOf('</div>', toolGridStart));
+assert(toolGrid.includes('id="btnTileViewPan"') && toolGrid.includes('id="btnTileViewZoom"'),
+  'Hand and Zoom must belong to the main tile tools grid');
+assert(toolGrid.indexOf('id="btnTileViewPan"') > toolGrid.indexOf('id="vecToolCurve"'),
+  'Navigation must follow drawing tools');
+assert(/id="btnTileViewPan"[^>]*class="[^"]*tool-navigation-start/.test(toolGrid),
+  'Hand must start the last navigation row so Hand and Zoom remain paired');
+assert(htmlSource.slice(htmlSource.indexOf('id="leftToolbarTilesPane"')).includes('sidebar-section-title">Guias Visuais</div>'), 'The tile toolbar must use the shared Guias Visuais heading');
 
 const sketchSrc = fs.readFileSync(require.resolve('../sketch.js'), 'utf8');
 assert(sketchSrc.includes("if (StudioState.studioMode === 'tiles')"), 'sketch.js must check tiles mode in wheel listener');

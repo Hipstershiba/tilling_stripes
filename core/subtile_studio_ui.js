@@ -303,7 +303,7 @@
     selectedFamilyId: 'elbow-ribbon',
     selectedVariantIndex: 0,
     previewMode: 'single', // 'single' | 'neighbors_3x3' | 'mandala_d4' | 'rotational_c4'
-    inspectorPanel: 'layers',
+    inspectorPanel: 'properties',
     libraryGroupFilter: '',
     searchQuery: '',
     filterMode: 'all', // 'all' | 'custom' | 'builtin'
@@ -404,7 +404,7 @@
       tilesDock?.classList.remove('hidden');
       genDock?.classList.add('hidden');
       editDock?.classList.add('hidden');
-      if (ctxTitle) ctxTitle.textContent = 'Subtiles';
+      if (ctxTitle) ctxTitle.textContent = 'Editar peças';
     } else {
       tilesDock?.classList.add('hidden');
       if (hostCtx && typeof hostCtx.syncEditWorkspaceUI === 'function') {
@@ -520,6 +520,7 @@
       document.body.dataset.vecTool = toolId;
     }
     renderLeftPaneState();
+    if (isTilesMode() && !['select', 'direct'].includes(toolId)) setInspectorPanel('properties');
     renderShapePropsPanel(true);
     if (hostCtx && typeof hostCtx.updateStatusBar === 'function') {
       hostCtx.updateStatusBar();
@@ -1238,7 +1239,7 @@
     const activeTileId = fam.tileIds[uiState.selectedVariantIndex] ?? fam.tileIds[0];
 
     if (badgeEl) {
-      badgeEl.textContent = fam.builtIn ? `Padrão #${activeTileId}` : `Custom #${activeTileId}`;
+      badgeEl.textContent = fam.builtIn ? `Padrão #${activeTileId}` : `Autoral #${activeTileId}`;
       badgeEl.classList.toggle('is-custom', !fam.builtIn);
     }
     if (nameEl) {
@@ -1446,7 +1447,7 @@
     const totalFams = reg.TILE_FAMILIES_META.length;
     const totalTiles = reg.TILE_RENDERERS.length;
     if (counterBadge) {
-      counterBadge.textContent = `${totalFams} fam • ${totalTiles} tiles`;
+      counterBadge.textContent = `${totalFams} fam • ${totalTiles} peças`;
     }
 
     document.querySelectorAll('#libMgrFilterControl [data-lib-filter]').forEach((btn) => {
@@ -1805,7 +1806,7 @@
             if (!fam.builtIn) {
               const customTag = document.createElement('span');
               customTag.className = 'lib-custom-pill';
-              customTag.textContent = 'Custom';
+              customTag.textContent = 'Autoral';
               nameLine.appendChild(customTag);
             }
 
@@ -1963,7 +1964,6 @@
     const container = document.getElementById('vecPropsContainer');
     const selBadge = document.getElementById('vecSelectionBadge');
     const toolLabelEl = document.getElementById('vecToolContextLabel');
-    const snapBadgeEl = document.getElementById('vecSnapStatusBadge');
     if (!container || !ve) return;
 
     const toolMeta = ve.VECTOR_TOOLS.find((t) => t.id === ve.state.activeTool) || ve.VECTOR_TOOLS[0];
@@ -1972,11 +1972,7 @@
       toolLabelEl.textContent = toolName;
       toolLabelEl.title = toolMeta.shortcut ? `Tecla ${toolMeta.shortcut}` : '';
     }
-    if (snapBadgeEl) {
-      snapBadgeEl.textContent = ve.state.snapEnabled
-        ? (ve.state.gridDiv > 0 ? `Encaixe 1/${ve.state.gridDiv}` : 'Encaixe nas bordas')
-        : 'Encaixe desligado';
-    }
+
 
     const fam = ensureValidSelection();
     const famDoc = getSelectedFamilyDoc();
@@ -2005,13 +2001,18 @@
     if (vb) {
       const unlockedSelCount = selected.filter((s) => !s.locked && s.visible !== false).length;
       const canBool = !fam.builtIn && !fam.protected && unlockedSelCount >= 2;
+      const pathfinderSection = document.getElementById('tilePathfinderSection');
+      if (pathfinderSection) {
+        pathfinderSection.hidden = Boolean(fam.builtIn || fam.protected);
+        // Reveal applicable operations once when a multiple selection is made.
+        if (!canBool) pathfinderSection.open = false;
+        else if (pathfinderSection.dataset.applicable !== 'true') pathfinderSection.open = true;
+        pathfinderSection.dataset.applicable = String(canBool);
+      }
       const boolBlock = document.createElement('div');
       boolBlock.className = 'vec-props-subblock';
       boolBlock.innerHTML = `
-        <div class="vec-subblock-title">
-          <span>Pathfinder</span>
-        </div>
-        <div class="vec-bool-strip">
+        <div class="vec-bool-strip" aria-label="Operações Pathfinder">
           <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir (Unite) — Combinar formas num contorno contínuo" ${!canBool ? 'disabled' : ''}>
             ${uiFormat.icon('unite', 14)}
             <span>Unir</span>
@@ -2053,7 +2054,7 @@
       if (selBadge) selBadge.textContent = 'Somente Leitura';
       container.innerHTML = `
         <div class="vec-empty-hint">
-          Peça protegida (somente leitura)
+          Crie uma cópia para editar as formas desta peça.
         </div>
         <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
           Criar cópia editável
@@ -2141,8 +2142,7 @@
         commitFamilyShapes(famDoc.id, nextShapes);
       });
     });
-    container.appendChild(presetBlock);
-    iconizePropertyActions();
+
 
     // 2. Align & Selection Quick Actions
     const hasSel = selected.length > 0;
@@ -2212,7 +2212,6 @@
       ve.state.selectedNodes = [];
       commitFamilyShapes(famDoc.id, nextShapes);
     });
-    container.appendChild(alignBlock);
 
     // 3. When NO shape is selected: show active drawing tool defaults
     if (selected.length === 0) {
@@ -2262,9 +2261,11 @@
       } else {
         const hint = document.createElement('div');
         hint.className = 'vec-empty-hint';
-        hint.textContent = 'Nenhum objeto selecionado';
+        hint.textContent = 'Selecione uma forma para editar geometria e aparência.';
         container.appendChild(hint);
       }
+      container.appendChild(presetBlock);
+      iconizePropertyActions();
       return;
     }
 
@@ -2346,7 +2347,6 @@
         patchSelectedStyle({ stroke: true, strokeWeight: parseFloat(btn.dataset.swPreset) });
       });
     });
-    container.appendChild(styleBlock);
 
     // 5. Contextual Geometry Inspector for Single Selected Shape
     if (selected.length === 1) {
@@ -2536,6 +2536,9 @@
         container.appendChild(geoBlock);
       }
     }
+    container.appendChild(styleBlock);
+    container.appendChild(alignBlock);
+    container.appendChild(presetBlock);
     iconizePropertyActions();
   }
 
@@ -2885,8 +2888,11 @@
         'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',closed:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
       const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
-      button.classList.add('icon-only');
-      button.innerHTML = uiFormat.icon(iconName, 18) + `<span class="icon-label">${name}</span>`;
+      const labelled = key === 'btnPropsDuplicateBuiltIn';
+      if (!labelled) button.classList.add('icon-only');
+      button.innerHTML = uiFormat.icon(iconName, 18) + (labelled
+        ? `<span>${name}</span>`
+        : `<span class="icon-label">${name}</span>`);
     });
   }
 
@@ -2918,7 +2924,11 @@
     const panels = { layers: 'panel-tile-layers', properties: 'panel-tile-shape-props', library: 'panel-tile-library-mgr', variants: 'panel-tile-d4-live' };
     Object.entries(panels).forEach(([key, id]) => {
       const el = document.getElementById(id);
-      if (el) { el.hidden = key !== panel; el.setAttribute('role', 'tabpanel'); }
+      if (el) {
+        el.hidden = key !== panel;
+        el.setAttribute('role', 'tabpanel');
+        el.setAttribute('aria-labelledby', {layers:'tileTabLayers',properties:'tileTabProperties',library:'tileTabLibrary',variants:'tileTabVariants'}[key]);
+      }
     });
     pane.querySelectorAll('[data-tile-panel]').forEach((btn) => {
       const active = btn.dataset.tilePanel === panel;
@@ -3492,7 +3502,12 @@
       requestHostRedraw();
     });
 
-    // Left rail quick actions & guide toggles in Tiles Mode
+    document.getElementById('btnTileOpenLibrary')?.addEventListener('click', () => {
+      if (document.body?.classList.contains('right-dock-collapsed')) document.getElementById('btnToggleRightDock')?.click();
+      setInspectorPanel('library', true);
+    });
+
+    // Library actions & guide toggles in Tiles Mode
     document.getElementById('btnRailNewSubtile')?.addEventListener('click', () => handleCreateFamily());
     document.getElementById('btnRailDuplicateSubtile')?.addEventListener('click', () => handleDuplicateFamily(uiState.selectedFamilyId));
     document.getElementById('btnRailNewGroup')?.addEventListener('click', () => handleCreateGroup());
@@ -3666,8 +3681,6 @@
       });
     });
 
-    document.getElementById('btnLibMgrNewFamily')?.addEventListener('click', () => handleCreateFamily());
-    document.getElementById('btnLibMgrNewGroup')?.addEventListener('click', () => handleCreateGroup());
 
     // Confirm & Import Modal Buttons
     document.getElementById('btnSubtileConfirmCancel')?.addEventListener('click', () => closeConfirmModal(false));

@@ -288,9 +288,12 @@ if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto'
 }
 console.log('✓ Right dock scrolling is contained inside the tiles list (#familiesSwatchContainer).');
 
-// 10. The left toolbar never scrolls; the history dropdown keeps its own scroll
-if (/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
-  throw new Error('Contract violation: #left-toolbar default rule must not have overflow-y: auto.');
+// 10. Both environments share outer toolbar scrolling; history stays in its flyout.
+if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
+  throw new Error('The shared left toolbar must scroll so short viewports keep all tools reachable.');
+}
+if (!/#left-toolbar \.subtile-left-pane\s*\{[^}]*overflow:\s*visible/.test(css)) {
+  throw new Error('The tile pane must not add a second scrollbar that narrows its tool grid.');
 }
 if (!css.includes('.sidebar-history-list') || !css.includes('overflow-y: auto')) {
   throw new Error('Contract violation: .sidebar-history-list must have overflow-y: auto.');
@@ -301,4 +304,4 @@ if (!/#dock-history\s+\.sidebar-history-list\s*\{[^}]*position:\s*absolute/.test
 if (!/#dock-history\s+\.sidebar-history-list\s*\{[^}]*right:\s*calc\(100%\s*\+\s*10px\)/.test(css)) {
   throw new Error('Contract violation: the history flyout must open to the left of the utility rail (right: calc(100% + 10px)).');
 }
-console.log('✓ Left toolbar does not scroll; the utility-rail history flyout opens left over the canvas with its own scroll (.sidebar-history-list).');
+console.log('✓ Both modes share toolbar scrolling; the history flyout keeps its own scroll.');

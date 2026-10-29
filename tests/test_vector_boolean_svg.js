@@ -59,12 +59,13 @@ for (const attr of ['aria-controls="infoPopover"', 'aria-haspopup="dialog"', 'ar
   assert.ok(layersTopicMatch[0].includes(attr), `vector-layers info trigger must include ${attr}`);
 }
 
-// SVG buttons inside #leftToolbarTilesPane must not leak [data-tool]
+// SVG file tasks belong to the library and never leak mosaic [data-tool] bindings.
 const leftStart = html.indexOf('id="leftToolbarTilesPane"');
 const leftEnd = html.indexOf('id="workspace-viewport"');
 const leftPane = html.slice(leftStart, leftEnd > leftStart ? leftEnd : undefined);
-const svgBtnMatch = leftPane.match(/<button[^>]*id="btnImportSubtileSvg"[^>]*>/);
+const svgBtnMatch = html.match(/<button[^>]*id="btnImportSubtileSvg"[^>]*>/);
 assert.ok(svgBtnMatch && !svgBtnMatch[0].includes('data-tool='), '#btnImportSubtileSvg must not declare [data-tool]');
+assert(!leftPane.includes('id="btnImportSubtileSvg"'), 'File tasks must leave the tool column');
 
 for (const cls of ['.vec-d4-strip', '.vec-bool-strip', '.vec-bool-btn', '.tile-layers-list', '.tile-layer-row', '.tile-layer-icon-btn']) {
   assert.ok(css.includes(cls), `style.css must define ${cls}`);

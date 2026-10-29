@@ -3661,7 +3661,7 @@ function syncContextPanel() {
   const title = document.getElementById('ctxPanelTitle');
   if (!title) return;
   if (StudioState.studioMode === 'tiles') {
-    title.textContent = 'Peças e famílias';
+    title.textContent = 'Editar peças';
     return;
   }
   const isGenerator = StudioState.workspace === 'generate';

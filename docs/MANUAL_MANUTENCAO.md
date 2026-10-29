@@ -280,7 +280,7 @@ As ferramentas do mosaico usam pares de mesma largura: Inspecionar/Subtiles, Pin
 
 Tamanhos de Pintar/Carimbo, Girar e Travar usam o padrão **− | tamanho | +**, também acessível por `−`/`+` no teclado e roda do mouse sobre o canvas. Os tamanhos param nos limites, sem voltar ao início; botões indisponíveis ficam desativados. Girar e pintar alcançam a dimensão máxima do mosaico; Travar respeita o tamanho de um bloco. No pincel com ajuste ao bloco, o passo é um bloco. A indicação `linhas × colunas` preserva o tamanho real de carimbos retangulares. Os atalhos dos escopos são `Q`/`Tab`, com `Shift` para voltar.
 
-A barra esquerda mantém ferramentas, guias e cores; o **Gerador** e o **Exportar** ficam no dock direito, e o **Histórico** no trilho de utilitários. O histórico recolhe por padrão e abre em flyout. No criador de subtiles, Biblioteca, Arquivos SVG e Backup também ficam em grupos expansíveis. Os tamanhos de Girar e Travar têm apenas o controle − / medida / + e um botão independente para ajustar ao bloco; não há uma segunda linha de presets numéricos.
+A barra esquerda mantém ferramentas, guias e cores; o **Gerador** e o **Exportar** ficam no dock direito, e o **Histórico** no trilho de utilitários. O histórico recolhe por padrão e abre em flyout. No editor de peças, a barra esquerda reúne Ferramentas (incluindo Mão e Zoom), Guias Visuais e um atalho para Biblioteca. Ações de biblioteca e grupos expansíveis de Arquivos SVG e Backup ficam na aba Biblioteca do dock direito. Os tamanhos de Girar e Travar têm apenas o controle − / medida / + e um botão independente para ajustar ao bloco; não há uma segunda linha de presets numéricos.
 
 A prévia de Girar destaca todas as células alcançadas pelo escopo ativo, usando os mesmos alvos da operação. O contorno ciano delimita as regiões afetadas e o âmbar marca a origem. As bordas internas entre células vizinhas não são desenhadas, preservando a ausência de grade automática.
 
@@ -299,15 +299,15 @@ O editor ampliado permite definir **Linhas e Colunas** separadamente, escolher o
 
 ### Criador de subtiles — seleção e organização dos painéis
 
-O criador abre na visualização **1×1 Mestre**, com mais espaço para desenhar. O painel contextual usa abas **Camadas**, **Propriedades**, **Biblioteca** e **Variantes**, com navegação pelas setas do teclado. A aba Camadas apresenta a pilha de objetos da família, da frente para o fundo: marque caixas para selecionar vários objetos, arraste linhas para reordenar, dê duplo clique no nome para renomear e use os controles de visibilidade e bloqueio. São objetos empilhados da família; não há grupos de camadas aninhados.
+O criador abre na visualização **1×1 Mestre**, com mais espaço para desenhar. O painel contextual usa abas **Propriedades** (entrada de edição), **Camadas**, **Biblioteca** e **Variantes**, com navegação pelas setas do teclado. A aba Camadas apresenta a pilha de objetos da família, da frente para o fundo: marque caixas para selecionar vários objetos, arraste linhas para reordenar, dê duplo clique no nome para renomear e use os controles de visibilidade e bloqueio. São objetos empilhados da família; não há grupos de camadas aninhados.
 
-No canvas, **V** ativa Seleção; **Shift+clique** adiciona ou remove um objeto, **arrastar no vazio** seleciona por área e **Shift+arrastar no vazio** acrescenta à seleção existente. **Todos / Ctrl+A** seleciona os objetos visíveis e destravados. O Pathfinder fica acima das abas Camadas e Propriedades e habilita Unir, Subtrair, Interseção e Excluir com dois ou mais objetos elegíveis. A seleção permanece ao trocar de aba; **Ctrl+Z** desfaz edições e booleanas.
+No canvas, **V** ativa Seleção; **Shift+clique** adiciona ou remove um objeto, **arrastar no vazio** seleciona por área e **Shift+arrastar no vazio** acrescenta à seleção existente. **Todos / Ctrl+A** seleciona os objetos visíveis e destravados. O Pathfinder fica em um grupo recolhível dentro de Propriedades e abre ao selecionar dois ou mais objetos elegíveis, habilitando Unir, Subtrair, Interseção e Excluir. Peças protegidas priorizam Criar cópia e não mostram controles booleanos sem aplicação. A seleção permanece ao trocar de aba; **Ctrl+Z** desfaz edições e booleanas.
 
 Na Biblioteca, **conjunto** é o nome de interface para os grupos de famílias existentes no modelo de dados. Há busca, filtros Todos / Meus subtiles / Padrão, filtro por conjunto, Expandir/Recolher e Localizar atual. Os metadados da família selecionada ficam junto da biblioteca. Cada família reúne um mestre e suas variantes D4; mover uma família para outro conjunto preserva suas variantes. Os formatos de persistência e os IDs canônicos 0–84 permanecem iguais.
 
 ### Criador de subtiles — Navegação, Grade e Guias
 
-A barra esquerda do Criador de Subtiles separa claramente **Navegação** (`Pan (H)` e `Zoom (Z)`) de **Grade & Guias** (`Ímã`, seletor de divisão, `Grade`, `Eixos D4`, `Portas` e `Margem`). O botão redundante 1:1 foi removido, pois o status bar e o atalho `1` já centralizam em 100%.
+A barra esquerda do editor reúne **Ferramentas**, com `Mão (H)` e `Zoom (Z)` na última linha, e **Guias Visuais**, com encaixe, divisão da grade, Grade, Eixos D4, Portas e Margem. O botão redundante 1:1 foi removido, pois o status bar e o atalho `1` já centralizam em 100%.
 
 No modo de Subtiles, a **rodinha do mouse (scroll) sem modificadores realiza Zoom direto**, permitindo navegar e inspecionar detalhes com agilidade sem exigir `Ctrl`. O scroll com `Shift` faz pan horizontal, com `Alt` faz pan vertical, e segurar `Espaço` ou ativar a ferramenta Pan executa arrasto 2D irrestrito. Clicar no canvas com a ferramenta Zoom ativa executa zoom (+25% no clique normal, −25% com Alt ou botão direito).
 
@@ -317,7 +317,7 @@ A **Grade fracionária** exibe divisões uniformes correspondentes ao seletor (c
 A exclusão de uma família pede apenas a confirmação da ação e informa seu uso; não baixa backup automaticamente nem limpa o histórico vetorial das outras famílias. Exportar a biblioteca continua disponível quando desejado. Referências à família excluída continuam sendo convertidas para o Tile Vazio (#84). A guia visual **Subtiles** usa ciano com a mesma espessura e opacidade dos limites de blocos (1,5 px; alfa 165/255), sem contorno adicional; a guia Blocos usa lilás para diferenciar as escalas; continua opcional e não aparece nas exportações nem na saída Spout.
 
 
-O grupo **Backup da biblioteca** fica sempre acessível na barra esquerda do criador, reunindo exportação (.json), importação e restauração. Na confirmação de exclusão de família, a opção **Baixar backup da biblioteca antes de excluir (.json)** começa desmarcada; marque-a para baixar o estado anterior à exclusão. Cancelar não baixa backup nem exclui. Fazer backup não apaga o histórico de edição vetorial. O **Gerador** fica visível por padrão no topo do dock direito, o **Histórico** no trilho de utilitários e a exportação no rodapé.
+O grupo **Backup da biblioteca** fica acessível no rodapé da aba Biblioteca do dock direito, reunindo exportação (.json), importação e restauração. Na confirmação de exclusão de família, a opção **Baixar backup da biblioteca antes de excluir (.json)** começa desmarcada; marque-a para baixar o estado anterior à exclusão. Cancelar não baixa backup nem exclui. Fazer backup não apaga o histórico de edição vetorial. O **Gerador** fica visível por padrão no topo do dock direito, o **Histórico** no trilho de utilitários e a exportação no rodapé.
 
 Nos swatches do gerador, o cabeçalho de cada **conjunto** permite ativar/desativar todas as suas famílias, indica seleção parcial e mostra a contagem de tiles ativos. O botão **SOLO** do conjunto gera apenas com ele. A ação inclui o conjunto completo mesmo quando a busca exibe só parte das famílias.
 
@@ -380,7 +380,7 @@ Enter confirma um número válido; Escape restaura o valor anterior e cancela a 
 
 As três buscas (gerador, pincel e biblioteca) têm nome independente do placeholder, botão Limpar que retorna o foco ao campo e contador de resultados anunciado. O contador respeita os filtros existentes; não redefine a seleção de peças nem os atalhos do canvas. Os testes ficam em `tests/test_ui_fields.js`.
 
-Ajuste de densidade após T08: a busca ocupa uma linha, com limpeza por × apenas quando há texto. A contagem permanece anunciada, mas não ocupa uma linha visual; busca vazia de resultados mostra “Nenhum resultado”. Dicas de tamanho/encaixe ficam na ajuda. Guias ligadas mantêm a marca lateral sem borda adicional. Alinhar/transformar exige seleção; Pathfinder permanece visível e habilita operações com duas ou mais formas elegíveis. Rótulos completos, foco e validação numérica são preservados; erros exibem somente a mensagem necessária.
+Ajuste de densidade após T08: a busca ocupa uma linha, com limpeza por × apenas quando há texto. A contagem permanece anunciada, mas não ocupa uma linha visual; busca vazia de resultados mostra “Nenhum resultado”. Dicas de tamanho/encaixe ficam na ajuda. Guias ligadas mantêm a marca lateral sem borda adicional. Alinhar/transformar exige seleção; Pathfinder fica em Propriedades e abre com duas ou mais formas elegíveis. Rótulos completos, foco e validação numérica são preservados; erros exibem somente a mensagem necessária.
 
 ### Gerador por composição e famílias (T09)
 
@@ -412,7 +412,7 @@ Diagnóstico, evidências e limites desta rodada: [`ux/REVISAO_VISUAL_2026-10-28
 
 Nomes revisados no catálogo de comandos: Inspeção, Pincel, Girar, Carimbo, Preservar, Mão e Zoom no mosaico; Seleção, Seleção direta, Caneta, Retângulo, Elipse, Polígono, Arco e Linha no editor. Seleção direta pode ocupar duas linhas sem reticências; nomes completos e atalhos permanecem nos tooltips. Preservar mantém a denominação própria do produto, pois não bloqueia a edição manual.
 
-Pathfinder permanece visível nas abas Camadas/Propriedades, inclusive em peças protegidas. Unir, Menos frente, Interseção e Excluir ficam habilitados com duas ou mais formas visíveis e destravadas em uma cópia editável. Peças protegidas mostram a necessidade de criar cópia. As operações mantêm undo/redo.
+Pathfinder fica no grupo recolhível de Propriedades e se abre com duas ou mais formas elegíveis. Em peças protegidas, o grupo é ocultado para priorizar Criar cópia. Unir, Menos frente, Interseção e Excluir ficam habilitados com duas ou mais formas visíveis e destravadas em uma cópia editável. Peças protegidas mostram a necessidade de criar cópia. As operações mantêm undo/redo.
 
 “Não perguntar nesta sessão” passa a respeitar a sessão da aba via sessionStorage, inclusive após reload e em mudanças de grade com perda de preservações. A preferência é gravada ao confirmar Regenerar; Cancelar não grava a opção. Se sessionStorage estiver indisponível, a preferência continua funcionando em memória até recarregar. Alterações continuam recuperáveis pelo histórico.
 
@@ -442,7 +442,7 @@ Seleção define a região e move células existentes; Clonar (S) reutiliza a ca
 
 ### Curvar segmentos — 28/10/2026
 
-No criador de peças, Curvar (C) alterna o segmento clicado entre reta e arco circular em Bézier. A curva usa a fração escolhida na barra esquerda: Reta, 1/16, 1/8, 1/6, 1/4 (padrão), 1/2 ou Livre. Livre aceita razões como 3/8 e números decimais com ponto ou vírgula, no intervalo de zero (reta) até valores menores que 1. Frações inválidas não alteram a configuração ativa. Shift+clique numa curva existente inverte o arco inteiro; o botão Inverter lado também reflete a última curva editada e define o lado das próximas retas.
+No criador de peças, Curvar (C) alterna o segmento clicado entre reta e arco circular em Bézier. A curva usa a fração escolhida em Propriedades: Reta, 1/16, 1/8, 1/6, 1/4 (padrão), 1/2 ou Livre. Livre aceita razões como 3/8 e números decimais com ponto ou vírgula, no intervalo de zero (reta) até valores menores que 1. Frações inválidas não alteram a configuração ativa. Shift+clique numa curva existente inverte o arco inteiro; o botão Inverter lado também reflete a última curva editada e define o lado das próximas retas.
 
 Ciclar frações é um modo opcional, indicado pelo botão ativo: cada clique avança Reta → 1/16 → 1/8 → 1/6 → 1/4 → 1/2 → Reta. O ciclo considera o segmento clicado e mantém a progressão mesmo quando uma fração foi limitada pelo espaço disponível. Shift+clique inverte sem avançar o ciclo. Desativar o modo retorna à alternância simples reta/curva. Opções e controles mantêm nomes curtos em tooltip; não há instruções permanentes no painel.
 
@@ -455,3 +455,14 @@ No mosaico, Shift+clique ou Shift+arraste com Retângulo/Pincel de seleção une
 No criador de peças, Seleção (V) mantém Shift+clique para adicionar/remover objetos e Shift+arraste para adicionar objetos. Seleção direta (A) também adiciona objetos, âncoras de outros objetos e nós por marquee sem perder os já selecionados; Shift+clique num nó selecionado o remove. A seleção por marquee considera formas paramétricas sem convertê-las nem alterar o documento. Formas ocultas/travadas são ignoradas. Com Curvar (C), Shift+clique continua invertendo o sentido da curva.
 
 Espelhar (O), na barra do mosaico, usa a área e o escopo da ferramenta Girar. Clique esquerdo aplica mx (horizontal), botão direito aplica my (vertical). Atua em peças individuais ou grupos, com prévia, preservações e desfazer/refazer. Espelhar não usa o modo de alternar famílias da rotação.
+
+Uniformidade entre Mosaico e Editar peças (29/10/2026): ferramentas e guias usam a mesma grade de duas colunas, altura de 38 px, ícones de 18 px e estado ativo com preenchimento azul e contorno interno discreto. A barra esquerda usa uma única área de rolagem, sem estreitamento adicional no editor. O encaixe acompanha a geometria das ferramentas; os cabeçalhos do editor usam a superfície do painel. A troca de ambiente mantém aparência de navegação nos dois modos.
+
+Revisão minuciosa entre ambientes (29/10/2026): removido o divisor exclusivo abaixo da troca de ambiente, alinhando o início de Ferramentas. As gavetas de arquivo foram consolidadas na Biblioteca; a coluna esquerda conserva a grade de ferramentas de 38 px e ícones de 18 px. Criar cópia mantém rótulo visível em Propriedades e Biblioteca; o atalho de cópia superior usa a superfície neutra das ações. Ver `docs/ux/REVISAO_UNIFORMIDADE_2026-10-29.md` para o escopo da inspeção.
+
+Organização comum das ferramentas: Mão e Zoom encerram a grade principal de Ferramentas nos dois ambientes, juntos na mesma linha. O editor não tem seção separada de Navegação.
+
+
+### Ergonomia do editor — 29/10/2026
+
+Propriedades é a primeira aba. Para uma forma selecionada, a ordem é Geometria → Aparência → Alinhar/Transformar → bases de fita → Pathfinder. Ferramentas de desenho abrem Propriedades; Seleção e Seleção direta preservam a aba escolhida, permitindo trabalhar na pilha de Camadas. A barra esquerda contém ferramentas e guias; as opções de Curvar ficam em Propriedades. O atalho Biblioteca abre a aba e expande o painel se necessário. Biblioteca concentra criação, duplicação, conjuntos, SVG e backup; os filtros e comandos foram compactados e a lista preserva rolagem própria. Os 60 IDs congelados, as cinco superfícies e o schema v3 permanecem preservados.

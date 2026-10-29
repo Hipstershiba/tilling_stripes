@@ -257,7 +257,7 @@
               title="Clonar" aria-label="Clonar"><span class="icon-slot" data-icon-slot="stamp" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Carimbo</span></span></button>
             <button id="toolFreeze" class="tool-btn tool-grid-btn edit-tool-btn mosaic-mode-only icon-only" data-tool="freeze" data-icon="snowflake"
               title="Preservar" aria-label="Preservar"><span class="icon-slot" data-icon-slot="snowflake" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Preservar</span></span></button>
-            <button id="toolPan" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-tool="pan"
+            <button id="toolPan" class="tool-btn tool-grid-btn tool-navigation-start mosaic-mode-only icon-only" data-tool="pan"
               title="Mão" aria-label="Mão"><span class="icon-slot" data-icon-slot="hand" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Mão</span></span></button>
             <button id="toolZoom" class="tool-btn tool-grid-btn mosaic-mode-only icon-only" data-tool="zoom"
               title="Zoom" aria-label="Zoom"><span class="icon-slot" data-icon-slot="zoom" data-icon-size="18"></span><span class="icon-label"><span class="tool-grid-label">Zoom</span></span></button>
@@ -303,7 +303,6 @@
 
         <!-- Painel Lateral Esquerdo do Estúdio de Subtiles (Visível em data-studio-mode="tiles") -->
         <div id="leftToolbarTilesPane" class="tiles-mode-only subtile-left-pane" aria-label="Ferramentas Vetoriais e Guias de Subtiles">
-          <div class="tool-divider"></div>
           <div class="sidebar-section">
             <div class="sidebar-section-title">Ferramentas</div>
             <div class="tools-grid-2col" id="vecToolsGrid">
@@ -316,31 +315,16 @@
               <button type="button" id="vecToolArc" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="arc" aria-pressed="false" title="Arco" aria-label="Arco"><span class="icon-slot" data-icon-slot="shapeArc"></span><span class="icon-label"><span>Arco</span></span></button>
               <button type="button" id="vecToolLine" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="line" aria-pressed="false" title="Linha" aria-label="Linha"><span class="icon-slot" data-icon-slot="shapeLine"></span><span class="icon-label"><span>Linha</span></span></button>
               <button type="button" id="vecToolCurve" class="subtile-rail-btn vec-tool-btn icon-only" data-vec-tool="curve" aria-pressed="false" title="Curvar (C)" aria-label="Curvar"><span class="icon-slot" data-icon-slot="curve"></span><span class="icon-label">Curvar</span></button>
-            </div>
-            <div class="curve-tool-options" role="group" aria-label="Curvatura">
-              <select id="curveFraction" class="subtile-select" aria-label="Fração de curva" title="Fração do círculo">
-                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option><option value="0.5">1/2</option><option value="custom">Livre…</option>
-              </select>
-              <button type="button" id="btnCurveSide" class="mini-btn icon-only" aria-label="Inverter lado" title="Inverter lado (Shift)" aria-pressed="false"><span class="icon-slot" data-icon-slot="swap"></span><span class="icon-label">Inverter lado</span></button>
-              <button type="button" id="btnCurveCycle" class="mini-btn icon-only" aria-label="Ciclar frações" title="Ciclar frações a cada clique" aria-pressed="false"><span class="icon-slot" data-icon-slot="cycle"></span><span class="icon-label">Ciclar frações</span></button>
-              <input id="curveCustomFraction" class="subtile-text-input curve-custom hidden" type="text" inputmode="decimal" value="1/4" aria-label="Fração livre" title="Fração livre (ex.: 3/8)" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="tool-divider"></div>
-
-          <div class="sidebar-section">
-            <div class="sidebar-section-title">Navegação</div>
-            <div class="tools-grid-2col">
-              <button type="button" id="btnTileViewPan" class="subtile-rail-btn icon-only" aria-pressed="false" title="Mão" aria-label="Mão"><span class="icon-slot" data-icon-slot="hand"></span><span class="icon-label"><span>Mão</span></span></button>
+              <button type="button" id="btnTileViewPan" class="subtile-rail-btn icon-only tool-navigation-start" aria-pressed="false" title="Mão" aria-label="Mão"><span class="icon-slot" data-icon-slot="hand"></span><span class="icon-label"><span>Mão</span></span></button>
               <button type="button" id="btnTileViewZoom" class="subtile-rail-btn icon-only" aria-pressed="false" title="Zoom" aria-label="Zoom"><span class="icon-slot" data-icon-slot="zoom"></span><span class="icon-label"><span>Zoom</span></span></button>
             </div>
+
           </div>
 
           <div class="tool-divider"></div>
 
           <div class="sidebar-section">
-            <div class="sidebar-section-title">Grade &amp; Guias</div>
+            <div class="sidebar-section-title">Guias Visuais</div>
             <div class="vec-snap-row">
               <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span>Encaixe</span></span></button>
               <select id="tileGridDivSelect" class="subtile-grid-select" title="Subdivisão da Grade Magnética" aria-label="Subdivisão da Grade Magnética">
@@ -362,42 +346,9 @@
             </div>
           </div>
 
-          <div class="tool-divider"></div>
-
-          <details class="sidebar-disclosure">
-            <summary>Biblioteca</summary>
-            <div class="sidebar-disclosure-body">
-            <button type="button" id="btnRailNewSubtile" class="subtile-rail-action-btn primary icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label"><span>+ Novo Subtile</span></span></button>
-            <button type="button" id="btnRailDuplicateSubtile" class="subtile-rail-action-btn icon-only" title="Duplicar" aria-label="Duplicar"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Duplicar família</span></span></button>
-            <button type="button" id="btnRailNewGroup" class="subtile-rail-action-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label"><span>+ Novo Grupo</span></span></button>
-            </div>
-          </details>
-
-          <div class="subtile-left-spacer"></div>
-          <div class="tool-divider"></div>
-
-          <details class="sidebar-disclosure">
-            <summary>Arquivos SVG</summary>
-            <div class="sidebar-disclosure-body">
-            <div class="tools-grid-2col">
-              <button type="button" id="btnImportSubtileSvg" class="subtile-rail-btn icon-only" title="Importar SVG" aria-label="Importar SVG"><span class="icon-slot" data-icon-slot="import"></span><span class="icon-label"><span>Importar SVG</span></span></button>
-              <button type="button" id="btnExportSubtileSvg" class="subtile-rail-btn icon-only" title="Exportar SVG" aria-label="Exportar SVG"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar SVG</span></span></button>
-            </div>
-            <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
-            </div>
-          </details>
-
-          <div class="tool-divider"></div>
-
-          <details class="sidebar-disclosure">
-            <summary>Backup da biblioteca</summary>
-            <div class="sidebar-disclosure-body">
-            <button type="button" id="btnExportLibraryJson" class="subtile-rail-action-btn icon-only" title="Exportar JSON" aria-label="Exportar JSON"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar JSON</span></span></button>
-            <button type="button" id="btnImportLibraryJson" class="subtile-rail-action-btn icon-only" title="Importar JSON" aria-label="Importar JSON"><span class="icon-slot" data-icon-slot="import"></span><span class="icon-label"><span>Importar JSON</span></span></button>
-            <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
-            <button type="button" id="btnResetLibraryDefaults" class="subtile-rail-action-btn danger icon-only" title="Restaurar padrão" aria-label="Restaurar padrão"><span class="icon-slot" data-icon-slot="reset"></span><span class="icon-label"><span>↺ Restaurar Padrão</span></span></button>
-            </div>
-          </details>
+          <div class="tile-library-launcher">
+            <button type="button" id="btnTileOpenLibrary" class="mini-btn" title="Organizar peças e arquivos" aria-label="Abrir Biblioteca"><span class="icon-slot" data-icon-slot="folder"></span>Biblioteca</button>
+          </div>
         </div>
       </aside>
 
@@ -857,8 +808,8 @@
              ================================================================ -->
         <div id="dock-workspace-tiles" class="dock-workspace-pane hidden">
           <nav class="tile-inspector-tabs" role="tablist" aria-label="Painéis do criador de subtiles">
-            <button type="button" id="tileTabLayers" role="tab" data-tile-panel="layers" aria-controls="panel-tile-layers" aria-selected="true">Camadas</button>
-            <button type="button" id="tileTabProperties" role="tab" data-tile-panel="properties" aria-controls="panel-tile-shape-props" aria-selected="false" tabindex="-1">Propriedades</button>
+            <button type="button" id="tileTabProperties" role="tab" data-tile-panel="properties" aria-controls="panel-tile-shape-props" aria-selected="true">Propriedades</button>
+            <button type="button" id="tileTabLayers" role="tab" data-tile-panel="layers" aria-controls="panel-tile-layers" aria-selected="false" tabindex="-1">Camadas</button>
             <button type="button" id="tileTabLibrary" role="tab" data-tile-panel="library" aria-controls="panel-tile-library-mgr" aria-selected="false" tabindex="-1">Biblioteca</button>
             <button type="button" id="tileTabVariants" role="tab" data-tile-panel="variants" aria-controls="panel-tile-d4-live" aria-selected="false" tabindex="-1">Variantes</button>
           </nav>
@@ -867,14 +818,15 @@
             <button type="button" id="btnTileSelectAll" class="mini-btn icon-only" title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
             <button type="button" id="btnTileDeselect" class="mini-btn icon-only" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Limpar</span></button>
           </div>
-          <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
+
 
           <!-- TILES PANEL 0: PROPRIEDADES & ALINHAMENTO DO EDITOR VETORIAL (Fase C) -->
           <section class="dock-panel" id="panel-tile-shape-props">
-            <header class="panel-header" data-collapse-target="panelTileShapePropsBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileShapePropsBody">
+            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileShapePropsBody" aria-label="Propriedades da seleção" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileShapePropsBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="sliders" data-icon-size="14"></span>
-                <span>Propriedades</span>
+                <span id="vecToolContextLabel" class="prop-label" title="Tecla V">Seleção</span>
+                <button type="button" class="info-btn" data-info-topic="vector-editor" aria-label="Saiba mais sobre o Editor Vetorial de Subtiles" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="vecSelectionBadge" class="panel-counter-pill">Nenhuma</span>
               <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
@@ -882,26 +834,31 @@
 
             <div class="panel-body" id="panelTileShapePropsBody">
               <div class="prop-section">
-                <div class="prop-label-row" style="margin-bottom: 6px;">
-                  <div class="prop-label-with-info">
-                    <span id="vecToolContextLabel" class="prop-label" title="Tecla V">Seleção</span>
-                    <button type="button" class="info-btn" data-info-topic="vector-editor" aria-label="Saiba mais sobre o Editor Vetorial de Subtiles" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                  <span id="vecSnapStatusBadge" class="prop-badge secondary">Encaixe 1/6</span>
-                </div>
-                <div id="vecPropsContainer" class="vec-props-container">
+            <div class="curve-tool-options" role="group" aria-label="Curvatura">
+              <select id="curveFraction" class="subtile-select" aria-label="Fração de curva" title="Fração do círculo">
+                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option><option value="0.5">1/2</option><option value="custom">Livre…</option>
+              </select>
+              <button type="button" id="btnCurveSide" class="mini-btn icon-only" aria-label="Inverter lado" title="Inverter lado (Shift)" aria-pressed="false"><span class="icon-slot" data-icon-slot="swap"></span><span class="icon-label">Inverter lado</span></button>
+              <button type="button" id="btnCurveCycle" class="mini-btn icon-only" aria-label="Ciclar frações" title="Ciclar frações a cada clique" aria-pressed="false"><span class="icon-slot" data-icon-slot="cycle"></span><span class="icon-label">Ciclar frações</span></button>
+              <input id="curveCustomFraction" class="subtile-text-input curve-custom hidden" type="text" inputmode="decimal" value="1/4" aria-label="Fração livre" title="Fração livre (ex.: 3/8)" autocomplete="off">
+            </div>
+              <div id="vecPropsContainer" class="vec-props-container">
                   <!-- Populated dynamically by SubtileStudioUI -->
                 </div>
               </div>
+              <details id="tilePathfinderSection" class="tile-inspector-disclosure">
+                <summary>Pathfinder</summary>
+                <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
+              </details>
             </div>
           </section>
 
           <!-- TILES PANEL 0.5: CAMADAS (FORMAS) & INTERCÂMBIO SVG (Fase D) -->
           <section class="dock-panel" id="panel-tile-layers">
-            <header class="panel-header" data-collapse-target="panelTileLayersBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLayersBody">
+            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileLayersBody" aria-label="Camadas da peça" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLayersBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="layers" data-icon-size="14"></span>
-                <span>Camadas</span>
+                <span>Ordem das formas</span>
                 <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
@@ -925,10 +882,10 @@
 
           <!-- TILES PANEL 1: VARIANTES D4 AO VIVO & METADADOS DA FAMÍLIA -->
           <section class="dock-panel" id="panel-tile-d4-live">
-            <header class="panel-header" data-collapse-target="panelTileD4LiveBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileD4LiveBody">
+            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileD4LiveBody" aria-label="Variantes D4" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileD4LiveBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="rotate" data-icon-size="14"></span>
-                <span>Variantes D4</span>
+                <span>Simetria D4</span>
               </div>
               <span id="tileLiveOrbitCountBadge" class="panel-counter-pill">4 variantes</span>
               <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
@@ -980,10 +937,10 @@
 
           <!-- TILES PANEL 2: GERENCIADOR DE GRUPOS E FAMÍLIAS -->
           <section class="dock-panel dock-panel-flex" id="panel-tile-library-mgr">
-            <header class="panel-header" data-collapse-target="panelTileLibraryMgrBody" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLibraryMgrBody">
+            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileLibraryMgrBody" aria-label="Biblioteca de peças" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLibraryMgrBody">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="folder" data-icon-size="14"></span>
-                <span>Biblioteca</span>
+                <span>Famílias</span>
               </div>
               <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
               <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
@@ -996,8 +953,7 @@
                 <div class="tile-library-navigation">
                   <select id="tileLibraryGroupFilter" class="subtile-select" aria-label="Filtrar conjunto"><option value="">Todos os conjuntos</option></select>
                   <button type="button" id="btnTileLocateFamily" class="mini-btn icon-only" title="Localizar" aria-label="Localizar"><span class="icon-slot" data-icon-slot="locate"></span><span class="icon-label">Localizar atual</span></button>
-                </div>
-                <div class="tile-library-navigation">
+
                   <button type="button" id="btnTileExpandGroups" class="mini-btn icon-only" title="Expandir" aria-label="Expandir"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label">Expandir conjuntos</span></button>
                   <button type="button" id="btnTileCollapseGroups" class="mini-btn icon-only" title="Recolher" aria-label="Recolher"><span class="icon-slot" data-icon-slot="minus"></span><span class="icon-label">Recolher conjuntos</span></button>
                 </div>
@@ -1007,16 +963,39 @@
                     <button type="button" class="seg-btn icon-only" data-lib-filter="custom" aria-pressed="false" title="Meus" aria-label="Meus"><span class="icon-slot" data-icon-slot="edit"></span><span class="icon-label">Meus subtiles</span></button>
                     <button type="button" class="seg-btn icon-only" data-lib-filter="builtin" aria-pressed="false" title="Padrão" aria-label="Padrão"><span class="icon-slot" data-icon-slot="book"></span><span class="icon-label">Padrão</span></button>
                   </div>
-                </div>
-                <div class="swatch-bulk-actions lib-mgr-actions-bar">
-                  <button type="button" id="btnLibMgrNewFamily" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label">+ Subtile</span></button>
-                  <button type="button" id="btnLibMgrNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label">+ Conjunto</span></button>
+                <div class="swatch-bulk-actions lib-mgr-actions-bar" role="group" aria-label="Organizar biblioteca">
+                  <button type="button" id="btnRailNewSubtile" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label"><span>+ Novo Subtile</span></span></button>
+                  <button type="button" id="btnRailNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label"><span>+ Novo Grupo</span></span></button>
+                  <button type="button" id="btnRailDuplicateSubtile" class="mini-btn icon-only" title="Duplicar" aria-label="Duplicar"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Duplicar família</span></span></button>
                   <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar peças" aria-label="Exportar peças"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label">Exportar Subtiles</span></button>
                 </div>
+              </div>
               </div>
 
               <div id="libMgrTreeContainer" class="families-swatch-scroll lib-mgr-tree-scroll">
                 <!-- Populated by SubtileStudioUI -->
+              </div>
+              <div class="tile-library-files">
+          <details class="tile-file-disclosure">
+            <summary>Arquivos SVG</summary>
+            <div class="tile-file-actions">
+            <div class="tools-grid-2col">
+              <button type="button" id="btnImportSubtileSvg" class="mini-btn" title="Importar SVG" aria-label="Importar SVG"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar SVG</span></span></button>
+              <button type="button" id="btnExportSubtileSvg" class="mini-btn" title="Exportar SVG" aria-label="Exportar SVG"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar SVG</span></span></button>
+            </div>
+            <input type="file" id="subtileSvgFileInput" accept=".svg,image/svg+xml" class="hidden">
+            </div>
+          </details>
+
+          <details class="tile-file-disclosure">
+            <summary title="Backup da biblioteca">Backup</summary>
+            <div class="tile-file-actions">
+            <button type="button" id="btnExportLibraryJson" class="mini-btn" title="Exportar JSON" aria-label="Exportar JSON"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar JSON</span></span></button>
+            <button type="button" id="btnImportLibraryJson" class="mini-btn" title="Importar JSON" aria-label="Importar JSON"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar JSON</span></span></button>
+            <input type="file" id="libraryJsonFileInput" accept=".json,application/json" class="hidden">
+            <button type="button" id="btnResetLibraryDefaults" class="mini-btn danger" title="Restaurar padrão" aria-label="Restaurar padrão"><span class="icon-slot" data-icon-slot="reset"></span><span class="file-action-label"><span>Restaurar padrão</span></span></button>
+            </div>
+          </details>
               </div>
             </div>
           </section>

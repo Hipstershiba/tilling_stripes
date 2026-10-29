@@ -136,3 +136,6 @@ assert(format.icon('intersect').includes('fill="currentColor"'));
 assert(format.icon('exclude').includes('fill-rule="evenodd"'));
 assert.notEqual(propertyButtons[2].innerHTML, propertyButtons[3].innerHTML);
 console.log('✓ Property actions retain distinct filled boolean results and the library copy icon.');
+
+assert(!propertyButtons[4].innerHTML.includes('class="icon-label"'),
+  'The protected-piece copy action must show its label, matching the Library copy action');

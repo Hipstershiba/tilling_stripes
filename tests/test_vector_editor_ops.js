@@ -35,7 +35,6 @@ const faseCIds = [
   'panel-tile-shape-props',
   'vecSelectionBadge',
   'vecToolContextLabel',
-  'vecSnapStatusBadge',
   'vecPropsContainer'
 ];
 
