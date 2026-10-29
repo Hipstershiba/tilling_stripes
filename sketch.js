@@ -123,33 +123,26 @@ const StudioState = {
   dockPanels: {}
 };
 
-const LOCK_ICON_SVG = `
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="currentColor"></rect>
-    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-  </svg>`;
-
-const UNLOCK_ICON_SVG = `
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-  </svg>`;
+// Icons come from the shared registry (core/ui_format.js); keep sizes here in sync
+// with the surface that hosts them.
+const LOCK_ICON_SVG = window.UiFormat.icon('lock', 16);
+const UNLOCK_ICON_SVG = window.UiFormat.icon('unlock', 16);
 
 const SYMMETRY_ICONS_SVG = {
-  sync: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
-  mandala_d4: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"/></svg>`,
-  kaleidoscope: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-  rotational_c4: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-9-9"/><polyline points="16 3 21 3 21 8"/></svg>`,
-  bilateral_d2: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>`
+  sync: window.UiFormat.icon('sync', 16),
+  mandala_d4: window.UiFormat.icon('mandala', 16),
+  kaleidoscope: window.UiFormat.icon('kaleidoscope', 16),
+  rotational_c4: window.UiFormat.icon('rotate', 16),
+  bilateral_d2: window.UiFormat.icon('bilateral', 16)
 };
 
 const EDIT_SCOPE_ICONS = {
-  canvas_center: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
-  orbit_sym: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>',
-  block_sym: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
-  all_blocks: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-  single: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>',
-  same_tile: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>'
+  canvas_center: window.UiFormat.icon('scopeCanvas', 14),
+  orbit_sym: window.UiFormat.icon('scopeOrbit', 14),
+  block_sym: window.UiFormat.icon('scopeBlock', 14),
+  all_blocks: window.UiFormat.icon('scopeAll', 14),
+  single: window.UiFormat.icon('scopeSingle', 14),
+  same_tile: window.UiFormat.icon('scopeSame', 14)
 };
 
 function ensureSupertilePattern() {
@@ -3937,7 +3930,7 @@ function updateHoverStatusText() {
   const subCell = block.cells[hit.subRow]?.[hit.subCol];
   const tileName = subCell ? (window.TileRegistry.TILE_NAMES[subCell.tileId] || `Tile #${subCell.tileId}`) : '';
   const isCellFrozen = StudioState.frozenCells && StudioState.frozenCells.has(`${hit.row},${hit.col},${hit.subRow},${hit.subCol}`);
-  const freezeBadge = isCellFrozen ? ' • <span style="color:#38bdf8;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>PRESERVADO</span>' : '';
+  const freezeBadge = isCellFrozen ? ` • <span style="color:#38bdf8;font-weight:700;display:inline-flex;align-items:center;gap:3px;">${window.UiFormat.icon('snowflake', 12)}PRESERVADO</span>` : '';
 
   el.innerHTML =
     `Bloco <strong>[L${hit.row + 1}, C${hit.col + 1}]</strong> • ` +
@@ -4224,9 +4217,9 @@ function initStudioUI() {
     if (historyList) {
       const isCollapsed = historyList.classList.toggle('collapsed');
       if (historyContainer) historyContainer.classList.toggle('is-collapsed', isCollapsed);
-      btnToggleHistory.innerHTML = window.UiFormat.icon(isCollapsed ? 'chevronRight' : 'chevronDown');
+      btnToggleHistory.classList.toggle('active', !isCollapsed);
       btnToggleHistory.setAttribute('aria-expanded', String(!isCollapsed));
-      btnToggleHistory.title = isCollapsed ? 'Expandir Histórico' : 'Recolher Histórico';
+      btnToggleHistory.title = isCollapsed ? 'Abrir histórico de gerações' : 'Fechar histórico';
       if (!isCollapsed) {
         const activeRow = historyList.querySelector('.history-item.active');
         if (activeRow) {
@@ -4246,6 +4239,13 @@ function initStudioUI() {
     if (seedPopover && !seedPopover.contains(e.target) && !btnToggleHistory?.contains(e.target)) {
       seedPopover.classList.add('hidden');
       btnToggleHistory?.classList.remove('active');
+    }
+    // O flyout do Histórico fecha ao clicar fora dele (canvas, painéis, etc.).
+    // composedPath mantém o caminho original mesmo quando a lista é re-renderizada.
+    const historyList = document.getElementById('seedHistoryList');
+    const historyContainer = document.getElementById('dock-history');
+    if (historyList && !historyList.classList.contains('collapsed') && historyContainer && !e.composedPath().includes(historyContainer)) {
+      btnToggleHistory?.click();
     }
   });
 

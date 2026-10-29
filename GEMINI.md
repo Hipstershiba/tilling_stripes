@@ -12,11 +12,12 @@ Este arquivo define as diretrizes arquiteturais, matemáticas e de engenharia qu
 
 ---
 
-## 2. Contrato Estrutural de UI (As Quatro Superfícies)
+## 2. Contrato Estrutural de UI (As Cinco Superfícies)
 - Ordem do DOM e Flex Order:
-  - `#left-toolbar` (order: 0) — Barra lateral esquerda de 2 colunas: 7 ferramentas, guias visuais, swatches FG/BG (`X`), gerador/seed (`G`), histórico e exportar (PNG/SVG).
+  - `#left-toolbar` (order: 0) — Barra lateral esquerda de 2 colunas: 7 ferramentas, guias visuais e swatches FG/BG (`X`).
   - `#workspace-viewport` (order: 1) — Canvas com pan 2D irrestrito por CSS transforms e zoom.
-  - `#right-dock` (order: 2) — Painel contextual dinâmico ajustado à ferramenta ativa, com alternância de gaveta recolhível para 44 px (`#btnToggleRightDock`).
+  - `#utility-rail` (order: 2) — Trilho de 40 px para ferramentas de documento com flyout à esquerda; primeiro ocupante é o histórico (`#dock-history`).
+  - `#right-dock` (order: 3) — Painel contextual dinâmico ajustado à ferramenta ativa, com alternância de gaveta recolhível para 44 px (`#btnToggleRightDock`), `#dock-generator` no topo e `#dock-export` no rodapé.
 - NUNCA crie `#left-rail`, `#workspaceSwitcher` ou `#btnContextGenerator` (a ferramenta Inspecionar `toolInspect` é o contexto canônico de geração).
 - O inventário de IDs congelados de controle é de exatamente 60 controles, conforme verificado por `tests/test_ui_control_registry.js`.
 

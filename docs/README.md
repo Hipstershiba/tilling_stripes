@@ -14,14 +14,19 @@ docs/
 
 ---
 
-## Interface e experiência — plano atual
+## Interface e experiência — estado atual
 
-A revisão de 27/10/2026 prioriza **gerar mosaicos e fazer ajustes rápidos**, conforme orientação do usuário. É uma especificação de melhorias; não representa correções já implementadas.
+A **reforma visual de 28/10/2026** foi implementada: nova hierarquia, densidade e sistema visual das cinco superfícies (com o trilho de utilitários), com antes/depois medido. É o documento a ler primeiro para entender a aparência e o comportamento atuais.
+
+- [Revisão visual de 28/10/2026](ux/REVISAO_VISUAL_2026-10-28.md) — diagnóstico visual com evidências, direção adotada, mudanças por superfície, antes/depois medido, riscos e próximos passos. As capturas ficam em `ux/evidencias/revisao-2026-10-28/`, pasta local ignorada pelo Git.
+- [Revisão de ícones de 29/10/2026](ux/REVISAO_ICONES_2026-10-29.md) — inventário dos 175 SVGs, colisões semânticas, registro único de 111 ícones, grade e pesos, antes/depois das ferramentas e contrato `tests/test_icon_system.js`. A prancha viva fica em `tools/icon_board.html`; as capturas, em `ux/evidencias/revisao-icones-2026-10-29/`, pasta local ignorada pelo Git.
+
+O plano de 27/10/2026 continua válido para o que ainda não foi feito. Ele prioriza **gerar mosaicos e fazer ajustes rápidos** e não representa, por si só, correções implementadas.
 
 - [Auditoria geral de UI/UX](ux/AUDITORIA_UX_2026-10-27.md) — estrutura, jornadas, 40 achados e oportunidades de interface/experiência, 9 problemas documentais, evidências e limites da análise.
 - [Plano executável de implementação](ux/PLANO_IMPLEMENTACAO_UI_UX.md) — decisões de design, glossário, atalhos, estados, 17 tarefas com dependências/testes e roteiro de aceite.
 
-Para implementar essa revisão, comece pelo plano e confirme o estado atual do código. Relatórios e instruções de rodadas anteriores são registros históricos; uma falha descrita neles pode já ter sido corrigida.
+Para continuar a revisão, confirme no código o que já foi entregue: a camada **V2 — Reforma visual** no fim de `style.css` substitui as decisões visuais do plano de 27/10. Relatórios e instruções de rodadas anteriores são registros históricos; uma falha descrita neles pode já ter sido corrigida.
 
 ## Especificações (`instrucoes/`)
 

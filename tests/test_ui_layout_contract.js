@@ -137,7 +137,8 @@ if (html.includes('id="left-rail"')) {
 const orderRules = [
   ['#workspace-body > #left-toolbar', '0'],
   ['#workspace-body > #workspace-viewport', '1'],
-  ['#workspace-body > #right-dock', '2']
+  ['#workspace-body > #utility-rail', '2'],
+  ['#workspace-body > #right-dock', '3']
 ];
 
 for (const [selector, order] of orderRules) {
@@ -147,7 +148,7 @@ for (const [selector, order] of orderRules) {
     throw new Error(`Contract violation: style.css must set "order: ${order}" for ${selector}.`);
   }
 }
-console.log('✓ Flex order is left-toolbar (0) → canvas (1) → right-dock (2).');
+console.log('✓ Flex order is left-toolbar (0) → canvas (1) → utility-rail (2) → right-dock (3).');
 
 // 6. Padding (Respiro) in top bar Grade group; Seed group in left toolbar
 const topBarBounds = getElementBounds(html, 'top-control-bar');
@@ -161,30 +162,103 @@ if (rightDockBounds.content.includes('id="paddingInput"')) {
 }
 console.log('✓ #paddingInput is in #top-control-bar (Grade group) and removed from #right-dock.');
 
-const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed', 'btnToggleHistory'];
+const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed'];
 for (const scId of seedControlIds) {
-  if (!leftToolbarBounds.content.includes(`id="${scId}"`)) {
-    throw new Error(`Contract violation: #${scId} must be inside #left-toolbar.`);
+  if (leftToolbarBounds.content.includes(`id="${scId}"`)) {
+    throw new Error(`Contract violation: #${scId} must not be inside #left-toolbar (generator lives in the right dock).`);
   }
   if (topBarBounds.content.includes(`id="${scId}"`)) {
     throw new Error(`Contract violation: #${scId} must not be inside #top-control-bar.`);
   }
 }
+
+// 7. Generator and export live in the right dock; history lives in the utility rail.
+const generatorBounds = getElementBounds(html, 'dock-generator');
+const historyBounds = getElementBounds(html, 'dock-history');
+const headerBounds = getElementBounds(html, 'dock-header');
+const railBounds = getElementBounds(html, 'utility-rail');
+const exportBounds = getElementBounds(html, 'dock-export');
+const generatePaneBounds = getElementBounds(html, 'dock-workspace-generate');
+if (!generatorBounds) throw new Error('Missing #dock-generator in index.html');
+if (!historyBounds) throw new Error('Missing #dock-history in index.html');
+if (!headerBounds) throw new Error('Missing #dock-header in index.html');
+if (!railBounds) throw new Error('Missing #utility-rail in index.html');
+if (!exportBounds) throw new Error('Missing #dock-export in index.html');
+if (!generatePaneBounds) throw new Error('Missing #dock-workspace-generate in index.html');
+
+if (!rightDockBounds.content.includes('id="dock-generator"')) {
+  throw new Error('Contract violation: #dock-generator must be inside #right-dock.');
+}
+if (!railBounds.content.includes('id="dock-history"')) {
+  throw new Error('Contract violation: #dock-history must be a compact control inside #utility-rail (no dedicated row in the dock).');
+}
+if (rightDockBounds.content.includes('id="dock-history"')) {
+  throw new Error('Contract violation: #dock-history must not be inside #right-dock.');
+}
+if (topBarBounds.content.includes('id="dock-history"')) {
+  throw new Error('Contract violation: #dock-history must not be inside #top-control-bar.');
+}
+if (headerBounds.content.includes('id="dock-history"')) {
+  throw new Error('Contract violation: #dock-history must not be inside #dock-header.');
+}
+if (!rightDockBounds.content.includes('id="dock-export"')) {
+  throw new Error('Contract violation: #dock-export must be inside #right-dock.');
+}
+if (generatePaneBounds.content.includes('id="dock-generator"')) {
+  throw new Error('Contract violation: #dock-generator must stay above the contextual panes (visible in generate and edit contexts).');
+}
+if (generatePaneBounds.content.includes('id="dock-export"')) {
+  throw new Error('Contract violation: #dock-export must stay pinned to the dock footer, outside the contextual panes.');
+}
+if (generatorBounds.content.includes('id="dock-history"')) {
+  throw new Error('Contract violation: #dock-history must not live inside the generator strip.');
+}
+if (!(railBounds.startIndex > leftToolbarBounds.startIndex && railBounds.endIndex < rightDockBounds.startIndex)) {
+  throw new Error('Contract violation: #utility-rail must sit between the canvas column and #right-dock in the DOM.');
+}
+
+for (const scId of seedControlIds) {
+  if (!generatorBounds.content.includes(`id="${scId}"`)) {
+    throw new Error(`Contract violation: #${scId} must be inside #dock-generator.`);
+  }
+}
+for (const historyId of ['btnToggleHistory', 'seedHistoryList']) {
+  if (!historyBounds.content.includes(`id="${historyId}"`)) {
+    throw new Error(`Contract violation: #${historyId} must be inside #dock-history.`);
+  }
+  if (leftToolbarBounds.content.includes(`id="${historyId}"`)) {
+    throw new Error(`Contract violation: #${historyId} must not be inside #left-toolbar.`);
+  }
+}
+for (const exportId of ['btnExport', 'exportFormatSelect']) {
+  if (!exportBounds.content.includes(`id="${exportId}"`)) {
+    throw new Error(`Contract violation: #${exportId} must be inside #dock-export.`);
+  }
+  if (leftToolbarBounds.content.includes(`id="${exportId}"`)) {
+    throw new Error(`Contract violation: #${exportId} must not be inside #left-toolbar.`);
+  }
+}
+
+// Dock geography: header → generator → contextual panes → export footer.
+const dockHeaderIdx = rightDockBounds.content.indexOf('id="dock-header"');
+const dockGenIdx = rightDockBounds.content.indexOf('id="dock-generator"');
+const dockPaneIdx = rightDockBounds.content.indexOf('id="dock-workspace-generate"');
+const dockExportIdx = rightDockBounds.content.indexOf('id="dock-export"');
+if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockPaneIdx > dockGenIdx && dockExportIdx > dockPaneIdx)) {
+  throw new Error('Contract violation: dock order must be header < generator < contextual panes < export.');
+}
+console.log('✓ Generator and export live in the right dock; history is a utility-rail control: dock header → generator → panes → export.');
+
+// The left toolbar is tools + guides + colors only.
 const inspectIdx = leftToolbarBounds.content.indexOf('id="toolInspect"');
 const fgColorIdx = leftToolbarBounds.content.indexOf('id="fgColorPicker"');
-const randomizeIdx = leftToolbarBounds.content.indexOf('id="btnRandomize"');
-const historyListIdx = leftToolbarBounds.content.indexOf('id="seedHistoryList"');
-const exportIdx = leftToolbarBounds.content.indexOf('id="btnExport"');
-const formatIdx = leftToolbarBounds.content.indexOf('id="exportFormatSelect"');
-
-if (exportIdx === -1 || formatIdx === -1) {
-  throw new Error('Contract violation: #btnExport and #exportFormatSelect must be inside #left-toolbar.');
+if (!(inspectIdx > -1 && fgColorIdx > inspectIdx)) {
+  throw new Error('Contract violation: ordering must be tools < colors in #left-toolbar.');
 }
-
-if (!(inspectIdx > -1 && fgColorIdx > inspectIdx && randomizeIdx > fgColorIdx && historyListIdx > randomizeIdx && exportIdx > historyListIdx)) {
-  throw new Error('Contract violation: ordering must be tools < colors < randomize < historyList < export in #left-toolbar.');
+if (leftToolbarBounds.content.includes('id="seedHistoryList"')) {
+  throw new Error('Contract violation: #seedHistoryList must not be inside #left-toolbar.');
 }
-console.log('✓ Left toolbar sections ordered: tools → visual guides → colors → generator → history → export.');
+console.log('✓ Left toolbar ordered: tools → visual guides → colors (no generator/history/export).');
 
 console.log('--- ALL UI LAYOUT CONTRACT CHECKS PASSED! ---');
 
@@ -214,11 +288,17 @@ if (!css.includes('.families-swatch-scroll') || !css.includes('overflow-y: auto'
 }
 console.log('✓ Right dock scrolling is contained inside the tiles list (#familiesSwatchContainer).');
 
-// 10. Left toolbar history scrolling must stay internal to the history list
+// 10. The left toolbar never scrolls; the history dropdown keeps its own scroll
 if (/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
-  throw new Error('Contract violation: #left-toolbar default rule must not have overflow-y: auto (scroll belongs inside .sidebar-history-list).');
+  throw new Error('Contract violation: #left-toolbar default rule must not have overflow-y: auto.');
 }
 if (!css.includes('.sidebar-history-list') || !css.includes('overflow-y: auto')) {
   throw new Error('Contract violation: .sidebar-history-list must have overflow-y: auto.');
 }
-console.log('✓ Left toolbar scrolling is contained inside the history list (.sidebar-history-list).');
+if (!/#dock-history\s+\.sidebar-history-list\s*\{[^}]*position:\s*absolute/.test(css)) {
+  throw new Error('Contract violation: the utility-rail history list must open as an absolute flyout over the canvas.');
+}
+if (!/#dock-history\s+\.sidebar-history-list\s*\{[^}]*right:\s*calc\(100%\s*\+\s*10px\)/.test(css)) {
+  throw new Error('Contract violation: the history flyout must open to the left of the utility rail (right: calc(100% + 10px)).');
+}
+console.log('✓ Left toolbar does not scroll; the utility-rail history flyout opens left over the canvas with its own scroll (.sidebar-history-list).');

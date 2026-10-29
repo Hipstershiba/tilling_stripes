@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Prancha de ícones — Tiling Stripes Studio</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 28px 32px 48px; background: #16181d; color: #e8ebf0;
+         font: 12px/1.35 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 15px; font-weight: 650; margin: 0 0 2px; letter-spacing: .01em; }
+  .sub { color: #98a1af; font-size: 11px; margin-bottom: 20px; }
+  h2 { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+       color: #9aa3b1; margin: 26px 0 10px; border-bottom: 1px solid #2b2f36; padding-bottom: 5px; }
+  .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 8px;
+          background: #1c1f24; border: 1px solid #2a2e35; border-radius: 8px; padding: 12px 6px 9px; }
+  .cell.big { padding: 14px 6px 10px; }
+  .row { display: flex; align-items: flex-end; gap: 10px; color: #dfe4ec; }
+  .row .s { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .s i { font-style: normal; color: #7d8794; font-size: 9px; }
+  .name { font-size: 10px; color: #aab3c0; text-align: center; word-break: break-all; }
+  .zoom { color: #f0f3f8; }
+</style>
+</head>
+<body>
+  <h1>Prancha de ícones</h1>
+  <div class="sub">24 × 24, traço 1,75 em 16 px, margem segura de 2 px. Peso óptico constante por tamanho.</div>
+  <div class="sub">Uso: sirva a raiz do projeto (por exemplo <code>python -m http.server 8765</code>) e abra <code>/tools/icon_board.html</code>. O contrato é <code>tests/test_icon_system.js</code>.</div>
+  <div id="board"></div>
+<script src="../core/ui_format.js"></script>
+<script>
+  const groups = {
+    'Comandos': ['plus','minus','close','chevronUp','chevronDown','chevronLeft','chevronRight','up','down','left','right','undo','redo','swap','cycle','reset','rotate','fit','expand','info'],
+    'Objetos e estados': ['copy','edit','trash','lock','unlock','eye','eyeOff','isolate','locate','capture','all','none','invert','fill','toFront','toBack','dice','random','equalize'],
+    'Ferramentas': ['cursor','cursorFilled','pen','selectRect','selectBrush','brush','erase','stamp','snowflake','hand','zoom','snap','clip'],
+    'Formas e alinhamento': ['shapeRect','shapeEllipse','shapePolygon','shapeTriangle','shapeArc','shapeLine','curve','alignLeft','alignCenterX','alignRight','alignTop','alignCenterY','alignBottom'],
+    'Espelho e D4': ['flipX','flipY','mirror','symmetry','mandala','kaleidoscope','bilateral','sync','scopeCanvas','scopeOrbit','scopeBlock','scopeAll','scopeSingle','scopeSame'],
+    'Guias, painéis e biblioteca': ['axes','grid','blocks','pieces','ports','padding','orbits','tiles','layers','sliders','folder','folderPlus','book','user','file','import','export'],
+    'Booleanas': ['unite','subtract','intersect','exclude']
+  };
+  const board = document.getElementById('board');
+  const fmt = window.UiFormat;
+  for (const [title, names] of Object.entries(groups)) {
+    const h = document.createElement('h2'); h.textContent = title; board.appendChild(h);
+    const grid = document.createElement('div'); grid.className = 'grid';
+    for (const name of names) {
+      const cell = document.createElement('div'); cell.className = 'cell';
+      const row = document.createElement('div'); row.className = 'row';
+      [[14,'14'],[16,'16'],[18,'18'],[22,'22']].forEach(([size, label]) => {
+        const s = document.createElement('div'); s.className = 's';
+        s.innerHTML = fmt.icon(name, size);
+        const i = document.createElement('i'); i.textContent = label; s.appendChild(i);
+        row.appendChild(s);
+      });
+      const big = document.createElement('div'); big.className = 'zoom';
+      big.innerHTML = fmt.icon(name, 44);
+      cell.appendChild(big); cell.appendChild(row);
+      const n = document.createElement('div'); n.className = 'name'; n.textContent = name; cell.appendChild(n);
+      grid.appendChild(cell);
+    }
+    board.appendChild(grid);
+  }
+  const count = document.createElement('div');
+  count.className = 'sub';
+  count.style.marginTop = '22px';
+  count.textContent = `${fmt.iconNames().length} ícones no registro.`;
+  board.appendChild(count);
+</script>
+</body>
+</html>

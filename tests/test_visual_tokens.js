@@ -126,8 +126,11 @@ const iconStart = propertySource.indexOf('  function iconizePropertyActions()');
 vm.runInContext(propertySource.slice(iconStart, propertySource.indexOf('\n  function refresh()', iconStart)) + '\niconizePropertyActions();', propertyContext);
 for (let i = 0; i < propertyButtons.length; i++) {
   const key = actionKeys[i];
-  assert(propertyButtons[i].innerHTML.startsWith(format.icon(key.startsWith('btn') ? 'copy' : key)),
+  const expectedName = key.startsWith('btn') ? 'copy' : key;
+  assert(propertyButtons[i].innerHTML.startsWith(format.icon(expectedName, 18)),
     `Property rendering must retain the shared filled/copy icon: ${key}`);
+  assert(propertyButtons[i].innerHTML.includes(`data-icon="${expectedName}"`),
+    `Property action must name its registry icon: ${key}`);
 }
 assert(format.icon('intersect').includes('fill="currentColor"'));
 assert(format.icon('exclude').includes('fill-rule="evenodd"'));

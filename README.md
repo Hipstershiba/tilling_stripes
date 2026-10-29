@@ -89,10 +89,10 @@ Ferramentas de edição direta na grade com propagação simétrica matemática:
 - **🔒 Travar Subtiles (`F`)**: Congela subtiles do mosaico para torná-los imunes a novas gerações ou sorteios de semente (`G`). Ação monotônica com modos de congelar e descongelar. Tecla `Shift+F` limpa as travas ativas.
 - **✋ Mão (`H`)**: Move a visualização da prancheta por arrasto. Segurar `Espaço` ativa a Mão temporariamente; Alt+arrasto captura no mosaico.
 - **🔎 Zoom (`Z`)**: Aproxima e afasta o canvas com precisão (ou através de `Ctrl + Roda do Mouse`).
-- **Controle de Cores Estilo Illustrator**: Swatches sobrepostos de Primeiro Plano e Fundo localizados na barra lateral esquerda (`#left-toolbar`), com botão de inversão rápida (`⇄`) e atalho de teclado `X`.
+- **Controle de Cores Estilo Illustrator**: Par de amostras lado a lado (Peça e Fundo) na barra lateral esquerda (`#left-toolbar`), com prévia que preenche todo o chip, inversão rápida (`⇄`) e atalho `X`. Rótulos ficam em `title`/`aria-label`, como nas demais ações da coluna.
 
 ### 3. Modo Estúdio de Subtiles & Gestão de Famílias (`Subtiles` / `Ctrl+E`)
-Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 4 superfícies da UI e mantendo a saída Spout do mosaico ao vivo:
+Ambiente integrado na mesma janela (`data-studio-mode="tiles"`) respeitando as 5 superfícies da UI e mantendo a saída Spout do mosaico ao vivo:
 - **Prancheta Normalizada `[-0.5, 0.5]` & Preview de Continuidade**: Modos de visualização `1×1`, `3×3` (8 vizinhos com a mesma transformação do mestre), `Espelhos 2×2` (`mandala_d4`) e `Giro C4 2×2` (`rotational_c4`), com grade magnética configurável (`Off`, `1/2`, `1/3`, `1/4`, `1/6`, `1/8`, `1/12`, `1/16`), eixos $D_4$, portas de fita (`±1/6` e centro) e margem de respiro (`#paddingInput` compartilhado).
 - **Editor Vetorial Interativo (`core/vector_editor.js`)**: 8 ferramentas dedicadas — Seleção BBox com 8 alças e rotação (`V`), Seleção Direta de Nós e Tangentes Bezier Cúbicas (`A`, com subdivisão exata De Casteljau), Caneta Bezier (`P`), Retângulo arredondado (`M`), Elipse (`L`), Polígono/Estrela (`G`), Arco/Setor Anular Truchet (`U`) e Linha (`\`), além de presets rápidos de fita `1/3`, alinhamento/distribuição na célula, histórico *Undo/Redo* por família e área de transferência (`Ctrl+C`/`V`/`D`).
 - **Pathfinder, Transformações $D_4$ & Camadas (`core/vector_boolean.js`)**: Operações booleanas **Unir**, **Subtrair**, **Interseção** e **Excluir (XOR)** via Paper.js headless local (`libraries/paper-core.min.js`), preservando curvas Bezier cúbicas e gerando caminhos compostos com furos (`fillRule: evenodd`); giro `+90°`/`-90°` e espelhos `H`/`V` sobre a seleção; painel **Camadas (Formas)** com reordenação de Z-index por *Drag-and-Drop*, setas e atalhos (`Ctrl+]`/`Ctrl+[`, `Ctrl+Shift+]`/`Ctrl+Shift+[`), renomeação inline (duplo-clique), visibilidade e trava por forma.
@@ -169,44 +169,60 @@ Para integração com softwares de projeção mapeada, VJs e instalações audio
 
 ---
 
-## Arquitetura de UI — As Quatro Superfícies
+## Arquitetura de UI — As Cinco Superfícies
 
-A interface adota a taxonomia de quatro superfícies estritas com responsabilidades dedicadas:
+A interface adota a taxonomia de cinco superfícies estritas com responsabilidades dedicadas:
 
 1. **Barra Superior (`#top-control-bar` — O Documento)**:
    - Artboard: Largura ($W$), Altura ($H$), Inversão ($W \rightleftarrows H$), Trava de proporção e Ajustar à Grade.
    - Grade: Linhas ($L$), Colunas ($C$), Inversão ($L \rightleftarrows C$), Trava de proporção, Células quadradas 1:1, Margem externa em px e Respiro percentual do bloco (`#paddingInput`).
    - Zero rolagem horizontal nos monitores 1440×900 e 1280×800 (`scrollWidth <= clientWidth`).
 
-2. **Barra Lateral Esquerda (`#left-toolbar` — Ferramentas e Ações)**:
+2. **Barra Lateral Esquerda (`#left-toolbar` — Ferramentas)**:
    - Estrutura em duas colunas compactas reunindo:
      - 7 Ferramentas essenciais: Inspecionar (`V`), Pincel (`B`), Girar (`R`), Carimbo (`S`), Travar Subtiles (`F`), Pan (`H`) e Zoom (`Z`).
-     - Guias visuais: Eixos (`A`), Blocos (`Shift+B`), Subtiles (`M`) e Órbitas (`O`).
-     - Widget de cores sobrepostas estilo Photoshop/Illustrator (`.color-tool-section`) com botão de inversão rápida (`X`).
-     - Painel do Gerador: Botão de sorteio aleatório (`G`), input de Seed (#), navegação (◀ ▶) e lista permanente de histórico de sementes.
-     - Exportação: Seleção de formato (PNG/SVG) e botão de download.
+     - Guias visuais: Eixos (`A`), Blocos (`Shift+B`), Peças (`M`) e Órbitas (`O`), em grade 2×N de 48×38 px com estado ativo igual ao das ferramentas.
+     - Par de cores Peça/Fundo (`.illustrator-color-widget`) em chips de 32 px com prévia de 24 px e botão fantasma de inversão (`X`).
+   - A coluna segue o padrão do Illustrator: só ferramentas, guias e cores.
 
 3. **Barra Inferior de Status (`#status-bar` — A Visão e Saída)**:
    - Zona esquerda: Grupo de zoom integrado (`.zoom-widget`) com `[−] [100% ▾] [+] [Ajustar] [1:1]`.
    - Zona central: Dimensões em pixels, contagem de grade/órbitas e Inspetor de Hover com reticências automáticas (`text-overflow: ellipsis`) em resoluções compactas.
    - Zona direita: Controles de streaming Spout (`#spoutToggle`, `#spoutName`), indicador de status de conexão e Central de Ajuda (`#btnHelp` / `?`).
 
-4. **Dock Lateral Direito (`#right-dock` — Propriedades e Contexto)**:
+4. **Trilho de Utilitários (`#utility-rail` — Ferramentas de Documento)**:
+   - Faixa vertical de 40 px entre o canvas e o dock direita, pensada para ferramentas de documento que abrem flyout para a esquerda, sobre o canvas.
+   - Primeiro ocupante: **Histórico (`#dock-history`)** com o botão `#btnToggleHistory`; a lista (`#seedHistoryList`) abre à esquerda do trilho, com rolagem interna, sem cobrir nem encolher o dock.
+   - O trilho é `mosaic-mode-only`: some no criador de peças, devolvendo a largura ao canvas.
+
+5. **Dock Lateral Direito (`#right-dock` — Propriedades e Contexto)**:
+   - **Gerador (`#dock-generator`)**: faixa fixa logo abaixo do cabeçalho do dock, com o botão **Gerar** (`G`) e a navegação de sementes (`#seedInput`, `#btnPrevSeed`, `#btnNextSeed`). Permanece visível tanto no contexto de geração quanto no de edição.
+   - **Exportar (`#dock-export`)**: faixa fixa no rodapé do dock, com seletor PNG/SVG (`#exportFormatSelect`) e botão de download (`#btnExport`), alcançável sempre que o dock estiver aberto no modo mosaico.
    - **Painel Contextual Dinâmico**: Exibe automaticamente as opções da ferramenta ativa (`inspect` exibe parâmetros de geração e famílias de tiles; `paint` exibe tamanho de pincel, Supertile e paleta; `rotate` exibe modos de giro; `stamp` exibe opções de cópia; `freeze` exibe modos de congelamento).
-   - **Gaveta Recolhida (`body.right-dock-collapsed`)**: Dock recolhe para régua vertical de 44 px (`--dock-rail-w: 44px`), ocultando os painéis roláveis e expandindo a área útil do canvas em ~306 px.
+   - **Gaveta Recolhida (`body.right-dock-collapsed`)**: Dock recolhe para régua vertical de 44 px (`--dock-rail-w: 44px`), ocultando os painéis roláveis, o gerador e a exportação e expandindo a área útil do canvas.
+
+### Iconografia
+
+Todo ícone da interface vem do registro único em `core/ui_format.js` (`ICON_PATHS`, 111 glifos). O `index.html` declara apenas slots (`<span class="icon-slot" data-icon-slot="nome">`) que `UiFormat.hydrateIcons()` troca pelo SVG canônico no boot; `sketch.js` e `core/subtile_studio_ui.js` chamam `UiFormat.icon(nome, tamanho)`.
+
+- Grade de 24 × 24 com área viva de 20 × 20 e traço 1,75 em 16 px, ajustado por tamanho para manter o peso óptico.
+- Escala de tamanhos 12 / 14 / 16 / 18 / 22 px; `fill` só para resultado, área preenchida, cópia espelhada e a caneta (glifo sólido de `pen-tool-svgrepo-com.svg`).
+- Um nome por significado; aliases gráficos são declarados no teste (`flipX` / `mirror` / `symmetry`).
+- Tamanho e traço não são mais definidos por CSS: o registro é a fonte da verdade.
+- Contrato: `tests/test_icon_system.js`. Diagnóstico e decisões em [`docs/ux/REVISAO_ICONES_2026-10-29.md`](docs/ux/REVISAO_ICONES_2026-10-29.md).
 
 ---
 
 ## Testes Automatizados
 
-O projeto conta com **44 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
+O projeto conta com **54 suítes de teste automatizadas** executadas diretamente via Node.js puro sem dependências ou frameworks externos:
 
 ```powershell
-# Executar todas as 44 suítes de teste:
+# Executar todas as 54 suítes de teste:
 node tests/run_all.js
 ```
 
-### Cobertura das 44 Suítes:
+### Cobertura das 54 Suítes:
 1. **Álgebra D4 & Axiomas de Grupo**:
    - `test_tile_registry.js`: 85 renderers vetoriais, axiomas do grupo D4 (Identidade, Inversa, Composição e Fechamento de Família).
    - `test_d4_invariance.js`: Invariância matemática estrita D4/C4/D2 em grades 1×1 a 5×5 (168.960 asserções), modo Caleidoscópio e fallback para Tile Vazio #84.
@@ -239,6 +255,9 @@ node tests/run_all.js
    - `test_brush_sizing_snap.js`: Pincel com tamanhos inteiros não-cíclicos, ajuste ao bloco (`Ctrl+U` / `Shift`) e atalho da borracha (`E`).
    - `test_ui_control_registry.js`: Congelamento do inventário dos 60 controles com ID único em `index.html`.
    - `test_ui_layout_contract.js`: Contrato estrutural das superfícies (posições de dock, gaveta, zoom, cores e ferramentas).
+   - `test_visual_tokens.js`: Tokens CSS resolvidos, contraste dos papéis semânticos e renderização segura dos ícones de comando.
+   - `test_visual_system_v2.js`: Contrato da reforma visual (rótulo de Gerar, escala tipográfica, geografia e alvos mínimos).
+   - `test_icon_system.js`: Registro único de ícones, grade 24 × 24, pesos ópticos, aliases explícitos e hidratação dos slots do `index.html`.
 5. **Consistência Documental**:
    - `test_docs_consistency.js`: Validação contínua da documentação contra assinaturas de funções e chaves reais do código.
 6. **Sistema de Trava de Subtiles (Freeze)**:
@@ -317,7 +336,7 @@ As ferramentas do mosaico usam pares de mesma largura: Inspecionar/Subtiles, Pin
 
 Tamanhos de Pintar/Carimbo, Girar e Travar usam o padrão **− | tamanho | +**, também acessível por `−`/`+` no teclado e roda do mouse sobre o canvas. Os tamanhos param nos limites, sem voltar ao início; botões indisponíveis ficam desativados. Girar e pintar alcançam a dimensão máxima do mosaico; Travar respeita o tamanho de um bloco. No pincel com ajuste ao bloco, o passo é um bloco. A indicação `linhas × colunas` preserva o tamanho real de carimbos retangulares. Os atalhos dos escopos são `Q`/`Tab`, com `Shift` para voltar.
 
-A barra esquerda recolhe **Geração e histórico** por padrão; no criador de subtiles, Biblioteca, Arquivos SVG e Backup também ficam em grupos expansíveis. O histórico começa recolhido e tem altura limitada quando aberto. Os tamanhos de Girar e Travar têm apenas o controle − / medida / + e um botão independente para ajustar ao bloco; não há uma segunda linha de presets numéricos.
+A barra esquerda mantém ferramentas, guias e cores; o **Gerador** e o **Exportar** ficam no dock direito, e o **Histórico** no trilho de utilitários entre o canvas e o dock. O histórico começa recolhido e abre em flyout. No criador de subtiles, Biblioteca, Arquivos SVG e Backup também ficam em grupos expansíveis. Os tamanhos de Girar e Travar têm apenas o controle − / medida / + e um botão independente para ajustar ao bloco; não há uma segunda linha de presets numéricos.
 
 A prévia de Girar destaca todas as células alcançadas pelo escopo ativo, usando os mesmos alvos da operação. O contorno ciano delimita as regiões afetadas e o âmbar marca a origem. As bordas internas entre células vizinhas não são desenhadas, preservando a ausência de grade automática.
 
@@ -346,7 +365,7 @@ Na Biblioteca, **conjunto** é o nome de interface para os grupos de famílias e
 A exclusão de uma família pede apenas a confirmação da ação e informa seu uso; não baixa backup automaticamente nem limpa o histórico vetorial das outras famílias. Exportar a biblioteca continua disponível quando desejado. Referências à família excluída continuam sendo convertidas para o Tile Vazio (#84). A guia visual **Subtiles** usa ciano com a mesma espessura e opacidade dos limites de blocos (1,5 px; alfa 165/255), sem contorno adicional; a guia Blocos usa lilás para diferenciar as escalas; continua opcional e não aparece nas exportações nem na saída Spout.
 
 
-O grupo **Backup da biblioteca** fica sempre acessível na barra esquerda do criador, reunindo exportação (.json), importação e restauração. Na confirmação de exclusão de família, a opção **Baixar backup da biblioteca antes de excluir (.json)** começa desmarcada; marque-a para baixar o estado anterior à exclusão. Cancelar não baixa backup nem exclui. Fazer backup não apaga o histórico de edição vetorial. O **Gerador** fica visível por padrão, e o cabeçalho **Histórico** permanece acessível logo abaixo, com sua lista recolhível.
+O grupo **Backup da biblioteca** fica sempre acessível na barra esquerda do criador, reunindo exportação (.json), importação e restauração. Na confirmação de exclusão de família, a opção **Baixar backup da biblioteca antes de excluir (.json)** começa desmarcada; marque-a para baixar o estado anterior à exclusão. Cancelar não baixa backup nem exclui. Fazer backup não apaga o histórico de edição vetorial. O **Gerador** fica visível por padrão no topo do dock direito, o **Histórico** no trilho de utilitários e a exportação no rodapé.
 
 Nos swatches do gerador, o cabeçalho de cada **conjunto** permite ativar/desativar todas as suas famílias, indica seleção parcial e mostra a contagem de tiles ativos. O botão **SOLO** do conjunto gera apenas com ele. A ação inclui o conjunto completo mesmo quando a busca exibe só parte das famílias.
 
@@ -391,7 +410,7 @@ Termos da interface: Prancheta, Espaçamento, Peças permitidas, Editar peças, 
 
 ### Sistema visual compartilhado (T07)
 
-`style.css` define os papéis semânticos de painel, campo, hover, seleção, texto, borda funcional, foco, aviso e erro em `:root`. Botões/campos comuns usam 32 px, ações de lista têm alvo mínimo 28×28 px, texto funcional usa 12 px e valores numéricos usam 13 px. A barra esquerda usa 216 px; o rodapé fica na coluna da prancheta, entre as barras laterais, com altura mínima de 36 px; a ordem das quatro superfícies permanece igual. Bordas decorativas podem ser discretas; controles essenciais usam `--border-control`. Foco é um contorno externo de 2 px, separado do preenchimento de seleção. Guias ligadas têm fundo neutro e marca lateral; o pasteboard não usa pontos.
+`style.css` define os papéis semânticos de painel, campo, hover, seleção, texto, borda funcional, foco, aviso e erro em `:root`. Botões/campos comuns usam 30–32 px, passos e ações de lista têm alvo mínimo de 24×24 px, texto funcional usa 12 px e valores numéricos usam 13 px. A barra esquerda usa 120 px; o rodapé fica na coluna da prancheta, entre as barras laterais, com 32 px de altura; a ordem das cinco superfícies permanece igual. Bordas decorativas podem ser discretas; controles essenciais usam `--border-control`. Foco é um contorno externo de 2 px, separado do preenchimento de seleção. Guias ligadas têm fundo neutro e marca lateral; o pasteboard não usa pontos.
 
 A pele comum fica junto às regras base, com variantes junto ao componente. Evite reintroduzir tamanhos/cores concorrentes ao fim da folha. Nomes de papéis antigos não resolvidos foram substituídos; `--font-mono` está definido. `test_visual_tokens.js` verifica referências CSS e inline, contraste dos pares semânticos (texto ≥4,5:1; indicadores essenciais ≥3:1), escala e segurança dos ícones.
 
@@ -417,9 +436,19 @@ A simetria da composição mantém os quatro modos existentes. A simetria do blo
 
 Peças permitidas mostra famílias com miniatura, contador e seleção total/parcial/vazia. Variantes ficam sob expansão; buscar revela as correspondências e limpar restaura a expansão manual. Isolar família/conjunto oferece Restaurar seleção; alternar entre isolamentos conserva a seleção inicial. Uma alteração manual invalida o isolamento anterior. Todos/Nenhum/Inverter mantêm o alcance de toda a biblioteca, inclusive itens ocultos pela busca (informado no título dos controles). Gerar e semente permanecem à esquerda. Estado de expansão e isolamento é temporário; não altera o schema v3.
 
-Revisão visual após T09: as cinco opções do bloco ficam sempre visíveis. Botões de simetria e ferramentas dos dois ambientes compartilham superfícies neutras, preenchimento de seleção e foco explícito; contornos decorativos usam `--border-subtle` (#36393f). `--border-control` continua reservado aos indicadores funcionais que precisam de destaque. O rodapé pertence a `#workspace-viewport`; abaixo de 640 px de coluna ele quebra em duas linhas, mantendo Zoom/Spout/Ajuda acessíveis. Em colunas até 1050 px, os textos de inspeção/salvamento permanecem anunciados, sem disputar espaço visual com controles. O gerador usa rolagem externa para manter a lista de famílias alcançável com as opções do bloco abertas.
+Revisão visual após T09: as cinco opções do bloco ficam sempre visíveis. Botões de simetria e ferramentas dos dois ambientes compartilham superfícies neutras, preenchimento de seleção e foco explícito; contornos decorativos usam `--border-subtle` (#2e3138). `--border-control` continua reservado aos indicadores funcionais que precisam de destaque. O rodapé pertence a `#workspace-viewport`; em colunas estreitas ele mantém Zoom, salvamento, Spout e Ajuda acessíveis, e o campo de nome do Spout é o primeiro a sair. Até 1050 px o estado de salvamento continua visível e anunciado; até 700 px o rodapé permanece em uma linha, sem a grade. O gerador usa rolagem externa para manter a lista de famílias alcançável com as opções do bloco abertas.
 
 O grupo de zoom do rodapé usa pintura isolada (`translateZ(0)`) e não recorta seus controles (`overflow: visible`), evitando desaparecimento visual ao alternar entre mosaico e editor ou redimensionar a janela. O rodapé continua limitado à coluna central pelo layout responsivo.
+
+### Reforma visual V2 (28/10/2026)
+
+A camada **V2 — Reforma visual** no fim de `style.css` refina a apresentação sem alterar contratos: 60 IDs, ordem das cinco superfícies, `#paddingInput` no topo e persistência permanecem iguais. Tokens: `--top-bar-h: 48px`, `--status-bar-h: 32px`, `--font-section: 11px`, `--radius-card: 8px` e uma rampa neutra com `--bg-panel #1c1d21`, `--border-subtle #2e3138` e `--bg-primary #2a5d9e`.
+
+A barra superior passou a duas cartas de comando (`Prancheta`, `Grade`): um contorno por grupo, rótulos de 10 px, valores de 13 px tabulares, passos fantasma de 24×26 px e unidades explícitas. A ação **Gerar** é um botão rotulado com cor primária. A alternância de ambiente fica no topo da barra esquerda; o **Gerador** abre o topo do dock direito, o **Histórico** é o primeiro item do trilho de utilitários e o **Exportar** fecha o rodapé do dock, deixando a coluna esquerda só com ferramentas, guias e cores. O painel direito usa cabeçalhos finos e listas em linhas de 40 px; ações por linha aparecem no hover/foco. O rodapé tem três zonas e mostra o salvamento com ponto de estado, inclusive na coluna de 1016 px. Alvos mínimos: 24 px em toda a interface (`tests/test_visual_system_v2.js`). Evidências e diagnóstico completo em [`docs/ux/REVISAO_VISUAL_2026-10-28.md`](docs/ux/REVISAO_VISUAL_2026-10-28.md).
+
+### Gerador, Histórico e Exportar fora da coluna esquerda — 28/10/2026
+
+A coluna esquerda ficou apertada ao acumular ferramentas, guias, cores, gerador, histórico e exportação. Seguindo o Illustrator como guia — ferramentas à esquerda, ações de documento à direita —, o **Gerador** virou a faixa superior do dock (`#dock-generator`), o **Exportar** o rodapé fixo (`#dock-export`) e o **Histórico** ganhou o trilho de utilitários (`#utility-rail`), uma faixa de 40 px entre o canvas e o dock: o botão `#btnToggleHistory` fica no trilho e a lista abre à esquerda, sobre o canvas, para não cobrir nem encolher nem o dock nem Simetria/Peças. O trilho é `mosaic-mode-only` e foi pensado para receber outras ferramentas de documento com flyout. A ordem das superfícies é barra esquerda (0) → canvas (1) → trilho (2) → dock (3); ao recolher o dock, o trilho permanece. Os 60 IDs congelados, seus atalhos e a persistência não mudaram.
 
 ### Ferramentas, Pathfinder e aviso de regeneração
 
@@ -440,14 +469,14 @@ Ferramentas, guias, simetrias, escopos, biblioteca, importação/exportação, p
 
 ### Espaço dos ícones e atalhos de seleção — 28/10/2026
 
-A barra esquerda tem 120 px e o painel direito tem 304 px, preservando ferramentas em duas colunas e o rodapé entre as laterais. Ações com ícones usam alvos de 34×34 px, com intervalos de 4 px; ações auxiliares nos títulos usam 28 px. Simetrias, escopos, propriedades e biblioteca não esticam os botões para ocupar antigas colunas de texto. Encaixe compartilha a linha do tamanho do pincel e Ampliar fica junto do nome da prévia. Histórico mantém rolagem própria e Exportar permanece alcançável em 900×768.
+A barra esquerda tem 120 px, o trilho de utilitários 40 px e o painel direito 304 px, preservando ferramentas em duas colunas e o rodapé entre as laterais. Ações com ícones usam alvos de 34×34 px, com intervalos de 4 px; ações auxiliares nos títulos usam 28 px. Simetrias, escopos, propriedades e biblioteca não esticam os botões para ocupar antigas colunas de texto. Encaixe compartilha a linha do tamanho do pincel e Ampliar fica junto do nome da prévia. Histórico mantém rolagem própria no flyout do trilho e Exportar permanece alcançável no rodapé do dock em 900×768.
 
 Os comandos `selectRect` e `selectBrush` no catálogo compartilhado acionam a mesma função dos cliques e fornecem nomes, tooltips e ajuda. Atalhos respeitam campos, janelas modais e o ambiente: L continua sendo Elipse no editor vetorial. A seleção permanece destacada após a captura; Clonar recebe destaque apenas ao escolher S ou seu botão.
 
 
 ### Fluxo de seleção e clonagem — revisão de 28/10/2026
 
-Durante a seleção, o painel lateral direito permanece visível. Seus controles contextuais mostram área, quantidade de peças, limpar e desfazer/refazer. O tamanho aparece apenas para o pincel de seleção. Os controles são movidos de volta aos seus painéis ao trocar de ferramenta, preservando handlers e IDs. Gerador, biblioteca e propriedades conservam o painel direito de 304 px; o rodapé continua na coluna da prancheta. O ícone do pincel de seleção combina contorno tracejado, células e sinal de adição. Criar cópia nas Propriedades usa o mesmo `UiFormat.icon('copy')` da Biblioteca.
+Durante a seleção, o painel lateral direito permanece visível. Seus controles contextuais mostram área, quantidade de peças, limpar e desfazer/refazer. O tamanho aparece apenas para o pincel de seleção. Os controles são movidos de volta aos seus painéis ao trocar de ferramenta, preservando handlers e IDs. Gerador, biblioteca e propriedades conservam o painel direito de 304 px; o histórico fica no trilho e o rodapé continua na coluna da prancheta. O ícone do pincel de seleção combina contorno tracejado, células e sinal de adição. Criar cópia nas Propriedades usa o mesmo `UiFormat.icon('copy')` da Biblioteca.
 
 Os ícones de Pathfinder usam preenchimento para indicar o resultado: Interseção destaca a área comum e Excluir deixa essa área vazia. Propriedades e Biblioteca compartilham o ícone de cópia; setas de importação, exportação, camadas e histórico seguem a mesma escala.
 

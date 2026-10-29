@@ -18,10 +18,11 @@ This skill acts as the quality firewall for the `tiling_stripes` workspace. No c
    - The 4 canonical symmetry mode IDs are: `mandala_d4`, `kaleidoscope`, `rotational_c4`, `bilateral_d2`. NEVER use `kaleidoscope_permissive`.
    - The 85-tile catalog (IDs 0–84) in 31 families is algebraically closed under $D_4$.
 
-2. **UI 4-Surfaces Contract & Flex Order:**
-   - `#left-toolbar` (order: 0) — 2-column sidebar: 7 tools, visual guides, swatches, generator/seed, history, export.
+2. **UI 5-Surfaces Contract & Flex Order:**
+   - `#left-toolbar` (order: 0) — 2-column tool column: 7 tools, visual guides, swatches.
    - `#workspace-viewport` (order: 1) — Canvas with 2D pan and zoom via CSS transforms.
-   - `#right-dock` (order: 2) — Dynamic contextual panel with collapsible 44px drawer toggle (`#btnToggleRightDock`).
+   - `#utility-rail` (order: 2) — 40px rail for document tools that open left-side flyouts over the canvas; its first tenant is history (`#dock-history`).
+   - `#right-dock` (order: 3) — Dynamic contextual panel with collapsible 44px drawer toggle (`#btnToggleRightDock`), plus `#dock-generator` (top strip) and `#dock-export` (footer) in mosaic mode.
    - NEVER create `#left-rail`, `#workspaceSwitcher`, or `#btnContextGenerator`.
    - The control registry consists of **exactly 60 frozen control IDs**.
 

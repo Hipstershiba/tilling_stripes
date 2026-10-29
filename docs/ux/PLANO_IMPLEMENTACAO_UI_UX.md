@@ -947,3 +947,20 @@ Este ajuste responde ao pedido de edição e mantém T10 pendente.
 
 - [x] Adicionar Espelhar (O), horizontal no clique e vertical no botão direito, com área, escopo, prévia e histórico.
 - [x] Testar involução em peças e grupos e executar gate/sincronização antes do commit.
+
+### Reforma visual V2 — 28/10/2026
+
+O usuário pediu uma revisão completa da interface com foco em experiência e estética, escolhendo a opção de reforma visual ampla (nova hierarquia, densidade e sistema visual). Esta etapa substitui as decisões visuais das etapas anteriores, sem alterar contratos funcionais.
+
+- [x] Auditar a interface no navegador (1440×900, 1366×768, 1280×800, 1024×768) com capturas e métricas de contraste, alvos, tipografia e overflow.
+- [x] Refinar tokens: rampa neutra, acento, bordas, texto, escala 10/11/12/13 px, raios, sombra e movimento; topo em 48 px e rodapé em 32 px.
+- [x] Reorganizar a barra superior em duas cartas de comando, com passos fantasma, unidades e valores tabulares.
+- [x] Tornar Gerar a ação primária rotulada; mover a alternância de ambiente para o topo da barra esquerda e ancorar Gerador/Histórico/Exportar no rodapé da coluna.
+- [x] Reconstruir o painel direito com cabeçalhos finos, listas em linhas e ações por linha reveladas no hover/foco; biblioteca e aviso de peça protegida redesenhados.
+- [x] Garantir o estado de salvamento no rodapé em 1016 px, com Spout compacto, separadores desenhados e foco visível por teclado.
+- [x] Zerar alvos abaixo de 24 px e normalizar tamanhos de passos, chips, linhas e interruptor.
+- [x] Ajustar responsividade: topo com altura automática e rodapé em uma linha na coluna estreita.
+- [x] Novo contrato `tests/test_visual_system_v2.js`; gate completo 53/53; AST/vault sincronizados.
+- [x] Registrar diagnóstico, antes/depois medido, riscos e próximos passos em `docs/ux/REVISAO_VISUAL_2026-10-28.md`, com evidências em `docs/ux/evidencias/revisao-2026-10-28/`.
+
+Pendências conscientes: inspetor de hover oculto em colunas ≤1050 px; prancheta de 600 px preenche exatamente a coluna de 1024×768; iconografia das ferramentas ainda depende de tooltip; camada V2 convive com as regras históricas até a consolidação. T10 continua pendente.

@@ -387,7 +387,7 @@
       btnMode.setAttribute('aria-pressed', inTiles ? 'true' : 'false');
       const labelEl = btnMode.querySelector('.studio-mode-btn-label');
       if (labelEl) {
-        labelEl.textContent = inTiles ? 'Voltar ao mosaico' : 'Editar peças';
+        labelEl.textContent = inTiles ? 'Mosaico' : 'Editar peças';
       }
       btnMode.setAttribute('aria-label', inTiles ? 'Voltar ao mosaico' : 'Editar peças');
       btnMode.title = inTiles
@@ -2013,19 +2013,19 @@
         </div>
         <div class="vec-bool-strip">
           <button type="button" class="vec-bool-btn" data-bool-op="unite" title="Unir (Unite) — Combinar formas num contorno contínuo" ${!canBool ? 'disabled' : ''}>
-            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h9v6h7v10H10v-6H4V4z"/></svg>
+            ${uiFormat.icon('unite', 14)}
             <span>Unir</span>
           </button>
           <button type="button" class="vec-bool-btn" data-bool-op="subtract" title="Menos Frente (Minus Front) — Subtrair a forma da frente da forma de trás" ${!canBool ? 'disabled' : ''}>
-            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="3" width="12" height="12" rx="1" stroke-dasharray="2 2"/><path d="M3 9h6v6h6v6H3V9z" fill="currentColor"/></svg>
+            ${uiFormat.icon('subtract', 14)}
             <span>Menos</span>
           </button>
           <button type="button" class="vec-bool-btn" data-bool-op="intersect" title="Interseção (Intersect) — Manter apenas a área comum de sobreposição" ${!canBool ? 'disabled' : ''}>
-            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="12" height="12" rx="1"/><rect x="9" y="9" width="12" height="12" rx="1"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/></svg>
+            ${uiFormat.icon('intersect', 14)}
             <span>Interseção</span>
           </button>
           <button type="button" class="vec-bool-btn" data-bool-op="exclude" title="Excluir (Exclude) — Diferença simétrica vazando sobreposições" ${!canBool ? 'disabled' : ''}>
-            <svg class="ui-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path fill-rule="evenodd" d="M3 3h12v12H3V3zm6 6h12v12H9V9z" fill="currentColor"/></svg>
+            ${uiFormat.icon('exclude', 14)}
             <span>Excluir</span>
           </button>
         </div>
@@ -2056,7 +2056,7 @@
           Peça protegida (somente leitura)
         </div>
         <button type="button" id="btnPropsDuplicateBuiltIn" class="mini-btn accent" style="width:100%;">
-          ⧉ Criar cópia editável
+          Criar cópia editável
         </button>
       `;
       document.getElementById('btnPropsDuplicateBuiltIn')?.addEventListener('click', () => {
@@ -2174,9 +2174,9 @@
           <button type="button" class="mini-btn" data-sel-d4="my" title="Espelhar seleção verticalmente (my)">↕ Esp. V</button>
         </div>
         <div class="vec-inline-actions" style="margin-top:3px;">
-          <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">⧉ Duplicar</button>
+          <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">Duplicar</button>
           ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Converter em Caminho</button>' : ''}
-          <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">✕ Excluir</button>
+          <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">Excluir</button>
         </div></div>
       ` : ''}
     `;
@@ -2587,13 +2587,13 @@
     }
 
     const shapeIcons = {
-      rect: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',
-      ellipse: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
-      polygon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/></svg>',
-      triangle: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 3 22 21 2 21"/></svg>',
-      arc: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12A9 9 0 0 0 12 3v4a5 5 0 0 1 5 5h4z"/></svg>',
-      line: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"/></svg>',
-      path: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18c3-8 8-2 11-10 2-5 5-2 5 2"/></svg>'
+      rect: uiFormat.icon('shapeRect', 14),
+      ellipse: uiFormat.icon('shapeEllipse', 14),
+      polygon: uiFormat.icon('shapePolygon', 14),
+      triangle: uiFormat.icon('shapeTriangle', 14),
+      arc: uiFormat.icon('shapeArc', 14),
+      line: uiFormat.icon('shapeLine', 14),
+      path: uiFormat.icon('curve', 14)
     };
     const defaultLabels = {
       rect: 'Retângulo',
@@ -2806,7 +2806,7 @@
         btnVis.type = 'button';
         btnVis.className = 'tile-layer-icon-btn';
         btnVis.title = isHidden ? 'Mostrar forma' : 'Ocultar forma';
-        btnVis.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>${isHidden ? '<path d="M3 3l18 18"/>' : ''}</svg>`;
+        btnVis.innerHTML = uiFormat.icon(isHidden ? 'eyeOff' : 'eye', 16);
         btnVis.setAttribute('aria-label', btnVis.title);
         btnVis.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -2822,7 +2822,7 @@
         btnLock.type = 'button';
         btnLock.className = 'tile-layer-icon-btn';
         btnLock.title = isLocked ? 'Destravar forma' : 'Travar forma';
-        btnLock.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="${isLocked ? 'M8 10V6a4 4 0 0 1 8 0v4' : 'M8 10V6a4 4 0 0 1 8 0'}"/><circle cx="12" cy="15" r="1"/></svg>`;
+        btnLock.innerHTML = uiFormat.icon(isLocked ? 'lock' : 'unlock', 16);
         btnLock.setAttribute('aria-label', btnLock.title);
         btnLock.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -2865,36 +2865,28 @@
   }
 
   function iconizePropertyActions() {
-    const paths = {
-      'stripe-h-1-3': 'M3 8h18v8H3z', 'stripe-v-1-3': 'M8 3h8v18H8z',
-      'curve-tl-1-3': 'M3 3v6a12 12 0 0 1 12 12h6A18 18 0 0 0 3 3z', 'quarter-pie-tl':'M3 3a18 18 0 0 1 18 18H3z',
-      horizontal:'M3 3v18M21 3v18M8 6v12M16 6v12', vertical:'M3 3h18M3 21h18M6 8h12M6 16h12',
-      closed:'M4 4h16v16H4z', open:'M4 4v16h16', cancel:'M5 5l14 14M5 19 19 5',
-      btnPropsDuplicateBuiltIn:'M3 3h12v12H3z M9 9h12v12H9z',
-      btnVecToggleSmooth:'M3 18C3 3 21 21 21 6 M3 3h18 M10 10h4v4h-4z', btnVecSubdivideSeg:'M3 12h18M12 3v18M9 9h6v6H9z',
-      r90: 'M4 10a8 8 0 1 1 1 8 M4 3v7h7', r270: 'M20 10a8 8 0 1 0-1 8 M20 3v7h-7',
-      mx: 'M12 2v20 M3 6v12l6-6z M21 6v12l-6-6z', my: 'M2 12h20 M6 3h12l-6 6z M6 21h12l-6-6z',
-      btnVecPropDuplicate: 'M3 3h12v12H3z M9 9h12v12H9z', btnVecPropDelete: 'M3 6h18 M9 6V3h6v3 M6 6v15h12V6 M10 10v7 M14 10v7',
-      btnVecPropToPath: 'M3 18C3 3 21 21 21 6 M1 16h4v4H1z M19 4h4v4h-4z'
+    // Command ids resolved against the shared registry (core/ui_format.js).
+    const iconNames = {
+      'stripe-h-1-3': 'presetStripeH', 'stripe-v-1-3': 'presetStripeV',
+      'curve-tl-1-3': 'presetArcTL', 'quarter-pie-tl': 'presetPieTL',
+      horizontal: 'distributeH', vertical: 'distributeV',
+      closed: 'pathClosed', open: 'pathOpen', cancel: 'close',
+      btnPropsDuplicateBuiltIn: 'copy', btnVecPropDuplicate: 'copy',
+      btnVecPropDelete: 'trash', btnVecPropToPath: 'curve',
+      btnVecToggleSmooth: 'curve', btnVecSubdivideSeg: 'nodePlus',
+      r90: 'rotate', r270: 'rotateCCW', mx: 'flipX', my: 'flipY'
     };
     document.querySelectorAll('#vecPropsContainer button, #tilePathfinderContainer button').forEach(button => {
       const key = button.dataset.boolOp || button.dataset.selD4 || button.dataset.preset || button.dataset.distrib || button.dataset.penAct || button.id;
-      if (!paths[key] && !button.dataset.boolOp) return;
+      const iconName = button.dataset.boolOp || iconNames[key];
+      if (!iconName || !uiFormat.hasIcon(iconName)) return;
       const names = {unite:'Unir',subtract:'Menos frente',intersect:'Interseção',exclude:'Excluir',r90:'Girar 90°',r270:'Girar -90°',mx:'Espelhar H',my:'Espelhar V',
         btnVecPropDuplicate:'Duplicar',btnVecPropDelete:'Excluir',btnVecPropToPath:'Converter em caminho',btnPropsDuplicateBuiltIn:'Criar cópia',btnVecToggleSmooth:'Suavizar',btnVecSubdivideSeg:'Inserir nó',
         'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',closed:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
       const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
       button.classList.add('icon-only');
-      if (button.dataset.boolOp) {
-        button.innerHTML = uiFormat.icon(key) + `<span class="icon-label">${name}</span>`;
-        return;
-      }
-      if (key === 'btnPropsDuplicateBuiltIn' || key === 'btnVecPropDuplicate') {
-        button.innerHTML = uiFormat.icon('copy') + `<span class="icon-label">${name}</span>`;
-        return;
-      }
-      button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[key]}"/></svg><span class="icon-label">${name}</span>`;
+      button.innerHTML = uiFormat.icon(iconName, 18) + `<span class="icon-label">${name}</span>`;
     });
   }
 

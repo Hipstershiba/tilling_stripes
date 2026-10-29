@@ -46,9 +46,11 @@ const testSuites = [
   'test_brush_sizing_snap.js',
   'test_ui_control_registry.js',
   'test_ui_layout_contract.js',
+  'test_visual_system_v2.js',
 
   // 5. Documentation & Contracts
   'test_docs_consistency.js',
+  'test_icon_system.js',
 
   // 6. Subtile Freezing / Locking
   'test_freeze_subtiles.js',

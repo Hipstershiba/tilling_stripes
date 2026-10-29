@@ -38,7 +38,7 @@
     const target = context === 'mosaic' ? 'no mosaico' : 'na peça';
     add(context, 'undo', `Desfazer ${target}`, 'Ctrl+Z', [context === 'mosaic' ? 'btnEditUndo' : 'btnVecUndo'], ctx => ctx.undo(), {available: ctx => ctx.canUndo?.() !== false});
     add(context, 'redo', `Refazer ${target}`, 'Ctrl+Shift+Z', [context === 'mosaic' ? 'btnEditRedo' : 'btnVecRedo'], ctx => ctx.redo(), {aliases: ['Ctrl+Y'], available: ctx => ctx.canRedo?.() !== false});
-    add(context, 'toggle', context === 'mosaic' ? 'Editar peças' : 'Voltar ao mosaico', 'Ctrl+E', ['btnStudioTilesMode'], ctx => ctx.toggle(), {label: '.studio-mode-btn-label'});
+    add(context, 'toggle', context === 'mosaic' ? 'Editar peças' : 'Voltar ao mosaico', 'Ctrl+E', ['btnStudioTilesMode'], ctx => ctx.toggle(), {label: '.studio-mode-btn-label', labelText: context === 'mosaic' ? 'Editar peças' : 'Mosaico'});
   }
   add('mosaic', 'selectRect', 'Retângulo', 'Shift+M', ['toolSelectRect'], ctx => ctx.selectRegion('rect'), {detail:'Shift+arraste adiciona à seleção.'});
   add('mosaic', 'selectBrush', 'Pincel de seleção', 'W', ['toolSelectBrush'], ctx => ctx.selectRegion('brush'), {detail:'Shift+arraste adiciona à seleção.'});
@@ -81,7 +81,7 @@
         el.title = `${command.name}${command.shortcut ? ` (${command.shortcut})` : ''}`;
         if (command.label) {
           const label = el.querySelector?.(command.label);
-          if (label) label.textContent = command.name;
+          if (label) label.textContent = command.labelText || command.name;
           else if (command.id === 'copyEditable') el.textContent = command.name;
         }
       }

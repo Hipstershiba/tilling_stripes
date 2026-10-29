@@ -468,7 +468,7 @@ class PathfinderElement {
   querySelectorAll() {return [];}
 }
 const propsForPathfinder = new PathfinderElement(), visiblePathfinder = new PathfinderElement();
-const pathfinderContext = {iconizePropertyActions(){},document:{activeElement:null,createElement:()=>new PathfinderElement(),getElementById:id=>({vecPropsContainer:propsForPathfinder,tilePathfinderContainer:visiblePathfinder}[id]||null)},
+const pathfinderContext = {iconizePropertyActions(){},uiFormat:require('../core/ui_format.js'),document:{activeElement:null,createElement:()=>new PathfinderElement(),getElementById:id=>({vecPropsContainer:propsForPathfinder,tilePathfinderContainer:visiblePathfinder}[id]||null)},
   resolveDeps:()=>({ve:{VECTOR_TOOLS:[{id:'select',label:'Seleção'}],state:{activeTool:'select',selectedShapeIds:[]}},vb:{}}),
   ensureValidSelection:()=>({builtIn:true,protected:true}),getSelectedFamilyDoc:()=>({id:'builtin',shapes:[]})};
 const pathfinderSource = fs.readFileSync(path.join(baseDir,'core/subtile_studio_ui.js'),'utf8');
