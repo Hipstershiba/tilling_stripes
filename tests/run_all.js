@@ -5,6 +5,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const testSuites = [
+  'test_library_export.js',
   // 1. Math & Symmetry Kernel
   'test_tile_registry.js',
   'test_d4_invariance.js',

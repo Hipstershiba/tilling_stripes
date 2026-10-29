@@ -11,6 +11,11 @@
   const studio = () => win?.SubtileStudioUI;
   const tiles = () => doc?.body?.dataset.studioMode === 'tiles';
   const canEdit = () => tiles() && !libraryOpen;
+  const guideControls = {
+    mosaic:{axes:'toggleGuideAxes',blocks:'toggleGuideBlocks',pieces:'toggleGuideSubtiles',orbits:'toggleGuideOrbits'},
+    tiles:{axes:'toggleTileGuideAxes',grid:'toggleTileGuideGrid',ports:'toggleTileGuidePorts',margin:'toggleTileGuidePadding',snap:'btnTileSnapToggle'}
+  };
+  const guideControlId = (mode,key) => guideControls[mode]?.[key] || null;
   function menuStep(current, direction, length) {
     return length ? (current + direction + length) % length : -1;
   }
@@ -75,13 +80,14 @@
   function control(item) {
     const target = item.dataset.menuTarget;
     if (item.dataset.menuAction === 'object') return doc.querySelector('#vecPropsContainer ' + target + ', #tilePathfinderContainer ' + target);
-    if (item.dataset.menuAction === 'guide') return byId(target === 'axes' ? (tiles() ? 'toggleTileGuideAxes' : 'toggleGuideAxes') : (tiles() ? 'toggleTileGuideGrid' : 'toggleGuideBlocks'));
+    if (item.dataset.menuAction === 'guide') return byId(guideControlId(tiles() ? 'tiles' : 'mosaic',target));
     return byId(target);
   }
   function available(item) {
     const action = item.dataset.menuAction;
-    if (!action) return item.id !== 'btnExportSubtileSvg' || tiles() || libraryOpen;
+    if (!action) return item.id !== 'btnExportSubtileSvg' || Boolean(win.TileRegistry?.getFamilyById(studio()?.state.selectedFamilyId));
     if (action === 'open-library' || action === 'help' || action === 'import-svg') return true;
+    if (action === 'export-groups') return Boolean(win.LibraryExport && win.LibraryStore);
     if (action === 'close-library') return libraryOpen;
     if (action === 'library-click') return Boolean(control(item));
     if (action === 'tile-command') return canEdit() && studio()?.canRunCommand?.(item.dataset.menuTarget);
@@ -101,17 +107,18 @@
   }
   function syncMenus() {
     doc.querySelectorAll('#app-menubar .menu-command').forEach(item => {
-      item.disabled = !available(item); item.setAttribute('aria-disabled', String(item.disabled));
-      if (item.dataset.menuAction === 'guide' || item.dataset.menuTarget === 'btnToggleRightDock') {
+      item.hidden = Boolean(item.dataset.menuMode && item.dataset.menuMode !== (tiles() ? 'tiles' : 'mosaic'));
+      item.disabled = item.hidden || !available(item); item.setAttribute('aria-disabled', String(item.disabled));
+      if (item.dataset.menuAction === 'guide') {
         item.setAttribute('role', 'menuitemcheckbox');
-        const checked = item.dataset.menuAction === 'guide' ? Boolean(control(item)?.classList.contains('active')) : !doc.body.classList.contains('right-dock-collapsed');
+        const checked = Boolean(control(item)?.classList.contains('active'));
         item.setAttribute('aria-checked', String(checked));
       }
     });
   }
   function items(index = openIndex) {
     const popup = byId(triggers[index]?.getAttribute('aria-controls'));
-    return popup ? Array.from(popup.querySelectorAll('.menu-command:not(:disabled)')) : [];
+    return popup ? Array.from(popup.querySelectorAll('.menu-command:not(:disabled):not([hidden])')) : [];
   }
   function openMenu(index, focusItem = false, last = false) {
     closeMenus(); syncMenus(); openIndex = index;
@@ -124,7 +131,8 @@
   function execute(item) {
     const action = item.dataset.menuAction;
     if (action === 'open-library') return openLibrary();
-    if (action === 'import-svg') { if (!tiles()) openLibrary(); return; }
+    if (action === 'import-svg') { openLibrary(); return; }
+    if (action === 'export-groups') return win.LibraryExport?.open();
     if (action === 'close-library') return closeLibrary();
     if (action === 'help') { closeLibrary(); byId('btnHelp')?.click(); return; }
     if (action === 'tile-command') { studio()?.runCommand?.(item.dataset.menuTarget); return; }
@@ -137,6 +145,7 @@
     control(item)?.click();
   }
   function onKey(event) {
+    if (win?.LibraryExport?.isOpen()) return;
     if (event.key === 'F10' && !event.shiftKey) { event.preventDefault(); event.stopPropagation(); closeMenus(); triggers[0]?.focus(); return; }
     const inside = event.target.closest?.('#app-menubar');
     if (openIndex < 0 && !inside) {
@@ -190,7 +199,7 @@
     win.addEventListener('popstate', followRoute); win.addEventListener('hashchange', followRoute);
     if (win.location.hash === '#biblioteca') openLibrary(false);
   }
-  const api = {init,openLibrary,closeLibrary,refresh,isLibraryOpen:()=>libraryOpen,menuStep};
+  const api = {init,openLibrary,closeLibrary,refresh,isLibraryOpen:()=>libraryOpen,menuStep,guideControlId};
   if (win) win.WorkspaceNavigation = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (doc) { if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init, {once:true}); else init(); }

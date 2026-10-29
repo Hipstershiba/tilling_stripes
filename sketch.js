@@ -2059,7 +2059,7 @@ function clearFrozenCells() {
 }
 
 function mouseMoved() {
-  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
+  if (window.WorkspaceNavigation?.isLibraryOpen() || window.LibraryExport?.isOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     window.SubtileStudioUI?.handleViewportMouseMoved(mouseX, mouseY, StudioState);
     return;
@@ -2741,7 +2741,7 @@ function cycleActiveToolSize(direction) {
 }
 
 function mouseDragged() {
-  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
+  if (window.WorkspaceNavigation?.isLibraryOpen() || window.LibraryExport?.isOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     if (
       !StudioState.isPanning &&
@@ -2923,7 +2923,7 @@ function finishCanvasRegionCapture() {
 }
 
 function handleCanvasMouseDown(e) {
-  if (window.WorkspaceNavigation?.isLibraryOpen()) return;
+  if (window.WorkspaceNavigation?.isLibraryOpen() || window.LibraryExport?.isOpen()) return;
   if (StudioState.studioMode === 'tiles') {
     if (StudioState.activeTool === 'zoom') {
       e.preventDefault();

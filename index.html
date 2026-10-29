@@ -18,9 +18,6 @@
       <div class="app-menu-group">
         <button type="button" id="menu-file" class="app-menu-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file-popup" tabindex="0">Arquivo</button>
         <div id="menu-file-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-file">
-          <button type="button" role="menuitem" id="btnImportSubtileSvg" data-menu-action="import-svg" class="menu-command" title="Importar SVG" aria-label="Importar SVG"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar SVG</span></span></button>
-          <button type="button" role="menuitem" id="btnExportSubtileSvg" class="menu-command" title="Exportar SVG" aria-label="Exportar SVG"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar SVG</span></span></button>
-          <div class="menu-separator" role="separator"></div>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnExport" ><span>Exportar mosaico</span></button>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="close-library" ><span>Voltar ao estúdio</span></button>
         </div>
@@ -58,10 +55,17 @@
         <div id="menu-view-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-view">
           <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnFitArtboard" ><span>Ajustar à janela</span><kbd>0</kbd></button>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnZoomReset100" ><span>Zoom 100%</span><kbd>1</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnZoomIn"><span>Ampliar</span><kbd>+</kbd></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnZoomOut"><span>Reduzir</span><kbd>−</kbd></button>
           <div class="menu-separator" role="separator"></div>
-          <button type="button" role="menuitem" class="menu-command" data-menu-action="guide" data-menu-target="axes" ><span class="menu-check" aria-hidden="true">✓</span><span>Eixos</span></button>
-          <button type="button" role="menuitem" class="menu-command" data-menu-action="guide" data-menu-target="grid" ><span class="menu-check" aria-hidden="true">✓</span><span>Grade</span></button>
-          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="btnToggleRightDock" ><span class="menu-check" aria-hidden="true">✓</span><span>Painel lateral</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="axes"><span class="menu-check" aria-hidden="true">✓</span><span>Eixos</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="blocks" data-menu-mode="mosaic"><span class="menu-check" aria-hidden="true">✓</span><span>Blocos</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="pieces" data-menu-mode="mosaic"><span class="menu-check" aria-hidden="true">✓</span><span>Peças</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="orbits" data-menu-mode="mosaic"><span class="menu-check" aria-hidden="true">✓</span><span>Órbitas</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="grid" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Grade</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="ports" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Portas</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="margin" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Margem</span></button>
+          <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="snap" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Encaixar na grade</span></button>
         </div>
       </div>
       <div class="app-menu-group">
@@ -69,12 +73,16 @@
         <div id="menu-library-popup" class="app-menu-popup hidden" hidden role="menu" aria-labelledby="menu-library">
           <button type="button" role="menuitem" class="menu-command" data-menu-action="open-library" id="tileTabLibrary"><span>Gerenciar biblioteca…</span></button>
           <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" id="btnImportSubtileSvg" data-menu-action="import-svg" class="menu-command" title="Importar subtile (.svg)…" aria-label="Importar subtile (.svg)…"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar subtile (.svg)…</span></span></button>
+          <button type="button" role="menuitem" id="btnExportSubtileSvg" class="menu-command" title="Exportar subtile (.svg)" aria-label="Exportar subtile (.svg)"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar subtile (.svg)</span></span></button>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="export-groups"><span>Exportar conjuntos…</span></button>
+          <div class="menu-separator" role="separator"></div>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailNewSubtile" ><span>Nova peça</span></button>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailNewGroup" ><span>Novo conjunto</span></button>
           <button type="button" role="menuitem" class="menu-command" data-menu-action="library-click" data-menu-target="btnRailDuplicateSubtile" ><span>Duplicar peça</span></button>
           <div class="menu-separator" role="separator"></div>
-          <button type="button" role="menuitem" id="btnExportLibraryJson" class="menu-command" title="Exportar JSON" aria-label="Exportar JSON"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Exportar JSON</span></span></button>
-          <button type="button" role="menuitem" id="btnImportLibraryJson" class="menu-command" title="Importar JSON" aria-label="Importar JSON"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar JSON</span></span></button>
+          <button type="button" role="menuitem" id="btnExportLibraryJson" class="menu-command" title="Backup completo (.json)" aria-label="Backup completo (.json)"><span class="icon-slot" data-icon-slot="export"></span><span class="file-action-label"><span>Backup completo (.json)</span></span></button>
+          <button type="button" role="menuitem" id="btnImportLibraryJson" class="menu-command" title="Importar biblioteca (.json)…" aria-label="Importar biblioteca (.json)…"><span class="icon-slot" data-icon-slot="import"></span><span class="file-action-label"><span>Importar biblioteca (.json)…</span></span></button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" role="menuitem" id="btnResetLibraryDefaults" class="menu-command danger" title="Restaurar padrão" aria-label="Restaurar padrão"><span class="icon-slot" data-icon-slot="reset"></span><span class="file-action-label"><span>Restaurar padrão</span></span></button>
         </div>
@@ -226,6 +234,29 @@
         <div class="modal-dialog-actions">
           <button type="button" id="btnDirtyGuardCancel" class="btn-dialog-secondary">Cancelar</button>
           <button type="button" id="btnDirtyGuardConfirm" class="btn-dialog-primary">Regenerar</button>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="libraryExportDialog" class="modal-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="libraryExportTitle" aria-describedby="libraryExportDesc">
+      <div class="modal-dialog-card library-export-card">
+        <h3 id="libraryExportTitle" class="modal-dialog-title">Exportar conjuntos</h3>
+        <p id="libraryExportDesc" class="modal-dialog-desc">Escolha os conjuntos. O JSON permite reimportar e continuar editando; o ZIP reúne os SVGs e esse JSON.</p>
+        <div class="library-export-selection-actions">
+          <button type="button" id="btnLibraryExportAll" class="mini-btn">Todos</button>
+          <button type="button" id="btnLibraryExportNone" class="mini-btn">Limpar</button>
+        </div>
+        <fieldset class="library-export-fieldset"><legend>Conjuntos</legend><div id="libraryExportGroups" class="library-export-groups"></div></fieldset>
+        <label class="library-export-format" for="libraryExportFormat">Formato
+          <select id="libraryExportFormat" class="subtile-select"><option value="json">Biblioteca editável (.json)</option><option value="svg">SVGs + biblioteca editável (.zip)</option></select>
+        </label>
+        <label id="libraryExportVariantsRow" class="library-export-variants hidden"><input type="checkbox" id="libraryExportVariants" checked>Incluir todas as variantes D4</label>
+        <p id="libraryExportSummary" class="library-export-summary" role="status"></p>
+        <p id="libraryExportError" class="library-export-error hidden" role="alert"></p>
+        <div class="modal-dialog-actions">
+          <button type="button" id="btnLibraryExportCancel" class="btn-dialog-secondary">Cancelar</button>
+          <button type="button" id="btnLibraryExportSave" class="btn-dialog-primary">Exportar</button>
         </div>
       </div>
     </div>
@@ -1030,6 +1061,7 @@
         <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn"><span aria-hidden="true">←</span> Voltar ao estúdio</button>
         <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca de peças</h1><p>Organize conjuntos, famílias e arquivos.</p></div>
         <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
+        <button type="button" id="btnExportLibraryGroups" class="mini-btn library-groups-export-btn"><span class="icon-slot" data-icon-slot="export"></span>Exportar conjuntos…</button>
       </header>
           <!-- TILES PANEL 2: GERENCIADOR DE GRUPOS E FAMÍLIAS -->
           <section class="library-manager-panel" id="panel-tile-library-mgr" aria-label="Catálogo de peças">
@@ -1057,7 +1089,7 @@
                   <button type="button" id="btnRailNewSubtile" class="mini-btn accent icon-only" title="Nova peça" aria-label="Nova peça"><span class="icon-slot" data-icon-slot="plus"></span><span class="icon-label"><span>+ Novo Subtile</span></span></button>
                   <button type="button" id="btnRailNewGroup" class="mini-btn icon-only" title="Novo conjunto" aria-label="Novo conjunto"><span class="icon-slot" data-icon-slot="folderPlus"></span><span class="icon-label"><span>+ Novo Grupo</span></span></button>
                   <button type="button" id="btnRailDuplicateSubtile" class="mini-btn icon-only" title="Duplicar" aria-label="Duplicar"><span class="icon-slot" data-icon-slot="copy"></span><span class="icon-label"><span>Duplicar família</span></span></button>
-                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar peças" aria-label="Exportar peças"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label">Exportar Subtiles</span></button>
+                  <button type="button" id="btnLibMgrExportCustom" class="mini-btn icon-only" title="Exportar todas as peças autorais (.json)" aria-label="Exportar todas as peças autorais (.json)"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label">Exportar Subtiles</span></button>
                 </div>
               </div>
               </div>
@@ -1101,6 +1133,7 @@
   <script src="core/vector_editor.js"></script>
   <script src="core/vector_boolean.js"></script>
   <script src="core/subtile_studio_ui.js"></script>
+  <script src="core/library_export.js"></script>
   <script src="core/workspace_navigation.js"></script>
   <!-- Main Studio Controller -->
   <script src="sketch.js"></script>

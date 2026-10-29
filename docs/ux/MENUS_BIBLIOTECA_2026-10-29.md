@@ -12,14 +12,18 @@ A rota é `#biblioteca`. O editor permanece montado e oculto enquanto a página 
 
 | Menu | Responsabilidade |
 | --- | --- |
-| Arquivo | Importar SVG, exportar peça SVG e mosaico |
+| Arquivo | Exportar mosaico e voltar ao estúdio |
 | Editar | Desfazer, refazer, seleção, duplicar e excluir formas |
 | Objeto | Cópia editável, caminho, giros, espelhos e booleanas |
-| Exibir | Ajuste, zoom 100%, eixos, grade e painel lateral |
-| Biblioteca | Gerenciamento, nova peça/conjunto, duplicação, JSON e restauração |
+| Exibir | Ajuste, zoom 100%, ampliar/reduzir e todas as guias do ambiente ativo |
+| Biblioteca | Gerenciamento, SVG de subtiles, exportação por conjuntos, nova peça/conjunto, duplicação, JSON e restauração |
 | Ajuda | Ajuda e atalhos do estúdio |
 
 Os menus reutilizam os handlers existentes. A disponibilidade acompanha o ambiente e a seleção. Comandos de edição ficam desabilitados no gerenciamento da biblioteca. Importar SVG pela biblioteca cria família nova, evitando alterar a peça selecionada por acidente.
+
+No mosaico, Exibir oferece Eixos, Blocos, Peças e Órbitas. No editor de peças, oferece Eixos, Grade, Portas, Margem e Encaixar na grade. Recolher o painel fica no botão do próprio painel.
+
+Exportar conjuntos abre um diálogo de seleção múltipla, com o conjunto atual inicialmente marcado. JSON preserva os dados para reimportação; ZIP reúne SVGs por conjunto/família e um manifesto JSON. O ZIP permite exportar somente matrizes ou incluir as variantes D4 registradas. Backup completo continua disponível separadamente. Exportar não altera a biblioteca nem o schema.
 
 ## Pathfinder
 

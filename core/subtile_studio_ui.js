@@ -3578,21 +3578,23 @@
 
     // Fase D: SVG Import / Export & Layer Z-Order toolbar
     const svgInput = document.getElementById('subtileSvgFileInput');
-    const openSvgPicker = () => {
+    const openSvgPicker = (asNewFamily = false) => {
       if (svgInput) {
+        svgInput.dataset.asNewFamily = String(asNewFamily);
         svgInput.value = '';
         svgInput.click();
       }
     };
-    document.getElementById('btnImportSubtileSvg')?.addEventListener('click', openSvgPicker);
-    document.getElementById('btnLayersImportSvg')?.addEventListener('click', openSvgPicker);
+    document.getElementById('btnImportSubtileSvg')?.addEventListener('click', () => openSvgPicker(true));
+    document.getElementById('btnLayersImportSvg')?.addEventListener('click', () => openSvgPicker(false));
     svgInput?.addEventListener('change', (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
+      const asNewFamily = svgInput.dataset.asNewFamily === 'true' || !isTilesMode() || (typeof window !== 'undefined' && Boolean(window.WorkspaceNavigation?.isLibraryOpen()));
       const reader = new FileReader();
       reader.onload = () => {
         handleImportSvgText(String(reader.result || ''), file.name, {
-          asNewFamily: !isTilesMode() || (typeof window !== 'undefined' && Boolean(window.WorkspaceNavigation?.isLibraryOpen()))
+          asNewFamily
         });
       };
       reader.onerror = () => {

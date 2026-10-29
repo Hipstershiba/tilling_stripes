@@ -1,0 +1,72 @@
+const assert = require('assert');
+const Export = require('../core/library_export.js');
+global.window = {};
+global.window.SimpleSVG = require('../libraries/simple-svg.js');
+require('../core/d4_symmetry.js');
+const Registry = require('../core/tile_registry.js');
+const Store = window.LibraryStore;
+const VectorBoolean = require('../core/vector_boolean.js');
+const groupA = Store.createGroup('Conjunto Á'), groupB = Store.createGroup('Outro conjunto');
+const familyA = Store.createFamily({name:'Peça A',groupId:groupA.id,shapes:[{id:'r',type:'rect',x:-0.5,y:-0.5,w:0.5,h:1,fill:true}]}).family;
+const familyB = Store.createFamily({name:'Peça B',groupId:groupB.id,shapes:[{id:'b',type:'ellipse',cx:0,cy:0,rx:0.4,ry:0.4,fill:true}]}).family;
+const full = JSON.parse(Store.exportLibraryJSON());
+const before = JSON.stringify(full);
+const chosen = Export.selectGroups(full,[groupA.id,'grp-ribbons',groupA.id]);
+assert.deepStrictEqual(new Set(chosen.groups.map(g=>g.id)),new Set([groupA.id,'grp-ribbons']));
+assert(chosen.families.some(f=>f.id===familyA.id));
+assert(!chosen.families.some(f=>f.id===familyB.id));
+assert(chosen.families.every(f=>[groupA.id,'grp-ribbons'].includes(f.groupId)));
+assert.equal(JSON.stringify(full),before,'Scoped export must not modify the source library');
+assert.throws(()=>Export.selectGroups(full,[]),/Selecione/);
+assert.throws(()=>Export.selectGroups(full,['missing']),/não encontrado/);
+const fresh = Store.createLibraryStoreInstance();
+fresh.importLibraryJSON(JSON.stringify(chosen),{mode:'merge'});
+assert(fresh.getFamilyById(familyA.id),'Selected families remain reimportable');
+assert(!fresh.getFamilyById(familyB.id),'Unselected authored families must not leak into the pack');
+assert(fresh.getCompiled().totalTiles>=85,'Reimport preserves the complete canonical D4 catalog');
+const options={render:VectorBoolean.exportFamilyToSVG,transforms:id=>Registry.getFamilyById(id)?.variantTransforms||['id']};
+const masters=Export.svgEntries(chosen,{...options,includeVariants:false});
+assert.equal(masters.length,chosen.families.length+1);
+const variants=Export.svgEntries(chosen,{...options,includeVariants:true});
+const expected=chosen.families.reduce((sum,f)=>sum+new Set(options.transforms(f.id)).size,0);
+assert.equal(variants.length,expected+1);
+assert.equal(new Set(variants.map(f=>f.name)).size,variants.length);
+assert.deepStrictEqual(JSON.parse(variants[0].data),chosen);
+for(const entry of variants.slice(1)){
+  assert(entry.name.endsWith('.svg')&&!entry.name.includes('..'));
+  const parsed=VectorBoolean.importSVGToShapes(entry.data);
+  assert(parsed.ok,`${entry.name} must remain valid vector SVG`);
+}
+assert.equal(Export.crc32(new TextEncoder().encode('123456789')),0xcbf43926);
+function readZip(bytes){
+  const buffer=Buffer.from(bytes),end=buffer.length-22;
+  assert.equal(buffer.readUInt32LE(end),0x06054b50);
+  const count=buffer.readUInt16LE(end+10),offset=buffer.readUInt32LE(end+16),size=buffer.readUInt32LE(end+12);
+  assert.equal(offset+size,end);
+  let cursor=offset;const entries=new Map();
+  for(let i=0;i<count;i++){
+    assert.equal(buffer.readUInt32LE(cursor),0x02014b50);
+    assert.equal(buffer.readUInt16LE(cursor+10),0,'SVG packages use stored ZIP entries');
+    assert(buffer.readUInt16LE(cursor+8)&0x800,'Names must be UTF-8');
+    const length=buffer.readUInt32LE(cursor+24),nameLength=buffer.readUInt16LE(cursor+28),start=buffer.readUInt32LE(cursor+42);
+    const name=buffer.subarray(cursor+46,cursor+46+nameLength).toString('utf8');
+    assert.equal(buffer.readUInt32LE(start),0x04034b50);
+    const dataStart=start+30+buffer.readUInt16LE(start+26)+buffer.readUInt16LE(start+28);
+    const data=buffer.subarray(dataStart,dataStart+length);
+    assert.equal(Export.crc32(data),buffer.readUInt32LE(cursor+16));
+    assert.equal(buffer.readUInt32LE(start+14),buffer.readUInt32LE(cursor+16));
+    entries.set(name,data.toString('utf8'));
+    cursor+=46+nameLength+buffer.readUInt16LE(cursor+30)+buffer.readUInt16LE(cursor+32);
+  }
+  assert.equal(cursor,end);return entries;
+}
+const zipped=readZip(Export.storedZip(variants));
+assert.deepStrictEqual(JSON.parse(zipped.get('biblioteca.json')),chosen);
+assert.equal(zipped.size,variants.length);
+const unicode=readZip(Export.storedZip([{name:'área/peça.svg',data:'<svg>ação</svg>'}]));
+assert.equal(unicode.get('área/peça.svg'),'<svg>ação</svg>');
+assert.throws(()=>Export.storedZip([{name:'../outside.svg',data:'x'}]),/inválido/);
+assert.throws(()=>Export.storedZip([{name:'a',data:'x'},{name:'a',data:'y'}]),/repetido/);
+assert.equal(JSON.stringify(full),before);
+console.log('✓ Group exports isolate selected families, round-trip JSON and preserve the canonical catalog.');
+console.log('✓ Master/variant SVGs round-trip as vectors; ZIP names, directory, lengths, CRC and UTF-8 verified.');

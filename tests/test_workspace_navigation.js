@@ -48,6 +48,18 @@ const windowStub={location,history:{pushState(_a,_b,url){pushes++;updateUrl(url)
 const context={window:windowStub,document:documentStub,module:{exports:{}}};
 vm.runInNewContext(fs.readFileSync(require.resolve('../core/workspace_navigation.js'),'utf8'),context);
 const navigation=context.module.exports;
+for(const [mode,keys] of Object.entries({mosaic:['axes','blocks','pieces','orbits'],tiles:['axes','grid','ports','margin','snap']})){
+  for(const key of keys)assert(navigation.guideControlId(mode,key),`${mode} exposes ${key}`);
+}
+assert.equal(navigation.guideControlId('mosaic','grid'),null);
+assert.equal(navigation.guideControlId('tiles','orbits'),null);
+const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
+const popup=id=>html.split(`id="${id}"`)[1].split('<div class="app-menu-group">')[0];
+const fileMenu=popup('menu-file-popup'), libraryMenu=popup('menu-library-popup'), viewMenu=popup('menu-view-popup');
+assert(!fileMenu.includes('btnImportSubtileSvg')&&!fileMenu.includes('btnExportSubtileSvg'),'SVG subtiles belong to Library');
+assert(libraryMenu.includes('btnImportSubtileSvg')&&libraryMenu.includes('btnExportSubtileSvg'));
+assert(libraryMenu.includes('export-groups'));
+assert(!viewMenu.includes('btnToggleRightDock'),'Panel collapse belongs to the dock');
 assert.equal(navigation.isLibraryOpen(),false);
 assert.equal(navigation.openLibrary(),true);
 assert.equal(nodes['library-page'].hidden,false);
