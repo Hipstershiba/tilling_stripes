@@ -6962,3 +6962,66 @@ body.right-dock-collapsed #dock-export { display: none !important; }
 #railFlyoutPieces { top: 48px; max-height: calc(100vh - 160px); }
 #railFlyoutDocument { top: 84px; max-height: calc(100vh - 200px); }
 #railFlyoutScope { top: 120px; max-height: calc(100vh - 240px); }
+
+/* Topo do dock: Simetria e Escopo em abas; Pincel ocupa o restante. */
+#dock-workspace-generate > #panelSymmetryGroup {
+  flex: 0 1 46%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid #262930;
+}
+#dock-workspace-generate > #panel-edit-brush { flex: 1 1 0; min-height: 0; }
+
+.dock-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 6px;
+  background: #1f2126;
+  border-bottom: 1px solid #2b2e35;
+}
+.dock-subtabs-list { display: flex; gap: 2px; }
+.dock-subtab {
+  height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color var(--transition-ui), background-color var(--transition-ui), border-color var(--transition-ui);
+}
+.dock-subtab:hover { color: var(--text-primary); background: #24272d; }
+.dock-subtab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-blue);
+  background: #24272d;
+}
+.dock-subtabs .edit-undo-bar { margin-left: auto; }
+
+#panelSymmetryGroup > .dock-panel { flex: 1 1 auto; min-height: 0; border: 0; }
+#panelSymmetryGroup > .dock-panel > .panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Peças: flyout com altura explícita para a lista realmente rolar. */
+#railFlyoutPieces {
+  height: calc(100vh - 160px);
+  max-height: calc(100vh - 160px);
+}
+
+/* Corpo da lista de peças precisa ser o elo flexível; sem isso a lista
+   cresce com o conteúdo e o flyout apenas recorta. */
+#railFlyoutPieces #panelSwatchesBody {
+  flex: 1 1 auto;
+  min-height: 0;
+}

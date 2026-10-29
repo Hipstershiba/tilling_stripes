@@ -3754,9 +3754,53 @@ function syncContextPanel() {
 const RAIL_FLYOUTS = [
   { id: 'history', buttonId: 'btnToggleHistory', flyoutId: 'seedHistoryList' },
   { id: 'pieces', buttonId: 'railTogglePieces', flyoutId: 'railFlyoutPieces' },
-  { id: 'document', buttonId: 'railToggleDocument', flyoutId: 'railFlyoutDocument' },
-  { id: 'scope', buttonId: 'railToggleScope', flyoutId: 'railFlyoutScope' }
+  { id: 'document', buttonId: 'railToggleDocument', flyoutId: 'railFlyoutDocument' }
 ];
+
+const PROPERTY_TABS = [
+  ['symmetry', 'panel-symmetry', 'propsTabSymmetry'],
+  ['scope', 'panel-edit-scope', 'propsTabScope']
+];
+let activePropertyTab = 'symmetry';
+
+function setPropertiesTab(tab, focus = false) {
+  const entry = PROPERTY_TABS.find(([id]) => id === tab) || PROPERTY_TABS[0];
+  activePropertyTab = entry[0];
+  PROPERTY_TABS.forEach(([id, panelId, buttonId]) => {
+    const panel = document.getElementById(panelId);
+    const button = document.getElementById(buttonId);
+    const selected = id === entry[0];
+    panel?.classList.toggle('hidden', !selected);
+    if (button) {
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+    }
+  });
+  if (focus) document.getElementById(entry[2])?.focus();
+}
+
+function initPropertiesTabs() {
+  const tabs = document.getElementById('propertiesTabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('[role="tab"]').forEach((button) => {
+    button.addEventListener('click', () => setPropertiesTab(button.getAttribute('aria-controls') === 'panel-edit-scope' ? 'scope' : 'symmetry'));
+  });
+  tabs.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = [...tabs.querySelectorAll('[role="tab"]')];
+    const index = buttons.findIndex((button) => button.classList.contains('active'));
+    let next = index;
+    if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = buttons.length - 1;
+    else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
+    else next = (index + 1) % buttons.length;
+    const target = buttons[next];
+    setPropertiesTab(target.getAttribute('aria-controls') === 'panel-edit-scope' ? 'scope' : 'symmetry', true);
+  });
+  setPropertiesTab(activePropertyTab);
+}
 let activeRailFlyout = null;
 
 function scrollHistoryToActive() {
@@ -4131,6 +4175,7 @@ function initStudioUI() {
   document.getElementById('btnDirtyGuardConfirm')?.addEventListener('click', () => closeDirtyGuard(true));
   window.InfoUI?.init();
   initRailFlyouts();
+  initPropertiesTabs();
   document.getElementById('railOpenLibrary')?.addEventListener('click', () => {
     setRailFlyout(null);
     window.WorkspaceNavigation?.openLibrary?.();

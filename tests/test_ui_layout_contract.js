@@ -193,28 +193,33 @@ if (html.includes('id="dock-workspace-edit"')) {
 }
 const generatePaneContent = getElementBounds(html, 'dock-workspace-generate');
 if (!generatePaneContent) throw new Error('Missing #dock-workspace-generate in index.html');
-for (const id of ['panel-symmetry', 'panel-edit-brush']) {
-  if (!generatePaneContent.content.includes(`id="${id}"`)) {
-    throw new Error(`Contract violation: #${id} must live in the stacked dock pane.`);
+const symmetryGroupBounds = getElementBounds(html, 'panelSymmetryGroup');
+if (!symmetryGroupBounds) throw new Error('Missing #panelSymmetryGroup in index.html');
+if (!generatePaneContent.content.includes('id="panelSymmetryGroup"')) {
+  throw new Error('Contract violation: #panelSymmetryGroup must live in #dock-workspace-generate.');
+}
+for (const id of ['panel-symmetry', 'panel-edit-scope']) {
+  if (!symmetryGroupBounds.content.includes(`id="${id}"`)) {
+    throw new Error(`Contract violation: #${id} must live in #panelSymmetryGroup.`);
   }
 }
-for (const [flyoutId, panelId] of [
-  ['railFlyoutPieces', 'panel-swatches'],
-  ['railFlyoutScope', 'panel-edit-scope']
-]) {
-  const flyoutBounds = getElementBounds(html, flyoutId);
-  if (!flyoutBounds) throw new Error(`Missing #${flyoutId} in index.html`);
-  if (!utilityRailBoundsEarly.content.includes(`id="${flyoutId}"`)) {
-    throw new Error(`Contract violation: #${flyoutId} must live inside #utility-rail.`);
-  }
-  if (!flyoutBounds.content.includes(`id="${panelId}"`)) {
-    throw new Error(`Contract violation: #${panelId} must live inside #${flyoutId}.`);
-  }
-  if (generatePaneContent.content.includes(`id="${panelId}"`)) {
-    throw new Error(`Contract violation: #${panelId} must not be in the main dock.`);
-  }
+if (!generatePaneContent.content.includes('id="panel-edit-brush"')) {
+  throw new Error('Contract violation: #panel-edit-brush must live in #dock-workspace-generate.');
 }
-console.log('✓ Main dock = Simetria + Pincel; Peças/Documento/Escopo are rail flyouts.');
+if (!html.includes('id="railFlyoutPieces"') || html.includes('id="railFlyoutScope"')) {
+  throw new Error('Contract violation: only Peças and Documento remain as rail flyouts.');
+}
+const piecesFlyoutBounds = getElementBounds(html, 'railFlyoutPieces');
+if (!piecesFlyoutBounds || !utilityRailBoundsEarly.content.includes('id="railFlyoutPieces"')) {
+  throw new Error('Contract violation: #railFlyoutPieces must live inside #utility-rail.');
+}
+if (!piecesFlyoutBounds.content.includes('id="panel-swatches"')) {
+  throw new Error('Contract violation: #panel-swatches must live inside #railFlyoutPieces.');
+}
+if (generatePaneContent.content.includes('id="panel-swatches"')) {
+  throw new Error('Contract violation: #panel-swatches must not be in the main dock.');
+}
+console.log('✓ Main dock = Simetria/Escopo (abas) + Pincel; Peças/Documento are rail flyouts.');
 
 const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed'];
 for (const scId of seedControlIds) {
@@ -352,7 +357,7 @@ console.log('✓ No sidebar scrolls; each panel and the tiles list keep their ow
 if (html.includes('id="dockTabs"')) {
   throw new Error('Contract violation: the dock no longer uses a tab strip; Simetria and Pincel are stacked.');
 }
-const railToggleIds = ['railTogglePieces', 'railToggleDocument', 'railToggleScope'];
+const railToggleIds = ['railTogglePieces', 'railToggleDocument'];
 for (const toggleId of railToggleIds) {
   const toggleBounds = getElementBounds(html, toggleId);
   if (!toggleBounds) throw new Error(`Missing #${toggleId} in index.html`);
@@ -376,7 +381,23 @@ if (!/\.rail-flyout\s*\{[^}]*right:\s*calc\(100%\s*\+\s*10px\)/s.test(css)) {
 if (!/\.rail-flyout > \.dock-panel > \.panel-body\s*\{[^}]*overflow-y:\s*auto/s.test(css)) {
   throw new Error('Contract violation: flyout panels must scroll internally.');
 }
-console.log('✓ Rail flyouts for Peças/Documento/Escopo; main dock keeps only Simetria + Pincel.');
+if (!/#railFlyoutPieces\s*\{[^}]*height:\s*calc\(100vh/s.test(css)) {
+  throw new Error('Contract violation: #railFlyoutPieces needs an explicit height so its list scrolls.');
+}
+for (const tabId of ['propsTabSymmetry', 'propsTabScope']) {
+  const tabBounds = getElementBounds(html, tabId);
+  if (!tabBounds) throw new Error(`Missing #${tabId} in index.html`);
+  if (!/role="tab"/.test(tabBounds.content)) throw new Error(`#${tabId} must have role="tab".`);
+  const panelId = /aria-controls="([^"]+)"/.exec(tabBounds.content)?.[1];
+  if (!panelId || !symmetryGroupBounds.content.includes(`id="${panelId}"`)) {
+    throw new Error(`#${tabId} must control a panel inside #panelSymmetryGroup.`);
+  }
+  const panelTag = new RegExp(`<section[^>]*id="${panelId}"[^>]*>`).exec(html)?.[0] || '';
+  if (!/role="tabpanel"/.test(panelTag)) {
+    throw new Error(`#${panelId} must be a tabpanel.`);
+  }
+}
+console.log('✓ Rail flyouts for Peças/Documento; Simetria+Escopo share the top dock tabs.');
 
 // 10. Both environments share outer toolbar scrolling; history stays in its flyout.
 if (!/\s*#left-toolbar\s*\{[^}]*overflow-y:\s*auto/.test(css)) {
