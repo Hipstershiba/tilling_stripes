@@ -60,11 +60,37 @@ const crossed = EdgeSignatures.scoreSide(horizontal.sides.right, vertical.sides.
 const empty = EdgeSignatures.getTileProfile(window.TileRegistry.CANONICAL_EMPTY_TILE_ID);
 const emptySame = EdgeSignatures.scoreSide(empty.sides.left, empty.sides.right);
 const emptyFill = EdgeSignatures.scoreSide(empty.sides.left, horizontal.sides.left);
+const emptySide = horizontal.sides.top; // empty side of a drawn tile (negative space)
+const emptySideSame = EdgeSignatures.scoreSide(emptySide, emptySide);
 assert.ok(same > 0.98, `matching horizontal stripes must score high, got ${same}`);
-assert.ok(crossed < 0.25, `perpendicular stripes must score low, got ${crossed}`);
-assert.strictEqual(emptySame, 0, `two empty sides must not outrank real ink continuity, got ${emptySame}`);
-assert.ok(emptyFill < 0.15, `empty against ink must score low, got ${emptyFill}`);
-console.log(`✓ Edge scores: same=${same.toFixed(3)} crossed=${crossed.toFixed(3)} empty=${emptySame.toFixed(3)}.`);
+assert.ok(crossed < 0.5, `perpendicular stripes must score below a real continuation, got ${crossed}`);
+assert.strictEqual(emptySame, 0, `the canonical empty tile must not be a good neighbour, got ${emptySame}`);
+assert.ok(emptyFill < 0.3, `the canonical empty tile against ink must score low, got ${emptyFill}`);
+assert.ok(emptySideSame > 0.3 && emptySideSame < 0.5,
+  `empty sides of drawn tiles keep negative-space continuity but do not dominate, got ${emptySideSame}`);
+console.log(`✓ Edge scores: same=${same.toFixed(3)} crossed=${crossed.toFixed(3)} ` +
+  `emptyTile=${emptySame.toFixed(3)} emptySide=${emptySideSame.toFixed(3)}.`);
+
+// A fully white side is capped against another fully white side; against a
+// matching partial side it still continues, and against an empty side it is a
+// clean contrast boundary.
+let fullSide = null;
+for (let id = 0; id < totalTiles && !fullSide; id++) {
+  const profile = EdgeSignatures.getTileProfile(id);
+  for (const side of EdgeSignatures.SIDES) {
+    if (profile.sides[side].coverage >= 0.99) { fullSide = profile.sides[side]; break; }
+  }
+}
+assert.ok(fullSide, 'the catalog must expose at least one fully white side');
+const whiteWhite = EdgeSignatures.scoreSide(fullSide, fullSide);
+const whiteContrast = EdgeSignatures.scoreSide(fullSide, emptySide);
+const whitePartial = EdgeSignatures.scoreSide(fullSide, horizontal.sides.left);
+assert.ok(Math.abs(whiteWhite - 0.55) < 1e-9, `white-white must be capped, got ${whiteWhite}`);
+assert.ok(Math.abs(whiteContrast - 0.7) < 1e-9, `white-empty must read as contrast, got ${whiteContrast}`);
+assert.ok(whiteContrast > whiteWhite, 'a full white side must prefer contrast over another full white side');
+assert.ok(whitePartial > whiteWhite, 'a full white side must still continue a partial white ribbon');
+console.log(`✓ Saturated seams: white-white=${whiteWhite.toFixed(2)}, ` +
+  `white-contrast=${whiteContrast.toFixed(2)}, white-partial=${whitePartial.toFixed(2)}.`);
 
 const rotated = EdgeSignatures.getOrientedProfile(0, 'r90');
 approx(rotated.sides.left.coverage, 0, 0.01, 'rotated horizontal stripe leaves the left edge empty');

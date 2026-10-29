@@ -18,6 +18,7 @@
     'blockSymmetryMode',
     'syncBlockSymmetry',
     'edgeMatch',
+    'edgeVariability',
     'margin',
     'paddingRatio',
     'width',

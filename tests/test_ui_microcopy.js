@@ -65,6 +65,15 @@ assert.ok(!/edge-match-hint|edge-match-copy/.test(css), 'the edge-match hint/cop
 assert.ok(!html.includes('Continua as regiões de tinta'), 'the explanation must not be printed in the chrome');
 console.log('✓ Edge-match switch: icon, short name, tooltip, info trigger, no hint line.');
 
+// 2b. The variability control follows the same rule: icon, short name, full name on hover.
+assert.ok(section.includes('data-icon-slot="variability"'), 'the variability slider must lead with an icon');
+assert.ok(/>\s*Variedade\s*</.test(section), 'the variability control name must be the short "Variedade"');
+assert.ok(/title="Variabilidade do encaixe"/.test(section),
+  'hovering the variability control must reveal its full name');
+assert.ok(section.indexOf('variability') < section.indexOf('Variedade'), 'the variability icon comes before the name');
+assert.ok(!/temperatura entre fidelidade/.test(html), 'the variability explanation must not be printed in the chrome');
+console.log('✓ Variability control: icon, short name, tooltip, no explaining copy.');
+
 // 3. The explanation moved into the information system, keyed by the same topic.
 global.window = {};
 window.StudioCommands = require(path.join(baseDir, 'core/studio_commands.js'));
@@ -78,6 +87,8 @@ assert.ok(typeof edgeTopic.title === 'string' && edgeTopic.title.length > 0, 'th
 assert.ok(Array.isArray(edgeTopic.body) && edgeTopic.body.length >= 2, 'the topic needs bullet items');
 assert.ok(edgeTopic.body.some((line) => line.includes('regiões de tinta')),
   'the explanation removed from the chrome must live in the topic body');
+assert.ok(edgeTopic.body.some((line) => line.includes('Variedade')),
+  'the variability tradeoff must live in the edge-match topic');
 console.log('✓ The explanation is available in the info popover and the help menu.');
 
 // 4. Every info trigger points at a topic that actually exists.

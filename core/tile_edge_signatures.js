@@ -543,6 +543,7 @@
     const sides = {};
     for (const side of SIDES) {
       sides[side] = buildSide(new Uint8Array(EDGE_RESOLUTION), []);
+      sides[side].emptyTile = true;
     }
     return { tileId, version: EDGE_SIGNATURE_VERSION, resolution: EDGE_RESOLUTION, sides, empty: true };
   }
@@ -562,6 +563,7 @@
     }
 
     const region = buildRegionTags(rec);
+    const isEmpty = rec.shapes.length === 0;
     const sides = {};
     for (const side of SIDES) {
       const bits = new Uint8Array(EDGE_RESOLUTION);
@@ -573,6 +575,7 @@
         regionValues.push(sideRegionTag(region, side, t));
       }
       sides[side] = buildSide(bits, runsFromValues(regionValues, false));
+      sides[side].emptyTile = isEmpty;
     }
 
     return {
@@ -580,7 +583,7 @@
       version: EDGE_SIGNATURE_VERSION,
       resolution: EDGE_RESOLUTION,
       sides,
-      empty: rec.shapes.length === 0
+      empty: isEmpty
     };
   }
 
@@ -640,6 +643,7 @@
         bits[i] = base.sides[mapped.side].bits[idx];
       }
       sides[targetSide] = buildSide(bits, []);
+      sides[targetSide].emptyTile = Boolean(base.empty);
     }
 
     const profile = {
@@ -693,11 +697,29 @@
   }
 
   /**
-   * Scores a pair of touching sides. Fill (white/ink) continuity dominates;
-   * background continuity only breaks ties. Near matches are rewarded through
-   * a soft, blurred comparison, so a perfect fit is not mandatory.
+   * Scores a pair of touching sides.
+   *
+   * Both channels are first-class: the score rewards fill (ink) continuity and
+   * background (empty) continuity, using overlap coefficients so a thin ribbon
+   * can continue into a wider one. Saturated seams are handled
+   * explicitly:
+   *   - all-white against all-white is capped (avoid solid white masses);
+   *   - all-empty against all-empty is capped (negative space is valid, but it
+   *     must not swallow the mosaic);
+   *   - all-white against all-empty is a contrast seam and scores high;
+   *   - the canonical empty tile never becomes a good neighbour.
+   * Near matches are still rewarded through a soft, blurred comparison.
    * Returns 0..1.
    */
+  const FULL_COVERAGE = 0.85;
+  const EMPTY_COVERAGE = 0.15;
+  const FILL_WEIGHT = 0.6;
+  const BG_WEIGHT = 0.4;
+  const WHITE_WHITE_SCORE = 0.55;
+  const CONTRAST_SCORE = 0.7;
+  const EMPTY_EMPTY_SCORE = 0.4;
+  const EMPTY_TILE_SCORE = 0.2;
+
   function popcount32(value) {
     let v = value - ((value >>> 1) & 0x55555555);
     v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
@@ -707,10 +729,23 @@
   function scoreSide(a, b) {
     if (!a || !b || !a.bits || !b.bits) return 0;
 
-    // Two empty sides share no ink. Background continuity alone must not
-    // outrank a real fill seam, otherwise empty tiles propagate through the
-    // mosaic. Empty-vs-empty is therefore a neutral 0, not a match.
-    if (a.fillCount === 0 && b.fillCount === 0) return 0;
+    // The canonical empty tile must not win neighbours through background
+    // continuity; otherwise emptiness propagates through the whole mosaic.
+    if (a.emptyTile || b.emptyTile) {
+      return a.emptyTile && b.emptyTile ? 0 : EMPTY_TILE_SCORE;
+    }
+
+    const aFull = a.coverage >= FULL_COVERAGE;
+    const bFull = b.coverage >= FULL_COVERAGE;
+    const aEmpty = a.coverage <= EMPTY_COVERAGE;
+    const bEmpty = b.coverage <= EMPTY_COVERAGE;
+
+    // Saturated same-colour seams are deliberately capped: joining two full
+    // white sides makes a white mass, and joining two empty sides makes a hole.
+    if (aFull && bFull) return WHITE_WHITE_SCORE;
+    if (aEmpty && bEmpty) return EMPTY_EMPTY_SCORE;
+    // A full white side against an empty side is a clean contrast boundary.
+    if ((aFull && bEmpty) || (aEmpty && bFull)) return CONTRAST_SCORE;
 
     // Exact 64-bit mask equality: perfect seam, no further work.
     if (a.bitWord0 === b.bitWord0 && a.bitWord1 === b.bitWord1) return 1;
@@ -726,38 +761,42 @@
     }
 
     const interFill = popcount32(a.bitWord0 & b.bitWord0) + popcount32(a.bitWord1 & b.bitWord1);
-    const unionFill = a.fillCount + b.fillCount - interFill;
-    const hardFill = unionFill ? interFill / unionFill : 0;
-
-    const sampleCount = a.bits.length;
-    const interBg = sampleCount - unionFill;
-    const unionBg = (sampleCount - a.fillCount) + (sampleCount - b.fillCount) - interBg;
-    const hardBg = unionBg ? interBg / unionBg : 1;
+    const fillMin = Math.min(a.fillCount, b.fillCount);
+    const interBg = a.bits.length - (a.fillCount + b.fillCount - interFill);
+    const bgMin = Math.min(a.bits.length - a.fillCount, a.bits.length - b.fillCount);
+    const hardFillOverlap = fillMin ? interFill / fillMin : 0;
+    const hardBgOverlap = bgMin ? interBg / bgMin : 0;
 
     let softInterFill = 0;
-    let softUnionFill = 0;
     let softInterBg = 0;
-    let softUnionBg = 0;
-    const softA = a.softBits;
-    const softB = b.softBits;
-    const softBgA = a.softBgBits;
-    const softBgB = b.softBgBits;
-    for (let i = 0; i < sampleCount; i++) {
-      const af = softA[i];
-      const bf = softB[i];
+    let softFillSumA = 0;
+    let softFillSumB = 0;
+    let softBgSumA = 0;
+    let softBgSumB = 0;
+    const softFillBitsA = a.softBits;
+    const softFillBitsB = b.softBits;
+    const softBgBitsA = a.softBgBits;
+    const softBgBitsB = b.softBgBits;
+    for (let i = 0; i < a.bits.length; i++) {
+      const af = softFillBitsA[i];
+      const bf = softFillBitsB[i];
       softInterFill += af < bf ? af : bf;
-      softUnionFill += af > bf ? af : bf;
-      const ab = softBgA[i];
-      const bb = softBgB[i];
+      softFillSumA += af;
+      softFillSumB += bf;
+      const ab = softBgBitsA[i];
+      const bb = softBgBitsB[i];
       softInterBg += ab < bb ? ab : bb;
-      softUnionBg += ab > bb ? ab : bb;
+      softBgSumA += ab;
+      softBgSumB += bb;
     }
-    const softFill = softUnionFill ? softInterFill / softUnionFill : 0;
-    const softBg = softUnionBg ? softInterBg / softUnionBg : 1;
+    const softFillMin = Math.min(softFillSumA, softFillSumB);
+    const softBgMin = Math.min(softBgSumA, softBgSumB);
+    const softFillOverlap = softFillMin ? softInterFill / softFillMin : 0;
+    const softBgOverlap = softBgMin ? softInterBg / softBgMin : 0;
 
-    const fillScore = 0.8 * hardFill + 0.2 * softFill;
-    const bgScore = 0.8 * hardBg + 0.2 * softBg;
-    const score = clamp(0.85 * fillScore + 0.15 * bgScore, 0, 1);
+    const fillScore = 0.8 * hardFillOverlap + 0.2 * softFillOverlap;
+    const bgScore = 0.8 * hardBgOverlap + 0.2 * softBgOverlap;
+    const score = clamp(FILL_WEIGHT * fillScore + BG_WEIGHT * bgScore, 0, 1);
 
     if (cacheKey !== null) {
       scoreCache.set(cacheKey, score);

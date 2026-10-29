@@ -162,6 +162,7 @@
 
     // -- Geração de mosaico ---------------------------------------------------
     edgeJoin: '<rect x="2.6" y="5.4" width="8.2" height="13.2" rx="1.4"/><rect x="13.2" y="5.4" width="8.2" height="13.2" rx="1.4"/><path d="M10.8 9.4h2.4M10.8 12h2.4M10.8 14.6h2.4"/>',
+    variability: '<path d="M3.5 19.5h17" opacity=".55"/><circle cx="6.2" cy="15.2" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="11.2" r="1.6" fill="currentColor" stroke="none"/><circle cx="17.8" cy="15.2" r="1.6" fill="currentColor" stroke="none"/><circle cx="9.1" cy="6.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.4" cy="6.4" r="1.3" fill="currentColor" stroke="none"/>',
 
     // -- Arquivos e biblioteca ------------------------------------------------
     folder: '<path d="M3.5 7.5V6A1.5 1.5 0 0 1 5 4.5h4l2 2.5h8A1.5 1.5 0 0 1 20.5 8.5v9A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/>',

@@ -32,6 +32,8 @@ const StudioState = {
 
   // Generation mode: choose tiles so ink/background regions continue across edges
   edgeMatch: false,
+  // 0 keeps the strictest seam fit; 1 maximises variety of tiles (temperature)
+  edgeVariability: 0.3,
 
   // Colors
   fgColor: '#e2e0dc',
@@ -266,6 +268,7 @@ function buildStudioStatePayload(includeHistories = true) {
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
     edgeMatch: Boolean(StudioState.edgeMatch),
+    edgeVariability: StudioState.edgeVariability,
 
     fgColor: StudioState.fgColor,
     bgColor: StudioState.bgColor,
@@ -413,6 +416,9 @@ function applySavedStudioState(saved) {
   }
   if (typeof saved.syncBlockSymmetry === 'boolean') StudioState.syncBlockSymmetry = saved.syncBlockSymmetry;
   if (typeof saved.edgeMatch === 'boolean') StudioState.edgeMatch = saved.edgeMatch;
+  if (typeof saved.edgeVariability === 'number' && Number.isFinite(saved.edgeVariability)) {
+    StudioState.edgeVariability = Math.max(0, Math.min(1, saved.edgeVariability));
+  }
 
   // Colors
   if (typeof saved.fgColor === 'string') StudioState.fgColor = saved.fgColor;
@@ -598,6 +604,7 @@ function restoreMosaicFromSavedState() {
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
       edgeMatch: Boolean(StudioState.edgeMatch),
+      edgeVariability: StudioState.edgeVariability,
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -991,10 +998,39 @@ function resetD4BrokenState() {
   syncD4Badge();
 }
 
+function clampEdgeVariability(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0.3;
+  return Math.max(0, Math.min(1, numeric));
+}
+
+function syncEdgeVariabilityUI() {
+  const input = document.getElementById('edgeVariabilityInput');
+  const valueEl = document.getElementById('edgeVariabilityValue');
+  const control = document.querySelector('.edge-variability-control');
+  const pct = Math.round(clampEdgeVariability(StudioState.edgeVariability) * 100);
+  if (input) {
+    input.value = pct;
+    input.disabled = !StudioState.edgeMatch;
+  }
+  if (valueEl) valueEl.textContent = `${pct}%`;
+  if (control) control.classList.toggle('is-disabled', !StudioState.edgeMatch);
+}
+
+function setEdgeVariability(value) {
+  const next = clampEdgeVariability(value);
+  if (Math.abs(next - StudioState.edgeVariability) < 1e-9) return false;
+  StudioState.edgeVariability = next;
+  if (typeof syncEdgeVariabilityUI === 'function') syncEdgeVariabilityUI();
+  regenerateMosaic(true);
+  return true;
+}
+
 function setEdgeMatchMode(enabled) {
   const next = Boolean(enabled);
   if (StudioState.edgeMatch === next) return false;
   StudioState.edgeMatch = next;
+  if (typeof syncEdgeVariabilityUI === 'function') syncEdgeVariabilityUI();
   regenerateMosaic(true);
   return true;
 }
@@ -1037,6 +1073,7 @@ function regenerateMosaic(recordHistory = true) {
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
       edgeMatch: Boolean(StudioState.edgeMatch),
+      edgeVariability: StudioState.edgeVariability,
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -1142,6 +1179,7 @@ function restoreDocumentSnapshot(snap) {
       blockSymmetryMode: StudioState.blockSymmetryMode,
       syncBlockSymmetry: StudioState.syncBlockSymmetry,
       edgeMatch: Boolean(StudioState.edgeMatch),
+      edgeVariability: StudioState.edgeVariability,
       allowedTiles: allowedArray
     },
     (arr) => arr[floor(random(arr.length))],
@@ -1370,6 +1408,7 @@ function pushGenerationHistory() {
     blockSymmetryMode: StudioState.blockSymmetryMode,
     syncBlockSymmetry: StudioState.syncBlockSymmetry,
     edgeMatch: Boolean(StudioState.edgeMatch),
+    edgeVariability: StudioState.edgeVariability,
     allowedTiles: Array.from(StudioState.allowedTiles),
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   };
@@ -1385,6 +1424,7 @@ function pushGenerationHistory() {
       current.gridSymmetryMode === snapshot.gridSymmetryMode &&
       current.blockSymmetryMode === snapshot.blockSymmetryMode &&
       Boolean(current.edgeMatch) === Boolean(snapshot.edgeMatch) &&
+      Number(current.edgeVariability || 0) === Number(snapshot.edgeVariability || 0) &&
       current.subdivision === snapshot.subdivision &&
       current.allowedTiles.length === snapshot.allowedTiles.length
     ) {
@@ -1443,6 +1483,7 @@ function restoreGenerationHistory(targetIndex) {
     StudioState.blockSymmetryMode = snap.blockSymmetryMode;
     StudioState.syncBlockSymmetry = snap.syncBlockSymmetry;
     StudioState.edgeMatch = Boolean(snap.edgeMatch);
+    StudioState.edgeVariability = clampEdgeVariability(snap.edgeVariability);
     const totalTiles = window.TileRegistry.TILE_RENDERERS.length;
     StudioState.allowedTiles = new Set(
       (Array.isArray(snap.allowedTiles) ? snap.allowedTiles : [])
@@ -4006,6 +4047,7 @@ function syncAllInputsFromState() {
 
   const edgeMatchToggle = document.getElementById('toggleEdgeMatch');
   if (edgeMatchToggle) edgeMatchToggle.checked = Boolean(StudioState.edgeMatch);
+  if (typeof syncEdgeVariabilityUI === 'function') syncEdgeVariabilityUI();
 
   const btnLockCanvas = document.getElementById('btnLockCanvasRatio');
   if (btnLockCanvas) {
@@ -4315,6 +4357,19 @@ function initStudioUI() {
 
   const edgeMatchToggle = document.getElementById('toggleEdgeMatch');
   edgeMatchToggle?.addEventListener('change', () => setEdgeMatchMode(edgeMatchToggle.checked));
+
+  const edgeVariabilityInput = document.getElementById('edgeVariabilityInput');
+  const edgeVariabilityValue = document.getElementById('edgeVariabilityValue');
+  const previewEdgeVariability = () => {
+    if (!edgeVariabilityValue) return;
+    const pct = Math.round(clampEdgeVariability((parseInt(edgeVariabilityInput.value, 10) || 0) / 100) * 100);
+    edgeVariabilityValue.textContent = `${pct}%`;
+  };
+  edgeVariabilityInput?.addEventListener('input', previewEdgeVariability);
+  edgeVariabilityInput?.addEventListener('change', () => {
+    setEdgeVariability((parseInt(edgeVariabilityInput.value, 10) || 0) / 100);
+    syncEdgeVariabilityUI();
+  });
 
   const paddingInput = document.getElementById('paddingInput');
   const applyPaddingValue = (raw) => {

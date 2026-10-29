@@ -268,6 +268,8 @@
     const pick = typeof randomPick === 'function'
       ? randomPick
       : (arr) => arr[Math.floor(Math.random() * arr.length)];
+    // 0 keeps the original greedy fit; 1 lets variety outweigh seam quality.
+    const variability = Math.max(0, Math.min(1, Number(config.edgeVariability) || 0));
 
     const N = Math.max(1, subdivision * 2);
     const cellRelations = Array.from({ length: rows }, () => new Array(cols).fill(null));
@@ -398,6 +400,17 @@
         varEdges[vb].push(ei);
         varNeighbors[va].add(vb);
         varNeighbors[vb].add(va);
+      }
+    }
+
+    // Repetition bookkeeping for the variability pass: how many canonical
+    // variables already use each tile. Structural D4 copies share a variable,
+    // so this counts the choices a person actually made, not the copies.
+    const usageCounts = new Map();
+    if (variability > 0) {
+      for (let i = 0; i < variables.length; i++) {
+        const tileId = variables[i].tileId;
+        usageCounts.set(tileId, (usageCounts.get(tileId) || 0) + 1);
       }
     }
 
@@ -550,9 +563,10 @@
         const maxExact = ranking.length ? ranking[0].exactMatches : 0;
         const configuredLimit = parseInt(config.edgeMatchCandidateLimit, 10);
         const automaticLimit = actualCells.length > 1000 ? 16 : 20;
+        const variabilityBonus = Math.round(variability * 16);
         const candidateLimit = Number.isFinite(configuredLimit) && configuredLimit > 0
           ? Math.min(configuredLimit, ranking.length)
-          : (maxExact > 0 ? automaticLimit : automaticLimit + 12);
+          : Math.min(ranking.length, (maxExact > 0 ? automaticLimit : automaticLimit + 12) + variabilityBonus);
         const shortlist = ranking.slice(0, candidateLimit);
 
         for (const entry of shortlist) {
@@ -573,7 +587,47 @@
         }
 
         let chosen = currentTileId;
-        if (bestScore > currentLocal + tieTolerance) {
+        if (variability > 0) {
+          // Temperature-style gate: the slider widens how much seam quality a
+          // candidate may sacrifice. Inside that window the least-repeated tile
+          // wins, so the pressure is for *different* tiles rather than noise.
+          const edgeCount = Math.max(1, affectedEdges.length);
+          const seamWindow = variability * edgeCount * 0.5;
+          const neighborVars = varNeighbors[varIndex];
+          let bestNovelty = -1;
+          let bestLocal = -Infinity;
+          let bestIds = [];
+          for (let i = 0; i < scored.length; i++) {
+            const tileId = scored[i][0];
+            const local = scored[i][1];
+            if (local < bestScore - seamWindow - tieTolerance) continue;
+            const uses = usageCounts.get(tileId) || 0;
+            const repeatNovelty = 1 / (1 + uses);
+            let neighborRepeats = 0;
+            if (neighborVars.size) {
+              for (const neighbor of neighborVars) {
+                if (variables[neighbor].tileId === tileId) neighborRepeats++;
+              }
+            }
+            const neighborNovelty = neighborVars.size
+              ? 1 - 0.5 * (neighborRepeats / neighborVars.size)
+              : 1;
+            const novelty = repeatNovelty * neighborNovelty;
+            if (novelty > bestNovelty + tieTolerance) {
+              bestNovelty = novelty;
+              bestLocal = local;
+              bestIds = [tileId];
+            } else if (Math.abs(novelty - bestNovelty) <= tieTolerance) {
+              if (local > bestLocal + tieTolerance) {
+                bestLocal = local;
+                bestIds = [tileId];
+              } else if (Math.abs(local - bestLocal) <= tieTolerance) {
+                bestIds.push(tileId);
+              }
+            }
+          }
+          if (bestIds.length) chosen = pick(bestIds);
+        } else if (bestScore > currentLocal + tieTolerance) {
           chosen = pick(bestCandidates);
         } else if (pass === 0) {
           const tied = scored
@@ -587,6 +641,10 @@
           const chosenProfiles = getCandidateProfiles(varIndex, chosen);
           for (let k = 0; k < affectedCells.length; k++) {
             profiles[affectedCells[k]] = chosenProfiles[k];
+          }
+          if (variability > 0) {
+            usageCounts.set(currentTileId, Math.max(0, (usageCounts.get(currentTileId) || 0) - 1));
+            usageCounts.set(chosen, (usageCounts.get(chosen) || 0) + 1);
           }
           for (const neighbour of varNeighbors[varIndex]) nextDirty.add(neighbour);
           changed = true;
@@ -665,6 +723,7 @@
       totalOrbits: nextOrbitId - 1,
       generationMode: 'edge_match',
       edgeMatch: true,
+      edgeVariability: variability,
       grid,
       blocks: blocksFlat
     };

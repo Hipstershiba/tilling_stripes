@@ -80,8 +80,10 @@
     'edge-match': {
         "title": "Encaixe por bordas",
         "body": [
-            "Continua as regiões de tinta entre peças vizinhas.",
+            "Continua as regiões de tinta ou de fundo entre peças vizinhas.",
+            "Tinta e vazio contam como regiões: uma fita fina pode continuar numa mais larga, e dois lados brancos cheios preferem contraste a virar uma massa branca.",
             "Só as células canônicas dos blocos-fonte são escolhidas; as demais seguem sendo imagens D4.",
+            "Variedade (0–100%) é a temperatura: 0% mantém a emenda mais fiel; valores altos aceitam emendas menos exatas para usar peças diferentes.",
             "Peças preservadas e a simetria da composição continuam valendo."
         ]
     },

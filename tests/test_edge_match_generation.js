@@ -50,6 +50,7 @@ const edge = generateMosaic(Object.assign({}, baseConfig, { edgeMatch: true }), 
 
 assert.strictEqual(edge.generationMode, 'edge_match');
 assert.strictEqual(edge.edgeMatch, true);
+assert.strictEqual(edge.edgeVariability, 0, 'edge matching without a variability field keeps the strict fit');
 assert.ok(edge.edgeMatchStats, 'edge mode must report its own score statistics');
 assert.strictEqual(edge.edgeMatchStats.edges, classicStats.edges, 'both modes expose the same number of adjacencies');
 assert.ok(edge.edgeMatchStats.average > classicStats.average + 0.2,
@@ -70,6 +71,97 @@ const edgeAgain = generateMosaic(Object.assign({}, baseConfig, { edgeMatch: true
 const ids = (mosaic) => mosaic.blocks.map((block) => block.cells.map((row) => row.map((cell) => `${cell.baseTileId}:${cell.transform}`).join('|')).join('/')).join('#');
 assert.strictEqual(ids(edge), ids(edgeAgain), 'same seed and same picker must reproduce the same edge-matched mosaic');
 console.log('✓ Edge-matched generation is deterministic for a seeded picker.');
+
+// Variability is a temperature between seam fidelity and tile variety. Raising it
+// must not break D4 and must reduce repetition for seeds that collapse on one tile.
+function distinctBaseTiles(mosaic) {
+  const ids = new Set();
+  for (const block of mosaic.blocks) {
+    for (const row of block.cells) for (const cell of row) ids.add(cell.baseTileId);
+  }
+  return ids.size;
+}
+let improvedSeeds = 0;
+for (const seed of [2024, 99, 555]) {
+  const plain = generateMosaic(Object.assign({}, baseConfig, { edgeMatch: true }), picker(seed));
+  const varied = generateMosaic(
+    Object.assign({}, baseConfig, { edgeMatch: true, edgeVariability: 0.6 }),
+    picker(seed)
+  );
+  assert.strictEqual(varied.edgeVariability, 0.6);
+  assert.strictEqual(isMosaicD4Invariant(varied), true, `variability must preserve D4 (seed ${seed})`);
+  assert.ok(varied.edgeMatchStats.average > 0.5,
+    `variability must still produce usable seams (seed ${seed}: ${varied.edgeMatchStats.average.toFixed(3)})`);
+  const before = distinctBaseTiles(plain);
+  const after = distinctBaseTiles(varied);
+  assert.ok(after >= before,
+    `variability must not reduce the number of distinct tiles (seed ${seed}: ${before} → ${after})`);
+  if (after > before) improvedSeeds++;
+  const variedAgain = generateMosaic(
+    Object.assign({}, baseConfig, { edgeMatch: true, edgeVariability: 0.6 }),
+    picker(seed)
+  );
+  assert.strictEqual(ids(varied), ids(variedAgain), `variability must stay deterministic (seed ${seed})`);
+  console.log(`✓ Variability seed ${seed}: ${before} → ${after} distinct tiles, seam ${varied.edgeMatchStats.average.toFixed(3)}.`);
+}
+assert.ok(improvedSeeds >= 2, 'most seeds must gain tile variety when the temperature rises');
+
+// The slider is normalised: 0 is the original greedy path, 1 is maximum variety.
+const clampedLow = generateMosaic(
+  Object.assign({}, baseConfig, { edgeMatch: true, edgeVariability: -3 }),
+  picker(12345)
+);
+assert.strictEqual(clampedLow.edgeVariability, 0);
+assert.strictEqual(ids(clampedLow), ids(edge), 'negative variability must behave exactly like 0');
+const clampedHigh = generateMosaic(
+  Object.assign({}, baseConfig, { edgeMatch: true, edgeVariability: 4 }),
+  picker(12345)
+);
+assert.strictEqual(clampedHigh.edgeVariability, 1, 'variability above 1 must clamp to 1');
+assert.strictEqual(isMosaicD4Invariant(clampedHigh), true);
+console.log('✓ Variability is clamped to [0, 1] and 0 preserves the strict-fit result.');
+
+// White and empty regions share the score. A generated mosaic must not turn
+// into a white mass: saturated white-white seams stay rare, while white-empty
+// contrast seams are allowed to appear.
+function coverageEdgeCounts(mosaic) {
+  const N = mosaic.subtilesPerSide;
+  const cellAt = (r, c) => mosaic.grid[Math.floor(r / N)][Math.floor(c / N)].cells[r % N][c % N];
+  let whiteWhite = 0;
+  let contrast = 0;
+  let edges = 0;
+  for (let r = 0; r < mosaic.rows * N; r++) {
+    for (let c = 0; c < mosaic.cols * N; c++) {
+      const cell = cellAt(r, c);
+      const pairs = [];
+      if (c + 1 < mosaic.cols * N) pairs.push([cell, cellAt(r, c + 1), 'right', 'left']);
+      if (r + 1 < mosaic.rows * N) pairs.push([cell, cellAt(r + 1, c), 'bottom', 'top']);
+      for (const [a, b, sideA, sideB] of pairs) {
+        const sa = EdgeSignatures.getOrientedProfile(a.baseTileId, a.transform).sides[sideA];
+        const sb = EdgeSignatures.getOrientedProfile(b.baseTileId, b.transform).sides[sideB];
+        edges++;
+        if (sa.coverage > 0.9 && sb.coverage > 0.9) whiteWhite++;
+        else if ((sa.coverage > 0.9 && sb.coverage < 0.1) || (sb.coverage > 0.9 && sa.coverage < 0.1)) contrast++;
+      }
+    }
+  }
+  return { whiteWhite, contrast, edges };
+}
+let saturatedWhite = 0;
+let contrastSeams = 0;
+let coverageEdges = 0;
+for (const seed of [2024, 12345]) {
+  const mosaic = generateMosaic(Object.assign({}, baseConfig, { edgeMatch: true }), picker(seed));
+  const counts = coverageEdgeCounts(mosaic);
+  saturatedWhite += counts.whiteWhite;
+  contrastSeams += counts.contrast;
+  coverageEdges += counts.edges;
+}
+assert.ok(saturatedWhite <= coverageEdges * 0.15,
+  `white-white seams must stay rare (${saturatedWhite}/${coverageEdges})`);
+assert.ok(contrastSeams > 0, 'at least some white-empty contrast seams must survive the fit');
+console.log(`✓ Coverage balance: ${saturatedWhite}/${coverageEdges} white-white, ` +
+  `${contrastSeams}/${coverageEdges} contrast seams.`);
 
 // Every adjacent pair is actually scored; recomputing from the final grid must agree.
 function recomputeAverage(mosaic) {
