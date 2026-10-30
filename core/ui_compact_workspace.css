@@ -1,0 +1,356 @@
+/* Compact studio geography: tools at left, live tool construction above,
+   document structure and the palette at right. Metrics follow Documento. */
+:root { --top-bar-h: 44px; --left-tool-w: 88px; --control-h: 28px; --icon-action-size: 28px; }
+.studio-heading { min-height: 36px; flex-basis: 36px; padding-inline: 10px; }
+.studio-heading .app-menubar { height: 35px; min-height: 35px; }
+.studio-wordmark { font-size: 11px; }
+.studio-wordmark .brand-logo { width: 24px; height: 24px; }
+.studio-views button { min-height: 28px; padding-inline: 9px; font-size: 11px; }
+
+#top-control-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  height: auto;
+  max-height: none;
+  min-height: var(--top-bar-h);
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 5px 10px;
+  overflow: visible;
+  background: var(--bg-panel);
+}
+#top-control-bar #topToolContext { width: 30px; min-width: 30px; padding: 0; border: 0; justify-content: center; }
+#topToolName { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+#top-control-bar #ctxPaint { gap: 10px; margin: 0; padding: 0; flex: 0 0 auto; height: 54px; min-height: 54px; }
+#top-control-bar #brushSizeControl { display: flex; flex-wrap: nowrap; align-items: center; gap: 0; height: 28px; padding: 0; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 4px; }
+#top-control-bar #brushSizeControl .brush-step-btn { width: 23px; min-width: 23px; height: 26px; min-height: 26px; padding: 0; border: 0; border-radius: 0; }
+#top-control-bar #brushSizeControl .brush-size-badge { height: 26px; min-width: 38px; padding: 0 3px; border: 0; justify-content: center; }
+#top-control-bar .brush-size-val { font-size: 11px; font-variant-numeric: tabular-nums; }
+#top-control-bar .brush-size-sub { display: none; }
+#top-control-bar #brushSnapRow { margin: 0; height: 26px; padding-left: 2px; border-left: 1px solid var(--border-subtle); }
+#top-control-bar #btnToggleBrushSnap { width: 26px; min-width: 26px; height: 26px; min-height: 26px; border: 0; border-radius: 0; }
+#top-control-bar #brushSizeControl { height: 54px; border: 0; background: transparent; gap: 4px; }
+#top-control-bar #brushSizeControl > :is(.brush-step-btn, .brush-size-badge) { display: none; }
+.top-pattern-fields { display: grid; gap: 3px; }
+.top-pattern-field { display: flex; align-items: center; gap: 5px; width: 58px; height: 25px; padding: 0 6px; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 3px; }
+.top-pattern-field > span { font-size: 9px; color: var(--text-muted); }
+.top-pattern-field > input { width: 100%; min-width: 0; height: 23px; padding: 0; border: 0; outline: none; background: transparent; color: var(--text-primary); font: 600 11px var(--font-mono); text-align: right; appearance: textfield; }
+.top-pattern-field > input::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.top-pattern-field:focus-within { border-color: var(--border-focus); }
+
+/* This is the real editable canvas, not a duplicate image or a new control. */
+#top-control-bar #topBrushBuilder { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 0 0 0 10px; margin: 0; height: 56px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; box-shadow: none; }
+#top-control-bar #topBrushBuilder .supertile-canvas-box { width: 54px; height: 54px; min-width: 54px; flex: 0 0 54px; border: 1px solid #4c617e; border-radius: 3px; background: var(--bg-control); }
+#top-control-bar #supertileBuilderCanvas { display: block; width: 100%; height: 100%; }
+#top-control-bar #topBrushBuilder .active-brush-controls { display: grid; grid-template-columns: auto 24px; grid-template-rows: 26px 26px; gap: 2px 5px; flex: 0 0 auto; }
+#top-control-bar #topBrushBuilder .active-brush-title-row { grid-column: 2; grid-row: 1; }
+#top-control-bar #topBrushBuilder .active-brush-name, #top-control-bar #topBrushBuilder .active-brush-d4-label { display: none; }
+#top-control-bar #topBrushBuilder .d4-mini-grid { display: flex; flex-wrap: nowrap; gap: 2px; grid-column: 1; grid-row: 1; }
+#top-control-bar #topBrushBuilder .supertile-builder-actions { display: flex; flex-wrap: nowrap; gap: 2px; grid-column: 1 / -1; grid-row: 2; }
+#top-control-bar #topBrushBuilder :is(.d4-mini-grid, .supertile-builder-actions) > button,
+#top-control-bar #btnOpenBrushPreview { width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 0; flex: 0 0 24px; background: var(--bg-control); border: 1px solid var(--border-subtle); border-radius: 3px; }
+#top-control-bar #topBrushBuilder :is(.d4-mini-grid, .supertile-builder-actions) > button svg { width: 14px; height: 14px; }
+.top-document-actions { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; margin-left: auto; padding-left: 10px; border-left: 1px solid var(--border-subtle); }
+#top-control-bar :is(#dock-generator, #dock-export) { display: flex !important; align-items: center; flex: 0 0 auto; gap: 5px; min-height: 28px; height: 28px; padding: 0; margin: 0; border: 0; background: transparent; }
+#top-control-bar #dock-generator .sidebar-gen-btn { width: 28px; min-width: 28px; min-height: 28px; height: 28px; padding: 0; justify-content: center; border-radius: 4px; background: var(--bg-primary); }
+#top-control-bar .gen-btn-label { display: none; }
+#top-control-bar #dock-generator .sidebar-seed-row { margin: 0; }
+#top-control-bar #dock-generator .sidebar-seed-chip { padding: 0 3px; }
+#top-control-bar #seedInput { width: 56px; }
+#top-control-bar #dock-export .sidebar-export-select { width: 56px; min-height: 28px; height: 28px; font-size: 11px; padding: 0 4px; }
+#top-control-bar #dock-export .sidebar-export-btn { width: 28px; min-width: 28px; min-height: 28px; height: 28px; padding: 0; justify-content: center; flex: 0 0 28px; }
+#top-control-bar #btnExport .icon-label { display: none; }
+#top-control-bar .edit-undo-bar { display: flex; align-items: center; gap: 2px; padding-left: 8px; border-left: 1px solid var(--border-subtle); }
+#top-control-bar .edit-undo-btn { width: 26px; min-width: 26px; height: 28px; min-height: 28px; padding: 0; }
+#editHistoryStepLabel { font-size: 9px; min-width: 22px; text-align: center; color: var(--text-muted); }
+
+/* Piece options join the same secondary strip. */
+.top-piece-actions { display: flex; align-items: center; gap: 4px; border-left: 1px solid var(--border-subtle); padding-left: 8px; }
+#topPieceTransform:empty { display: none; }
+#topPieceTransform .vec-subblock-title { display: none; }
+#topPieceTransform { align-self: center; flex: 0 0 auto; }
+#topPieceTransform > .vec-selection-actions { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; height: 28px; padding: 0; margin: 0; border: 0; }
+#topPieceTransform :is(.vec-align-strip, .vec-inline-actions, .vec-d4-strip) { padding: 0; margin: 0 !important; }
+#topPieceTransform :is(.vec-transform-actions, .vec-align-strip) { border-left: 1px solid var(--border-subtle); padding-left: 6px; }
+#top-control-bar .top-piece-actions > button { width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; }
+#top-control-bar .curve-tool-options { display: flex; gap: 4px; margin: 0; padding: 0 0 0 6px; border-left: 1px solid var(--border-subtle); }
+#top-control-bar .curve-tool-options > :is(button, select, input) { height: 28px; min-height: 28px; }
+#top-control-bar .curve-tool-options select { width: 64px; font-size: 11px; }
+#top-control-bar .curve-tool-options button { width: 28px; min-width: 28px; padding: 0; }
+#top-control-bar #btnTileTestInMosaic { width: 28px; min-width: 28px; min-height: 28px; height: 28px; padding: 0; justify-content: center; }
+#top-control-bar #btnTileTestInMosaic .icon-label { display: none; }
+#top-control-bar #tileStudioActiveName { font-size: 11px; max-width: 180px; }
+#top-control-bar #tileStudioActiveBadge { font-size: 9px; }
+#top-control-bar #topBarTilesControls { gap: 6px; }
+.top-seg-label { display: none; }
+
+/* Two compact property tabs and an always visible palette below. */
+#right-dock #dock-header { height: 32px; min-height: 32px; padding: 0 8px 0 10px; }
+#right-dock .dock-context-title { font-size: 11px; }
+#dock-workspace-generate { display: flex; flex-direction: column; flex: 1 1 auto; overflow: hidden; }
+#dock-workspace-generate > #panelSymmetryGroup { flex: 0 0 auto; max-height: none; min-height: 0; overflow: hidden; }
+#panelSymmetryGroup .dock-subtabs { height: 32px; min-height: 32px; padding: 0 8px; }
+#panelSymmetryGroup .dock-subtab { height: 32px; min-height: 32px; padding: 0 9px; font-size: 11px; }
+#panelSymmetryGroup > .dock-panel { flex: 0 0 auto; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) { padding: 8px 10px; gap: 7px; overflow: auto; max-height: 300px; }
+#panelSymmetryGroup #panelSymmetryBody > .prop-section { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 4px; }
+#panelSymmetryGroup #panelSymmetryBody .prop-label-row { min-height: 28px; margin: 0; }
+#panelSymmetryGroup #panelSymmetryBody .prop-label-row::after { display: none; }
+#panelSymmetryGroup :is(.prop-label, .prop-sub-label) { font-size: 9px; letter-spacing: .04em; }
+#panelSymmetryGroup #panelSymmetryBody .info-btn { width: 16px; min-width: 16px; height: 18px; min-height: 18px; }
+#panelSymmetryGroup #panelSymmetryBody .prop-label-with-info { display: flex; align-items: center; justify-content: space-between; width: 100%; min-width: 0; gap: 6px; }
+#panelSymmetryGroup #panelSymmetryBody .prop-label-row { min-width: 0; width: 100%; }
+#panelSymmetryGroup #panelSymmetryBody .info-btn { flex: 0 0 16px; position: static; margin: 0; }
+#panelSymmetryGroup #panelSymmetryBody :is(#gridSymmetryGrid, #blockSymmetryGrid) { grid-column: 2; min-width: 0; width: 100%; }
+#panel-symmetry :is(#gridSymmetryGrid, #blockSymmetryGrid) { display: flex; flex-wrap: nowrap; gap: 3px; }
+#panel-symmetry :is(.sym-card, .block-sym-pill) { flex: 1 1 0; min-width: 0; width: auto; height: 28px; min-height: 28px; padding: 0; justify-content: center; border-radius: 3px; }
+#panel-symmetry :is(.sym-card-text, .block-sym-pill-text) { display: none; }
+#panel-symmetry :is(.sym-card-icon, .block-sym-pill-icon) { width: 16px; height: 16px; }
+#panelSymmetryBody #subdivisionControl { gap: 2px; padding: 0; }
+#panelSymmetryBody #subdivisionControl > button { height: 28px; min-height: 28px; padding: 0 3px; font-size: 10px; }
+#panelSymmetryBody .edge-match-section { grid-template-columns: 1fr !important; }
+#panelSymmetryBody .edge-match-section .prop-label-row { grid-column: 1 / -1; }
+#panelSymmetryBody .edge-match-toggle { min-height: 28px; height: 28px; border: 0; padding: 0; background: transparent; }
+#panelSymmetryBody .edge-variability-control { margin: 0; }
+#panelSymmetryBody :is(.notice-banner, .symmetry-status) { grid-column: 1 / -1; }
+#panel-edit-scope .prop-section { gap: 7px; }
+#panel-edit-scope .prop-label-row { min-height: 20px; }
+#panel-edit-scope :is(#editScopeGrid, #canvasCenterSymControl) { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+#panel-edit-scope :is(#editScopeGrid, #canvasCenterSymControl) > button { min-width: 0; width: 100%; height: 28px; min-height: 28px; padding: 0; }
+#panel-edit-scope :is(.edit-scope-title, .icon-label) { display: none; }
+#panel-edit-scope .canvas-center-sym-wrap { margin: 0; }
+#dock-workspace-generate > #panel-edit-brush { display: flex; flex: 1 1 0; min-height: 0; max-height: none; overflow: hidden; }
+#dock-workspace-generate > #panelSymmetryGroup:not(.is-brush-active) ~ #panel-edit-brush { display: flex; }
+#panel-edit-brush > .panel-header { height: 30px; min-height: 30px; padding: 0 10px; font-size: 9px; }
+#panel-edit-brush #panelEditBrushBody { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 7px; padding: 8px 10px; overflow: hidden; }
+#panel-edit-brush .swatches-toolbar { flex: 0 0 auto; margin: 0; }
+#panel-edit-brush #editBrushPaletteContainer { flex: 1 1 0; min-height: 0; height: auto; max-height: none; overflow-y: auto; }
+#panel-edit-brush .family-card-header { min-height: 26px; padding: 3px 4px; }
+#panel-edit-brush .family-title { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#panel-edit-brush .family-card-header > span:first-child { min-width: 0; flex: 1 1 auto; font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#panel-edit-brush .family-actions-right { flex: 0 0 auto; gap: 3px; }
+#panel-edit-brush .family-count-tag { display: none; }
+#panel-edit-brush .tile-swatch-id { display: none; }
+#editBrushPaletteContainer :is(.tile-swatch-id, .family-count-tag) { display: none; }
+#brushEditorInkLabel { display: none; }
+#panel-edit-brush .family-swatch-card { flex-shrink: 0; }
+#panel-edit-brush .family-tiles-grid { gap: 4px; padding: 5px; }
+#panel-edit-brush .tile-swatch { border-radius: 3px; }
+
+/* Do not reserve hidden property content or collapse useful panes. */
+body.right-dock-collapsed #dock-workspace-generate { display: none; }
+body[data-studio-mode="tiles"] #top-control-bar { min-height: 44px; }
+body.library-page-open #top-control-bar { display: none; }
+@media (max-width: 1100px) {
+  #top-control-bar .top-document-actions { gap: 6px; padding-left: 6px; }
+  #top-control-bar #ctxPaint { gap: 6px; }
+  #top-control-bar #topBrushBuilder { padding-left: 6px; }
+  #top-control-bar #topBrushBuilder .supertile-canvas-box { width: 48px; height: 48px; min-width: 48px; flex-basis: 48px; }
+}
+@media (max-width: 760px) {
+  #top-control-bar { row-gap: 5px; }
+  #top-control-bar .top-document-actions { margin-left: 0; }
+  #top-control-bar #tileStudioActiveName { max-width: 135px; }
+  .studio-heading { min-height: 70px; flex-basis: 70px; }
+}
+@media (max-height: 660px) {
+  #panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) { max-height: 190px; }
+}
+
+/* Document commands share the top strip; brush construction uses the rail. */
+#top-control-bar { min-height: 44px; gap: 20px; padding: 6px 14px; }
+#top-control-bar #topToolContext { display: none !important; }
+#top-control-bar .top-document-actions { display: contents; margin: 0; padding: 0; border: 0; }
+#top-control-bar #dock-generator { order: 1; gap: 8px; }
+#top-control-bar #dock-generator .sidebar-gen-btn { width: 34px; min-width: 34px; height: 30px; min-height: 30px; }
+#top-control-bar #dock-generator .sidebar-seed-row { gap: 3px; }
+#top-control-bar #dock-generator .sidebar-seed-nav-btn { width: 28px; height: 28px; min-height: 28px; }
+#top-control-bar #seedInput { width: 72px; font-size: 12px; }
+#top-control-bar .edit-undo-bar { order: 2; gap: 6px; padding-left: 14px; }
+#top-control-bar .edit-undo-btn { width: 30px; min-width: 30px; height: 30px; min-height: 30px; }
+#top-control-bar #editHistoryStepLabel { font-size: 10px; min-width: 28px; }
+#topLayoutControls { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-start; gap: 24px; order: 3; min-width: 0; }
+.top-division-group { display: flex; align-items: center; gap: 10px; }
+.top-division-group > svg { width: 16px; height: 16px; color: var(--text-muted); }
+#subdivisionControl { display: flex; gap: 4px; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none; }
+#subdivisionControl > .seg-btn { width: 42px; height: 30px; min-height: 30px; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: 11px; border-radius: 4px; }
+#subdivisionControl > .seg-btn:hover { background: var(--bg-control-hover); }
+#subdivisionControl > .seg-btn.active { background: var(--bg-selected); color: #dce8ff; border: 0; box-shadow: none; }
+#topLayoutControls .edge-match-section { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 12px; margin: 0; padding: 0 0 0 18px; border-left: 1px solid var(--border-subtle); }
+#topLayoutControls .prop-label-row { min-height: 30px; margin: 0; }
+#topLayoutControls .edge-match-toggle { height: 30px; min-height: 30px; background: transparent; padding: 0; border: 0; }
+#topLayoutControls .edge-match-title { font-size: 11px; }
+#topLayoutControls .edge-variability-control { width: 150px; height: 30px; margin: 0; gap: 6px; }
+#topLayoutControls .edge-variability-title { display: none; }
+#topLayoutControls .edge-variability-value { font-size: 10px; }
+#top-control-bar :is(#rotateToolOptionsWrap, #freezeToolOptionsWrap, #selectionSummary) { order: 4; flex: 0 0 auto; margin: 0; padding-left: 14px; border-left: 1px solid var(--border-subtle); }
+#top-control-bar #dock-export { order: 5; gap: 8px; margin-left: auto; }
+#top-control-bar #dock-export .sidebar-export-select { width: 64px; height: 30px; min-height: 30px; padding-inline: 7px; }
+#top-control-bar #dock-export .sidebar-export-btn { width: 34px; min-width: 34px; height: 30px; min-height: 30px; flex-basis: 34px; }
+
+/* The constructor is one persistent rail panel, with a usable drawing area. */
+#railFlyoutBrush { top: 112px; width: min(320px, calc(100vw - 160px)); max-height: calc(100vh - 210px); }
+#railFlyoutBrush #ctxPaint { display: flex; flex-direction: column; align-items: stretch; gap: 12px; height: auto; min-height: 0; padding: 0; }
+#railFlyoutBrush #brushSizeControl { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; margin: 0; padding: 0; height: 30px; background: transparent; border: 0; }
+#railFlyoutBrush #brushSizeControl > :is(.brush-step-btn, .brush-size-badge) { display: none; }
+#railFlyoutBrush .top-pattern-fields { display: flex; gap: 8px; flex: 1 1 auto; }
+#railFlyoutBrush .top-pattern-field { width: auto; min-width: 0; flex: 1 1 0; height: 30px; }
+#railFlyoutBrush .top-pattern-field > input { height: 28px; }
+#railFlyoutBrush #brushSnapRow { padding: 0; margin: 0; border: 0; }
+#railFlyoutBrush #btnToggleBrushSnap { width: 30px; min-width: 30px; height: 30px; min-height: 30px; padding: 0; }
+#railFlyoutBrush #topBrushBuilder { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none; }
+#railFlyoutBrush .supertile-canvas-box { width: min(100%, 224px); height: auto; aspect-ratio: 1; border: 1px solid var(--border-strong); border-radius: 3px; align-self: center; }
+#railFlyoutBrush #supertileBuilderCanvas { width: 100%; height: 100%; }
+#railFlyoutBrush .active-brush-controls { width: 100%; gap: 8px; }
+#railFlyoutBrush .active-brush-title-row { gap: 6px; }
+#railFlyoutBrush .active-brush-name { font-size: 11px; }
+#railFlyoutBrush .active-brush-d4-label { font-size: 10px; }
+#railFlyoutBrush :is(.d4-mini-grid, .supertile-builder-actions) { display: flex; gap: 5px; }
+#railFlyoutBrush :is(.d4-mini-grid, .supertile-builder-actions) > button { width: 30px; min-width: 30px; height: 30px; min-height: 30px; flex: 0 0 30px; padding: 0; }
+@media (max-width: 1100px) {
+  #top-control-bar { gap: 12px; }
+  #topLayoutControls { gap: 12px; }
+  #top-control-bar .edit-undo-bar { padding-left: 8px; gap: 3px; }
+  #topLayoutControls .edge-match-section { padding-left: 10px; }
+}
+@media (max-width: 900px) {
+  #topLayoutControls { flex: 1 1 auto; justify-content: flex-start; flex-wrap: wrap; }
+  #top-control-bar #dock-export { margin-left: 0; }
+  #top-control-bar .edit-undo-bar { border: 0; padding-left: 0; }
+}
+
+/* Compact fields keep their focus ring inside the complete control. */
+#railFlyoutBrush .top-pattern-field { padding: 0 0 0 6px; gap: 3px; overflow: hidden; }
+#railFlyoutBrush .top-pattern-field:focus-within { border-color: var(--accent-primary, #8babef); box-shadow: inset 0 0 0 1px var(--accent-primary, #8babef); }
+#railFlyoutBrush .top-pattern-field > input { min-width: 22px; width: 100%; outline: none !important; box-shadow: none !important; }
+#railFlyoutBrush .brush-field-step { flex: 0 0 22px; width: 22px; height: 28px; padding: 0; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; color: var(--text-primary); }
+#railFlyoutBrush .brush-field-step:hover { background: var(--bg-control-hover); }
+.info-btn { display: none !important; }
+
+/* Equal symmetry columns; composition leaves the inherited-mode column free. */
+#panelSymmetryGroup #panelSymmetryBody > .prop-section { grid-template-columns: 78px minmax(0, 1fr); column-gap: 6px; }
+#panel-symmetry :is(#gridSymmetryGrid, #blockSymmetryGrid) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#gridSymmetryGrid > :first-child { grid-column: 2; }
+#railOpenLibrary, #btnPrevSeed, #btnNextSeed { display: none !important; }
+#topLayoutControls .edge-match-section { border: 0; padding-left: 0; }
+#topLayoutControls .edge-variability-control { width: auto; border: 0; background: transparent; box-shadow: none; padding: 0; }
+#topLayoutControls .edge-variability-control:hover, #topLayoutControls .edge-variability-control:focus-within { border: 0; background: transparent; box-shadow: none; }
+#edgeVariabilityInput { width: 42px !important; appearance: textfield; background: transparent; color: inherit; border: 0; text-align: right; }
+#edgeVariabilityValue { display: none; }
+.brush-field-step { width: 24px; height: 28px; padding: 0; background: transparent; color: var(--text-primary); border: 0; border-left: 1px solid var(--border-subtle); }
+.subdivision-field { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
+.subdivision-field > label { font-size: 10px; }
+.subdivision-field > input { flex: 1; min-width: 0; text-align: right; }
+#top-control-bar .edit-undo-bar { border-right: 1px solid var(--border-subtle); padding-right: 14px; }
+
+/* Stable single-row symmetry controls and compact document fields. */
+#panel-symmetry #gridSymmetryGrid > :first-child { grid-column: auto; }
+#panel-symmetry .block-sym-pill[data-block-mode="sync"] { grid-column: 5; grid-row: 1; }
+#panel-symmetry #blockSymmetryGrid > :not([data-block-mode="sync"]) { grid-row: 1; }
+#panelSymmetryGroup #panelSymmetryBody > .prop-section { grid-template-columns: 72px minmax(0, 1fr); }
+#panel-symmetry :is(.sym-card, .block-sym-pill) { height: 26px; min-height: 26px; }
+#panel-edit-brush { border-top: 1px solid var(--border-strong); margin-top: 8px; }
+#panel-edit-brush > .panel-header { border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); }
+#panel-edit-brush > .panel-header :is(svg, .icon-slot) { display: none; }
+#edgeVariabilityInput::-webkit-inner-spin-button, #edgeVariabilityInput::-webkit-outer-spin-button,
+#subdivisionInput::-webkit-inner-spin-button, #subdivisionInput::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
+#edgeVariabilityInput { width: 46px !important; min-width: 46px; appearance: textfield; }
+#subdivisionInput { appearance: textfield; }
+#top-control-bar { gap: 16px; }
+#top-control-bar .edit-undo-bar { margin-inline: 4px; padding-inline: 12px; }
+#topLayoutControls .edge-match-section { gap: 10px; }
+#topLayoutControls .edge-variability-control { gap: 5px; }
+#panelDocumentBody .subdivision-field { width: calc(50% - 4px); box-sizing: border-box; gap: 3px; }
+#panelDocumentBody .subdivision-field > input { width: 28px; }
+#panelDocumentBody .document-fields-secondary { border-top: 0; padding-top: 0; margin-top: 8px; }
+
+/* Symmetry follows the stacked label and icon rows used by Propagation. */
+#panelSymmetryGroup #panelSymmetryBody > .prop-section { display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+#panelSymmetryGroup #panelSymmetryBody .prop-label-row { min-height: 16px; height: 16px; }
+#panel-symmetry :is(#gridSymmetryGrid, #blockSymmetryGrid) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+#panel-symmetry :is(.sym-card, .block-sym-pill) { height: 28px; min-height: 28px; background: var(--bg-control); border: 1px solid var(--border-subtle); }
+#topLayoutControls .edge-variability-control { height: 30px; gap: 0; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 3px; background: var(--bg-control); }
+#topLayoutControls .edge-variability-control:hover, #topLayoutControls .edge-variability-control:focus-within { border: 1px solid var(--border-subtle); background: var(--bg-control); }
+#topLayoutControls .edge-variability-icon { margin-inline: 6px; }
+#topLayoutControls .brush-field-step { height: 28px; width: 24px; flex: 0 0 24px; }
+#edgeVariabilityInput { height: 28px; padding: 0 6px; outline-offset: -2px; }
+.generator-group-expand { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--text-muted); }
+.generator-group-expand::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+.generator-group-expand[aria-label^="Recolher"]::before { transform: rotate(225deg); }
+.generator-group-expand:hover { background: var(--bg-control-hover); }
+#btnOpenBrushPreview { display: inline-flex; align-items: center; justify-content: center; }
+#btnOpenBrushPreview > svg { display: block; flex: 0 0 16px; width: 16px; height: 16px; }
+#workspaceNotices { position: fixed; bottom: 36px; left: 100px; z-index: 80; max-width: min(480px, calc(100vw - 140px)); background: var(--bg-panel); border-radius: 4px; box-shadow: 0 4px 18px #0005; }
+#workspaceNotices:not(:has(> :not(.hidden))) { display: none; }
+#workspaceNotices > .notice-banner { margin: 0; padding: 9px 12px; }
+
+/* Shared panel rhythm and field treatment. */
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) { gap: 8px; padding: 8px 10px; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-section { gap: 5px; margin: 0; padding: 0; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-label-row { min-height: 16px; height: 16px; }
+#panelSymmetryGroup :is(.sym-card, .block-sym-pill, #editScopeGrid > button, #canvasCenterSymControl > button) { height: 28px; min-height: 28px; border-radius: 3px; padding: 0; background: var(--bg-control); border: 1px solid var(--border-subtle); }
+#panelSymmetryGroup button.active { background: var(--bg-selected); border-color: #5576a5; }
+#top-control-bar .top-size-row { height: 30px; border: 1px solid var(--border-subtle); border-radius: 3px; padding: 0; gap: 0; background: var(--bg-control); }
+#top-control-bar .top-size-row button { height: 28px; min-height: 28px; border: 0; border-radius: 0; padding: 0 8px; }
+#topLayoutControls .edge-variability-control:focus-within, #topLayoutControls .edge-variability-control input:focus { outline: none !important; box-shadow: none !important; border-color: var(--border-subtle) !important; }
+#btnExportLibraryGroups { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 30px; width: 30px; height: 30px; padding: 0; overflow: hidden; }
+#btnExportLibraryGroups :is(svg, .icon-slot) { flex: 0 0 16px; width: 16px; height: 16px; }
+#btnExportLibraryGroups .icon-label { display: none; }
+#libMgrFilterControl { border: 0; background: transparent; padding: 0; box-shadow: none; gap: 4px; }
+.vec-presets-section { display: none !important; }
+#piecesUtilityRail { display: none; position: relative; order: 2; flex: 0 0 40px; width: 40px; padding: 8px 4px; box-sizing: border-box; background: #191c21; border-inline: 1px solid var(--border-subtle); }
+body[data-studio-mode="tiles"]:not(.library-page-open) #piecesUtilityRail { display: flex; flex-direction: column; }
+#piecesVariantsFlyout { position: absolute; right: 48px; top: 8px; width: 300px; z-index: 70; background: var(--bg-panel, #1d2026); border: 1px solid var(--border-subtle); border-radius: 4px; box-shadow: 0 8px 30px #0005; }
+#piecesVariantsFlyout[hidden] { display: none; }
+#piecesVariantsFlyout #panel-tile-d4-live { display: flex; max-height: calc(100vh - 140px); overflow: auto; }
+
+/* Identical section layout in both property tabs. */
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-section { display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-label-row { margin: 0; padding: 0; height: 16px; min-height: 16px; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-label-row::after { display: none; }
+#panelSymmetryGroup :is(#gridSymmetryGrid, #blockSymmetryGrid, #editScopeGrid, #canvasCenterSymControl) { margin: 0; padding: 0; gap: 4px; }
+#tileLibraryGroupFilter { box-sizing: border-box; min-width: 0; margin: 0 8px 0 0; padding: 0 28px 0 10px; height: 30px; }
+#editBrushPaletteContainer .family-swatch-card[hidden] { display: none !important; }
+#editBrushPaletteContainer .swatches-group-heading { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+#editBrushPaletteContainer .swatches-group-heading::before { content: ''; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); }
+#editBrushPaletteContainer .swatches-group-heading[aria-expanded="false"]::before { transform: rotate(-45deg); }
+input:focus, select:focus, textarea:focus, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none !important; box-shadow: none !important; border-color: var(--border-subtle) !important; }
+:is(.document-field, .top-pattern-field, .edge-variability-control, .vec-prop-field):focus-within,
+#railFlyoutBrush .top-pattern-field:focus-within { outline: none !important; box-shadow: none !important; border-color: var(--border-subtle) !important; }
+
+#top-control-bar .edit-undo-bar { display: flex; align-items: center; height: 30px; align-self: center; margin-block: 0; padding-block: 0; }
+#top-control-bar #editHistoryStepLabel { display: inline-flex; align-items: center; justify-content: center; height: 30px; line-height: 1; margin: 0; }
+#panelSymmetryGroup :is(#gridSymmetryGrid, #blockSymmetryGrid, #editScopeGrid, #canvasCenterSymControl) { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+#panelSymmetryGroup :is(.sym-card, .block-sym-pill, #editScopeGrid > button, #canvasCenterSymControl > button) { width: 100%; min-width: 0; height: 28px; min-height: 28px; box-sizing: border-box; }
+input[type="number"] { padding-right: 8px !important; box-sizing: border-box; }
+#railFlyoutBrush .top-pattern-field > input { padding-right: 7px !important; }
+#railFlyoutBrush .top-pattern-fields { align-items: center; gap: 5px; }
+#brushRatioLock { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 26px; width: 26px; height: 30px; padding: 0; }
+#brushRatioLock[aria-pressed="true"] { background: var(--bg-selected); }
+.active-brush-d4-label { display: none; }
+body:not([data-vector-tool="curve"]) .curve-tool-options { display: none !important; }
+body:not([data-vector-tool="select"]):not([data-vector-tool="direct"]) #topPieceTransform { display: none !important; }
+body:not([data-vector-tool="select"]):not([data-vector-tool="direct"]) .top-piece-actions > button { display: none !important; }
+body:not(.library-page-open) kbd { display: none; }
+[role="menu"] kbd, .app-menu kbd, .menu-command kbd { display: inline !important; }
+
+#top-control-bar .edit-undo-bar { display: grid; grid-template-columns: 30px 44px 30px; gap: 4px; align-items: center; justify-items: center; }
+#top-control-bar #editHistoryStepLabel { width: 44px; min-width: 44px; padding: 0; text-align: center; font-variant-numeric: tabular-nums; transform: none; }
+#vecPropsContainer .vec-inline-actions:has([data-sw-preset]) { display: none !important; }
+body:is([data-active-tool="pan"], [data-active-tool="zoom"]) #vecToolsGrid [data-vec-tool].active { background: transparent; border-color: transparent; box-shadow: none; }
+
+/* One geometry for the complete history group. */
+#top-control-bar .edit-undo-bar { display: grid !important; grid-template-columns: 30px 44px 30px; column-gap: 4px !important; height: 30px; box-sizing: content-box; }
+#top-control-bar .edit-undo-bar > button { display: flex !important; align-items: center; justify-content: center; width: 30px !important; height: 30px !important; padding: 0 !important; margin: 0 !important; transform: none; }
+#top-control-bar .edit-undo-bar > button svg { display: block; width: 16px; height: 16px; margin: 0; transform: none; }
+#top-control-bar .edit-undo-bar > #editHistoryStepLabel { display: flex !important; align-items: center; justify-content: center; width: 44px; height: 30px; padding: 0 !important; margin: 0 !important; line-height: 30px; align-self: center; }
+/* Shared typography, row spacing and icon geometry in both tabs. */
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) { display: flex !important; flex-direction: column; gap: 10px !important; padding: 8px 10px !important; }
+#panelSymmetryGroup :is(#panelSymmetryBody, #panelEditScopeBody) .prop-section { display: flex !important; flex-direction: column; gap: 5px !important; margin: 0 !important; padding: 0 !important; }
+#panelSymmetryGroup :is(.prop-label, .prop-sub-label, .edit-scope-title) { font-family: var(--font-ui); font-size: 9px !important; font-weight: 600 !important; letter-spacing: .04em !important; line-height: 16px !important; color: var(--text-secondary); text-transform: uppercase; }
+#panelSymmetryGroup .canvas-center-sym-wrap { display: flex; flex-direction: column; gap: 5px; margin: 5px 0 0 !important; }
+#panelSymmetryGroup .canvas-center-sym-wrap > .prop-label-row { margin: 0 !important; }
+#panelSymmetryGroup :is(#gridSymmetryGrid, #blockSymmetryGrid, #editScopeGrid, #canvasCenterSymControl) { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important; gap: 4px !important; margin: 0 !important; padding: 0 !important; }
+#panelSymmetryGroup :is(#gridSymmetryGrid, #blockSymmetryGrid, #editScopeGrid, #canvasCenterSymControl) > button { display: flex !important; align-items: center !important; justify-content: center !important; height: 28px !important; min-height: 28px !important; padding: 0 !important; gap: 0 !important; border-radius: 3px !important; }
+#panelSymmetryGroup :is(#gridSymmetryGrid, #blockSymmetryGrid, #editScopeGrid, #canvasCenterSymControl) :is(svg, .icon-slot, .sym-card-icon, .block-sym-pill-icon, .edit-scope-icon) { display: inline-flex; align-items: center; justify-content: center; width: 16px !important; height: 16px !important; min-width: 16px; margin: 0 !important; padding: 0 !important; background: transparent !important; }

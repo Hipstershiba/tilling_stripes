@@ -1,333 +1,95 @@
-/* Piece editor: the document remains the focus; the inspector is a calm,
-   predictable stack with one scrolling content area per active tab. */
-body[data-studio-mode="tiles"] #dock-workspace-tiles {
-  overflow: hidden;
-  min-height: 0;
-}
+/* The fixed inspector keeps geometry, layers and variants together.
+   Only section content scrolls; headers stay in place. */
+body[data-studio-mode="tiles"] #dock-workspace-tiles { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; overflow:hidden; gap:0; }
+#dock-workspace-tiles .tile-inspector-tabs, #dock-workspace-tiles > .tile-selection-bar { display:none; }
+#dock-workspace-tiles > .dock-panel:not([hidden]) { display:flex; flex-direction:column; min-height:0; overflow:hidden; border-bottom:1px solid var(--border-subtle); }
+#dock-workspace-tiles > #panel-tile-shape-props { flex:0 1 auto; max-height:62%; }
+#dock-workspace-tiles > #panel-tile-layers { flex:1 1 120px; min-height:100px; }
+#dock-workspace-tiles > #panel-tile-d4-live { flex:0 1 auto; max-height:31%; min-height:112px; border-bottom:0; }
+#dock-workspace-tiles > .dock-panel > .panel-body { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; padding:8px 10px 10px; gap:8px; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+#dock-workspace-tiles .tile-panel-summary { flex:0 0 30px; height:30px; min-height:30px; padding:0 10px; border:0; background:transparent; font-size:10px; letter-spacing:.06em; cursor:default; }
+#dock-workspace-tiles .tile-panel-summary:hover { background:transparent; }
+#dock-workspace-tiles .tile-panel-summary .panel-chevron { display:none; }
+#dock-workspace-tiles .tile-panel-summary .panel-counter-pill { font-size:10px; background:transparent; letter-spacing:0; }
+#dock-workspace-tiles .tile-panel-summary .panel-title-wrap { gap:6px; }
+#dock-workspace-tiles .panel-body > .prop-section { gap:6px; }
 
-#dock-workspace-tiles > .dock-panel:not([hidden]) {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-}
+/* Inputs follow the compact Documento rhythm. */
+#vecPropsContainer { display:flex; flex-direction:column; gap:8px; }
+#vecPropsContainer .vec-props-subblock { gap:6px; padding:6px 0 0; margin:0; border:0; border-top:1px solid var(--border-subtle); }
+#vecPropsContainer .vec-props-subblock:first-child { border-top:0; padding-top:0; }
+#vecPropsContainer .vec-subblock-title { min-height:18px; margin:0; font-size:9px; letter-spacing:.08em; font-weight:650; color:var(--text-muted); }
+#vecPropsContainer .vec-subblock-title::after { height:1px; opacity:.45; }
+#vecPropsContainer .vec-props-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+#vecPropsContainer .vec-prop-field { min-width:0; min-height:30px; height:30px; padding:0 7px; gap:5px; background:var(--bg-control); border:1px solid var(--border-subtle); border-radius:4px; }
+#vecPropsContainer .vec-prop-field:focus-within { border-color:var(--border-focus); box-shadow:none; }
+#vecPropsContainer .vec-prop-field label { color:var(--text-secondary); font-size:10px; font-weight:550; }
+#vecPropsContainer .vec-prop-field :is(input,select) { min-width:0; width:100%; min-height:28px; font-size:11px; font-variant-numeric:tabular-nums; }
+#vecPropsContainer .vec-prop-field :is(input,select):disabled { color:var(--text-muted); opacity:.55; }
+#vecPropsContainer .vec-style-toggles { display:flex; gap:5px; }
+#vecPropsContainer .vec-check-chip { min-height:28px; height:28px; gap:5px; padding:0 8px; border-radius:4px; font-size:10px; }
+#vecPropsContainer .vec-check-chip input { width:12px; height:12px; accent-color:var(--accent-blue); }
+#vecPropsContainer .vec-check-chip:has(input:checked) { background:var(--bg-selected); border-color:#4d6991; }
+#vecPropsContainer .vec-check-chip > svg { width:15px; height:15px; }
+#vecPropsContainer :is(.vec-align-strip,.vec-d4-strip,.vec-inline-actions,.vec-preset-chips) { display:flex; flex-wrap:wrap; gap:4px; }
+#vecPropsContainer :is(.vec-align-strip,.vec-d4-strip,.vec-inline-actions,.vec-preset-chips) > button, #tilePathfinderContainer button { flex:0 0 28px; width:28px; min-width:28px; height:28px; min-height:28px; padding:0; border:1px solid var(--border-subtle); background:var(--bg-control); border-radius:4px; }
+#vecPropsContainer :is(.vec-align-strip,.vec-d4-strip,.vec-inline-actions,.vec-preset-chips) > button:hover:not(:disabled), #tilePathfinderContainer button:hover:not(:disabled) { background:var(--bg-control-hover); border-color:var(--border-strong); }
+#vecPropsContainer .vec-transform-actions { display:flex; flex-wrap:wrap; gap:4px; }
+#vecPropsContainer .vec-transform-actions .vec-inline-actions { margin:0 !important; }
+#tilePathfinderSection { display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border-subtle); margin-top:0; padding-top:6px; }
+#tilePathfinderSection > :is(summary,.vec-subblock-title,.prop-label) { min-height:18px; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
+#tilePathfinderContainer { padding:0; }
+#tilePathfinderContainer .vec-props-subblock { margin:0; border:0; padding:0; }
+#tilePathfinderContainer .vec-bool-strip { display:flex; gap:4px; }
 
-#dock-workspace-tiles > .dock-panel > .panel-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 12px;
-  scrollbar-gutter: stable;
-}
+/* Protected masters keep the compact copy command and the same stack. */
+#dock-workspace-tiles[data-selection-state="protected"] > #panel-tile-shape-props { flex:0 0 auto; max-height:none; }
+#dock-workspace-tiles[data-selection-state="protected"] #panelTileShapePropsBody { padding-top:0; flex-direction:row; align-items:center; gap:6px; }
+#dock-workspace-tiles[data-selection-state="protected"] #vecPropsContainer { padding:0; border:0; background:transparent; }
+#vecPropsContainer #btnPropsDuplicateBuiltIn { width:28px; min-width:28px; min-height:28px; height:28px; padding:0; border-radius:4px; background:var(--bg-selected); border:1px solid #4d6991; }
+#dock-workspace-tiles[data-selection-state="protected"] #tilePathfinderSection { margin-top:0; padding-top:0; border:0; }
+#dock-workspace-tiles[data-selection-state="protected"] #tilePathfinderSection > :is(summary,.vec-subblock-title,.prop-label) { display:none; }
+#dock-workspace-tiles[data-selection-state="protected"] #panelTileShapePropsBody > .prop-section { flex:0 0 auto; }
 
-#dock-workspace-tiles .tile-inspector-tabs {
-  gap: 0;
-  padding: 0 8px;
-  background: var(--bg-panel);
-}
+/* Layer order receives the free height, with a fixed toolbar. */
+#dock-workspace-tiles #panelTileLayersBody { overflow:hidden; }
+#panelTileLayersBody > .prop-section { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; margin:0; gap:6px; }
+#panelTileLayersBody .tile-layers-toolbar { display:flex; flex-wrap:wrap; gap:4px; margin:0; flex:0 0 auto; }
+#panelTileLayersBody .tile-layers-toolbar > button { min-width:28px; width:28px; min-height:28px; height:28px; padding:0; }
+#panelTileLayersBody .tile-layers-list { flex:1 1 auto; min-height:0; max-height:none; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; gap:2px; padding:2px; }
+#panelTileLayersBody .tile-layer-row { flex:0 0 auto; min-height:32px; gap:5px; padding:2px 4px; border:1px solid transparent; border-radius:4px; background:transparent; }
+#panelTileLayersBody .tile-layer-row.is-selected { background:var(--bg-selected); box-shadow:inset 2px 0 var(--accent-blue); }
+#panelTileLayersBody .tile-layer-row:focus-visible { outline:2px solid var(--border-focus); outline-offset:-2px; }
+#panelTileLayersBody .tile-layer-name { min-width:0; font-size:10px; line-height:1.3; }
+#panelTileLayersBody .tile-layer-select { width:12px; height:12px; flex:0 0 12px; }
+#panelTileLayersBody .tile-layer-type-tag { display:none; }
+#panelTileLayersBody .tile-layer-row.is-readonly { min-height:36px; padding:5px 7px; border-color:var(--border-subtle); background:var(--bg-control); gap:7px; }
+#panelTileLayersBody .tile-layer-row.is-readonly .tile-layer-type-tag { display:inline-flex; flex:0 0 16px; width:16px; height:16px; align-items:center; justify-content:center; color:var(--text-secondary); }
+#panelTileLayersBody .tile-layer-row.is-readonly .tile-layer-name { font-size:11px; }
+#panelTileLayersBody .tile-layer-readonly-state { display:inline-flex; margin-left:auto; color:var(--text-muted); opacity:.7; }
+#panelTileLayersBody .tile-layer-actions { gap:0; }
+#panelTileLayersBody .tile-layer-icon-btn { min-width:23px; width:23px; min-height:26px; height:26px; }
 
-#dock-workspace-tiles .tile-inspector-tabs button {
-  min-height: 40px;
-  padding: 10px 4px;
-  font-size: 12px;
-  font-weight: 550;
-  color: var(--text-muted);
-}
-
-#dock-workspace-tiles .tile-inspector-tabs button[aria-selected="true"] {
-  color: var(--text-primary);
-  font-weight: 650;
-  background: transparent;
-  border-bottom-color: var(--accent-blue);
-}
-
-#dock-workspace-tiles .tile-selection-bar {
-  min-height: 40px;
-  padding: 4px 12px;
-  gap: 4px;
-  background: var(--bg-panel);
-}
-
-#tileSelectionSummary {
-  margin-right: auto;
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-
-#dock-workspace-tiles .tile-panel-summary {
-  flex: 0 0 auto;
-  position: static;
-  height: 36px;
-  min-height: 36px;
-  padding: 0 12px;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-#dock-workspace-tiles .tile-panel-summary .panel-counter-pill {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0;
-  background: transparent;
-}
-
-/* A protected master has one useful next action. Avoid showing inactive
-   geometry operations or repeating the protected state in three places. */
-#dock-workspace-tiles:has(#btnPropsDuplicateBuiltIn) > .tile-selection-bar {
-  display: none;
-}
-
-#vecPropsContainer:has(> #btnPropsDuplicateBuiltIn) {
-  padding: 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--bg-control);
-}
-
-#vecPropsContainer #btnPropsDuplicateBuiltIn {
-  width: 100%;
-  min-height: 38px;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid color-mix(in srgb, var(--accent-blue) 30%, transparent);
-  border-radius: 6px;
-  background: var(--accent-blue-soft);
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-#tilePathfinderSection:not(:has(button:not(:disabled))) {
-  display: none;
-}
-
-/* Numeric fields share a baseline and retain their values in narrow docks. */
-#vecPropsContainer { gap: 14px; }
-#vecPropsContainer .vec-props-subblock {
-  gap: 8px;
-  padding-top: 12px;
-  border-top-color: var(--border-subtle);
-}
-
-#vecPropsContainer .vec-subblock-title {
-  min-height: 24px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .045em;
-  color: var(--text-secondary);
-}
-
-#vecPropsContainer .vec-subblock-title::after { opacity: .45; }
-#vecPropsContainer .vec-props-grid { gap: 8px; }
-#vecPropsContainer .vec-prop-field {
-  min-height: 36px;
-  height: 36px;
-  padding: 0 9px;
-  gap: 8px;
-  background: var(--bg-control);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-}
-
-#vecPropsContainer .vec-prop-field:focus-within {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 1px var(--accent-blue);
-}
-
-#vecPropsContainer .vec-prop-field label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-#vecPropsContainer .vec-prop-field :is(input[type="number"], select) {
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  min-width: 0;
-  min-height: 32px;
-}
-
-#vecPropsContainer .vec-check-chip {
-  min-height: 34px;
-  gap: 7px;
-  padding: 4px 9px;
-  font-size: 12px;
-  border-radius: 6px;
-}
-
-#vecPropsContainer .vec-check-chip:has(input:checked) {
-  border-color: color-mix(in srgb, var(--accent-blue) 35%, transparent);
-  background: var(--accent-blue-soft);
-  color: var(--text-primary);
-}
-
-#vecPropsContainer .vec-check-chip input { accent-color: var(--accent-blue); }
-#vecPropsContainer .vec-empty-hint { padding: 10px 0; color: var(--text-muted); }
-
-#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) {
-  gap: 5px;
-}
-
-#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) > button {
-  min-height: 34px;
-  height: 34px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-control);
-}
-
-#dock-workspace-tiles :is(.vec-align-strip, .vec-d4-strip, .vec-bool-strip, .vec-preset-chips) > button:hover:not(:disabled) {
-  background: var(--bg-control-hover);
-  border-color: var(--border-strong);
-}
-
-#dock-workspace-tiles .tile-inspector-disclosure > summary {
-  min-height: 36px;
-  padding: 10px 0;
-  font-size: 12px;
-}
-
-/* Layers: stable action columns and names that can take the remaining space. */
-#panelTileLayersBody { display: flex; flex-direction: column; overflow: hidden; }
-#panelTileLayersBody > .prop-section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  margin: 0;
-}
-
-#panelTileLayersBody .tile-layers-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 0 12px;
-  flex: 0 0 auto;
-}
-
-#panelTileLayersBody .tile-layers-toolbar > button {
-  min-width: 32px;
-  width: 32px;
-  min-height: 32px;
-  height: 32px;
-}
-
-#panelTileLayersBody .tile-layers-list {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  gap: 2px;
-  padding-right: 2px;
-}
-
-#panelTileLayersBody .tile-layer-row {
-  flex: 0 0 auto;
-  min-height: 42px;
-  gap: 6px;
-  padding: 4px 6px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-}
-
-#panelTileLayersBody .tile-layer-row.is-selected {
-  background: var(--accent-blue-soft);
-  box-shadow: inset 2px 0 var(--accent-blue);
-}
-
-#panelTileLayersBody .tile-layer-row:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: -2px;
-}
-
-#panelTileLayersBody .tile-layer-name {
-  min-width: 0;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-#panelTileLayersBody .tile-layer-select {
-  width: 14px;
-  height: 14px;
-  flex-basis: 14px;
-}
-
-#panelTileLayersBody .tile-layer-actions { gap: 0; }
-#panelTileLayersBody .tile-layer-icon-btn {
-  min-width: 26px;
-  width: 26px;
-  min-height: 30px;
-  height: 30px;
-}
-
-/* Variants have enough visual area to compare geometry before selecting. */
-#panelTileD4LiveBody .tile-live-variants-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 14px;
-}
-
-#panelTileD4LiveBody .tile-live-variant-card {
-  min-width: 0;
-  padding: 5px;
-  gap: 6px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 7px;
-  background: var(--bg-control);
-  box-shadow: none;
-}
-
-#panelTileD4LiveBody .tile-live-variant-card.active {
-  border-color: var(--accent-blue);
-  background: var(--accent-blue-soft);
-  box-shadow: 0 0 0 1px var(--accent-blue);
-}
-
-#panelTileD4LiveBody .tile-live-variant-tag { font-size: 11px; }
-#panelTileD4LiveBody .d4-compat-row { gap: 6px; }
-#panelTileD4LiveBody .d4-compat-pill {
-  min-height: 32px;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 5px;
-}
-
-#panelTileD4LiveBody .tile-readonly-banner {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  margin-top: 16px;
-  background: var(--bg-control);
-}
-
-#panelTileD4LiveBody .tile-custom-meta-box {
-  margin-top: 16px;
-  padding: 12px 0 0;
-  border: 0;
-  border-top: 1px solid var(--border-subtle);
-  border-radius: 0;
-  background: transparent;
-  gap: 10px;
-}
-
-#panelTileD4LiveBody .tile-meta-field-row {
-  grid-template-columns: 64px minmax(0, 1fr);
-  font-size: 12px;
-  gap: 8px;
-}
-
-#panelTileD4LiveBody .tile-meta-field-row :is(input, select) { min-height: 34px; }
-
-@media (max-width: 760px) {
-  #dock-workspace-tiles .tile-inspector-tabs { padding-inline: 4px; }
-  #dock-workspace-tiles .tile-inspector-tabs button { font-size: 11px; }
-  #dock-workspace-tiles > .dock-panel > .panel-body { padding: 10px; }
-  #vecPropsContainer .vec-props-grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #panelTileLayersBody .tile-layer-type-tag { display: none; }
+/* Variants are thumbnails and status icons; details stay on hover. */
+#panelTileD4LiveBody > .prop-section { gap:6px; }
+#panelTileD4LiveBody .prop-label-row { display:none; }
+#panelTileD4LiveBody .d4-compat-row { display:flex; gap:4px; }
+#panelTileD4LiveBody .d4-compat-pill { min-width:40px; min-height:24px; padding:3px 7px; gap:5px; font-size:9px; border-radius:4px; }
+#panelTileD4LiveBody .compat-name { display:none; }
+#panelTileD4LiveBody .tile-live-variants-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin:0; }
+#panelTileD4LiveBody .tile-live-variant-card { min-width:0; padding:3px; gap:0; border:1px solid var(--border-subtle); border-radius:4px; background:var(--bg-control); box-shadow:none; }
+#panelTileD4LiveBody .tile-live-variant-card.active { border-color:var(--border-focus); background:var(--bg-selected); box-shadow:inset 0 0 0 1px #7aa8ff66; }
+#panelTileD4LiveBody .tile-live-variant-thumb { min-width:0; width:100%; height:48px; aspect-ratio:auto; }
+#panelTileD4LiveBody .tile-live-variant-thumb img { width:100%; height:100%; object-fit:contain; }
+#panelTileD4LiveBody .tile-live-variant-tag { display:none; }
+#panelTileD4LiveBody .tile-swatch-id { font-size:9px; }
+#topPieceTransform .vec-selection-actions { display:flex; align-items:center; gap:8px; padding:0; margin:0; border:0; }
+#topPieceTransform :is(.vec-align-strip,.vec-d4-strip,.vec-inline-actions,.vec-transform-actions) { display:flex; align-items:center; flex-wrap:nowrap; gap:3px; margin:0 !important; }
+#topPieceTransform button { flex:0 0 28px; width:28px; min-width:28px; height:28px; min-height:28px; padding:0; border:1px solid transparent; border-radius:4px; background:transparent; }
+#topPieceTransform button:hover:not(:disabled) { background:var(--bg-control-hover); border-color:var(--border-subtle); }
+@media (max-height:760px) {
+  #dock-workspace-tiles > #panel-tile-shape-props { max-height:55%; }
+  #dock-workspace-tiles > #panel-tile-layers { min-height:86px; }
+  #dock-workspace-tiles > #panel-tile-d4-live { min-height:100px; max-height:28%; }
+  #panelTileD4LiveBody .tile-live-variant-thumb { height:38px; }
 }

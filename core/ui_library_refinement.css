@@ -1,46 +1,46 @@
 /* Catalogue and decision surfaces share the studio's control vocabulary. */
 .library-page-header {
-  min-height: 62px;
-  padding: 12px 24px;
-  gap: 12px;
+  min-height: 44px;
+  padding: 6px 16px;
+  gap: 10px;
 }
 
-.library-page-header h1 { font-size: 18px; letter-spacing: -.025em; }
+.library-page-header h1 { font-size: 13px; letter-spacing: 0; }
 .library-page-header .panel-counter-pill { background: transparent; border: 0; color: var(--text-secondary); }
 .library-back-btn { width: 34px; min-width: 34px; padding: 0; }
 
 #library-page #panelTileLibraryMgrBody {
-  grid-template-columns: minmax(0, 1fr) 272px;
-  gap: 24px;
-  padding: 24px;
+  grid-template-columns: minmax(0, 1fr) 248px;
+  gap: 16px;
+  padding: 16px;
 }
 
-#library-page .library-catalogue { gap: 18px; }
-#library-page .lib-mgr-toolbar { gap: 12px; }
-#library-page .lib-mgr-toolbar :is(input, select) { min-height: 36px; }
+#library-page .library-catalogue { gap: 10px; }
+#library-page .lib-mgr-toolbar { gap: 8px; }
+#library-page .lib-mgr-toolbar :is(input, select) { min-height: 30px; }
 #library-page .tile-library-navigation { gap: 4px; align-items: center; }
-#library-page .tile-library-navigation > button { min-height: 34px; }
-#library-page .lib-mgr-filter-row { gap: 12px; min-width: 0; flex-wrap: wrap; }
-#library-page #libMgrFilterControl { flex: 0 1 auto; gap: 2px; padding: 3px; }
+#library-page .tile-library-navigation > button { min-height: 28px; }
+#library-page .lib-mgr-filter-row { gap: 8px; min-width: 0; flex-wrap: wrap; }
+#library-page #libMgrFilterControl { flex: 0 1 auto; gap: 2px; padding: 2px; }
 #library-page #libMgrFilterControl > button {
-  width: auto;
-  min-width: 64px;
-  min-height: 30px;
+  width: 30px;
+  min-width: 30px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 0;
+  padding: 0;
 }
 
 #library-page #libMgrFilterControl .icon-label,
 #library-page #btnRailNewSubtile .icon-label {
-  position: static;
-  width: auto;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  clip-path: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -49,11 +49,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  flex-basis: auto;
-  width: auto;
-  min-height: 32px;
-  padding: 0 10px;
+  gap: 0;
+  flex-basis: 30px;
+  width: 30px;
+  min-width: 30px;
+  min-height: 28px;
+  padding: 0;
 }
 
 #library-page #libMgrTreeContainer {
@@ -63,36 +64,36 @@
   scrollbar-gutter: stable;
 }
 
-#library-page .lib-group-block { margin-bottom: 22px; overflow: visible; }
+#library-page .lib-group-block { margin-bottom: 14px; overflow: visible; }
 #library-page .lib-group-header {
-  min-height: 36px;
-  padding: 0 0 7px;
-  margin-bottom: 8px;
+  min-height: 30px;
+  padding: 0 0 4px;
+  margin-bottom: 6px;
   background: transparent;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
 }
 #library-page .lib-group-title-wrap { gap: 6px; }
-#library-page .lib-group-name { font-size: 12px; font-weight: 600; }
+#library-page .lib-group-name { font-size: 11px; font-weight: 600; }
 #library-page .lib-group-count { background: transparent; padding: 0 4px; font-variant-numeric: tabular-nums; }
 #library-page .lib-group-actions { opacity: .45; transition: opacity 120ms ease; }
 #library-page .lib-group-header:is(:hover, :focus-within) .lib-group-actions { opacity: 1; }
 
 #library-page .lib-family-list {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 194px), 1fr));
+  gap: 6px;
   padding: 0;
 }
 
 #library-page .lib-family-row {
   position: relative;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr);
   align-content: start;
-  gap: 8px 10px;
-  padding: 12px;
-  min-height: 84px;
+  gap: 6px 8px;
+  padding: 8px;
+  min-height: 68px;
   border-color: var(--border-subtle);
-  border-radius: 7px;
+  border-radius: 5px;
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 #library-page .lib-family-row:hover { border-color: var(--border-strong); }
@@ -101,12 +102,12 @@
   border-color: var(--accent-blue);
   box-shadow: inset 3px 0 0 var(--accent-blue);
 }
-#library-page .lib-family-thumb { width: 52px; height: 52px; border-radius: 4px; border-color: rgba(255, 255, 255, .12); }
-#library-page .lib-family-info { align-self: center; gap: 6px; }
+#library-page .lib-family-thumb { width: 44px; height: 44px; border-radius: 3px; border-color: rgba(255, 255, 255, .12); }
+#library-page .lib-family-info { align-self: center; gap: 4px; }
 #library-page .lib-family-name-line { align-items: flex-start; flex-wrap: wrap; gap: 4px; }
-#library-page .lib-family-name { line-height: 1.4; font-size: 12px; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#library-page .lib-family-name { line-height: 1.35; font-size: 11px; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 #library-page .lib-family-meta-line { font-size: 10px; color: var(--text-secondary); }
-#library-page .lib-custom-pill { font-size: 9px; line-height: 16px; text-transform: none; font-weight: 500; }
+#library-page .lib-custom-pill { display: none; }
 #library-page .lib-family-actions {
   position: absolute;
   right: 6px;
@@ -120,7 +121,7 @@
   pointer-events: none;
   justify-content: flex-end;
 }
-#library-page .lib-family-row:is(:hover, :focus-within, .active) .lib-family-actions { opacity: 1; pointer-events: auto; }
+#library-page .lib-family-row:is(:hover, :focus-within) .lib-family-actions { opacity: 1; pointer-events: auto; }
 #library-page .lib-family-row.active .lib-family-actions { background: var(--bg-selected); }
 #library-page .lib-mini-icon-btn { width: 26px; min-width: 26px; height: 26px; min-height: 26px; }
 #library-page .lib-mini-icon-btn:disabled { background: transparent; border-color: transparent; opacity: .35; }
@@ -128,15 +129,18 @@
 
 #library-page .library-detail-pane {
   align-self: stretch;
-  border-radius: 8px;
-  padding: 18px;
+  border-radius: 6px;
+  padding: 12px;
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
 }
-#library-page .library-detail-pane h2 { margin-bottom: 16px; }
-#library-page .library-selection-preview { width: 100%; height: auto; aspect-ratio: 1; margin-bottom: 18px; border-radius: 5px; }
-#library-page .library-detail-pane h3 { font-size: 15px; margin: 0 0 18px; overflow-wrap: anywhere; }
-#library-page .library-edit-btn { min-height: 36px; margin-top: 20px; }
+#library-page .library-detail-pane h2 { margin-bottom: 10px; }
+#library-page .library-selection-preview { width: 100%; height: auto; aspect-ratio: 1; margin-bottom: 12px; border-radius: 4px; }
+#library-page .library-detail-pane h3 { font-size: 12px; margin: 0 0 12px; overflow-wrap: anywhere; }
+#library-page .library-edit-btn { width: 30px; min-height: 30px; margin-top: 12px; margin-left: auto; padding: 0; display: flex; align-items: center; justify-content: center; }
+#library-page .library-edit-btn > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+#library-page .library-groups-export-btn { min-width: 30px; width: 30px; height: 30px; padding: 0; gap: 0; font-size: 0; }
+#library-page .library-groups-export-btn > svg { width: 16px; height: 16px; }
 #library-page .tile-custom-meta-box :is(input, select) { min-height: 34px; }
 #library-page .vec-empty-hint { padding: 40px 16px; text-align: center; color: var(--text-secondary); }
 
@@ -192,9 +196,9 @@
 }
 
 @media (max-width: 760px) {
-  .library-page-header { min-height: 56px; padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
-  .library-page-header h1 { font-size: 16px; }
-  .library-page-header .library-groups-export-btn { min-height: 32px; padding: 0 8px; font-size: 11px; }
+  .library-page-header { min-height: 44px; padding: 6px 12px; gap: 8px; flex-wrap: wrap; }
+  .library-page-header h1 { font-size: 13px; }
+  .library-page-header .library-groups-export-btn { min-height: 30px; padding: 0; font-size: 0; }
   #library-page #panelTileLibraryMgrBody {
     display: flex;
     flex-direction: column;
@@ -217,7 +221,7 @@
   #library-page .library-detail-pane > h2 { display: none; }
   #library-page .library-selection-preview { width: 48px; height: 48px; margin: 0; }
   #library-page .library-detail-pane > h3 { grid-column: 2; margin: 0; font-size: 12px; }
-  #library-page .library-edit-btn { grid-column: 3; grid-row: 1; margin: 0; width: auto; padding: 0 12px; min-height: 34px; }
+  #library-page .library-edit-btn { grid-column: 3; grid-row: 1; margin: 0; width: 30px; padding: 0; min-height: 30px; }
   #library-page .tile-library-details { grid-column: 1 / -1; }
   #library-page .tile-library-details .tile-readonly-banner { min-height: 0; }
 }
@@ -232,7 +236,12 @@
   .modal-dialog-backdrop { padding: 12px; }
   .modal-dialog-card { max-height: calc(100dvh - 24px); padding: 20px; }
   .library-page-header > .panel-counter-pill { display: none; }
-  #library-page #libMgrFilterControl > button { min-width: 54px; padding: 0 7px; }
+  #library-page #libMgrFilterControl > button { min-width: 30px; padding: 0; }
   #library-page .lib-mgr-actions-bar { margin-left: 0; }
   .library-export-format { grid-template-columns: 1fr; gap: 6px; }
 }
+
+/* Actions occupy their own row rather than covering card content. */
+#library-page .lib-family-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: auto auto; min-width: 0; }
+#library-page .lib-family-actions { position: static !important; grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: flex-end; width: 100%; box-sizing: border-box; padding: 4px 0 0; margin: 0; opacity: 1; pointer-events: auto; background: transparent !important; }
+#library-page .lib-family-actions > button { flex: 0 0 24px; width: 24px; min-width: 24px; height: 24px; min-height: 24px; }

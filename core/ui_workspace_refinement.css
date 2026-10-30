@@ -236,28 +236,17 @@ body.right-dock-collapsed .dock-toggle-icon { transform: none; }
 #dock-workspace-generate > #panelSymmetryGroup {
   display: flex;
   flex-direction: column;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-height: 0;
-  height: 100%;
+  height: auto;
   max-height: none;
 }
-#dock-workspace-generate > #panelSymmetryGroup.is-brush-active {
-  flex: 0 0 auto !important;
-  max-height: 38px !important;
-  height: 38px !important;
-}
-#dock-workspace-generate > #panelSymmetryGroup.is-brush-active > .dock-panel {
-  display: none !important;
-}
-#dock-workspace-generate > #panelSymmetryGroup:not(.is-brush-active) ~ #panel-edit-brush {
-  display: none !important;
-}
 #dock-workspace-generate > #panel-edit-brush {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
-  height: calc(100% - 38px) !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
 }
 #dock-workspace-generate > #panel-edit-brush.hidden {
   display: none !important;
@@ -279,7 +268,6 @@ body.right-dock-collapsed .dock-toggle-icon { transform: none; }
 #panel-edit-scope :is(.edit-scope-title, .icon-label) { position: static; width: auto; height: auto; margin: 0; overflow: hidden; clip-path: none; font-size: 11px; font-weight: 500; white-space: nowrap; }
 #panel-edit-scope :is(#editScopeGrid, #canvasCenterSymControl) > button.active { background: var(--bg-selected); border-color: #5576a5; box-shadow: none; }
 #panelEditScopeBody { gap: 12px; padding: 12px; }
-.edge-match-section:not(:has(#toggleEdgeMatch:checked)) .edge-variability-control { display: none; }
 .edge-match-section .prop-label-row { margin: 0; }
 
 /* Brush preview and palette keep independent, usable areas. */

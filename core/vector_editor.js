@@ -2633,21 +2633,24 @@
           dv = Math.sign(dv) * avg;
         }
       } else if (editorState.snapEnabled && op.startBox && !mods.metaKey) {
-        const snapCenter = snapPoint(op.startBox.cx + du, op.startBox.cy + dv, {
-          enabled: true,
-          gridDiv: editorState.gridDiv,
-          snapPorts: effSnapPorts,
-          threshold: hitRadiusNorm * 0.85,
-          objectPoints: objPts
-        });
-        if (snapCenter.snappedX) {
-          du = snapCenter.u - op.startBox.cx;
-          editorState.activeSnapGuides.guideX = snapCenter.guideX;
+        const box = op.startBox;
+        const xs = [box.minX, box.cx, box.maxX];
+        const ys = [box.minY, box.cy, box.maxY];
+        let bestX = Infinity, bestY = Infinity, adjustX = 0, adjustY = 0;
+        for (const x of xs) for (const y of ys) {
+          const snap = snapPoint(x + du, y + dv, {
+            enabled: true, gridDiv: editorState.gridDiv, snapPorts: effSnapPorts,
+            threshold: hitRadiusNorm * 0.85, objectPoints: objPts
+          });
+          const dx = snap.u - (x + du), dy = snap.v - (y + dv);
+          if (snap.snappedX && Math.abs(dx) < bestX) {
+            bestX = Math.abs(dx); adjustX = dx; editorState.activeSnapGuides.guideX = snap.guideX;
+          }
+          if (snap.snappedY && Math.abs(dy) < bestY) {
+            bestY = Math.abs(dy); adjustY = dy; editorState.activeSnapGuides.guideY = snap.guideY;
+          }
         }
-        if (snapCenter.snappedY) {
-          dv = snapCenter.v - op.startBox.cy;
-          editorState.activeSnapGuides.guideY = snapCenter.guideY;
-        }
+        du += adjustX; dv += adjustY;
       }
 
       if (Math.hypot(du, dv) > 1e-4) {

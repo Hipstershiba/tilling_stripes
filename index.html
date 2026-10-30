@@ -7,9 +7,11 @@
   <meta name="color-scheme" content="dark">
   <title>Tiling Stripes Studio — Mosaic Generator</title>
   <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="stylesheet" href="core/ui_workspace_refinement.css">
-  <link rel="stylesheet" href="core/ui_pieces_refinement.css">
-  <link rel="stylesheet" href="core/ui_library_refinement.css">
+  <link rel="stylesheet" href="core/ui_workspace_refinement.css?v=20261030-panels">
+  <link rel="stylesheet" href="core/ui_pieces_refinement.css?v=20261030-panels">
+  <link rel="stylesheet" href="core/ui_library_refinement.css?v=20261030-panels">
+  <link rel="stylesheet" href="core/ui_compact_workspace.css?v=20261030-panels">
+  <link rel="stylesheet" href="core/ui_toolbar_refinement.css?v=20261030-panels">
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/simple-svg.js"></script>
   <script src="libraries/paper-core.min.js"></script>
@@ -127,21 +129,7 @@
       </div>
 
       <!-- Pincel / Carimbo: brush size, snap and the expanded editor -->
-      <div id="ctxPaint" class="bar-group top-context-group mosaic-mode-only hidden" aria-label="Opções do Pincel e do Carimbo">
-        <div class="brush-size-display-row" id="brushSizeControl">
-          <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
-          <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
-            <span class="brush-size-val" id="brushSizeValueText">1×1</span>
-            <span class="brush-size-sub" id="brushSizeSubText">peças</span>
-          </div>
-          <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
-          <div class="brush-snap-row" id="brushSnapRow">
-            <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
-              <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
-          </div>
-        </div>
-        <button type="button" id="btnExpandBrushEditor" class="bar-action-btn icon-only" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar editor</span></button>
-      </div>
+
 
       <!-- Seleção de região (Carimbo em modo mover) -->
       <section class="selection-summary hidden" id="selectionSummary" aria-label="Seleção">
@@ -202,7 +190,7 @@
         <div class="tool-size-snap top-size-snap" id="freezeSizeControl">
           <button type="button" class="seg-btn icon-only" data-freeze-size="block" aria-pressed="false" title="Bloco" aria-label="Bloco"><span class="icon-slot" data-icon-slot="blocks"></span><span class="icon-label">Ajustar ao bloco</span></button>
         </div>
-        <button type="button" id="btnFreezeClearSelection" class="bar-action-btn icon-only" disabled title="Limpar preservações" aria-label="Limpar preservações"><span class="icon-slot" data-icon-slot="unlock"></span><span class="icon-label">Descongelar tudo</span></button>
+        <button type="button" id="btnFreezeClearSelection" class="bar-action-btn icon-only" disabled title="Limpar preservações" aria-label="Limpar preservações"><span class="icon-slot" data-icon-slot="trash"></span><span class="icon-label">Descongelar tudo</span></button>
       </div>
 
       <!-- Subtile Studio Contextual Top Strip (Visible only in data-studio-mode="tiles") -->
@@ -222,11 +210,57 @@
           <button type="button" class="tile-prev-btn icon-only" data-tile-preview="rotational_c4" aria-pressed="false" title="Giro C4" aria-label="Giro C4"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro C4</span></button>
         </div>
         <button type="button" id="btnTileClipToggle" class="bar-action-btn icon-only" aria-pressed="false" title="Recortar" aria-label="Recortar"><span class="icon-slot" data-icon-slot="clip"></span><span class="icon-label">Recortar</span></button>
-        <button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn icon-only" title="Pintar" aria-label="Pintar"><span class="icon-slot" data-icon-slot="brush"></span><span class="icon-label">Pintar</span></button>
+
       </div>
 
-      <div class="bar-spacer"></div>
-
+      <div class="top-piece-actions tiles-mode-only" aria-label="Seleção de formas"><button type="button" id="btnTileSelectAll" class="mini-btn icon-only" title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button><button type="button" id="btnTileDeselect" class="mini-btn icon-only" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Limpar</span></button><div class="curve-tool-options" role="group" aria-label="Curvatura">
+              <select id="curveFraction" class="subtile-select" aria-label="Fração de curva" title="Fração do círculo">
+                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option><option value="0.5">1/2</option><option value="custom">Livre…</option>
+              </select>
+              <button type="button" id="btnCurveSide" class="mini-btn icon-only" aria-label="Inverter lado" title="Inverter lado (Shift)" aria-pressed="false"><span class="icon-slot" data-icon-slot="swap"></span><span class="icon-label">Inverter lado</span></button>
+              <button type="button" id="btnCurveCycle" class="mini-btn icon-only" aria-label="Ciclar frações" title="Ciclar frações a cada clique" aria-pressed="false"><span class="icon-slot" data-icon-slot="cycle"></span><span class="icon-label">Ciclar frações</span></button>
+              <input id="curveCustomFraction" class="subtile-text-input curve-custom hidden" type="text" inputmode="decimal" value="1/4" aria-label="Fração livre" title="Fração livre (ex.: 3/8)" autocomplete="off">
+            </div></div>
+      <div id="topPieceTransform" class="tiles-mode-only" aria-label="Alinhar e transformar formas"></div>
+<section id="topLayoutControls" class="mosaic-mode-only" aria-label="Divisão e encaixe"><div class="prop-section edge-match-section">
+                <div class="prop-label-row">
+                  <div class="prop-label-with-info">
+                    <label class="edge-match-toggle" for="toggleEdgeMatch" title="Encaixe por bordas">
+                      <span class="edge-match-icon" aria-hidden="true"><span class="icon-slot" data-icon-slot="edgeJoin" data-icon-size="18"></span></span>
+                      <span class="edge-match-title">Encaixe</span>
+                      <input type="checkbox" id="toggleEdgeMatch">
+                    </label>
+                    <button type="button" class="info-btn" data-info-topic="edge-match" aria-label="Saiba mais sobre encaixe por bordas" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
+                  </div>
+                </div>
+                <label class="edge-variability-control" for="edgeVariabilityInput" title="Variabilidade do encaixe">
+                  <span class="edge-variability-icon" aria-hidden="true"><span class="icon-slot" data-icon-slot="variability" data-icon-size="14"></span></span>
+                  <span class="edge-variability-title">Variedade</span>
+                  <input type="number" id="edgeVariabilityInput" min="0" max="100" step="5" value="30" aria-label="Variabilidade do encaixe">
+                  <button type="button" class="brush-field-step" data-brush-field="edgeVariabilityInput" data-brush-step="1" aria-label="Aumentar" title="Aumentar">+</button><button type="button" class="brush-field-step" data-brush-field="edgeVariabilityInput" data-brush-step="-1" aria-label="Diminuir" title="Diminuir">−</button><output id="edgeVariabilityValue" class="edge-variability-value" for="edgeVariabilityInput">30%</output>
+                </label>
+              </div></section>
+      <div class="top-document-actions mosaic-mode-only" aria-label="Ações do mosaico"><section id="dock-generator" class="dock-generator mosaic-mode-only" aria-label="Gerador e Semente">
+          <button type="button" id="btnRandomize" class="sidebar-gen-btn gen-primary-btn" title="Gerar mosaico (G)" aria-label="Gerar"><span class="icon-slot" data-icon-slot="dice"></span><span class="gen-btn-label">Gerar</span></button>
+          <div class="sidebar-seed-row" title="Navegação de Seeds">
+            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><span class="icon-slot" data-icon-slot="left"></span></button>
+            <div class="sidebar-seed-chip" title="Semente atual">
+              <span class="sidebar-seed-hash">#</span>
+              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
+            </div>
+            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled><span class="icon-slot" data-icon-slot="right"></span></button>
+          </div>
+        </section><div class="edit-undo-bar">
+                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
+                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
+                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><span class="icon-slot" data-icon-slot="redo"></span></button>
+              </div><section id="dock-export" class="dock-export mosaic-mode-only" aria-label="Exportar Mosaico">
+          <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
+            <option value="png" selected>PNG</option>
+            <option value="svg">SVG</option>
+          </select>
+          <button type="button" id="btnExport" class="sidebar-export-btn" title="Exportar" aria-label="Exportar"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar</span></span></button>
+        </section></div>
     </header>
 
     <!-- Floating Seed History Popover (Retained for backwards compatibility) -->
@@ -304,7 +338,7 @@
           </label>
           <label class="subtile-radio-row">
             <input type="radio" name="subtileImportMode" value="replace">
-            <span><strong>Substituir</strong> — usa apenas os subtiles customizados do arquivo (mantendo os 31 padrão)</span>
+            <span><strong>Substituir</strong> — substitui apenas suas peças autorais. As peças padrão do aplicativo são mantidas.</span>
           </label>
           <div id="subtileImportConflictRow" class="subtile-conflict-row">
             <label for="subtileImportConflictSelect">Se um ID customizado já existir:</label>
@@ -449,7 +483,7 @@
             <div class="vec-snap-row">
               <button type="button" id="btnTileSnapToggle" class="subtile-rail-btn active icon-only" aria-pressed="true" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span>Encaixe</span></span></button>
               <select id="tileGridDivSelect" class="subtile-grid-select" title="Subdivisão da Grade Magnética" aria-label="Subdivisão da Grade Magnética">
-                <option value="0">Off</option>
+                <option value="0">Livre</option><option value="1">1/1</option>
                 <option value="2">1/2</option>
                 <option value="3">1/3</option>
                 <option value="4">1/4</option>
@@ -542,6 +576,7 @@
 
         <button type="button" id="railTogglePieces" class="rail-utility-btn" title="Peças permitidas" aria-label="Peças permitidas" aria-expanded="false" aria-controls="railFlyoutPieces"><span class="icon-slot" data-icon-slot="pieces" data-icon-size="18"></span></button>
         <button type="button" id="railToggleDocument" class="rail-utility-btn" title="Documento: Prancheta &amp; Grade" aria-label="Documento" aria-expanded="false" aria-controls="railFlyoutDocument"><span class="icon-slot" data-icon-slot="grid" data-icon-size="18"></span></button>
+        <button type="button" id="railToggleBrush" class="rail-utility-btn" title="Construtor de pincéis" aria-label="Construtor de pincéis" aria-expanded="false" aria-controls="railFlyoutBrush"><span class="icon-slot" data-icon-slot="brush" data-icon-size="18"></span></button>
 
         <div id="railFlyoutPieces" class="rail-flyout hidden" role="region" aria-label="Peças permitidas">
           <!-- PANEL 2: SWATCHES / TILE LIBRARY -->
@@ -665,7 +700,16 @@
                     </div>
                   </div>
                 </div>
-                <div class="document-fields document-fields-secondary">
+                <div class="document-field subdivision-field" title="Peças por lado do bloco"><label for="subdivisionInput">Divisão</label><input id="subdivisionInput" type="number" min="2" max="8" step="2" value="4" aria-label="Peças por lado do bloco"><button type="button" class="brush-field-step" data-brush-field="subdivisionInput" data-brush-step="1" aria-label="Aumentar" title="Aumentar">+</button><button type="button" class="brush-field-step" data-brush-field="subdivisionInput" data-brush-step="-1" aria-label="Diminuir" title="Diminuir">−</button></div><div hidden><div class="segmented-control" id="subdivisionControl">
+                  <button type="button" class="seg-btn" data-sub="1"
+                    title="Bloco com 2×2 peças (1×1 por quadrante)">2×2</button>
+                  <button type="button" class="seg-btn active" data-sub="2"
+                    title="Bloco com 4×4 peças (2×2 por quadrante)">4×4</button>
+                  <button type="button" class="seg-btn" data-sub="3"
+                    title="Bloco com 6×6 peças (3×3 por quadrante)">6×6</button>
+                  <button type="button" class="seg-btn" data-sub="4"
+                    title="Bloco com 8×8 peças (4×4 por quadrante)">8×8</button>
+                </div></div><div class="document-fields document-fields-secondary">
                   <div class="document-field" title="Margem Externa da Prancheta (px)">
                     <label class="document-field-label" for="gridMargin">M</label>
                     <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
@@ -693,6 +737,62 @@
 
         </div>
 
+        <div id="railFlyoutBrush" class="rail-flyout hidden" role="region" aria-label="Construtor de pincéis">
+          <section id="panel-brush-builder" class="dock-panel">
+            <header class="panel-header"><div class="panel-title-wrap"><span class="icon-slot" data-icon-slot="brush" data-icon-size="14"></span><span>Pincel</span></div><button type="button" class="mini-btn flyout-close" data-close-flyout="railToggleBrush" title="Fechar construtor de pincéis" aria-label="Fechar construtor de pincéis"><span class="icon-slot" data-icon-slot="close"></span></button></header>
+            <div class="panel-body"><div id="ctxPaint" class="bar-group top-context-group mosaic-mode-only" aria-label="Opções do Pincel e do Carimbo">
+        <div class="brush-size-display-row" id="brushSizeControl">
+          <div class="top-pattern-fields">
+            <label class="top-pattern-field" title="Linhas do pincel"><span>R</span><input id="topBrushRows" type="number" min="1" step="1" value="1" aria-label="Linhas do pincel"><button type="button" class="brush-field-step" data-brush-step="1" data-brush-field="topBrushRows" title="Aumentar linhas" aria-label="Aumentar linhas">+</button><button type="button" class="brush-field-step" data-brush-step="-1" data-brush-field="topBrushRows" title="Diminuir linhas" aria-label="Diminuir linhas">−</button></label>
+            <label class="top-pattern-field" title="Colunas do pincel"><span>C</span><input id="topBrushCols" type="number" min="1" step="1" value="1" aria-label="Colunas do pincel"><button type="button" class="brush-field-step" data-brush-step="1" data-brush-field="topBrushCols" title="Aumentar colunas" aria-label="Aumentar colunas">+</button><button type="button" class="brush-field-step" data-brush-step="-1" data-brush-field="topBrushCols" title="Diminuir colunas" aria-label="Diminuir colunas">−</button></label>
+          </div>
+          <button type="button" id="btnBrushSizeDec" class="brush-step-btn" aria-label="Diminuir tamanho do pincel" title="Diminuir (− ou roda para baixo)"><span class="icon-slot" data-icon-slot="minus" data-icon-size="12"></span></button>
+          <div class="brush-size-badge" id="brushSizeDisplayBadge" role="status" aria-live="polite" aria-atomic="true">
+            <span class="brush-size-val" id="brushSizeValueText">1×1</span>
+            <span class="brush-size-sub" id="brushSizeSubText">peças</span>
+          </div>
+          <button type="button" id="btnBrushSizeInc" class="brush-step-btn" aria-label="Aumentar tamanho do pincel" title="Aumentar (+ ou roda para cima)"><span class="icon-slot" data-icon-slot="plus" data-icon-size="12"></span></button>
+          <div class="brush-snap-row" id="brushSnapRow">
+            <button type="button" class="brush-snap-toggle-btn icon-only" id="btnToggleBrushSnap" title="Encaixar" aria-label="Encaixar"><span class="icon-slot" data-icon-slot="snap"></span><span class="icon-label"><span class="snap-label">Encaixe nos blocos:</span>
+              <span class="snap-status" id="brushSnapStatusText">Desativado</span></span></button>
+          </div>
+        </div>
+        <button type="button" id="btnExpandBrushEditor" class="bar-action-btn icon-only hidden" aria-haspopup="dialog" aria-controls="brushEditorDialog" title="Ampliar" aria-label="Ampliar"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar editor</span></button>
+<div id="topBrushBuilder" class="active-brush-card supertile-builder-card">
+                <div class="supertile-canvas-box"
+                  title="Clique ou arraste para pintar • Clique direito gira • Alt amostra a célula">
+                  <canvas id="supertileBuilderCanvas" width="224" height="224" tabindex="0" aria-label="Grade do pincel: clique para pintar, botão direito para girar e Alt para amostrar uma célula"></canvas>
+                </div>
+                <div class="active-brush-controls">
+                  <div class="active-brush-title-row">
+                    <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
+                    <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
+                    <button type="button" id="btnOpenBrushPreview" class="mini-btn icon-only" title="Ampliar editor do pincel" aria-label="Ampliar editor do pincel" aria-haspopup="dialog" aria-controls="brushEditorDialog"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar</span></button>
+                  </div>
+                  <div class="d4-mini-grid">
+                    <button type="button" id="btnBrushRot90" class="d4-mini-btn icon-only"
+                      title="Girar 90°" aria-label="Girar 90°"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Girar 90°</span></button>
+                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn icon-only" title="Espelhar H" aria-label="Espelhar H"><span class="icon-slot" data-icon-slot="flipX"></span><span class="icon-label">⇄
+                      Flip X</span></button>
+                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn icon-only" title="Espelhar V" aria-label="Espelhar V"><span class="icon-slot" data-icon-slot="flipY"></span><span class="icon-label">⇅
+                      Flip Y</span></button>
+                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn icon-only"
+                      title="Restaurar giro" aria-label="Restaurar giro"><span class="icon-slot" data-icon-slot="reset"></span><span class="icon-label">0°</span></button>
+                  </div>
+                  <div id="supertileBuilderActions" class="supertile-builder-actions hidden">
+                    <button type="button" id="btnSupertileFillAll" class="mini-btn icon-only"
+                      title="Preencher" aria-label="Preencher"><span class="icon-slot" data-icon-slot="fill"></span><span class="icon-label">Preencher</span></button>
+                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn icon-only"
+                      title="Simetria" aria-label="Simetria"><span class="icon-slot" data-icon-slot="symmetry"></span><span class="icon-label">Simetria</span></button>
+                    <button type="button" id="btnSupertileCapture" class="mini-btn accent icon-only hidden" aria-hidden="true" tabindex="-1"
+                      title="Capturar" aria-label="Capturar"><span class="icon-slot" data-icon-slot="capture"></span><span class="icon-label">Capturar</span></button>
+                  </div>
+                </div>
+              </div>
+      </div></div>
+          </section>
+        </div>
+
         <div class="utility-rail-spacer" aria-hidden="true"></div>
 
         <button type="button" id="railOpenLibrary" class="rail-utility-btn" title="Biblioteca" aria-label="Abrir Biblioteca"><span class="icon-slot" data-icon-slot="folder" data-icon-size="18"></span></button>
@@ -709,17 +809,7 @@
         </header>
 
         <!-- Gerador & Semente: comando de documento, sempre visível no modo mosaico -->
-        <section id="dock-generator" class="dock-generator mosaic-mode-only" aria-label="Gerador e Semente">
-          <button type="button" id="btnRandomize" class="sidebar-gen-btn gen-primary-btn" title="Gerar mosaico (G)" aria-label="Gerar"><span class="icon-slot" data-icon-slot="dice"></span><span class="gen-btn-label">Gerar</span></button>
-          <div class="sidebar-seed-row" title="Navegação de Seeds">
-            <button type="button" id="btnPrevSeed" class="sidebar-seed-nav-btn" title="Geração Anterior (←)" aria-label="Geração Anterior" disabled><span class="icon-slot" data-icon-slot="left"></span></button>
-            <div class="sidebar-seed-chip" title="Semente atual">
-              <span class="sidebar-seed-hash">#</span>
-              <input type="number" id="seedInput" value="1024" step="1" aria-label="Número da Seed">
-            </div>
-            <button type="button" id="btnNextSeed" class="sidebar-seed-nav-btn" title="Próxima Geração (→)" aria-label="Próxima Geração" disabled><span class="icon-slot" data-icon-slot="right"></span></button>
-          </div>
-        </section>
+
 
         <!-- ================================================================
              DOCK ESTÁTICO (Simetria e Pincel empilhados)
@@ -732,15 +822,10 @@
           <section id="panelSymmetryGroup" class="dock-properties-group">
             <div class="dock-subtabs">
               <div id="propertiesTabs" class="dock-subtabs-list" role="tablist" aria-label="Painéis de estrutura e escopo">
-                <button type="button" id="propsTabBrush" class="dock-subtab" role="tab" aria-selected="false" aria-controls="panel-edit-brush" tabindex="-1" title="Pincel e catálogo de peças">Pincel</button>
                 <button type="button" id="propsTabSymmetry" class="dock-subtab active" role="tab" aria-selected="true" aria-controls="panel-symmetry" tabindex="0" title="Simetria &amp; Estrutura">Simetria</button>
                 <button type="button" id="propsTabScope" class="dock-subtab" role="tab" aria-selected="false" aria-controls="panel-edit-scope" tabindex="-1" title="Escopo de edição">Escopo</button>
               </div>
-              <div class="edit-undo-bar">
-                <button type="button" id="btnEditUndo" class="edit-undo-btn" title="Desfazer Edição (Ctrl+Z)" disabled aria-label="Desfazer Edição (Ctrl+Z)"><span class="icon-slot" data-icon-slot="undo"></span></button>
-                <span id="editHistoryStepLabel" class="edit-step-label">0</span>
-                <button type="button" id="btnEditRedo" class="edit-undo-btn" title="Refazer Edição (Ctrl+Shift+Z)" disabled aria-label="Refazer Edição (Ctrl+Shift+Z)"><span class="icon-slot" data-icon-slot="redo"></span></button>
-              </div>
+
             </div>
           <section class="dock-panel" id="panel-symmetry" role="tabpanel" aria-labelledby="propsTabSymmetry">
             <div class="panel-body" id="panelSymmetryBody">
@@ -774,14 +859,14 @@
                   </div>
                   <span id="blockSymmetryBadge" class="prop-badge secondary hidden">Igual à Grade</span>
                 </div>
-                <select id="blockSymmetrySelect" class="subtile-select" title="Simetria interna do bloco">
+                <select id="blockSymmetrySelect" class="subtile-select hidden" title="Simetria interna do bloco">
                   <option value="sync">Igual à composição</option>
                   <option value="mandala_d4">Mandala</option>
                   <option value="kaleidoscope">Caleidoscópio</option>
                   <option value="rotational_c4">Rotacional</option>
                   <option value="bilateral_d2">Bilateral</option>
                 </select>
-                <div id="blockSymmetryGrid" class="block-sym-pill-grid hidden" aria-hidden="true">
+                <div id="blockSymmetryGrid" class="block-sym-pill-grid">
                   <!-- Populated by JS -->
                 </div>
                 <div id="blockSymmetryDesc" class="prop-sub-hint hidden"></div>
@@ -791,43 +876,8 @@
                 </div>
               </div>
 
-              <!-- STEP 3: Block Subdivision & Aesthetics -->
-              <div class="prop-section">
-                <div class="prop-label-row">
-                  <label class="prop-label" title="Peças por bloco">Divisão</label>
-                  <span id="subdivisionSummary" class="prop-badge secondary hidden">Bloco 4×4</span>
-                </div>
-                <div class="segmented-control" id="subdivisionControl">
-                  <button type="button" class="seg-btn" data-sub="1"
-                    title="Bloco com 2×2 peças (1×1 por quadrante)">2×2</button>
-                  <button type="button" class="seg-btn active" data-sub="2"
-                    title="Bloco com 4×4 peças (2×2 por quadrante)">4×4</button>
-                  <button type="button" class="seg-btn" data-sub="3"
-                    title="Bloco com 6×6 peças (3×3 por quadrante)">6×6</button>
-                  <button type="button" class="seg-btn" data-sub="4"
-                    title="Bloco com 8×8 peças (4×4 por quadrante)">8×8</button>
-                </div>
-              </div>
-
               <!-- Modo de geração: continuidade de bordas entre subtiles vizinhos. -->
-              <div class="prop-section edge-match-section">
-                <div class="prop-label-row">
-                  <div class="prop-label-with-info">
-                    <label class="edge-match-toggle" for="toggleEdgeMatch" title="Encaixe por bordas">
-                      <span class="edge-match-icon" aria-hidden="true"><span class="icon-slot" data-icon-slot="edgeJoin" data-icon-size="18"></span></span>
-                      <span class="edge-match-title">Bordas</span>
-                      <input type="checkbox" id="toggleEdgeMatch">
-                    </label>
-                    <button type="button" class="info-btn" data-info-topic="edge-match" aria-label="Saiba mais sobre encaixe por bordas" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
-                  </div>
-                </div>
-                <label class="edge-variability-control" for="edgeVariabilityInput" title="Variabilidade do encaixe">
-                  <span class="edge-variability-icon" aria-hidden="true"><span class="icon-slot" data-icon-slot="variability" data-icon-size="14"></span></span>
-                  <span class="edge-variability-title">Variedade</span>
-                  <input type="range" id="edgeVariabilityInput" min="0" max="100" step="5" value="30" aria-label="Variabilidade do encaixe">
-                  <output id="edgeVariabilityValue" class="edge-variability-value" for="edgeVariabilityInput">30%</output>
-                </label>
-              </div>
+
 
 
 
@@ -903,37 +953,7 @@
             <div class="panel-body swatches-panel-body" id="panelEditBrushBody">
 
               <!-- Interactive Supertile Builder & Brush Preview Card -->
-              <div class="active-brush-card supertile-builder-card">
-                <div class="supertile-canvas-box"
-                  title="Clique ou arraste para pintar • Clique direito gira • Alt amostra a célula">
-                  <canvas id="supertileBuilderCanvas" width="104" height="104" tabindex="0" aria-label="Grade do pincel: clique para pintar, botão direito para girar e Alt para amostrar uma célula"></canvas>
-                </div>
-                <div class="active-brush-controls">
-                  <div class="active-brush-title-row">
-                    <span class="active-brush-name" id="activeBrushTileName">#2 • 1 Diagonal</span>
-                    <span class="active-brush-d4-label" id="activeBrushD4Label">0° ↑</span>
-                    <button type="button" id="btnOpenBrushPreview" class="mini-btn icon-only" title="Ampliar editor do pincel" aria-label="Ampliar editor do pincel" aria-haspopup="dialog" aria-controls="brushEditorDialog"><span class="icon-slot" data-icon-slot="expand"></span><span class="icon-label">Ampliar</span></button>
-                  </div>
-                  <div class="d4-mini-grid">
-                    <button type="button" id="btnBrushRot90" class="d4-mini-btn icon-only"
-                      title="Girar 90°" aria-label="Girar 90°"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Girar 90°</span></button>
-                    <button type="button" id="btnBrushFlipX" class="d4-mini-btn icon-only" title="Espelhar H" aria-label="Espelhar H"><span class="icon-slot" data-icon-slot="flipX"></span><span class="icon-label">⇄
-                      Flip X</span></button>
-                    <button type="button" id="btnBrushFlipY" class="d4-mini-btn icon-only" title="Espelhar V" aria-label="Espelhar V"><span class="icon-slot" data-icon-slot="flipY"></span><span class="icon-label">⇅
-                      Flip Y</span></button>
-                    <button type="button" id="btnBrushResetD4" class="d4-mini-btn icon-only"
-                      title="Restaurar giro" aria-label="Restaurar giro"><span class="icon-slot" data-icon-slot="reset"></span><span class="icon-label">0°</span></button>
-                  </div>
-                  <div id="supertileBuilderActions" class="supertile-builder-actions hidden">
-                    <button type="button" id="btnSupertileFillAll" class="mini-btn icon-only"
-                      title="Preencher" aria-label="Preencher"><span class="icon-slot" data-icon-slot="fill"></span><span class="icon-label">Preencher</span></button>
-                    <button type="button" id="btnSupertileSymmetrize" class="mini-btn icon-only"
-                      title="Simetria" aria-label="Simetria"><span class="icon-slot" data-icon-slot="symmetry"></span><span class="icon-label">Simetria</span></button>
-                    <button type="button" id="btnSupertileCapture" class="mini-btn accent icon-only hidden" aria-hidden="true" tabindex="-1"
-                      title="Capturar" aria-label="Capturar"><span class="icon-slot" data-icon-slot="capture"></span><span class="icon-label">Capturar</span></button>
-                  </div>
-                </div>
-              </div>
+
 
               <!-- Search Filter for Brush Palette -->
               <div class="swatches-toolbar">
@@ -952,61 +972,52 @@
              WORKSPACE 3: ESTÚDIO DE SUBTILES & GESTÃO DE FAMÍLIAS (Fases B & C)
              ================================================================ -->
         <div id="dock-workspace-tiles" class="dock-workspace-pane hidden">
-          <nav class="tile-inspector-tabs" role="tablist" aria-label="Painéis do criador de subtiles">
+          <nav class="tile-inspector-tabs hidden" hidden role="tablist" aria-label="Painéis do criador de subtiles">
             <button type="button" id="tileTabProperties" role="tab" data-tile-panel="properties" aria-controls="panel-tile-shape-props" aria-selected="true">Propriedades</button>
             <button type="button" id="tileTabLayers" role="tab" data-tile-panel="layers" aria-controls="panel-tile-layers" aria-selected="false" tabindex="-1">Camadas</button>
             <button type="button" id="tileTabVariants" role="tab" data-tile-panel="variants" aria-controls="panel-tile-d4-live" aria-selected="false" tabindex="-1">Variantes</button>
           </nav>
           <div class="tile-selection-bar">
             <span id="tileSelectionSummary" role="status">Sem seleção</span>
-            <button type="button" id="btnTileSelectAll" class="mini-btn icon-only" title="Todos" aria-label="Todos"><span class="icon-slot" data-icon-slot="all"></span><span class="icon-label">Todos</span></button>
-            <button type="button" id="btnTileDeselect" class="mini-btn icon-only" title="Limpar seleção" aria-label="Limpar seleção"><span class="icon-slot" data-icon-slot="none"></span><span class="icon-label">Limpar</span></button>
+
+
           </div>
 
 
           <!-- TILES PANEL 0: PROPRIEDADES & ALINHAMENTO DO EDITOR VETORIAL (Fase C) -->
           <section class="dock-panel" id="panel-tile-shape-props">
-            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileShapePropsBody" aria-label="Propriedades da seleção" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileShapePropsBody">
+            <header class="panel-header tile-panel-summary" aria-label="Propriedades da seleção">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="sliders" data-icon-size="14"></span>
                 <span id="vecToolContextLabel" class="prop-label" title="Tecla V">Seleção</span>
                 <button type="button" class="info-btn" data-info-topic="vector-editor" aria-label="Saiba mais sobre o Editor Vetorial de Subtiles" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="vecSelectionBadge" class="panel-counter-pill">Nenhuma</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelTileShapePropsBody">
               <div class="prop-section">
-            <div class="curve-tool-options" role="group" aria-label="Curvatura">
-              <select id="curveFraction" class="subtile-select" aria-label="Fração de curva" title="Fração do círculo">
-                <option value="0">Reta</option><option value="0.0625">1/16</option><option value="0.125">1/8</option><option value="0.16666666666666666">1/6</option><option value="0.25" selected>1/4</option><option value="0.5">1/2</option><option value="custom">Livre…</option>
-              </select>
-              <button type="button" id="btnCurveSide" class="mini-btn icon-only" aria-label="Inverter lado" title="Inverter lado (Shift)" aria-pressed="false"><span class="icon-slot" data-icon-slot="swap"></span><span class="icon-label">Inverter lado</span></button>
-              <button type="button" id="btnCurveCycle" class="mini-btn icon-only" aria-label="Ciclar frações" title="Ciclar frações a cada clique" aria-pressed="false"><span class="icon-slot" data-icon-slot="cycle"></span><span class="icon-label">Ciclar frações</span></button>
-              <input id="curveCustomFraction" class="subtile-text-input curve-custom hidden" type="text" inputmode="decimal" value="1/4" aria-label="Fração livre" title="Fração livre (ex.: 3/8)" autocomplete="off">
-            </div>
+
               <div id="vecPropsContainer" class="vec-props-container">
                   <!-- Populated dynamically by SubtileStudioUI -->
                 </div>
               </div>
-              <details id="tilePathfinderSection" class="tile-inspector-disclosure" open>
-                <summary>Pathfinder</summary>
+              <section id="tilePathfinderSection" class="tile-inspector-disclosure">
+                <div class="vec-subblock-title">Pathfinder</div>
                 <div id="tilePathfinderContainer" class="tile-pathfinder-container"></div>
-              </details>
+              </section>
             </div>
           </section>
 
           <!-- TILES PANEL 0.5: CAMADAS (FORMAS) & INTERCÂMBIO SVG (Fase D) -->
           <section class="dock-panel" id="panel-tile-layers">
-            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileLayersBody" aria-label="Camadas da peça" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileLayersBody">
+            <header class="panel-header tile-panel-summary" aria-label="Camadas da peça">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="layers" data-icon-size="14"></span>
                 <span title="Ordem das formas">Camadas</span>
                 <button type="button" class="info-btn" data-info-topic="vector-layers" aria-label="Saiba mais sobre Camadas e SVG" aria-haspopup="dialog" aria-controls="infoPopover" aria-expanded="false">i</button>
               </div>
               <span id="tileLayersCountBadge" class="panel-counter-pill">0 formas</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelTileLayersBody">
@@ -1026,13 +1037,12 @@
 
           <!-- TILES PANEL 1: VARIANTES D4 AO VIVO & METADADOS DA FAMÍLIA -->
           <section class="dock-panel" id="panel-tile-d4-live">
-            <header class="panel-header tile-panel-summary" data-collapse-target="panelTileD4LiveBody" aria-label="Variantes D4" role="button" tabindex="0" aria-expanded="true" aria-controls="panelTileD4LiveBody">
+            <header class="panel-header tile-panel-summary" aria-label="Variantes D4">
               <div class="panel-title-wrap">
                 <span class="icon-slot" data-icon-slot="rotate" data-icon-size="14"></span>
                 <span>Simetria D4</span>
               </div>
               <span id="tileLiveOrbitCountBadge" class="panel-counter-pill">4 variantes</span>
-              <span class="panel-chevron"><span class="icon-slot" data-icon-slot="chevronDown" data-icon-size="12"></span></span>
             </header>
 
             <div class="panel-body" id="panelTileD4LiveBody">
@@ -1084,15 +1094,10 @@
         </div>
 
         <!-- Exportar: ação de documento ancorada no rodapé do dock -->
-        <section id="dock-export" class="dock-export mosaic-mode-only" aria-label="Exportar Mosaico">
-          <select id="exportFormatSelect" class="sidebar-export-select" title="Formato de exportação" aria-label="Formato de Exportação">
-            <option value="png" selected>PNG</option>
-            <option value="svg">SVG</option>
-          </select>
-          <button type="button" id="btnExport" class="sidebar-export-btn" title="Exportar" aria-label="Exportar"><span class="icon-slot" data-icon-slot="export"></span><span class="icon-label"><span>Exportar</span></span></button>
-        </section>
 
-      </aside>
+
+      <footer id="pieceUseFooter" class="tiles-mode-only"><button type="button" id="btnTileTestInMosaic" class="bar-action-btn tile-paint-return-btn tiles-mode-only" title="Usar peça no mosaico" aria-label="Usar peça no mosaico"><span class="icon-slot" data-icon-slot="brush"></span><span>Usar no mosaico</span></button></footer>
+</aside>
     </div>
 
     <section id="library-page" class="library-page hidden" aria-labelledby="libraryPageTitle" hidden>
@@ -1100,7 +1105,7 @@
         <button type="button" id="btnCloseLibrary" class="mini-btn library-back-btn icon-only" title="Voltar ao estúdio" aria-label="Voltar ao estúdio"><span class="icon-slot" data-icon-slot="left"></span><span class="icon-label">Voltar</span></button>
         <div><h1 id="libraryPageTitle" tabindex="-1">Biblioteca</h1></div>
         <span id="libMgrCounterBadge" class="panel-counter-pill">31 fam • 85 tiles</span>
-        <button type="button" id="btnExportLibraryGroups" class="mini-btn library-groups-export-btn"><span class="icon-slot" data-icon-slot="export"></span>Exportar conjuntos…</button>
+        <button type="button" id="btnExportLibraryGroups" title="Exportar conjuntos" aria-label="Exportar conjuntos" class="mini-btn library-groups-export-btn"><span class="icon-slot" data-icon-slot="export"></span>Exportar conjuntos…</button>
       </header>
           <!-- TILES PANEL 2: GERENCIADOR DE GRUPOS E FAMÍLIAS -->
           <section class="library-manager-panel" id="panel-tile-library-mgr" aria-label="Catálogo de peças">
@@ -1152,31 +1157,31 @@
   </div>
 
   <!-- Core Modules -->
-  <script src="core/d4_symmetry.js"></script>
-  <script src="core/vector_renderer.js"></script>
-  <script src="core/d4_detect.js"></script>
-  <script src="core/tile_library.js"></script>
-  <script src="core/library_compiler.js"></script>
-  <script src="core/save_status.js"></script>
-  <script src="core/library_store.js"></script>
-  <script src="core/tile_registry.js"></script>
-  <script src="core/tile_edge_signatures.js"></script>
-  <script src="core/mosaic_engine.js"></script>
-  <script src="core/state_persistence.js"></script>
-  <script src="core/history_nav.js"></script>
-  <script src="core/document_snapshot.js"></script>
-  <script src="core/spout_output.js"></script>
-  <script src="core/ui_format.js"></script>
-  <script src="core/studio_commands.js"></script>
-  <script src="core/ui_fields.js"></script>
+  <script src="core/d4_symmetry.js?v=20261030-selection-2"></script>
+  <script src="core/vector_renderer.js?v=20261030-selection-2"></script>
+  <script src="core/d4_detect.js?v=20261030-selection-2"></script>
+  <script src="core/tile_library.js?v=20261030-selection-2"></script>
+  <script src="core/library_compiler.js?v=20261030-selection-2"></script>
+  <script src="core/save_status.js?v=20261030-selection-2"></script>
+  <script src="core/library_store.js?v=20261030-selection-2"></script>
+  <script src="core/tile_registry.js?v=20261030-selection-2"></script>
+  <script src="core/tile_edge_signatures.js?v=20261030-selection-2"></script>
+  <script src="core/mosaic_engine.js?v=20261030-selection-2"></script>
+  <script src="core/state_persistence.js?v=20261030-selection-2"></script>
+  <script src="core/history_nav.js?v=20261030-selection-2"></script>
+  <script src="core/document_snapshot.js?v=20261030-selection-2"></script>
+  <script src="core/spout_output.js?v=20261030-selection-2"></script>
+  <script src="core/ui_format.js?v=20261030-selection-2"></script>
+  <script src="core/studio_commands.js?v=20261030-selection-2"></script>
+  <script src="core/ui_fields.js?v=20261030-selection-2"></script>
   <script src="ui_info.js"></script>
-  <script src="core/vector_editor.js"></script>
-  <script src="core/vector_boolean.js"></script>
-  <script src="core/subtile_studio_ui.js"></script>
-  <script src="core/library_export.js"></script>
-  <script src="core/workspace_navigation.js"></script>
+  <script src="core/vector_editor.js?v=20261030-selection-2"></script>
+  <script src="core/vector_boolean.js?v=20261030-selection-2"></script>
+  <script src="core/subtile_studio_ui.js?v=20261030-selection-2"></script>
+  <script src="core/library_export.js?v=20261030-selection-2"></script>
+  <script src="core/workspace_navigation.js?v=20261030-selection-2"></script>
   <!-- Main Studio Controller -->
-  <script src="sketch.js"></script>
+  <script src="sketch.js?v=20261030-selection-2"></script>
   <!-- Progressive Disclosure Popover and Accessible Tooltip -->
   <div id="infoPopover" class="info-popover hidden" role="dialog" aria-modal="false" aria-labelledby="infoPopoverTitle">
     <div class="info-popover-header">
@@ -1186,6 +1191,7 @@
     <div id="infoPopoverBody" class="info-popover-body"></div>
   </div>
   <div id="uiTooltip" class="ui-tooltip hidden" role="tooltip"></div>
+<script src="core/ui_color_picker.js?v=20261030-selection-2"></script>
 </body>
 
 </html>

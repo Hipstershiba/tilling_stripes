@@ -178,7 +178,8 @@
       error: null,
       customFamilyCount: customFamilies.length,
       customGroupCount: customGroups.length,
-      totalFamilies: sanitized.families.length,
+      totalFamilies: root.families.length,
+      builtinFamilyCount: root.families.filter(f => f.builtIn).length,
       parsed: root
     };
   }
@@ -498,6 +499,12 @@
     const zoomActive = hostCtx?.studioState?.activeTool === 'zoom';
     btnZoom?.classList.toggle('active', zoomActive);
     btnZoom?.setAttribute('aria-pressed', String(zoomActive));
+    const { ve } = resolveDeps();
+    document.querySelectorAll('#vecToolsGrid [data-vec-tool]').forEach(button => {
+      const selected = !panActive && !zoomActive && button.dataset.vecTool === ve?.state.activeTool;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
   }
 
   function setVectorTool(toolId) {
@@ -753,7 +760,8 @@
       summaryEl.innerHTML =
         `Arquivo: <strong>${escapeHtml(fileName || 'biblioteca.json')}</strong><br>` +
         `Subtiles customizados detectados: <strong>${inspection.customFamilyCount}</strong> • ` +
-        `Grupos customizados: <strong>${inspection.customGroupCount}</strong>`;
+        `Conjuntos autorais: <strong>${inspection.customGroupCount}</strong>` +
+        (inspection.builtinFamilyCount ? `<br>${inspection.builtinFamilyCount} referências a peças padrão serão ignoradas; elas já pertencem ao aplicativo.` : '');
     }
 
     enterModal(dialog);
@@ -1302,8 +1310,8 @@
         snapBtn.setAttribute('aria-pressed', ve.state.snapEnabled ? 'true' : 'false');
       }
       const gridSel = document.getElementById('tileGridDivSelect');
-      if (gridSel && String(gridSel.value) !== String(ve.state.gridDiv)) {
-        gridSel.value = String(ve.state.gridDiv);
+      if (gridSel && String(gridSel.value) !== String(ve.state.snapEnabled ? ve.state.gridDiv : 0)) {
+        gridSel.value = String(ve.state.snapEnabled ? ve.state.gridDiv : 0);
       }
       ve.state.snapPorts = Boolean(uiState.guides.showPorts);
     }
@@ -1317,7 +1325,7 @@
       ['mandala', 'Centro', 'Centro da Mandala D4', centerOk]
     ].map(([icon, name, fullName, compatible]) => {
       const label = `${fullName}: ${compatible ? 'compatível' : 'assimétrica'}`;
-      return `<span class="d4-compat-pill ${compatible ? 'ok' : 'neutral'}" title="${label}" aria-label="${label}">${uiFormat.icon(icon, 14)}<span>${name}</span><span aria-hidden="true">${compatible ? '✓' : '–'}</span></span>`;
+      return `<span class="d4-compat-pill ${compatible ? 'ok' : 'neutral'}" title="${label}" aria-label="${label}">${uiFormat.icon(icon, 14)}<span class="compat-name">${name}</span><span class="compat-state" aria-hidden="true">${compatible ? '✓' : '–'}</span></span>`;
     }).join('');
   }
 
@@ -1703,10 +1711,13 @@
             }
           });
           row.dataset.familyId = fam.id;
+          let familyClickTimer;
+          row.addEventListener('dblclick', () => { clearTimeout(familyClickTimer); if (!fam.protected) { window.WorkspaceNavigation?.closeLibrary?.(); openTilesStudio(fam.id); } });
           row.draggable = !fam.protected && uiState.editingFamilyId !== fam.id;
 
           row.addEventListener('click', () => {
-            selectFamily(fam.id, 0);
+            clearTimeout(familyClickTimer);
+            familyClickTimer = setTimeout(() => selectFamily(fam.id, 0), 280);
           });
 
           if (!fam.protected) {
@@ -1798,8 +1809,7 @@
             if (!fam.builtIn) {
               nameSpan.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
-                uiState.editingFamilyId = fam.id;
-                renderLibraryManagerTree();
+                if (!fam.protected) { window.WorkspaceNavigation?.closeLibrary?.(); openTilesStudio(fam.id); }
               });
             }
             nameLine.appendChild(nameSpan);
@@ -1870,7 +1880,7 @@
             const renBtn = document.createElement('button');
             renBtn.type = 'button';
             renBtn.className = 'lib-mini-icon-btn';
-            renBtn.innerHTML = uiFormat.icon('edit');
+            renBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6V3h16v3M12 3v18M8 21h8"/></svg>';
             renBtn.title = 'Renomear família';
             renBtn.setAttribute('aria-label', renBtn.title);
             renBtn.addEventListener('click', (e) => {
@@ -1890,6 +1900,12 @@
               handleDeleteFamily(fam.id);
             });
 
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button'; editBtn.className = 'lib-mini-icon-btn';
+            editBtn.innerHTML = uiFormat.icon('edit'); editBtn.title = 'Editar peça';
+            editBtn.setAttribute('aria-label', 'Editar peça');
+            editBtn.addEventListener('click', e => { e.stopPropagation(); window.WorkspaceNavigation?.closeLibrary?.(); openTilesStudio(fam.id); });
+            rowActions.appendChild(editBtn);
             rowActions.appendChild(renBtn);
             rowActions.appendChild(delBtn);
           }
@@ -1964,6 +1980,7 @@
     const toolLabelEl = document.getElementById('vecToolContextLabel');
     if (!container || !ve) return;
 
+    document.body.dataset.vectorTool = ve.state.activeTool;
     const toolMeta = ve.VECTOR_TOOLS.find((t) => t.id === ve.state.activeTool) || ve.VECTOR_TOOLS[0];
     if (toolLabelEl) {
       const toolName = commands.get('tiles', ve.state.activeTool)?.name || toolMeta.label;
@@ -1982,6 +1999,7 @@
       return;
     }
 
+    document.getElementById('topPieceTransform')?.replaceChildren();
     const pathfinder = document.getElementById('tilePathfinderContainer');
     if (pathfinder) pathfinder.innerHTML = '';
     const summary = document.getElementById('tileSelectionSummary');
@@ -1994,6 +2012,8 @@
     const shapes = famDoc.shapes || [];
     const selSet = new Set(ve.state.selectedShapeIds);
     const selected = shapes.filter((s) => s && selSet.has(s.id));
+    const inspector = document.getElementById('dock-workspace-tiles');
+    if (inspector) inspector.dataset.selectionState = fam.builtIn || fam.protected ? 'protected' : selected.length ? 'selected' : 'empty';
 
     // 2B. Pathfinder Boolean Operations (Unite, Subtract, Intersect, Exclude)
     if (vb) {
@@ -2108,10 +2128,10 @@
     }
 
     // 1. Quick 1/3 Ribbon Presets Block
-    const presetBlock = document.createElement('details');
-    presetBlock.className = 'vec-props-subblock';
+    const presetBlock = document.createElement('div');
+    presetBlock.className = 'vec-props-subblock vec-presets-section';
     presetBlock.innerHTML = `
-      <summary class="vec-subblock-title" title="Inserir bases de fita de largura 1/3">Bases</summary>
+      <div class="vec-subblock-title" title="Inserir bases de fita de largura 1/3">Bases</div>
       <div class="vec-preset-chips">
         <button type="button" class="vec-preset-btn" data-preset="stripe-h-1-3" title="Adicionar faixa horizontal central de largura 1/3">+ Faixa H 1/3</button>
         <button type="button" class="vec-preset-btn" data-preset="stripe-v-1-3" title="Adicionar faixa vertical central de largura 1/3">+ Faixa V 1/3</button>
@@ -2134,8 +2154,7 @@
     // 2. Align & Selection Quick Actions
     const hasSel = selected.length > 0;
     const alignBlock = document.createElement('div');
-    alignBlock.className = 'vec-props-subblock';
-    alignBlock.hidden = !hasSel;
+    alignBlock.className = 'vec-props-subblock vec-selection-actions';
     alignBlock.innerHTML = `
       <div class="vec-subblock-title"><span>Alinhar</span></div>
       <div class="vec-align-strip">
@@ -2146,26 +2165,22 @@
         <button type="button" class="vec-align-btn" data-align="centerY" title="Centralizar V" aria-label="Centralizar V" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignCenterY')}</button>
         <button type="button" class="vec-align-btn" data-align="bottom" title="Alinhar à base" aria-label="Alinhar à base" ${!hasSel ? 'disabled' : ''}>${uiFormat.icon('alignBottom')}</button>
       </div>
-      ${selected.length >= 3 ? `
         <div class="vec-inline-actions" style="margin-top:3px;">
-          <button type="button" class="mini-btn" data-distrib="horizontal">Distribuir H</button>
-          <button type="button" class="mini-btn" data-distrib="vertical">Distribuir V</button>
+          <button type="button" class="mini-btn" data-distrib="horizontal" ${selected.length < 3 ? 'disabled' : ''}>Distribuir H</button>
+          <button type="button" class="mini-btn" data-distrib="vertical" ${selected.length < 3 ? 'disabled' : ''}>Distribuir V</button>
         </div>
-      ` : ''}
-      ${hasSel ? `
         <div class="vec-subblock-title" style="margin-top:5px;"><span>Transformar</span></div>
         <div class="vec-transform-actions"><div class="vec-d4-strip">
-          <button type="button" class="mini-btn" data-sel-d4="r90" title="Girar seleção +90° horário">↻ +90°</button>
-          <button type="button" class="mini-btn" data-sel-d4="r270" title="Girar seleção -90° anti-horário">↺ -90°</button>
-          <button type="button" class="mini-btn" data-sel-d4="mx" title="Espelhar seleção horizontalmente (mx)">↔ Esp. H</button>
-          <button type="button" class="mini-btn" data-sel-d4="my" title="Espelhar seleção verticalmente (my)">↕ Esp. V</button>
+          <button type="button" class="mini-btn" data-sel-d4="r90" title="Girar seleção +90° horário" ${!hasSel ? 'disabled' : ''}>↻ +90°</button>
+          <button type="button" class="mini-btn" data-sel-d4="r270" title="Girar seleção -90° anti-horário" ${!hasSel ? 'disabled' : ''}>↺ -90°</button>
+          <button type="button" class="mini-btn" data-sel-d4="mx" title="Espelhar seleção horizontalmente (mx)" ${!hasSel ? 'disabled' : ''}>↔ Esp. H</button>
+          <button type="button" class="mini-btn" data-sel-d4="my" title="Espelhar seleção verticalmente (my)" ${!hasSel ? 'disabled' : ''}>↕ Esp. V</button>
         </div>
         <div class="vec-inline-actions" style="margin-top:3px;">
-          <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)">Duplicar</button>
-          ${selected.some((s) => s.type !== 'path') ? '<button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável">⬡ Converter em Caminho</button>' : ''}
-          <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)">Excluir</button>
+          <button type="button" class="mini-btn" id="btnVecPropDuplicate" title="Duplicar seleção (Ctrl+D)" ${!hasSel ? 'disabled' : ''}>Duplicar</button>
+          <button type="button" class="mini-btn" id="btnVecPropToPath" title="Converter forma paramétrica em caminho Bezier editável" ${!selected.some(s => s.type !== 'path') ? 'disabled' : ''}>⬡ Converter em Caminho</button>
+          <button type="button" class="mini-btn danger" id="btnVecPropDelete" title="Excluir seleção (Delete)" ${!hasSel ? 'disabled' : ''}>Excluir</button>
         </div></div>
-      ` : ''}
     `;
 
     alignBlock.querySelectorAll('[data-align]').forEach((btn) => {
@@ -2202,6 +2217,30 @@
 
     // 3. When NO shape is selected: show active drawing tool defaults
     if (selected.length === 0) {
+      const selectionFields = document.createElement('div');
+      selectionFields.className = 'vec-props-subblock vec-selection-placeholder';
+      selectionFields.innerHTML = `
+        <div class="vec-subblock-title">Geometria</div>
+        <div class="vec-props-grid">
+          ${[['X', 'Posição horizontal'], ['Y', 'Posição vertical'], ['W', 'Largura'], ['H', 'Altura']].map(([short, title]) => `<div class="vec-prop-field"><label title="${title}">${short}</label><input type="text" value="—" disabled aria-label="${title}"></div>`).join('')}
+        </div>
+      `;
+      container.appendChild(selectionFields);
+      const appearanceFields = document.createElement('div');
+      appearanceFields.className = 'vec-props-subblock vec-selection-placeholder';
+      appearanceFields.innerHTML = `
+        <div class="vec-subblock-title">Aparência</div>
+        <div class="vec-style-toggles">
+          <label class="vec-check-chip" title="Preenchimento"><input type="checkbox" disabled aria-label="Preenchimento">${uiFormat.icon('fill', 16)}</label>
+          <label class="vec-check-chip" title="Traço"><input type="checkbox" disabled aria-label="Traço">${uiFormat.icon('shapeLine', 16)}</label>
+        </div>
+        <div class="vec-props-grid">
+          <div class="vec-prop-field"><label title="Espessura do traço">Espess.</label><input type="text" value="—" disabled aria-label="Espessura do traço"></div>
+          <div class="vec-prop-field"><label>Ponta</label><select disabled aria-label="Ponta do traço"><option>—</option></select></div>
+        </div>
+        <div class="vec-prop-field"><label title="Regra de preenchimento">Regra</label><select disabled aria-label="Regra de preenchimento"><option>—</option></select></div>
+      `;
+      container.appendChild(appearanceFields);
       const tool = ve.state.activeTool;
       const defs = ve.state.toolDefaults;
       if (tool === 'rect' || tool === 'polygon' || tool === 'arc' || tool === 'line') {
@@ -2246,6 +2285,7 @@
         });
         container.appendChild(defBlock);
       }
+      container.appendChild(alignBlock);
       container.appendChild(presetBlock);
       iconizePropertyActions();
       return;
@@ -2257,25 +2297,24 @@
     styleBlock.className = 'vec-props-subblock';
     const hasFill = primary.fill !== false;
     const hasStroke = Boolean(primary.stroke);
-    const weightVal = Number((Number(primary.strokeWeight) || 0.08).toFixed(4));
+    const weightVal = Number(((Number(primary.strokeWeight) || 0.08) * 100).toFixed(2));
     const capVal = primary.strokeCap || 'round';
     const ruleVal = primary.fillRule || 'evenodd';
 
     styleBlock.innerHTML = `
       <div class="vec-subblock-title"><span>Aparência</span></div>
       <div class="vec-style-toggles">
-        <label class="vec-check-chip"><input type="checkbox" id="vecPropFillChk" ${hasFill ? 'checked' : ''}><span>Preencher</span></label>
-        <label class="vec-check-chip"><input type="checkbox" id="vecPropStrokeChk" ${hasStroke ? 'checked' : ''}><span>Traço</span></label>
+        <label class="vec-check-chip" title="Preenchimento"><input type="checkbox" id="vecPropFillChk" aria-label="Preenchimento" ${hasFill ? 'checked' : ''}>${uiFormat.icon('fill', 16)}</label>
+        <label class="vec-check-chip" title="Traço"><input type="checkbox" id="vecPropStrokeChk" aria-label="Traço" ${hasStroke ? 'checked' : ''}>${uiFormat.icon('shapeLine', 16)}</label>
       </div>
-      ${hasStroke ? `
         <div class="vec-props-grid" style="margin-top:3px;">
           <div class="vec-prop-field">
             <label>Espess.</label>
-            <input type="number" id="vecPropStrokeW" step="0.02" min="0.01" max="1" value="${weightVal}">
+            <input type="number" id="vecPropStrokeW" step="0.5" min="0.5" max="100" title="Espessura em porcentagem da peça" value="${weightVal}" ${!hasStroke ? 'disabled' : ''}>
           </div>
           <div class="vec-prop-field">
             <label>Ponta</label>
-            <select id="vecPropStrokeCap">
+            <select id="vecPropStrokeCap" ${!hasStroke ? 'disabled' : ''}>
               <option value="butt" ${capVal === 'butt' ? 'selected' : ''}>Reta</option>
               <option value="round" ${capVal === 'round' ? 'selected' : ''}>Redonda</option>
               <option value="square" ${capVal === 'square' ? 'selected' : ''}>Quadrada</option>
@@ -2283,19 +2322,16 @@
           </div>
         </div>
         <div class="vec-inline-actions" style="margin-top:2px;">
-          <button type="button" class="mini-btn" data-sw-preset="${(1 / 6).toFixed(6)}">1/6</button>
-          <button type="button" class="mini-btn" data-sw-preset="${(1 / 3).toFixed(6)}">1/3</button>
+          <button type="button" class="mini-btn" title="Traço com espessura 1/6" data-sw-preset="${(1 / 6).toFixed(6)}">1/6</button>
+          <button type="button" class="mini-btn" title="Traço com espessura 1/3" data-sw-preset="${(1 / 3).toFixed(6)}">1/3</button>
         </div>
-      ` : ''}
-      ${primary.type === 'path' && hasFill ? `
         <div class="vec-prop-field" style="margin-top:3px;">
           <label title="Regra de preenchimento vetorial para contornos múltiplos e furos">Regra</label>
-          <select id="vecPropFillRule" title="Regra de preenchimento vetorial (Fill Rule)">
+          <select id="vecPropFillRule" title="Regra de preenchimento vetorial (Fill Rule)" ${primary.type !== 'path' || !hasFill ? 'disabled' : ''}>
             <option value="evenodd" ${ruleVal === 'evenodd' ? 'selected' : ''} title="Par-Ímpar: contornos internos tornam-se furos/vazados automaticamente">Par-ímpar</option>
             <option value="nonzero" ${ruleVal === 'nonzero' ? 'selected' : ''} title="Não-Zero: preenche de acordo com o sentido do traçado (horário / anti-horário)">Não-Zero</option>
           </select>
         </div>
-      ` : ''}
     `;
 
     const patchSelectedStyle = (patch) => {
@@ -2315,7 +2351,7 @@
       patchSelectedStyle(strokeOn ? { stroke: true } : { stroke: false, fill: true });
     });
     styleBlock.querySelector('#vecPropStrokeW')?.addEventListener('change', (e) => {
-      const w = Math.max(0.005, Math.min(1, parseFloat(e.target.value) || 0.08));
+      const w = Math.max(0.005, Math.min(1, (parseFloat(e.target.value) / 100) || 0.08));
       patchSelectedStyle({ strokeWeight: w });
     });
     styleBlock.querySelector('#vecPropStrokeCap')?.addEventListener('change', (e) => {
@@ -2414,18 +2450,16 @@
         geoBlock.innerHTML = `
           <div class="vec-subblock-title"><span>Caminho Bezier (${totalNodes} nós)</span></div>
           <div class="vec-style-toggles">
-            <label class="vec-check-chip"><input type="checkbox" id="vecPropPathClosed" ${sh.closed !== false ? 'checked' : ''}><span>Contorno Fechado</span></label>
+            <label class="vec-check-chip" title="Contorno fechado"><input type="checkbox" id="vecPropPathClosed" aria-label="Contorno fechado" ${sh.closed !== false ? 'checked' : ''}>${uiFormat.icon('pathClosed', 16)}</label>
           </div>
-          ${ndObj ? `
             <div class="vec-props-grid" style="margin-top:3px;">
-              <div class="vec-prop-field"><label>Nó X</label><input type="number" step="0.02" id="vecPropNodeX" value="${fmt(ndObj.x)}"></div>
-              <div class="vec-prop-field"><label>Nó Y</label><input type="number" step="0.02" id="vecPropNodeY" value="${fmt(ndObj.y)}"></div>
+              <div class="vec-prop-field"><label>Nó X</label><input type="number" step="0.02" id="vecPropNodeX" value="${ndObj ? fmt(ndObj.x) : ''}" ${!ndObj ? 'disabled' : ''}></div>
+              <div class="vec-prop-field"><label>Nó Y</label><input type="number" step="0.02" id="vecPropNodeY" value="${ndObj ? fmt(ndObj.y) : ''}" ${!ndObj ? 'disabled' : ''}></div>
             </div>
             <div class="vec-inline-actions" style="margin-top:3px;">
-              <button type="button" class="mini-btn" id="btnVecToggleSmooth">Alternar Canto/Suave</button>
-              <button type="button" class="mini-btn" id="btnVecSubdivideSeg">+ Subdividir</button>
+              <button type="button" class="mini-btn" id="btnVecToggleSmooth" ${!ndObj ? 'disabled' : ''}>Alternar Canto/Suave</button>
+              <button type="button" class="mini-btn" id="btnVecSubdivideSeg" ${!ndObj ? 'disabled' : ''}>+ Subdividir</button>
             </div>
-          ` : '<div class="vec-empty-hint">Nenhum nó selecionado</div>'}
         `;
 
         geoBlock.querySelector('#vecPropPathClosed')?.addEventListener('change', (e) => {
@@ -2603,6 +2637,7 @@
       const row = document.createElement('div');
       row.className = [
         'tile-layer-row',
+        !isEditable ? 'is-readonly' : '',
         isSelected ? 'is-selected' : '',
         isHidden ? 'is-hidden' : '',
         isLocked ? 'is-locked' : ''
@@ -2685,6 +2720,12 @@
       row.appendChild(tag);
 
       const displayName = sh.name || `${defaultLabels[sh.type] || 'Forma'} #${idx + 1}`;
+      if (!isEditable) {
+        row.tabIndex = -1;
+        row.removeAttribute('role');
+        row.removeAttribute('aria-pressed');
+        row.title = `${displayName} · ${defaultLabels[sh.type] || 'Forma'} · Protegida`;
+      }
 
       if (isRenaming) {
         const inp = document.createElement('input');
@@ -2839,6 +2880,13 @@
         actions.appendChild(btnLock);
         actions.appendChild(btnDel);
         row.appendChild(actions);
+      } else {
+        const state = document.createElement('span');
+        state.className = 'tile-layer-readonly-state';
+        state.title = 'Camada protegida';
+        state.setAttribute('aria-label', 'Camada protegida');
+        state.innerHTML = uiFormat.icon('lock', 14);
+        row.appendChild(state);
       }
 
       listEl.appendChild(row);
@@ -2860,6 +2908,12 @@
         input.setAttribute('aria-label', label.title || label.textContent.trim());
       }
     });
+  }
+
+  function placeSelectionActionsInControlBar() {
+    const host = document.getElementById('topPieceTransform');
+    const actions = document.querySelector('#vecPropsContainer .vec-selection-actions');
+    if (host && actions) host.replaceChildren(actions);
   }
 
   function iconizePropertyActions() {
@@ -2884,12 +2938,13 @@
         'stripe-h-1-3':'Faixa H','stripe-v-1-3':'Faixa V','curve-tl-1-3':'Arco 90°','quarter-pie-tl':'Quarto de círculo',horizontal:'Distribuir H',vertical:'Distribuir V',close:'Fechar caminho',open:'Concluir caminho',cancel:'Cancelar'};
       const name = names[key] || button.getAttribute('aria-label') || button.title || button.textContent.trim();
       button.setAttribute('aria-label', name); button.title = name;
-      const labelled = key === 'btnPropsDuplicateBuiltIn';
+      const labelled = false;
       if (!labelled) button.classList.add('icon-only');
       button.innerHTML = uiFormat.icon(iconName, 18) + (labelled
         ? `<span>${name}</span>`
         : `<span class="icon-label">${name}</span>`);
     });
+    placeSelectionActionsInControlBar();
   }
 
   function refresh() {
@@ -2921,21 +2976,30 @@
     const pane = document.getElementById('dock-workspace-tiles');
     if (!pane) return;
     pane.dataset.inspectorPanel = panel;
+    pane.dataset.inspectorLayout = 'stacked';
     const panels = { layers: 'panel-tile-layers', properties: 'panel-tile-shape-props', library: 'panel-tile-library-mgr', variants: 'panel-tile-d4-live' };
     Object.entries(panels).forEach(([key, id]) => {
       if (key === 'library' && typeof window !== 'undefined' && window.WorkspaceNavigation) return;
       const el = document.getElementById(id);
       if (el) {
-        el.hidden = key !== panel;
-        el.setAttribute('role', 'tabpanel');
-        el.setAttribute('aria-labelledby', {layers:'tileTabLayers',properties:'tileTabProperties',library:'tileTabLibrary',variants:'tileTabVariants'}[key]);
+        el.hidden = false;
+        el.classList.remove('hidden', 'collapsed');
+        el.setAttribute('role', 'region');
+        el.removeAttribute('aria-labelledby');
+        el.setAttribute('aria-label', {layers:'Camadas',properties:'Propriedades',variants:'Variantes'}[key] || 'Biblioteca');
+        const body = el.querySelector('.panel-body');
+        body?.classList.remove('hidden');
       }
     });
     pane.querySelectorAll('[data-tile-panel]').forEach((btn) => {
       const active = btn.dataset.tilePanel === panel;
-      btn.setAttribute('aria-selected', String(active)); btn.tabIndex = active ? 0 : -1;
-      if (active && focusTab) btn.focus();
+      btn.setAttribute('aria-selected', String(active));
+      btn.tabIndex = -1;
     });
+    if (focusTab) {
+      const target = document.getElementById(panels[panel]);
+      target?.querySelector('button:not(:disabled), input:not(:disabled), select:not(:disabled)')?.focus();
+    }
   }
 
   // ==========================================================================
@@ -3535,6 +3599,7 @@
     document.getElementById('tileGridDivSelect')?.addEventListener('change', (e) => {
       if (!ve) return;
       ve.state.gridDiv = parseInt(e.target.value, 10) || 0;
+      ve.state.snapEnabled = ve.state.gridDiv > 0;
       renderLeftPaneState();
       renderShapePropsPanel(true);
       requestHostRedraw();

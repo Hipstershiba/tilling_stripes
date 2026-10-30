@@ -94,7 +94,7 @@
   }
   function control(item) {
     const target = item.dataset.menuTarget;
-    if (item.dataset.menuAction === 'object') return doc.querySelector('#vecPropsContainer ' + target + ', #tilePathfinderContainer ' + target);
+    if (item.dataset.menuAction === 'object') return doc.querySelector('#vecPropsContainer ' + target + ', #tilePathfinderContainer ' + target + ', #topPieceTransform ' + target);
     if (item.dataset.menuAction === 'guide') return byId(guideControlId(tiles() ? 'tiles' : 'mosaic',target));
     return byId(target);
   }
