@@ -2863,7 +2863,7 @@
   }
 
   function iconizePropertyActions() {
-    associatePropertyFieldLabels();
+    if (typeof associatePropertyFieldLabels === 'function') associatePropertyFieldLabels();
     // Command ids resolved against the shared registry (core/ui_format.js).
     const iconNames = {
       'stripe-h-1-3': 'presetStripeH', 'stripe-v-1-3': 'presetStripeV',
@@ -2952,7 +2952,11 @@
     const famDoc = getSelectedFamilyDoc();
 
     // Subtle studio backdrop around the subtile preview grid
-    p.background(20, 22, 27);
+    if (typeof p.clear === 'function') {
+      p.clear();
+    } else {
+      p.background(20, 22, 27);
+    }
 
     if (!fam || !famDoc) return;
 
@@ -2960,7 +2964,7 @@
     const layout = computePreviewCells(uiState.previewMode, selectedTransform);
 
     const maxSpan = Math.max(layout.rows, layout.cols, 1);
-    const fillFactor = maxSpan === 1 ? 0.72 : (maxSpan === 2 ? 0.78 : 0.84);
+    const fillFactor = maxSpan === 1 ? 0.78 : (maxSpan === 2 ? 0.82 : 0.86);
     const totalSide = Math.min(W, H) * fillFactor;
     const cellSide = totalSide / maxSpan;
     const gridW = cellSide * layout.cols;
@@ -2970,10 +2974,24 @@
     const padPx = cellSide * (studioState.paddingRatio || 0);
     const innerSide = Math.max(1, cellSide - padPx * 2);
 
-    // Artboard surface fill using user's BG color
+    // Artboard surface fill using user's BG color with Illustrator-style drop shadow
     p.push();
+    if (p.drawingContext && typeof p.drawingContext.save === 'function') {
+      p.drawingContext.save();
+      p.drawingContext.shadowColor = 'rgba(0, 0, 0, 0.65)';
+      p.drawingContext.shadowBlur = 24;
+      p.drawingContext.shadowOffsetY = 10;
+    }
     p.noStroke();
     p.fill(studioState.bgColor || '#0c0c0e');
+    p.rect(startX, startY, gridW, gridH);
+    if (p.drawingContext && typeof p.drawingContext.restore === 'function') {
+      p.drawingContext.restore();
+    }
+    // Crisp outer artboard border
+    p.noFill();
+    p.stroke(255, 255, 255, 28);
+    p.strokeWeight(1);
     p.rect(startX, startY, gridW, gridH);
     p.pop();
 
@@ -3137,6 +3155,20 @@
       p.strokeWeight(1.6);
       p.rect(-half, -half, side, side);
 
+      if (layout.cells.length > 1 && typeof p.textSize === 'function') {
+        p.push();
+        p.noStroke();
+        p.fill(59, 130, 246, 230);
+        const tagW = 46;
+        const tagH = 13;
+        p.rect(-tagW / 2, -half - tagH - 2, tagW, tagH, 3);
+        p.fill(255, 255, 255, 240);
+        p.textSize(9);
+        if (typeof p.textAlign === 'function') p.textAlign(p.CENTER, p.CENTER);
+        p.text('MESTRE', 0, -half - tagH / 2 - 2);
+        p.pop();
+      }
+
       // 6. Interactive Vector Editor Overlay (BBox handles, Bezier nodes/tangents, Pen & Snap crosshairs)
       if (ve && typeof ve.renderEditorOverlay === 'function') {
         p.push();
@@ -3193,8 +3225,8 @@
 
     const res = ve.onPointerDown(mapped.u, mapped.v, mods, famDoc, mapped.hitRadiusNorm);
     if (res.readOnlyBlocked) {
-      if (mapped.insideCell && ve.state.activeTool !== 'select') {
-        notifyToast('Peça protegida — clique em "Criar cópia editável" para desenhar.', 'info');
+      if (mapped.insideCell) {
+        notifyToast('Peça do catálogo protegida — clique em "Criar cópia" para editar.', 'info');
       }
       return true;
     }
@@ -3275,7 +3307,12 @@
     if (!mapped || !mapped.insideCell) return false;
 
     const famDoc = getSelectedFamilyDoc();
-    if (!famDoc || famDoc.builtIn || famDoc.protected) return false;
+    if (!famDoc) return false;
+    if (famDoc.builtIn || famDoc.protected) {
+      runTileCommand('copyEditable');
+      notifyToast('Cópia editável criada! Agora você pode desenhar e editar livremente.', 'info');
+      return true;
+    }
 
     const res = ve.onDoubleClick(mapped.u, mapped.v, famDoc, mapped.hitRadiusNorm);
     if (res.switchedTool) {

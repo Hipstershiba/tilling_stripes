@@ -71,6 +71,8 @@
           <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="ports" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Portas</span></button>
           <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="margin" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Margem</span></button>
           <button type="button" role="menuitemcheckbox" class="menu-command" data-menu-action="guide" data-menu-target="snap" data-menu-mode="tiles"><span class="menu-check" aria-hidden="true">✓</span><span>Encaixar na grade</span></button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" role="menuitem" class="menu-command" data-menu-action="click" data-menu-target="spoutToggle"><span>Saída Spout</span></button>
         </div>
       </div>
       <div class="app-menu-group">
@@ -214,8 +216,8 @@
         </div>
         <div class="bar-divider"></div>
         <div id="tilePreviewModeGroup" class="tile-preview-seg" role="group" aria-label="Modo de visualização da prancheta">
-          <button type="button" class="tile-prev-btn" data-tile-preview="single" aria-pressed="false" title="Célula Mestre 1×1 isolada">1×1</button>
-          <button type="button" class="tile-prev-btn active" data-tile-preview="neighbors_3x3" aria-pressed="true" title="Repetição 3×3 do mestre com a mesma orientação">3×3</button>
+          <button type="button" class="tile-prev-btn active" data-tile-preview="single" aria-pressed="true" title="Célula Mestre 1×1 isolada">1×1</button>
+          <button type="button" class="tile-prev-btn" data-tile-preview="neighbors_3x3" aria-pressed="false" title="Repetição 3×3 do mestre com a mesma orientação">3×3</button>
           <button type="button" class="tile-prev-btn icon-only" data-tile-preview="mandala_d4" aria-pressed="false" title="Espelhos" aria-label="Espelhos"><span class="icon-slot" data-icon-slot="symmetry"></span><span class="icon-label">Espelhos</span></button>
           <button type="button" class="tile-prev-btn icon-only" data-tile-preview="rotational_c4" aria-pressed="false" title="Giro C4" aria-label="Giro C4"><span class="icon-slot" data-icon-slot="rotate"></span><span class="icon-label">Giro C4</span></button>
         </div>
@@ -607,7 +609,7 @@
                 </div>
                 <div class="document-fields">
                   <div class="document-field" title="Largura da Prancheta (px)">
-                    <label class="document-field-label" for="canvasW">Larg.</label>
+                    <label class="document-field-label" for="canvasW">W</label>
                     <input type="number" id="canvasW" aria-label="Largura da prancheta em pixels" value="600" min="100" max="4096" step="50">
                     <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
@@ -618,7 +620,7 @@
                     </div>
                   </div>
                   <div class="document-field" title="Altura da Prancheta (px)">
-                    <label class="document-field-label" for="canvasH">Alt.</label>
+                    <label class="document-field-label" for="canvasH">H</label>
                     <input type="number" id="canvasH" aria-label="Altura da prancheta em pixels" value="600" min="100" max="4096" step="50">
                     <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
@@ -643,7 +645,7 @@
                 </div>
                 <div class="document-fields">
                   <div class="document-field" title="Linhas de Blocos (Rows)">
-                    <label class="document-field-label" for="gridRows">Lin.</label>
+                    <label class="document-field-label" for="gridRows">R</label>
                     <input type="number" id="gridRows" aria-label="Linhas da grade em blocos" value="3" min="1" max="32" step="1">
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="gridRows" data-step-dir="1" tabindex="-1"
@@ -653,7 +655,7 @@
                     </div>
                   </div>
                   <div class="document-field" title="Colunas de Blocos (Cols)">
-                    <label class="document-field-label" for="gridCols">Col.</label>
+                    <label class="document-field-label" for="gridCols">C</label>
                     <input type="number" id="gridCols" aria-label="Colunas da grade em blocos" value="3" min="1" max="32" step="1">
                     <div class="chip-steppers">
                       <button type="button" class="step-btn" data-step-target="gridCols" data-step-dir="1" tabindex="-1"
@@ -665,7 +667,7 @@
                 </div>
                 <div class="document-fields document-fields-secondary">
                   <div class="document-field" title="Margem Externa da Prancheta (px)">
-                    <label class="document-field-label" for="gridMargin">Marg.</label>
+                    <label class="document-field-label" for="gridMargin">M</label>
                     <input type="number" id="gridMargin" aria-label="Margem externa em pixels" value="24" min="0" max="500" step="4">
                     <span class="document-field-unit" aria-hidden="true">px</span>
                     <div class="chip-steppers">
@@ -676,7 +678,7 @@
                     </div>
                   </div>
                   <div class="document-field" title="Espaçamento Interno dos Azulejos (%)">
-                    <label class="document-field-label" for="paddingInput">Esp.</label>
+                    <label class="document-field-label" for="paddingInput">P</label>
                     <input type="number" id="paddingInput" aria-label="Espaçamento interno em porcentagem" min="0" max="25" step="1" value="5">
                     <span class="document-field-unit" aria-hidden="true">%</span>
                     <div class="chip-steppers">
@@ -730,6 +732,7 @@
           <section id="panelSymmetryGroup" class="dock-properties-group">
             <div class="dock-subtabs">
               <div id="propertiesTabs" class="dock-subtabs-list" role="tablist" aria-label="Painéis de estrutura e escopo">
+                <button type="button" id="propsTabBrush" class="dock-subtab" role="tab" aria-selected="false" aria-controls="panel-edit-brush" tabindex="-1" title="Pincel e catálogo de peças">Pincel</button>
                 <button type="button" id="propsTabSymmetry" class="dock-subtab active" role="tab" aria-selected="true" aria-controls="panel-symmetry" tabindex="0" title="Simetria &amp; Estrutura">Simetria</button>
                 <button type="button" id="propsTabScope" class="dock-subtab" role="tab" aria-selected="false" aria-controls="panel-edit-scope" tabindex="-1" title="Escopo de edição">Escopo</button>
               </div>

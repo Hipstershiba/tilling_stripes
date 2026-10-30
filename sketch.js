@@ -2480,6 +2480,11 @@ function activateStudioTool(tool, restorePaint = true) {
   if (tool === 'stamp' && !isCloneReady()) StudioState.stampInteractionMode = 'select';
   if (['paint','rotate','mirror','stamp','freeze'].includes(tool)) StudioState.workspace = 'edit';
   else if (tool === 'inspect') StudioState.workspace = 'generate';
+  if (tool === 'paint' || tool === 'stamp') {
+    if (typeof setPropertiesTab === 'function') setPropertiesTab('brush');
+  } else if (tool === 'inspect') {
+    if (typeof setPropertiesTab === 'function') setPropertiesTab('symmetry');
+  }
   document.getElementById('artboard-pasteboard')?.classList.toggle('panning', tool === 'pan' || StudioState.isSpaceDown);
   renderSupertileBuilderCanvas();
   renderEditBrushPalette();
@@ -3780,6 +3785,7 @@ const RAIL_FLYOUTS = [
 ];
 
 const PROPERTY_TABS = [
+  ['brush', 'panel-edit-brush', 'propsTabBrush'],
   ['symmetry', 'panel-symmetry', 'propsTabSymmetry'],
   ['scope', 'panel-edit-scope', 'propsTabScope']
 ];
@@ -3799,14 +3805,24 @@ function setPropertiesTab(tab, focus = false) {
       button.tabIndex = selected ? 0 : -1;
     }
   });
+  const symGroup = document.getElementById('panelSymmetryGroup');
+  if (symGroup) {
+    symGroup.classList.toggle('is-brush-active', activePropertyTab === 'brush');
+  }
   if (focus) document.getElementById(entry[2])?.focus();
 }
 
 function initPropertiesTabs() {
   const tabs = document.getElementById('propertiesTabs');
   if (!tabs) return;
+  const getTabId = (btn) => {
+    const controls = btn?.getAttribute('aria-controls');
+    if (controls === 'panel-edit-brush') return 'brush';
+    if (controls === 'panel-edit-scope') return 'scope';
+    return 'symmetry';
+  };
   tabs.querySelectorAll('[role="tab"]').forEach((button) => {
-    button.addEventListener('click', () => setPropertiesTab(button.getAttribute('aria-controls') === 'panel-edit-scope' ? 'scope' : 'symmetry'));
+    button.addEventListener('click', () => setPropertiesTab(getTabId(button)));
   });
   tabs.addEventListener('keydown', (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -3819,7 +3835,7 @@ function initPropertiesTabs() {
     else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
     else next = (index + 1) % buttons.length;
     const target = buttons[next];
-    setPropertiesTab(target.getAttribute('aria-controls') === 'panel-edit-scope' ? 'scope' : 'symmetry', true);
+    setPropertiesTab(getTabId(target), true);
   });
   setPropertiesTab(activePropertyTab);
 }

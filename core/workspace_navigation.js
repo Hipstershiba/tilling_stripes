@@ -51,7 +51,7 @@
     const edit = byId('btnEditLibraryPiece');
     if (edit) {
       edit.disabled = !meta;
-      const label = edit.querySelector('span:last-child');
+      const label = typeof edit.querySelector === 'function' ? edit.querySelector('span:last-child') : null;
       if (label) label.textContent = meta?.builtIn || meta?.protected ? 'Inspecionar' : 'Editar';
       edit.title = meta?.builtIn || meta?.protected ? 'Inspecionar peça protegida' : 'Editar peça selecionada';
       edit.setAttribute('aria-label', edit.title);
@@ -189,7 +189,9 @@
   function init() {
     if (!doc || initialized) return;
     initialized = true; triggers = Array.from(doc.querySelectorAll('.app-menu-trigger'));
-    new MutationObserver(syncViews).observe(doc.body, { attributes: true, attributeFilter: ['data-studio-mode'] });
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(syncViews).observe(doc.body, { attributes: true, attributeFilter: ['data-studio-mode'] });
+    }
     doc.querySelectorAll('[data-studio-view]').forEach(button => {
       button.addEventListener('click', () => {
         closeMenus();

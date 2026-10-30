@@ -69,7 +69,21 @@ button:disabled { cursor: default; }
 #left-toolbar .tools-grid-2col { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
 #left-toolbar .tools-grid-2col > button { height: 36px; min-height: 36px; border-radius: 5px; }
 #left-toolbar .vec-snap-row { gap: 4px; }
-#left-toolbar .vec-snap-row > button, #left-toolbar .subtile-grid-select { height: 36px; min-height: 36px; }
+#left-toolbar .vec-snap-row > button { height: 36px; min-height: 36px; }
+#left-toolbar .subtile-grid-select {
+  height: 36px;
+  min-height: 36px;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  font-size: 11px;
+  padding: 0;
+  cursor: pointer;
+  background: #20242b;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  color: var(--text-primary);
+}
 #left-toolbar .sidebar-color-row { display: grid; grid-template-columns: 27px 18px 27px; gap: 0; justify-content: center; }
 #left-toolbar .sidebar-color-chip { width: 27px; min-width: 27px; flex: 0 0 27px; }
 #left-toolbar .sidebar-color-swap-btn { width: 18px; min-width: 18px; flex: 0 0 18px; }
@@ -78,23 +92,176 @@ button:disabled { cursor: default; }
 
 #workspace-body { position: relative; }
 #canvas-stage { background: #131519; }
+body[data-studio-mode="tiles"] #canvas-stage {
+  box-shadow: none !important;
+  background: transparent !important;
+}
 #utility-rail { width: 40px; flex: 0 0 40px; padding-inline: 4px; background: #191c21; }
 #right-dock { background: var(--bg-panel); }
 #dock-header { background: var(--bg-panel); min-height: 40px; }
 body.right-dock-collapsed .dock-toggle-icon { transform: none; }
-#dock-generator { padding: 12px; gap: 8px; border-bottom: 1px solid var(--border-subtle); }
-#dock-generator .sidebar-gen-btn { min-height: 36px; font-size: 12px; border-radius: 6px; }
-#dock-generator .sidebar-seed-chip { min-height: 34px; }
-#dock-export { padding: 10px 12px; gap: 8px; background: #191c21; }
-#dock-export > :is(button, select) { min-height: 34px; }
-.dock-subtabs { height: 40px; padding-inline: 10px; background: transparent; }
-.dock-subtab { height: 40px; font-size: 12px; }
-.dock-subtab.active { background: transparent; }
+#dock-generator {
+  padding: 6px 12px;
+  gap: 6px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+  min-height: 38px;
+}
+#dock-generator .sidebar-gen-btn {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent-blue);
+  color: #fff;
+  border: 1px solid transparent;
+}
+#dock-generator .sidebar-gen-btn:hover { background: #3a75c4; }
+#dock-generator .sidebar-seed-row {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 1px;
+}
+#dock-generator .sidebar-seed-nav-btn {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 3px;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+}
+#dock-generator .sidebar-seed-chip {
+  min-height: 24px;
+  height: 24px;
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+#dock-generator #seedInput {
+  width: 48px;
+  height: 22px;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0;
+}
+#dock-export {
+  padding: 6px 12px;
+  gap: 6px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--border-subtle);
+  background: #191c21;
+  min-height: 38px;
+}
+#dock-export .sidebar-export-select {
+  height: 28px;
+  min-height: 28px;
+  font-size: 11px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+  color: var(--text-primary);
+}
+#dock-export .sidebar-export-btn {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-control);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  margin-left: auto;
+}
+.dock-subtabs {
+  height: 38px;
+  min-height: 38px;
+  padding-inline: 8px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.dock-subtab {
+  height: 38px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  padding: 0 10px;
+}
+.dock-subtab.active {
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--accent-blue);
+}
 .panel-header { min-height: 36px; font-size: 10px; letter-spacing: .07em; border-bottom: 1px solid var(--border-subtle); }
 .panel-body { overscroll-behavior: contain; }
 
 /* Name the decisions that shape the whole composition. */
-#dock-workspace-generate > #panelSymmetryGroup { flex: 0 1 auto; max-height: 56%; }
+#dock-workspace-generate {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+#dock-workspace-generate > #panelSymmetryGroup {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+}
+#dock-workspace-generate > #panelSymmetryGroup.is-brush-active {
+  flex: 0 0 auto !important;
+  max-height: 38px !important;
+  height: 38px !important;
+}
+#dock-workspace-generate > #panelSymmetryGroup.is-brush-active > .dock-panel {
+  display: none !important;
+}
+#dock-workspace-generate > #panelSymmetryGroup:not(.is-brush-active) ~ #panel-edit-brush {
+  display: none !important;
+}
+#dock-workspace-generate > #panel-edit-brush {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: calc(100% - 38px) !important;
+}
+#dock-workspace-generate > #panel-edit-brush.hidden {
+  display: none !important;
+}
 #panelSymmetryBody { padding: 10px 12px 14px; gap: 10px; }
 #panel-symmetry .prop-section { gap: 6px; }
 #panel-symmetry .prop-label-row { min-height: 22px; }
@@ -116,19 +283,114 @@ body.right-dock-collapsed .dock-toggle-icon { transform: none; }
 .edge-match-section .prop-label-row { margin: 0; }
 
 /* Brush preview and palette keep independent, usable areas. */
-#panelEditBrushBody { gap: 10px; padding: 12px; }
-#panel-edit-brush #panelEditBrushBody { overflow: hidden; }
-#panel-edit-brush .active-brush-card { padding: 8px; gap: 10px; border-radius: 6px; box-shadow: none; }
-#panel-edit-brush .supertile-canvas-box { width: 96px; height: 96px; border: 1px solid #4b658d; border-radius: 4px; }
-#panel-edit-brush .active-brush-controls { gap: 6px; }
-#panel-edit-brush .active-brush-title-row { gap: 4px; }
-#panel-edit-brush .active-brush-name { font-size: 11px; }
-#panel-edit-brush .active-brush-d4-label { font-size: 9px; padding: 1px 3px; background: transparent; color: var(--text-muted); }
-#btnOpenBrushPreview { width: 24px; min-width: 24px; min-height: 24px; height: 24px; padding: 0; background: transparent; color: var(--text-secondary); }
-#panel-edit-brush :is(.d4-mini-grid, .supertile-builder-actions) { gap: 3px; }
-#panel-edit-brush :is(.d4-mini-grid, .supertile-builder-actions) > button { width: 30px; height: 30px; min-height: 30px; flex-basis: 30px; border-radius: 4px; }
-#panel-edit-brush #editBrushPaletteContainer { min-height: 64px; scrollbar-gutter: stable; }
-#editBrushSearchInput { height: 34px; font-size: 12px; }
+#panel-edit-brush #panelEditBrushBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  padding: 8px 12px;
+  gap: 8px;
+  overflow: hidden;
+}
+#panel-edit-brush .active-brush-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+  box-shadow: none;
+  flex-shrink: 0;
+}
+#panel-edit-brush .supertile-canvas-box {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex: 0 0 44px;
+  border: 1px solid #4b658d;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #131519;
+}
+#panel-edit-brush #supertileBuilderCanvas {
+  width: 44px;
+  height: 44px;
+  display: block;
+}
+#panel-edit-brush .active-brush-controls {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+#panel-edit-brush .active-brush-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#panel-edit-brush .active-brush-name {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  color: var(--text-primary);
+}
+#panel-edit-brush .active-brush-d4-label {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #252b36;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+#btnOpenBrushPreview {
+  width: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-secondary);
+}
+#panel-edit-brush :is(.d4-mini-grid, .supertile-builder-actions) { gap: 3px; display: flex; }
+#panel-edit-brush :is(.d4-mini-grid, .supertile-builder-actions) > button {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  flex: 0 0 24px;
+  border-radius: 4px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+}
+#editBrushSearchInput {
+  height: 30px;
+  min-height: 30px;
+  font-size: 11px;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+  flex-shrink: 0;
+}
+#panel-edit-brush #editBrushPaletteContainer {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+}
 #panel-edit-brush .family-swatch-card { background: transparent; border-color: var(--border-subtle); border-radius: 5px; }
 .rail-flyout { border-radius: 7px; border-color: var(--border-strong); }
 .rail-flyout .panel-header { min-height: 40px; }
@@ -204,8 +466,8 @@ body.right-dock-collapsed .dock-toggle-icon { transform: none; }
   #left-toolbar { gap: 8px; padding-block: 8px; }
   #left-toolbar .tools-grid-2col > button { min-height: 30px; height: 30px; }
   #left-toolbar .sidebar-section { gap: 4px; }
-  #dock-workspace-generate > #panelSymmetryGroup { max-height: 53%; }
-  #panel-edit-brush .supertile-canvas-box { width: 72px; height: 72px; }
+  /* removed 53% constraint */
+  /* responsive canvas */
   #panelEditBrushBody { padding: 8px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
