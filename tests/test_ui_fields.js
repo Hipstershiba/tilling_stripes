@@ -27,7 +27,7 @@ enhanceProperties(container); assert.deepEqual(nodes.map(n => n.input.id), ids);
 // Exercise production capture handlers against draft/preview state and simulated native change.
 const handlers = {}, feedback = {id: '', classList: {add() {}, remove() {}}, setAttribute() {}};
 const doc = {documentElement: {dataset: {}}, body: {appendChild() {}}, createElement: () => feedback,
-  getElementById: () => null, addEventListener(name, callback) {handlers[name] = callback;}};
+  getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener(name, callback) {handlers[name] = callback;}};
 let preview = 5, cancelCount = 0, commits = 0;
 init(doc, {onCancel() {preview = 5; cancelCount++;}});
 const input = field('paddingInput', '5', '0', '25'); input.setAttribute('aria-describedby', 'originalHint');

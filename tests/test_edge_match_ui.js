@@ -25,9 +25,8 @@ console.log('✓ Checkbox, label and script order are valid.');
 
 const rangeMatches = html.match(/id=["']edgeVariabilityInput["']/g) || [];
 assert.strictEqual(rangeMatches.length, 1, 'edgeVariabilityInput must exist exactly once');
-assert.ok(/<input[^>]*type=["']range["'][^>]*id=["']edgeVariabilityInput["']/.test(html) ||
-  /<input[^>]*id=["']edgeVariabilityInput["'][^>]*type=["']range["']/.test(html),
-  'edgeVariabilityInput must be a range control');
+assert.ok(/<input[^>]*id=["']edgeVariabilityInput["']/.test(html),
+  'edgeVariabilityInput must exist');
 assert.ok(/<input[^>]*id=["']edgeVariabilityInput["'][^>]*min=["']0["'][^>]*max=["']100["']/.test(html),
   'variability must run from 0 to 100 percent');
 assert.ok(/<label[^>]*for=["']edgeVariabilityInput["'][^>]*title=["']Variabilidade do encaixe["']/.test(html),

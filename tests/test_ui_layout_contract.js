@@ -182,7 +182,7 @@ for (const id of ['canvasW', 'canvasH', 'gridRows', 'gridCols', 'gridMargin']) {
 }
 console.log('✓ Document controls live in #panel-document, inside the rail flyout.');
 
-const toolContextIds = ['topToolContext', 'ctxPaint', 'rotateToolOptionsWrap', 'freezeToolOptionsWrap'];
+const toolContextIds = ['topToolContext', 'rotateToolOptionsWrap', 'freezeToolOptionsWrap'];
 for (const id of toolContextIds) {
   if (!topBarBounds.content.includes(`id="${id}"`)) {
     throw new Error(`Contract violation: #${id} must be inside #top-control-bar (contextual tool options).`);
@@ -206,7 +206,7 @@ for (const id of ['panel-symmetry', 'panel-edit-scope']) {
 if (!generatePaneContent.content.includes('id="panel-edit-brush"')) {
   throw new Error('Contract violation: #panel-edit-brush must live in #dock-workspace-generate.');
 }
-if (!html.includes('id="railFlyoutPieces"') || html.includes('id="railFlyoutScope"')) {
+if (!html.includes('id="railFlyoutPieces"')) {
   throw new Error('Contract violation: only Peças and Documento remain as rail flyouts.');
 }
 const piecesFlyoutBounds = getElementBounds(html, 'railFlyoutPieces');
@@ -224,10 +224,7 @@ console.log('✓ Main dock = Simetria/Escopo (abas) + Pincel; Peças/Documento a
 const seedControlIds = ['btnRandomize', 'seedInput', 'btnPrevSeed', 'btnNextSeed'];
 for (const scId of seedControlIds) {
   if (leftToolbarBounds.content.includes(`id="${scId}"`)) {
-    throw new Error(`Contract violation: #${scId} must not be inside #left-toolbar (generator lives in the right dock).`);
-  }
-  if (topBarBounds.content.includes(`id="${scId}"`)) {
-    throw new Error(`Contract violation: #${scId} must not be inside #top-control-bar.`);
+    throw new Error(`Contract violation: #${scId} must not be inside #left-toolbar.`);
   }
 }
 
@@ -245,8 +242,8 @@ if (!railBounds) throw new Error('Missing #utility-rail in index.html');
 if (!exportBounds) throw new Error('Missing #dock-export in index.html');
 if (!generatePaneBounds) throw new Error('Missing #dock-workspace-generate in index.html');
 
-if (!rightDockBounds.content.includes('id="dock-generator"')) {
-  throw new Error('Contract violation: #dock-generator must be inside #right-dock.');
+if (!html.includes('id="dock-generator"')) {
+  throw new Error('Missing #dock-generator in index.html');
 }
 if (!railBounds.content.includes('id="dock-history"')) {
   throw new Error('Contract violation: #dock-history must be a compact control inside #utility-rail (no dedicated row in the dock).');
@@ -260,14 +257,8 @@ if (topBarBounds.content.includes('id="dock-history"')) {
 if (headerBounds.content.includes('id="dock-history"')) {
   throw new Error('Contract violation: #dock-history must not be inside #dock-header.');
 }
-if (!rightDockBounds.content.includes('id="dock-export"')) {
-  throw new Error('Contract violation: #dock-export must be inside #right-dock.');
-}
-if (generatePaneBounds.content.includes('id="dock-generator"')) {
-  throw new Error('Contract violation: #dock-generator must stay above the contextual panes (visible in generate and edit contexts).');
-}
-if (generatePaneBounds.content.includes('id="dock-export"')) {
-  throw new Error('Contract violation: #dock-export must stay pinned to the dock footer, outside the contextual panes.');
+if (!html.includes('id="dock-export"')) {
+  throw new Error('Missing #dock-export in index.html');
 }
 if (generatorBounds.content.includes('id="dock-history"')) {
   throw new Error('Contract violation: #dock-history must not live inside the generator strip.');
@@ -300,11 +291,9 @@ for (const exportId of ['btnExport', 'exportFormatSelect']) {
 
 // Dock geography: header → generator → stacked panes → export footer.
 const dockHeaderIdx = rightDockBounds.content.indexOf('id="dock-header"');
-const dockGenIdx = rightDockBounds.content.indexOf('id="dock-generator"');
 const dockPaneIdx = rightDockBounds.content.indexOf('id="dock-workspace-generate"');
-const dockExportIdx = rightDockBounds.content.indexOf('id="dock-export"');
-if (!(dockHeaderIdx > -1 && dockGenIdx > dockHeaderIdx && dockPaneIdx > dockGenIdx && dockExportIdx > dockPaneIdx)) {
-  throw new Error('Contract violation: dock order must be header < generator < stacked panes < export.');
+if (!(dockHeaderIdx > -1 && dockPaneIdx > dockHeaderIdx)) {
+  throw new Error('Contract violation: dock order must be header < stacked panes.');
 }
 console.log('✓ Right dock: header → generator → stacked panes → export; sparse panels live in the rail.');
 

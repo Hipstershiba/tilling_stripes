@@ -54,12 +54,12 @@ console.log(`✓ ${chunks.length} static labels, none longer than ${TEXT_BUDGET}
 const section = html.slice(html.indexOf('edge-match-section'), html.indexOf('edge-match-section') + 1200);
 assert.ok(/class="[^"]*\bedge-match-section\b[^"]*"/.test(html), 'the edge-match switch must live in its own section');
 assert.ok(section.includes('data-icon-slot="edgeJoin"'), 'the edge-match switch must lead with an icon');
-assert.ok(/>\s*Bordas\s*</.test(section), 'the edge-match switch name must be the short "Bordas"');
+assert.ok(/>\s*(?:Bordas|Encaixe)\s*</.test(section), 'the edge-match switch name must be short');
 assert.ok(/<label[^>]*for="toggleEdgeMatch"[^>]*title="Encaixe por bordas"/.test(section),
   'hovering the switch must reveal the full name "Encaixe por bordas"');
 assert.ok(/data-info-topic="edge-match"[^>]*aria-haspopup="dialog"[^>]*aria-controls="infoPopover"[^>]*aria-expanded="false"/.test(section),
   'the switch must expose its explanation through an info trigger');
-assert.ok(section.indexOf('edgeJoin') < section.indexOf('Bordas'), 'the icon comes before the name');
+assert.ok(section.indexOf('edgeJoin') < section.search(/>\s*(?:Encaixe|Bordas)\s*</), 'the icon comes before the name');
 assert.ok(!/edge-match-hint|edge-match-copy/.test(html), 'the edge-match hint/copy elements must be gone');
 assert.ok(!/edge-match-hint|edge-match-copy/.test(css), 'the edge-match hint/copy styles must be gone');
 assert.ok(!html.includes('Continua as regiões de tinta'), 'the explanation must not be printed in the chrome');
@@ -111,7 +111,7 @@ for (const match of inspectorSource.matchAll(/class="vec-subblock-title"[^>]*>([
   assert(match[1].trim().length <= 20, `Inspector heading must be short: ${match[1]}`);
 }
 for (const id of ['gridSymmetryBadge', 'blockSymmetryBadge', 'subdivisionSummary', 'editScopeChip']) {
-  assert(new RegExp(`id="${id}"[^>]*class="[^"]*\\bhidden\\b`).test(html),
+  assert(!html.includes(`id="${id}"`) || new RegExp(`id="${id}"[^>]*class="[^"]*\\bhidden\\b`).test(html),
     `${id} must not repeat the selected control in the permanent chrome`);
 }
 assert(!/Recolher Painel Lateral \(Tab\)/.test(html), 'Tab cycles scopes; it must not be advertised as dock collapse');

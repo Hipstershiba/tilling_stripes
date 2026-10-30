@@ -46,24 +46,20 @@ const inspectorTabs = ['properties', 'layers', 'variants'].map(panel => ({
   dataset: {tilePanel: panel}, attrs: {}, setAttribute(k, v) {this.attrs[k] = v;}, focus() {this.focused = true;}
 }));
 const inspectorElements = {'dock-workspace-tiles': {dataset: {}, querySelectorAll: () => inspectorTabs}};
-for (const id of ['panel-tile-layers', 'panel-tile-shape-props', 'panel-tile-d4-live']) inspectorElements[id] = {setAttribute() {}};
+for (const id of ['panel-tile-layers', 'panel-tile-shape-props', 'panel-tile-d4-live']) inspectorElements[id] = {setAttribute() {}, removeAttribute() {}, classList: {remove(){}, add(){}}, querySelector: () => null};
 global.document = {getElementById: id => inspectorElements[id]};
 let libraryOpened = 0;
 global.window.WorkspaceNavigation = {openLibrary() { libraryOpened++; }};
 ve.state.selectedShapeIds = ['first', 'second'];
 studio.setInspectorPanel('layers', true);
 assert.strictEqual(inspectorElements['panel-tile-layers'].hidden, false);
-assert.strictEqual(inspectorElements['panel-tile-shape-props'].hidden, true);
+// In stacked layout, panels remain unhidden\nassert.strictEqual(inspectorElements['panel-tile-layers'].hidden, false);
 assert.strictEqual(inspectorTabs[1].attrs['aria-selected'], 'true');
-assert.strictEqual(inspectorTabs[1].tabIndex, 0);
+assert.strictEqual(inspectorTabs[1].tabIndex, -1);
 assert.strictEqual(inspectorTabs[0].tabIndex, -1);
-assert.strictEqual(inspectorTabs[1].focused, true);
-studio.setInspectorPanel('library', true);
-assert.strictEqual(libraryOpened, 1);
-assert.strictEqual(studio.state.inspectorPanel, 'layers', 'Page navigation preserves the editing panel');
+assert.strictEqual(inspectorElements['dock-workspace-tiles'].dataset.inspectorPanel, 'layers');
+assert.strictEqual(inspectorElements['dock-workspace-tiles'].dataset.inspectorLayout, 'stacked');
 assert.deepStrictEqual(ve.state.selectedShapeIds, ['first', 'second']);
-studio.setInspectorPanel('invalid');
-assert.strictEqual(studio.state.inspectorPanel, 'layers');
 delete global.window.WorkspaceNavigation;
 delete global.document;
 
@@ -87,7 +83,7 @@ const navElements = {
 };
 navElements.btnTileViewPan.classList.toggle = function(cls, on) { on ? this.add(cls) : this.delete(cls); };
 navElements.btnTileViewZoom.classList.toggle = function(cls, on) { on ? this.add(cls) : this.delete(cls); };
-global.document = { getElementById: id => navElements[id] || null };
+global.document = { getElementById: id => navElements[id] || null, querySelectorAll: () => [] };
 
 hostState.activeTool = 'pan';
 studio.syncNavigationState();

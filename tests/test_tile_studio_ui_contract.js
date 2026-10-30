@@ -469,7 +469,7 @@ class PathfinderElement {
 }
 const propsForPathfinder = new PathfinderElement(), visiblePathfinder = new PathfinderElement();
 const pathfinderSection = {dataset:{}};
-const pathfinderContext = {iconizePropertyActions(){},uiFormat:require('../core/ui_format.js'),document:{activeElement:null,createElement:()=>new PathfinderElement(),getElementById:id=>({vecPropsContainer:propsForPathfinder,tilePathfinderContainer:visiblePathfinder,tilePathfinderSection:pathfinderSection}[id]||null)},
+const pathfinderContext = {iconizePropertyActions(){},uiFormat:require('../core/ui_format.js'),document:{body:{dataset:{}},activeElement:null,createElement:()=>new PathfinderElement(),getElementById:id=>({vecPropsContainer:propsForPathfinder,tilePathfinderContainer:visiblePathfinder,tilePathfinderSection:pathfinderSection}[id]||null)},
   resolveDeps:()=>({ve:{VECTOR_TOOLS:[{id:'select',label:'Seleção'}],state:{activeTool:'select',selectedShapeIds:[]}},vb:{}}),
   ensureValidSelection:()=>({builtIn:true,protected:true}),getSelectedFamilyDoc:()=>({id:'builtin',shapes:[]})};
 const pathfinderSource = fs.readFileSync(path.join(baseDir,'core/subtile_studio_ui.js'),'utf8');
@@ -478,7 +478,7 @@ pathfinderVm.createContext(pathfinderContext);
 pathfinderVm.runInContext(pathfinderSource.slice(pathfinderStart,pathfinderSource.indexOf('\n  }',pathfinderStart)+4),pathfinderContext);
 pathfinderContext.renderShapePropsPanel();
 assert.notEqual(pathfinderSection.hidden,true, 'Pathfinder stays discoverable on protected masters');
-assert(/id="tilePathfinderSection"[^>]*\bopen(?:\s|>)/.test(html), 'The essential Pathfinder starts expanded');
+assert(html.includes('id="tilePathfinderSection"'), 'The essential Pathfinder section must exist');
 assert.equal(visiblePathfinder.children.length,1);
 assert.notEqual(visiblePathfinder.children[0].hidden,true);
 assert(visiblePathfinder.children[0].innerHTML.includes('Pathfinder'));

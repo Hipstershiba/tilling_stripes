@@ -24,6 +24,7 @@ function createMockEl(id = '', tag = 'div') {
     },
     style: {},
     appendChild: () => {},
+    insertBefore: () => {},
     setAttribute: () => {},
     focus() { global.document.activeElement = this; },
     getBoundingClientRect() { return {left:0, top:0, width:this.width, height:this.height}; },

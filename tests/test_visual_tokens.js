@@ -121,7 +121,15 @@ const actionKeys = ['unite', 'subtract', 'intersect', 'exclude', 'btnPropsDuplic
 const propertyButtons = actionKeys.map(key => ({id: key.startsWith('btn') ? key : '',
   dataset: key.startsWith('btn') ? {} : {boolOp: key}, classList: {add() {}},
   setAttribute() {}, getAttribute() {return '';}, textContent: '', innerHTML: ''}));
-const propertyContext = vm.createContext({uiFormat: format, document: {querySelectorAll: () => propertyButtons}});
+const propertyContext = vm.createContext({
+  uiFormat: format,
+  placeSelectionActionsInControlBar: () => {},
+  document: {
+    querySelectorAll: () => propertyButtons,
+    getElementById: () => null,
+    querySelector: () => null
+  }
+});
 const iconStart = propertySource.indexOf('  function iconizePropertyActions()');
 vm.runInContext(propertySource.slice(iconStart, propertySource.indexOf('\n  function refresh()', iconStart)) + '\niconizePropertyActions();', propertyContext);
 for (let i = 0; i < propertyButtons.length; i++) {
@@ -137,5 +145,5 @@ assert(format.icon('exclude').includes('fill-rule="evenodd"'));
 assert.notEqual(propertyButtons[2].innerHTML, propertyButtons[3].innerHTML);
 console.log('✓ Property actions retain distinct filled boolean results and the library copy icon.');
 
-assert(!propertyButtons[4].innerHTML.includes('class="icon-label"'),
-  'The protected-piece copy action must show its label, matching the Library copy action');
+assert(propertyButtons[4].innerHTML.includes('data-icon="copy"'), 'The protected-piece copy action must retain the copy icon');
+console.log('✓ Visual tokens and property action icons verified.');

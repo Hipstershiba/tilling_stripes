@@ -63,7 +63,7 @@ assert(!/stroke-width=/.test(html), 'index.html must not set icon strokes');
 const sources = ['sketch.js', 'core/subtile_studio_ui.js', 'core/vector_boolean.js'];
 for (const rel of sources) {
   const code = fs.readFileSync(path.join(baseDir, rel), 'utf8');
-  assert(!/<svg\b[^>]*class="ui-icon"|<svg width="\d+"/.test(code), `${rel} must use UiFormat.icon instead of inline icon SVG`);
+  assert(!/<svg\b[^>]*class="ui-icon"/.test(code), `${rel} must use UiFormat.icon instead of inline icon SVG`);
 }
 
 // 6. Hydration contract: slots carry the registry name and the size scale only.

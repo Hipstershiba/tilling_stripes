@@ -46,9 +46,9 @@ for (const id of faseDIds) {
 }
 
 const idxPaper = html.indexOf('libraries/paper-core.min.js');
-const idxEditor = html.indexOf('src="core/vector_editor.js"');
-const idxBool = html.indexOf('src="core/vector_boolean.js"');
-const idxStudio = html.indexOf('src="core/subtile_studio_ui.js"');
+const idxEditor = html.search(/src="core\/vector_editor\.js/);
+const idxBool = html.search(/src="core\/vector_boolean\.js/);
+const idxStudio = html.search(/src="core\/subtile_studio_ui\.js/);
 assert.ok(idxPaper > 0, 'index.html must load libraries/paper-core.min.js');
 assert.ok(idxPaper < idxBool, 'paper-core.min.js must load before core/vector_boolean.js');
 assert.ok(idxEditor < idxBool && idxBool < idxStudio, 'vector_boolean.js must load between vector_editor.js and subtile_studio_ui.js');
